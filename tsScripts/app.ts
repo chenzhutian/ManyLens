@@ -1,4 +1,4 @@
-﻿///<reference path = "../Scripts/typings/d3/d3.d.ts" / >
+﻿///<reference path = "../Scripts/typings/d3/d3.d.ts" />
 "use strict";
 
 interface IDataSeries {
@@ -72,8 +72,8 @@ module Chart {
 
             // Create scales for X and Y axis (X based on dates, Y based on performance data)
             var x = d3.time.scale()
-                .domain([minX, d3.time.day(d3.time.day.offset(new Date(), 1))])
-                .range([0, this.chartWidth - this.legendWidth]);
+                    .domain([minX, d3.time.day(d3.time.day.offset(new Date(), 1))])
+                    .range([0, this.chartWidth - this.legendWidth]);
             var y = d3.scale.linear()
                 .domain([0, maxY])
                 .range([0, this.chartHeight]);
@@ -133,10 +133,10 @@ module Chart {
             var axis = d3.svg.axis();
             axis.scale(x)
                 .ticks(d3.time.mondays, 1)
-                .tickSubdivide(6)
-                .tickFormat(this.iso8601)
-                .tickSize(10, 5, 0);
-
+            .tickSubdivide(6)
+            .tickFormat(this.iso8601)
+            .tickSize(10, 5);
+            ;
             var axisGroup = svg.append('g')
                 .attr('class', 'axis')
                 .attr('transform', 'translate(' + this.legendWidth + ',' + this.chartHeight + ')')
