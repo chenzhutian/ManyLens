@@ -1,24 +1,26 @@
 ﻿///<reference path = "../Scripts/typings/d3/d3.d.ts" />
-"use strict";
-
-interface IDataSeries {
-    desc: string;
-    data: IRun[];
-}
+///<reference path = "../tsScripts/SOMMap.ts" />
+///<reference path = "../tsScripts/Cruve.ts" />
+//"use strict";
 
 interface IRun {
     date: Date;
     pass: boolean;
 }
 
-interface IPerfDataSeries {
+interface IDataSeries {
     desc: string;
-    data: IPerfRun[];
+    data: IRun[];
 }
 
 interface IPerfRun {
     x: Date;
     y: number;
+}
+
+interface IPerfDataSeries {
+    desc: string;
+    data: IPerfRun[];
 }
 
 module Chart {
@@ -172,17 +174,19 @@ module Chart {
             // Create our scales for x and y axis
             var x = d3.time.scale()
                 .domain([minDate, d3.time.day(new Date())])
-                .range([0, boxSize * (days.length - 1)]);
+                .range([0, boxSize * (days.length - 1)])
+            ;
 
             var y = d3.scale.linear()
                 .domain([0, 1])
-                .range([0, boxSize]);
-
+                .range([0, boxSize])
+            ;
 
             // SVG element                      
             var svg = this.element.append('svg')
                 .attr('height', y(data.length + 1))
-                .attr('width', this.chartWidth);
+                .attr('width', this.chartWidth)
+            ;
 
             svg.selectAll('text')
                 .data(data)
@@ -191,7 +195,8 @@ module Chart {
                 .attr('transform', function (d, i) { return 'translate(0,' + y(i) + ')' })
                 .attr('dy', '1em')
                 .attr('text-anchor', 'end')
-                .text(function (d) { return d.desc });
+                .text(function (d) { return d.desc })
+            ;
 
             // Groups of boxes for updated builds
             var g = svg.selectAll('g.boxes')
@@ -202,7 +207,7 @@ module Chart {
 
             // Boxes of build info
             var rects = g.selectAll('rect')
-                .data(function (d, i) { return d.data; })
+                .data((d, i) => d.data)
                 .enter().append('rect')
                 .attr('class', (d) => 'day ' + this.getTextDataString(d))
                 .attr('x', (d, i) => this.labelWidth + this.labelGutter + x(d.date))
@@ -244,15 +249,14 @@ var buildData: IRun[] = days.map(day => ({ date: day, pass: Math.random() > 0.1 
 var compilerTestData: IRun[] = days.map(day => ({ date: day, pass: Math.random() > 0.1 }));
 var servicesTestData: IRun[] = days.map(day => ({ date: day, pass: Math.random() > 0.1 }));
 
-function decreasingRandom(start: number, deviation: number, factor: number) {
+function decreasingRandom(begin: number, deviation: number, factor: number) {
     var factorRandom = d3.random.normal(factor, 0.05);
 
     return function () {
-        var random = d3.random.normal(start, deviation)();
-        start = start * factorRandom();
-
+        var random = d3.random.normal(begin, deviation)();
+        begin = begin * factorRandom();
         return parseFloat(random.toFixed())
-    }
+   }
 }
 
 var parseRandom = decreasingRandom(400, 20, 0.97);
@@ -263,21 +267,23 @@ var parseData: IPerfRun[] = days.map(day => ({ x: day, y: parseRandom() }));
 var typecheckData: IPerfRun[] = days.map(day => ({ x: day, y: typecheckRandom() }));
 var emitData: IPerfRun[] = days.map(day => ({ x: day, y: emitRandom() }));
 
-document.addEventListener('DOMContentLoaded', function () {
-    var chart = new Chart.DailyBuild(d3.select('#passchart'));
+var b = new Chart.Bar(d3.select('#passchart'));
+var c = new ManyLens.Curve();
 
+document.addEventListener('DOMContentLoaded', function () {
+
+    var chart = new Chart.DailyBuild(d3.select('#passchart'));
     chart.render([
         { desc: "Build Status", data: buildData },
         { desc: "Compiler Tests", data: compilerTestData },
         { desc: "Services Tests", data: servicesTestData },
     ]);
 
-    var normalizedData = [
+
+    var perfchart = new Chart.Bar(d3.select('#performanceChart'));
+    perfchart.render([
         { desc: 'Emit', data: emitData },
         { desc: 'Typecheck', data: typecheckData },
         { desc: 'Parse', data: parseData }
-    ]
-
-    var perfchart = new Chart.Bar(d3.select('#performanceChart'));
-    perfchart.render(normalizedData);
+    ]);
 });

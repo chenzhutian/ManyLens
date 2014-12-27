@@ -1,5 +1,48 @@
+var ManyLens;
+(function (ManyLens) {
+    var SOMMap = (function () {
+        function SOMMap() {
+        }
+        return SOMMap;
+    })();
+    ManyLens.SOMMap = SOMMap;
+})(ManyLens || (ManyLens = {}));
+var ManyLens;
+(function (ManyLens) {
+    var Curve = (function () {
+        function Curve() {
+            this._x = d3.scale.linear();
+            this._y = d3.scale.linear();
+            this._section_num = 150;
+        }
+        Object.defineProperty(Curve.prototype, "X", {
+            get: function () {
+                return this._x;
+            },
+            set: function (scale) {
+                this._x = scale;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Curve.prototype, "Y", {
+            get: function () {
+                return this._y;
+            },
+            set: function (scale) {
+                this._y = scale;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Curve;
+    })();
+    ManyLens.Curve = Curve;
+})(ManyLens || (ManyLens = {}));
 ///<reference path = "../Scripts/typings/d3/d3.d.ts" />
-"use strict";
+///<reference path = "../tsScripts/SOMMap.ts" />
+///<reference path = "../tsScripts/Cruve.ts" />
+//"use strict";
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -109,9 +152,7 @@ var Chart;
                 return 'translate(0,' + y(i) + ')';
             });
             // Boxes of build info
-            var rects = g.selectAll('rect').data(function (d, i) {
-                return d.data;
-            }).enter().append('rect').attr('class', function (d) { return 'day ' + _this.getTextDataString(d); }).attr('x', function (d, i) { return _this.labelWidth + _this.labelGutter + x(d.date); }).attr('width', boxSize).attr('height', boxSize);
+            var rects = g.selectAll('rect').data(function (d, i) { return d.data; }).enter().append('rect').attr('class', function (d) { return 'day ' + _this.getTextDataString(d); }).attr('x', function (d, i) { return _this.labelWidth + _this.labelGutter + x(d.date); }).attr('width', boxSize).attr('height', boxSize);
             rects.append('title').text(function (d) { return _this.iso8601(d.date) + ' - ' + _this.getTextDataString(d); });
             var ticks = x.ticks(d3.time.mondays, 1);
             // Date text boxes
@@ -130,11 +171,11 @@ var days = d3.time.days(start, end);
 var buildData = days.map(function (day) { return ({ date: day, pass: Math.random() > 0.1 }); });
 var compilerTestData = days.map(function (day) { return ({ date: day, pass: Math.random() > 0.1 }); });
 var servicesTestData = days.map(function (day) { return ({ date: day, pass: Math.random() > 0.1 }); });
-function decreasingRandom(start, deviation, factor) {
+function decreasingRandom(begin, deviation, factor) {
     var factorRandom = d3.random.normal(factor, 0.05);
     return function () {
-        var random = d3.random.normal(start, deviation)();
-        start = start * factorRandom();
+        var random = d3.random.normal(begin, deviation)();
+        begin = begin * factorRandom();
         return parseFloat(random.toFixed());
     };
 }
@@ -144,6 +185,8 @@ var emitRandom = decreasingRandom(100, 10, 0.97);
 var parseData = days.map(function (day) { return ({ x: day, y: parseRandom() }); });
 var typecheckData = days.map(function (day) { return ({ x: day, y: typecheckRandom() }); });
 var emitData = days.map(function (day) { return ({ x: day, y: emitRandom() }); });
+var b = new Chart.Bar(d3.select('#passchart'));
+var c = new ManyLens.Curve();
 document.addEventListener('DOMContentLoaded', function () {
     var chart = new Chart.DailyBuild(d3.select('#passchart'));
     chart.render([
@@ -151,12 +194,11 @@ document.addEventListener('DOMContentLoaded', function () {
         { desc: "Compiler Tests", data: compilerTestData },
         { desc: "Services Tests", data: servicesTestData },
     ]);
-    var normalizedData = [
+    var perfchart = new Chart.Bar(d3.select('#performanceChart'));
+    perfchart.render([
         { desc: 'Emit', data: emitData },
         { desc: 'Typecheck', data: typecheckData },
         { desc: 'Parse', data: parseData }
-    ];
-    var perfchart = new Chart.Bar(d3.select('#performanceChart'));
-    perfchart.render(normalizedData);
+    ]);
 });
-//# sourceMappingURL=app.js.map
+//# sourceMappingURL=ManyLens.js.map
