@@ -3,7 +3,6 @@ module ManyLens {
 
     export class BaseD3Lens extends D3ChartObject {
 
-
         protected _select_circle: D3.Selection;
         protected _sc_radius: number = 10;
         protected _sc_cx: number;
@@ -11,12 +10,12 @@ module ManyLens {
 
         protected _lens_circle: D3.Selection;
         protected _lc_radius: number = 100;
-        //protected _lc_cx: number;
-        //protected _lc_cy: number;
+        protected _lc_cx: number;
+        protected _lc_cy: number;
 
+        protected _zoom: D3.Behavior.Zoom = d3.behavior.zoom();
         constructor(element: D3.Selection) {
             super(element);
-
         }
 
         public render(): void {
@@ -26,7 +25,6 @@ module ManyLens {
 
             var selectCircle = this._select_circle = this._element.append("circle")
                 .attr("r", cr)
-
                 .attr("fill", "purple")
                 .attr("fill-opacity",0.3)
                 .on("mousedown", () => {
@@ -65,18 +63,19 @@ module ManyLens {
             throw new Error('This method is abstract');
         }
 
-        protected showLens(any = null): { ncx: number; ncy: number; theta: number; duration:number} {
+        protected showLens(any = null): { lcx: number; lcy: number; theta: number; duration:number} {
             var sc_lc_dist = 100;
             var theta = Math.PI / 2.5;
             var container = this._element;
             var cr = this._sc_radius;
             var cx = this._sc_cx + (cr * Math.cos(theta));
             var cy = this._sc_cy + (cr * Math.sin(theta));
-            var duration: number = 200;
+            var duration: number = 300;
 
-            container.append("g")
-                .attr("class","lcthings")
-            .append("line")
+            var svg = container.append("g")
+                .attr("class", "lcthings")
+            ;
+            svg.append("line")
                 .attr("x1", cx)
                 .attr("y1", cy)
                 .attr("x2", cx)
@@ -93,12 +92,68 @@ module ManyLens {
                     return cy;
                 })
             ;
+
+            this._lc_cx = cx + (this._lc_radius * Math.cos(theta));
+            this._lc_cy = cy + (this._lc_radius * Math.sin(theta));
+
+            this._zoom
+                .scaleExtent([1, 2])
+                .on("zoom", () => { this.zoomFunc(); })
+            ;
+
+            svg.append("g")
+                .call(this._zoom)
+            ;
+
             return {
-                ncx: cx + (this._lc_radius*Math.cos(theta)),
-                ncy: cy + (this._lc_radius*Math.sin(theta)),
+                lcx: this._lc_cx,
+                lcy: this._lc_cy,
                 theta: theta,
                 duration: duration
             }
+        }
+
+        //protected moveLens(): void {
+        //    var p = d3.mouse(this._element[0][0]);
+        //    d3.select("g.lcthings").select("g")
+        //        .attr("transform", "translate(" + [p[0], p[1]] + ")")
+        //    ;
+
+        //    var theta = Math.atan((p[1] - this._sc_cy) / (p[0] - this._sc_cx));
+        //    var cosTheta = p[0] > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+        //    var sinTheta = p[0] > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+
+        //    d3.select("g.lcthings").select("line")
+        //        .attr("x1", this._sc_cx + this._sc_radius * cosTheta)
+        //        .attr("y1", this._sc_cy + this._sc_radius * sinTheta)
+        //        .attr("x2", p[0] - this._lc_radius * cosTheta)
+        //        .attr("y2", p[1] - this._lc_radius * sinTheta)
+        //    ;
+        //}
+
+        protected zoomFunc(): void {
+
+            if (d3.event.sourceEvent.type == "mousemove") {
+                var p = d3.mouse(this._element[0][0]);
+                this._lc_cx = p[0];
+                this._lc_cy = p[1];
+
+            }
+
+            var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
+            var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+            var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+
+            d3.select("g.lcthings").select("g")
+                .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + d3.event.scale + ")")
+            ;
+
+            d3.select("g.lcthings").select("line")
+                .attr("x1", this._sc_cx + this._sc_radius * cosTheta)
+                .attr("y1", this._sc_cy + this._sc_radius * sinTheta)
+                .attr("x2", this._lc_cx - this._lc_radius * d3.event.scale * cosTheta)
+                .attr("y2", this._lc_cy - this._lc_radius * d3.event.scale * sinTheta)
+            ;
         }
     }
 }

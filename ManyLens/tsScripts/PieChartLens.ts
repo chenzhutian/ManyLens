@@ -43,33 +43,15 @@ module ManyLens{
             ;
 
             var lensG = container
-                .select("g.lcthings").append("g").datum(data)
+                .select("g.lcthings").select("g").datum(data)
                 .attr("opacity", "1e-6")
-                .attr("transform", "translate(" + [p.ncx, p.ncy] + ")")
-                .on("mousedown", () => {
-                    lensG
-                        .on("mousemove", () => {
-                            var p = d3.mouse(container[0][0]);
-                            d3.select("g.lcthings").select("g")
-                                .attr("transform", "translate(" + [p[0], p[1]] + ")")
-                            ;
-
-                            var theta = Math.atan((p[1] - this._sc_cy) / (p[0] - this._sc_cx));
-                            var cosTheta = p[0] > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                            var sinTheta = p[0] > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-
-                            d3.select("g.lcthings").select("line")
-                                .attr("x1", this._sc_cx + this._sc_radius * cosTheta)
-                                .attr("y1", this._sc_cy + this._sc_radius * sinTheta)
-                                .attr("x2", p[0] - this._lc_radius * cosTheta)
-                                .attr("y2", p[1] - this._lc_radius * sinTheta)
-                            ;
-                        })
-                })
-                .on("mouseup", function () {
-                    d3.select(this)
-                        .on("mousemove", null);
-                })
+                .attr("transform", "translate(" + [p.lcx, p.lcy] + ")")
+                //.on("mousedown", () => {
+                //    lensG.on("mousemove", () => { this.moveLens(); })
+                //})
+                //.on("mouseup", function () {
+                //    lensG.on("mousemove", null);
+                //})
             ;
 
             lensG.selectAll("path")
@@ -92,6 +74,10 @@ module ManyLens{
             d3.select("g.lcthings").select("g")
                 .transition().duration(p.duration)
                 .attr("opacity", "1")
+        }
+
+        protected zoomFunc(): void {
+            super.zoomFunc();
         }
     }
 } 

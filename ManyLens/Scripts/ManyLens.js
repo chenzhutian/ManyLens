@@ -80,12 +80,11 @@ var ManyLens;
 (function (ManyLens) {
     var BaseD3Lens = (function (_super) {
         __extends(BaseD3Lens, _super);
-        //protected _lc_cx: number;
-        //protected _lc_cy: number;
         function BaseD3Lens(element) {
             _super.call(this, element);
             this._sc_radius = 10;
             this._lc_radius = 100;
+            this._zoom = d3.behavior.zoom();
         }
         BaseD3Lens.prototype.render = function () {
             var _this = this;
@@ -116,6 +115,7 @@ var ManyLens;
             throw new Error('This method is abstract');
         };
         BaseD3Lens.prototype.showLens = function (any) {
+            var _this = this;
             if (any === void 0) { any = null; }
             var sc_lc_dist = 100;
             var theta = Math.PI / 2.5;
@@ -123,20 +123,54 @@ var ManyLens;
             var cr = this._sc_radius;
             var cx = this._sc_cx + (cr * Math.cos(theta));
             var cy = this._sc_cy + (cr * Math.sin(theta));
-            var duration = 200;
-            container.append("g").attr("class", "lcthings").append("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
+            var duration = 300;
+            var svg = container.append("g").attr("class", "lcthings");
+            svg.append("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
                 cx = cx + (sc_lc_dist * Math.cos(theta));
                 return cx;
             }).attr("y2", function () {
                 cy = cy + (sc_lc_dist * Math.sin(theta));
                 return cy;
             });
+            this._lc_cx = cx + (this._lc_radius * Math.cos(theta));
+            this._lc_cy = cy + (this._lc_radius * Math.sin(theta));
+            this._zoom.scaleExtent([1, 2]).on("zoom", function () {
+                _this.zoomFunc();
+            });
+            svg.append("g").call(this._zoom);
             return {
-                ncx: cx + (this._lc_radius * Math.cos(theta)),
-                ncy: cy + (this._lc_radius * Math.sin(theta)),
+                lcx: this._lc_cx,
+                lcy: this._lc_cy,
                 theta: theta,
                 duration: duration
             };
+        };
+        //protected moveLens(): void {
+        //    var p = d3.mouse(this._element[0][0]);
+        //    d3.select("g.lcthings").select("g")
+        //        .attr("transform", "translate(" + [p[0], p[1]] + ")")
+        //    ;
+        //    var theta = Math.atan((p[1] - this._sc_cy) / (p[0] - this._sc_cx));
+        //    var cosTheta = p[0] > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+        //    var sinTheta = p[0] > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+        //    d3.select("g.lcthings").select("line")
+        //        .attr("x1", this._sc_cx + this._sc_radius * cosTheta)
+        //        .attr("y1", this._sc_cy + this._sc_radius * sinTheta)
+        //        .attr("x2", p[0] - this._lc_radius * cosTheta)
+        //        .attr("y2", p[1] - this._lc_radius * sinTheta)
+        //    ;
+        //}
+        BaseD3Lens.prototype.zoomFunc = function () {
+            if (d3.event.sourceEvent.type == "mousemove") {
+                var p = d3.mouse(this._element[0][0]);
+                this._lc_cx = p[0];
+                this._lc_cy = p[1];
+            }
+            var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
+            var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+            var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+            d3.select("g.lcthings").select("g").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + d3.event.scale + ")");
+            d3.select("g.lcthings").select("line").attr("x1", this._sc_cx + this._sc_radius * cosTheta).attr("y1", this._sc_cy + this._sc_radius * sinTheta).attr("x2", this._lc_cx - this._lc_radius * d3.event.scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * d3.event.scale * sinTheta);
         };
         return BaseD3Lens;
     })(ManyLens.D3ChartObject);
@@ -172,23 +206,15 @@ var ManyLens;
             this._pie.value(function (d) {
                 return d;
             }).sort(null);
-            var lensG = container.select("g.lcthings").append("g").datum(data).attr("opacity", "1e-6").attr("transform", "translate(" + [p.ncx, p.ncy] + ")").on("mousedown", function () {
-                lensG.on("mousemove", function () {
-                    var p = d3.mouse(container[0][0]);
-                    d3.select("g.lcthings").select("g").attr("transform", "translate(" + [p[0], p[1]] + ")");
-                    var theta = Math.atan((p[1] - _this._sc_cy) / (p[0] - _this._sc_cx));
-                    var cosTheta = p[0] > _this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                    var sinTheta = p[0] > _this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-                    d3.select("g.lcthings").select("line").attr("x1", _this._sc_cx + _this._sc_radius * cosTheta).attr("y1", _this._sc_cy + _this._sc_radius * sinTheta).attr("x2", p[0] - _this._lc_radius * cosTheta).attr("y2", p[1] - _this._lc_radius * sinTheta);
-                });
-            }).on("mouseup", function () {
-                d3.select(this).on("mousemove", null);
-            });
+            var lensG = container.select("g.lcthings").select("g").datum(data).attr("opacity", "1e-6").attr("transform", "translate(" + [p.lcx, p.lcy] + ")");
             lensG.selectAll("path").data(this._pie).enter().append("path").attr("fill", function (d, i) {
                 return _this._color(i);
             }).attr("d", this._arc);
             d3.select("g.lcthings").select("g").append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._innerRadius).attr("fill", "rgb(221,221,221)").attr("fill-opacity", 0.3);
             d3.select("g.lcthings").select("g").transition().duration(p.duration).attr("opacity", "1");
+        };
+        PieChartLens.prototype.zoomFunc = function () {
+            _super.prototype.zoomFunc.call(this);
         };
         return PieChartLens;
     })(ManyLens.BaseD3Lens);
