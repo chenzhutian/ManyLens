@@ -37,6 +37,7 @@
     <TypeScriptCompile Include="Scripts\typings\d3\d3.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\d3\plugins\d3.superformula.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\signalr\signalr.d.ts" />
+    <TypeScriptCompile Include="tsScripts\D3ChartObject.ts" />
     <TypeScriptCompile Include="tsScripts\Cruve.ts" />
     <TypeScriptCompile Include="tsScripts\SOMMap.ts" />
   </ItemGroup>

@@ -1,5 +1,4 @@
 ﻿///<reference path = "../Scripts/typings/d3/d3.d.ts" />
-///<reference path = "../tsScripts/SOMMap.ts" />
 ///<reference path = "../tsScripts/Cruve.ts" />
 //"use strict";
 
@@ -267,23 +266,21 @@ var parseData: IPerfRun[] = days.map(day => ({ x: day, y: parseRandom() }));
 var typecheckData: IPerfRun[] = days.map(day => ({ x: day, y: typecheckRandom() }));
 var emitData: IPerfRun[] = days.map(day => ({ x: day, y: emitRandom() }));
 
-var b = new Chart.Bar(d3.select('#passchart'));
-var c = new ManyLens.Curve();
-
 document.addEventListener('DOMContentLoaded', function () {
+    var curveView = new ManyLens.Curve(d3.select("#passchart"));
+    curveView.render();
+    //var chart = new Chart.DailyBuild(d3.select('#passchart'));
+    //chart.render([
+    //    { desc: "Build Status", data: buildData },
+    //    { desc: "Compiler Tests", data: compilerTestData },
+    //    { desc: "Services Tests", data: servicesTestData },
+    //]);
 
-    var chart = new Chart.DailyBuild(d3.select('#passchart'));
-    chart.render([
-        { desc: "Build Status", data: buildData },
-        { desc: "Compiler Tests", data: compilerTestData },
-        { desc: "Services Tests", data: servicesTestData },
-    ]);
 
-
-    var perfchart = new Chart.Bar(d3.select('#performanceChart'));
-    perfchart.render([
-        { desc: 'Emit', data: emitData },
-        { desc: 'Typecheck', data: typecheckData },
-        { desc: 'Parse', data: parseData }
-    ]);
+    //var perfchart = new Chart.Bar(d3.select('#performanceChart'));
+    //perfchart.render([
+    //    { desc: 'Emit', data: emitData },
+    //    { desc: 'Typecheck', data: typecheckData },
+    //    { desc: 'Parse', data: parseData }
+    //]);
 });

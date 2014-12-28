@@ -1,19 +1,40 @@
 var ManyLens;
 (function (ManyLens) {
-    var SOMMap = (function () {
-        function SOMMap() {
+    var D3ChartObject = (function () {
+        function D3ChartObject(element) {
+            this._element = element;
         }
-        return SOMMap;
+        D3ChartObject.prototype.render = function (data) {
+            this._data = data;
+        };
+        return D3ChartObject;
     })();
-    ManyLens.SOMMap = SOMMap;
+    ManyLens.D3ChartObject = D3ChartObject;
 })(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/D3ChartObject.ts" />
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 var ManyLens;
 (function (ManyLens) {
-    var Curve = (function () {
-        function Curve() {
+    var Curve = (function (_super) {
+        __extends(Curve, _super);
+        function Curve(element, xPadding, yPadding) {
+            if (xPadding === void 0) { xPadding = 50; }
+            if (yPadding === void 0) { yPadding = 50; }
+            _super.call(this, element);
             this._x = d3.scale.linear();
             this._y = d3.scale.linear();
             this._section_num = 150;
+            this._view_height = 50;
+            this._view_width = screen.width;
+            this._view_x_padding = xPadding;
+            this._view_y_padding = yPadding;
+            this.X.range([this._view_x_padding, this._view_width - this._view_x_padding]).domain([0, this._section_num]);
+            this.Y.range([this._view_height + this._view_y_padding, this._view_y_padding]).domain([0, 20]);
         }
         Object.defineProperty(Curve.prototype, "X", {
             get: function () {
@@ -35,20 +56,22 @@ var ManyLens;
             enumerable: true,
             configurable: true
         });
+        Curve.prototype.render = function (data) {
+            _super.prototype.render.call(this, data);
+            var svg = this._element.append("svg").attr("width", this._view_width).attr("height", this._view_height);
+            svg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", this._view_width - 2 * this._view_x_padding).attr("height", this._view_height).attr("x", this._view_x_padding).attr("y", this._view_y_padding);
+            var xAxis = svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + (this._view_y_padding + this._view_height) + ")").call(this._x_axis_gen);
+            var yAxis = svg.append("g").attr("class", "y axis").attr("transform", "tanslate(" + this._view_x_padding + ",0)").call(this._y_axis_gen);
+            svg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "mainView").append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
+            console.log("f");
+        };
         return Curve;
-    })();
+    })(ManyLens.D3ChartObject);
     ManyLens.Curve = Curve;
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../Scripts/typings/d3/d3.d.ts" />
-///<reference path = "../tsScripts/SOMMap.ts" />
 ///<reference path = "../tsScripts/Cruve.ts" />
 //"use strict";
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
 var Chart;
 (function (Chart) {
     var Base = (function () {
@@ -185,20 +208,29 @@ var emitRandom = decreasingRandom(100, 10, 0.97);
 var parseData = days.map(function (day) { return ({ x: day, y: parseRandom() }); });
 var typecheckData = days.map(function (day) { return ({ x: day, y: typecheckRandom() }); });
 var emitData = days.map(function (day) { return ({ x: day, y: emitRandom() }); });
-var b = new Chart.Bar(d3.select('#passchart'));
-var c = new ManyLens.Curve();
 document.addEventListener('DOMContentLoaded', function () {
-    var chart = new Chart.DailyBuild(d3.select('#passchart'));
-    chart.render([
-        { desc: "Build Status", data: buildData },
-        { desc: "Compiler Tests", data: compilerTestData },
-        { desc: "Services Tests", data: servicesTestData },
-    ]);
-    var perfchart = new Chart.Bar(d3.select('#performanceChart'));
-    perfchart.render([
-        { desc: 'Emit', data: emitData },
-        { desc: 'Typecheck', data: typecheckData },
-        { desc: 'Parse', data: parseData }
-    ]);
+    var curveView = new ManyLens.Curve(d3.select("#passchart"));
+    curveView.render();
+    //var chart = new Chart.DailyBuild(d3.select('#passchart'));
+    //chart.render([
+    //    { desc: "Build Status", data: buildData },
+    //    { desc: "Compiler Tests", data: compilerTestData },
+    //    { desc: "Services Tests", data: servicesTestData },
+    //]);
+    //var perfchart = new Chart.Bar(d3.select('#performanceChart'));
+    //perfchart.render([
+    //    { desc: 'Emit', data: emitData },
+    //    { desc: 'Typecheck', data: typecheckData },
+    //    { desc: 'Parse', data: parseData }
+    //]);
 });
+var ManyLens;
+(function (ManyLens) {
+    var SOMMap = (function () {
+        function SOMMap() {
+        }
+        return SOMMap;
+    })();
+    ManyLens.SOMMap = SOMMap;
+})(ManyLens || (ManyLens = {}));
 //# sourceMappingURL=ManyLens.js.map
