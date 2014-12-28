@@ -7,5 +7,5 @@ document.addEventListener('DOMContentLoaded', function () {
     curveView.render([10, 10]);
 
     var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
-    pieChartLens.render([1]);
+    pieChartLens.render();
 });

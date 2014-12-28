@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var curveView = new ManyLens.Curve(d3.select("#cruveView"));
     curveView.render([10, 10]);
     var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
-    pieChartLens.render([1]);
+    pieChartLens.render();
 });
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
@@ -87,7 +87,7 @@ var ManyLens;
             this._sc_radius = 10;
             this._lc_radius = 100;
         }
-        BaseD3Lens.prototype.render = function (data) {
+        BaseD3Lens.prototype.render = function () {
             var _this = this;
             var container = this._element;
             var cr = this._sc_radius;
@@ -155,8 +155,8 @@ var ManyLens;
             this._arc = d3.svg.arc().innerRadius(this._innerRadius).outerRadius(this._outterRadius);
             this._color = d3.scale.category20();
         }
-        PieChartLens.prototype.render = function (data) {
-            _super.prototype.render.call(this, data);
+        PieChartLens.prototype.render = function () {
+            _super.prototype.render.call(this);
         };
         PieChartLens.prototype.extractData = function () {
             var data;

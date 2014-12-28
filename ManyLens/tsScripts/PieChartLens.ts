@@ -18,8 +18,8 @@ module ManyLens{
 
         }
 
-        public render<T>(data?: Array<T>): void {
-            super.render(data);
+        public render(): void {
+            super.render();
             
         }
 
@@ -92,8 +92,6 @@ module ManyLens{
             d3.select("g.lcthings").select("g")
                 .transition().duration(p.duration)
                 .attr("opacity", "1")
-
-
         }
     }
 } 

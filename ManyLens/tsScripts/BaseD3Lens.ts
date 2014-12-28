@@ -19,7 +19,7 @@ module ManyLens {
 
         }
 
-        public render<T>(data?: Array<T>): void {
+        public render(): void {
             var container = this._element;
             var cr = this._sc_radius; 
             var hasShow = false;
