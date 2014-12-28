@@ -3,17 +3,34 @@
 <head>
     <meta charset="utf-8" />
     <title>ManyLens</title>
-    <script src="Scripts/d3.min.js"></script>
+    <!-- Add CSS here-->
+    <link rel="stylesheet" href="CSS/ManyLens.css" type="text/css" />
+
+    <!-- Add third party lib here-->
+    <script src="Scripts/d3.js"></script>
+
     <!-- Add my Scripts here-->
-    <link rel="stylesheet" href="CSS/ManyLens.css" type="text/css"/>
+    <script src="Scripts/ManyLens.js" type="text/javascript"></script>
 </head>
 <body>
-    <h1>ManyLens</h1>
+    <header>
+        <h1>ManyLens</h1>
+    </header>
+
     <div class="view" id="cruveView"></div>
-    <div class="view" id="mapView"></div>
-    <div class="view" id="historyView"></div>
-    <div class="view" id="matrixView"></div>
-    <div class="view" id="tweetsView"></div>
+    <div class="blockContainerDiv" id="mainView">
+        <div class="view" id="mapView">
+            <svg height="100%" width="100%">
+
+            </svg>
+        </div>
+        <div class="view" id="historyView"></div>
+    </div>
+    <div class="blockContainerDiv" id="subView">
+        <div class="view" id="matrixView"></div>
+        <div class="view" id="tweetsView"></div>
+    </div>
+    <div></div>
     
 </body>
 </html>

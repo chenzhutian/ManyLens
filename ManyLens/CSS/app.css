@@ -1,24 +1,10 @@
-﻿ svg {
-        font-family: "Segoe UI", sans-serif;
-    }
-    .day {
-        stroke: #ccc;
-    }
-    .pass {
-        fill: rgb(0, 166, 0);
-    }
-    .fail {
-        fill: rgb(255, 83, 0);
-    }
-    .hashes line {
-        stroke: #000; stroke-width: 2;
-    }
-    .tick {
-        stroke: #000; stroke-width: 2;
-    }
-    .axis path {
-        stroke: #000; stroke-width: 2;
-    }
-    body {
-        font-family: 'Segoe UI';
-    }
+﻿svg {
+    font-family: "Segoe UI", sans-serif;
+}
+
+.axis path,
+.axis line{
+    fill:none;
+    stroke:#000;
+    shape-rendering:crispEdges;
+}

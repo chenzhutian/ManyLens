@@ -1,2 +1,71 @@
-﻿body {
+﻿html,body {
+    height:100%;
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+body,h1,h2,h3,h4,h5,h6,p,img,ol,ul,li,form,table,tr,th,td {
+    font-family: "Segoe UI", sans-serif;
+    border: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    
+}
+
+header {
+    border-bottom: 1px solid #eee;
+    height:70px;
+}
+
+.axis path,
+.axis line{
+    fill:none;
+    stroke:#000;
+    shape-rendering:crispEdges;
+}
+
+div.view {
+    border: 1px dashed;
+    border-radius : 5px;
+}
+
+.blockContainerDiv div {
+    display:inline-block;
+}
+
+div#mainView {
+    height:50%
+}
+
+div#subView {
+    height:25%;
+}
+
+div#cruveView {
+
+}
+
+div#mapView {
+    width: 74%;
+    height:100%;
+}
+
+div#historyView {
+    width: 25%;
+    height:100%;
+}
+
+div#matrixView {
+    width:74%;
+    height:100%;
+}
+
+div#tweetsView {
+    width:25%;
+    height:100%;
 }
