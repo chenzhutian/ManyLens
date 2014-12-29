@@ -16,7 +16,7 @@ module ManyLens{
         private _cloud_rotate: number = 0;
 
         constructor(element: D3.Selection) {
-            super(element);
+            super(element,"WordCloudLens");
             this._color = d3.scale.category20c();
 
         }

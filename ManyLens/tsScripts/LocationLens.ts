@@ -7,7 +7,7 @@ module ManyLens {
         private _map_height: number = this._map_width;
         private _map_path:string = "./img/chinamap.svg";
         constructor(element: D3.Selection) {
-            super(element);
+            super(element,"LocationLens");
         }
 
         public render(): void {

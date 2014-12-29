@@ -90,12 +90,20 @@ var ManyLens;
 (function (ManyLens) {
     var BaseD3Lens = (function (_super) {
         __extends(BaseD3Lens, _super);
-        function BaseD3Lens(element) {
+        function BaseD3Lens(element, type) {
             _super.call(this, element);
             this._sc_radius = 10;
             this._lc_radius = 100;
             this._zoom = d3.behavior.zoom();
+            this._type = type;
         }
+        Object.defineProperty(BaseD3Lens.prototype, "Type", {
+            get: function () {
+                return this._type;
+            },
+            enumerable: true,
+            configurable: true
+        });
         BaseD3Lens.prototype.render = function () {
             var _this = this;
             var container = this._element;
@@ -178,7 +186,7 @@ var ManyLens;
     var BarChartLens = (function (_super) {
         __extends(BarChartLens, _super);
         function BarChartLens(element) {
-            _super.call(this, element);
+            _super.call(this, element, "BarChartLens");
             this._x_axis_gen = d3.svg.axis();
             this._bar_chart_width = this._lc_radius * Math.SQRT2;
             this._bar_chart_height = this._bar_chart_width;
@@ -228,28 +236,62 @@ var ManyLens;
         __extends(LensPane, _super);
         function LensPane(element) {
             _super.call(this, element);
+            this._lens = new Array();
+            this._pane_radius = 100;
+            this._pane_arc = d3.svg.arc();
+            this._pane_pie = d3.layout.pie();
+            this._pane_color = d3.scale.category20();
+            this._pane_svg_g = null;
+            this._lens.push(new ManyLens.BarChartLens(element));
+            this._lens.push(new ManyLens.LocationLens(element));
+            this._lens.push(new ManyLens.NetworkTreeLens(element));
+            this._lens.push(new ManyLens.PieChartLens(element));
+            this._lens.push(new ManyLens.WordCloudLens(element));
+            this._pane_pie.startAngle(-Math.PI / 2).endAngle(Math.PI / 2).value(function () {
+                return 1;
+            });
+            this._pane_arc.innerRadius(this._pane_radius - 40).outerRadius(this._pane_radius);
         }
         LensPane.prototype.render = function () {
+            var _this = this;
             var container = this._element;
             container.on("click", function () {
-                var p = d3.mouse(container[0][0]);
-                var data = [1, 1, 2, 3, 5];
-                var radius = 100;
-                var arc = d3.svg.arc().innerRadius(radius - 40).outerRadius(radius);
-                var pie = d3.layout.pie().startAngle(-Math.PI / 2).endAngle(Math.PI / 2).value(function () {
-                    return 1;
-                });
-                var color = d3.scale.category10();
-                var svg = container.append("g").attr("transform", "translate(" + p[0] + "," + p[1] + ")");
-                svg.selectAll("circle").data(pie(data)).enter().append("circle").style("fill", function (d, i) {
-                    return color(i);
-                }).attr("r", 10).transition().duration(750).attr("transform", function (d) {
-                    return "translate(" + arc.centroid(d) + ")";
-                });
-                var timer = setTimeout(function () {
-                    svg.selectAll("circle").transition().duration(400).attr("transform", "none").remove();
-                }, 1000);
+                _this.openPane();
             });
+        };
+        LensPane.prototype.openPane = function () {
+            var _this = this;
+            if (this._pane_svg_g) {
+                (function () {
+                    _this.closePane();
+                });
+            }
+            var p = d3.mouse(this._element[0][0]);
+            this._pane_svg_g = this._element.append("g").attr("transform", "translate(" + p[0] + "," + p[1] + ")");
+            this._pane_svg_g.selectAll("circle").data(this._pane_pie(this._lens)).enter().append("circle").attr("class", "paneCircle").style("fill", function (d, i) {
+                return _this._pane_color(i);
+            }).attr("r", 10).transition().duration(750).attr("transform", function (d) {
+                return "translate(" + _this._pane_arc.centroid(d) + ")";
+            }).each("end", function () {
+                _this._pane_svg_g.selectAll(".paneCircle").on("mouseover", function () {
+                    if (_this._pane_timer) {
+                        clearTimeout(_this._pane_timer);
+                        console.log("ffff");
+                    }
+                });
+            });
+            this._pane_timer = setTimeout(function () {
+                console.log("f");
+                _this.closePane();
+            }, 2000);
+        };
+        LensPane.prototype.closePane = function () {
+            var t = 400;
+            var closeG = this._pane_svg_g;
+            closeG.selectAll(".paneCircle").transition().duration(t).attr("transform", "translate(0)");
+            setTimeout(function () {
+                closeG.remove();
+            }, t);
         };
         return LensPane;
     })(ManyLens.D3ChartObject);
@@ -261,7 +303,7 @@ var ManyLens;
     var LocationLens = (function (_super) {
         __extends(LocationLens, _super);
         function LocationLens(element) {
-            _super.call(this, element);
+            _super.call(this, element, "LocationLens");
             this._map_width = this._lc_radius * Math.SQRT2;
             this._map_height = this._map_width;
             this._map_path = "./img/chinamap.svg";
@@ -292,7 +334,7 @@ var ManyLens;
     var NetworkTreeLens = (function (_super) {
         __extends(NetworkTreeLens, _super);
         function NetworkTreeLens(element) {
-            _super.call(this, element);
+            _super.call(this, element, "NetworkLens");
             this._theta = 360;
             this._tree = d3.layout.tree();
         }
@@ -371,7 +413,7 @@ var ManyLens;
     var PieChartLens = (function (_super) {
         __extends(PieChartLens, _super);
         function PieChartLens(element) {
-            _super.call(this, element);
+            _super.call(this, element, "PieChartLens");
             this._innerRadius = this._lc_radius - 20;
             this._outterRadius = this._lc_radius - 0;
             this._pie = d3.layout.pie();
@@ -424,7 +466,7 @@ var ManyLens;
     var WordCloudLens = (function (_super) {
         __extends(WordCloudLens, _super);
         function WordCloudLens(element) {
-            _super.call(this, element);
+            _super.call(this, element, "WordCloudLens");
             this._font_size = d3.scale.sqrt();
             this._cloud = d3.layout.cloud();
             this._cloud_w = this._lc_radius * 2; //Math.sqrt(2);

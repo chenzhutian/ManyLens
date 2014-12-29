@@ -6,7 +6,7 @@ module ManyLens {
         private _tree: D3.Layout.TreeLayout = d3.layout.tree();
 
         constructor(element: D3.Selection) {
-            super(element);
+            super(element,"NetworkLens");
         }
 
         public render(): void {

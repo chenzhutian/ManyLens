@@ -3,6 +3,7 @@ module ManyLens {
 
     export class BaseD3Lens extends D3ChartObject {
 
+        protected _type: string;
         protected _select_circle: D3.Selection;
         protected _sc_radius: number = 10;
         protected _sc_cx: number;
@@ -15,8 +16,14 @@ module ManyLens {
 
         protected _color: D3.Scale.OrdinalScale;
         protected _zoom: D3.Behavior.Zoom = d3.behavior.zoom();
-        constructor(element: D3.Selection) {
+
+        public get Type(): string {
+            return this._type;
+        }
+
+        constructor(element: D3.Selection,type:string) {
             super(element);
+            this._type = type;
         }
 
         public render(): void {

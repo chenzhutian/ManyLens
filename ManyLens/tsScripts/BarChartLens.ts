@@ -9,7 +9,7 @@ module ManyLens {
         private _bar_chart_height: number = this._bar_chart_width;
 
         constructor(element: D3.Selection) {
-            super(element);
+            super(element,"BarChartLens");
         }
 
         public render(): void {

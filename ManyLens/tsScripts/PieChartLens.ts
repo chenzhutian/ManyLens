@@ -14,7 +14,7 @@ module ManyLens{
         protected _color: D3.Scale.OrdinalScale = d3.scale.category20();
 
         constructor(element: D3.Selection) {
-            super(element);
+            super(element,"PieChartLens");
 
         }
 

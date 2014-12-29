@@ -20,7 +20,6 @@
     <Content Include="CSS\ManyLens.css" />
     <Content Include="img\chinamap.svg" />
     <Content Include="img\usmap.svg" />
-    <Content Include="index.html" />
     <Content Include="LICENSE.txt" />
     <Content Include="ManyLens.html" />
     <Content Include="Scripts\d3.js" />
