@@ -78,8 +78,12 @@ document.addEventListener('DOMContentLoaded', function () {
     //wordCloudLens.render();
     //var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
     //networkLens.render();
-    var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
-    barChartLens.render();
+    //var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
+    //barChartLens.render();
+    //var locationMap = new ManyLens.LocationLens(d3.select("#mapView").select("svg"));
+    //locationMap.render();
+    var lensPane = new ManyLens.LensPane(d3.select("#mapView").select("svg"));
+    lensPane.render();
 });
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
@@ -216,6 +220,71 @@ var ManyLens;
         return BarChartLens;
     })(ManyLens.BaseD3Lens);
     ManyLens.BarChartLens = BarChartLens;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/D3ChartObject.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var LensPane = (function (_super) {
+        __extends(LensPane, _super);
+        function LensPane(element) {
+            _super.call(this, element);
+        }
+        LensPane.prototype.render = function () {
+            var container = this._element;
+            container.on("click", function () {
+                var p = d3.mouse(container[0][0]);
+                var data = [1, 1, 2, 3, 5];
+                var radius = 100;
+                var arc = d3.svg.arc().innerRadius(radius - 40).outerRadius(radius);
+                var pie = d3.layout.pie().startAngle(-Math.PI / 2).endAngle(Math.PI / 2).value(function () {
+                    return 1;
+                });
+                var color = d3.scale.category10();
+                var svg = container.append("g").attr("transform", "translate(" + p[0] + "," + p[1] + ")");
+                svg.selectAll("circle").data(pie(data)).enter().append("circle").style("fill", function (d, i) {
+                    return color(i);
+                }).attr("r", 10).transition().duration(750).attr("transform", function (d) {
+                    return "translate(" + arc.centroid(d) + ")";
+                });
+                var timer = setTimeout(function () {
+                    svg.selectAll("circle").transition().duration(400).attr("transform", "none").remove();
+                }, 1000);
+            });
+        };
+        return LensPane;
+    })(ManyLens.D3ChartObject);
+    ManyLens.LensPane = LensPane;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/BaseD3Lens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var LocationLens = (function (_super) {
+        __extends(LocationLens, _super);
+        function LocationLens(element) {
+            _super.call(this, element);
+            this._map_width = this._lc_radius * Math.SQRT2;
+            this._map_height = this._map_width;
+            this._map_path = "./img/chinamap.svg";
+        }
+        LocationLens.prototype.render = function () {
+            _super.prototype.render.call(this);
+        };
+        LocationLens.prototype.extractData = function () {
+            var data;
+            return data;
+        };
+        LocationLens.prototype.showLens = function (data) {
+            var p = _super.prototype.showLens.call(this);
+            var container = this._element;
+            var lensG = container.select("g.lcthings").select("g").attr("transform", "translate(" + [p.lcx, p.lcy] + ")").attr("opacity", "1e-6");
+            this._lens_circle = lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
+            //TODO
+            lensG.append("image").attr("xlink:href", this._map_path).attr("x", -this._map_width / 2).attr("y", -this._map_height / 2).attr("width", this._map_width).attr("height", this._map_height);
+            lensG.transition().duration(p.duration).attr("opacity", "1");
+        };
+        return LocationLens;
+    })(ManyLens.BaseD3Lens);
+    ManyLens.LocationLens = LocationLens;
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/BaseD3Lens.ts" />
 var ManyLens;

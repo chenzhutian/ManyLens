@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', function () {
     //wordCloudLens.render();
     //var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
     //networkLens.render();
-    var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
-    barChartLens.render();
+    //var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
+    //barChartLens.render();
+    //var locationMap = new ManyLens.LocationLens(d3.select("#mapView").select("svg"));
+    //locationMap.render();
+    var lensPane = new ManyLens.LensPane(d3.select("#mapView").select("svg"));
+    lensPane.render();
 });
