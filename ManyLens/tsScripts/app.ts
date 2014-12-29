@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
     //pieChartLens.render();
-    var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
-    wordCloudLens.render();
+    //var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
+    //wordCloudLens.render();
+    var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
+    networkLens.render();
 });

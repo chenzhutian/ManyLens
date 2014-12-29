@@ -60,13 +60,13 @@ module ManyLens {
             }
         }
 
-        protected extractData<T>(): Array<T> {
+        protected extractData(any = null): any {
             throw new Error('This method is abstract');
         }
 
         protected showLens(any = null): { lcx: number; lcy: number; theta: number; duration:number} {
             var sc_lc_dist = 100;
-            var theta = Math.PI / 2.5;
+            var theta = Math.random() * Math.PI;
             var container = this._element;
             var cr = this._sc_radius;
             var cx = this._sc_cx + (cr * Math.cos(theta));

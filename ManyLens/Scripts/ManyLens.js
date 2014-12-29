@@ -74,8 +74,10 @@ document.addEventListener('DOMContentLoaded', function () {
     curveView.render([10, 10]);
     //var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
     //pieChartLens.render();
-    var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
-    wordCloudLens.render();
+    //var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
+    //wordCloudLens.render();
+    var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
+    networkLens.render();
 });
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
@@ -113,14 +115,15 @@ var ManyLens;
                 hasShow = false;
             }
         };
-        BaseD3Lens.prototype.extractData = function () {
+        BaseD3Lens.prototype.extractData = function (any) {
+            if (any === void 0) { any = null; }
             throw new Error('This method is abstract');
         };
         BaseD3Lens.prototype.showLens = function (any) {
             var _this = this;
             if (any === void 0) { any = null; }
             var sc_lc_dist = 100;
-            var theta = Math.PI / 2.5;
+            var theta = Math.random() * Math.PI;
             var container = this._element;
             var cr = this._sc_radius;
             var cx = this._sc_cx + (cr * Math.cos(theta));
@@ -181,11 +184,80 @@ var ManyLens;
 ///<reference path = "../tsScripts/BaseD3Lens.ts" />
 var ManyLens;
 (function (ManyLens) {
-    var NetworkTreeLens = (function () {
-        function NetworkTreeLens() {
+    var NetworkTreeLens = (function (_super) {
+        __extends(NetworkTreeLens, _super);
+        function NetworkTreeLens(element) {
+            _super.call(this, element);
+            this._theta = 360;
+            this._tree = d3.layout.tree();
         }
+        NetworkTreeLens.prototype.render = function () {
+            _super.prototype.render.call(this);
+        };
+        NetworkTreeLens.prototype.extractData = function () {
+            var data;
+            data = {
+                "name": "flare",
+                "children": [
+                    {
+                        "name": "analytics",
+                        "children": [
+                            {
+                                "name": "cluster",
+                                "children": [
+                                    { "name": "AgglomerativeCluster", "size": 3938 },
+                                    { "name": "CommunityStructure", "size": 3812 },
+                                    { "name": "HierarchicalCluster", "size": 6714 },
+                                    { "name": "MergeEdge", "size": 743 }
+                                ]
+                            },
+                            {
+                                "name": "graph",
+                                "children": [
+                                    { "name": "BetweennessCentrality", "size": 3534 },
+                                    { "name": "LinkDistance", "size": 5731 },
+                                    { "name": "MaxFlowMinCut", "size": 7840 },
+                                    { "name": "ShortestPaths", "size": 5914 },
+                                    { "name": "SpanningTree", "size": 3416 }
+                                ]
+                            },
+                            {
+                                "name": "optimization",
+                                "children": [
+                                    { "name": "AspectRatioBanker", "size": 7074 }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            };
+            return data;
+        };
+        NetworkTreeLens.prototype.showLens = function (data) {
+            var p = _super.prototype.showLens.call(this);
+            var container = this._element;
+            var nodeRadius = 4.5;
+            var diagonal = d3.svg.diagonal.radial().projection(function (d) {
+                return [d.y, d.x / 180 * Math.PI];
+            });
+            var lensG = container.select("g.lcthings").select("g").attr("transform", "translate(" + [p.lcx, p.lcy] + ")").attr("opacity", "1e-6");
+            this._lens_circle = lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
+            this._tree.size([this._theta, this._lc_radius - nodeRadius]).separation(function (a, b) {
+                return (a.parent == b.parent ? 1 : 2) / a.depth;
+            });
+            var nodes = this._tree.nodes(data), links = this._tree.links(nodes);
+            var link = lensG.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
+            var node = lensG.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
+                return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
+            });
+            node.append("circle").attr("r", nodeRadius).attr("stroke", "steelblue").attr("fill", "#fff").attr("stroke-width", 1.5);
+            lensG.transition().duration(p.duration).attr("opacity", "1");
+        };
+        NetworkTreeLens.prototype.zoomFunc = function () {
+            _super.prototype.zoomFunc.call(this);
+        };
         return NetworkTreeLens;
-    })();
+    })(ManyLens.BaseD3Lens);
     ManyLens.NetworkTreeLens = NetworkTreeLens;
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/BaseD3Lens.ts" />
@@ -288,6 +360,7 @@ var ManyLens;
             var w = this._cloud_w;
             var h = this._cloud_h;
             var container = this._element;
+            //Maybe need to scale, but I haven't implemented it now
             var scale = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
             console.log(scale);
             var text = container.select("g.lcthings").select("g").selectAll("text").data(words, function (d) {

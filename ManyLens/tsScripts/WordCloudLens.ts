@@ -101,6 +101,7 @@
             var h = this._cloud_h;
             var container = this._element;
 
+            //Maybe need to scale, but I haven't implemented it now
             var scale = bounds ? Math.min(
                 w / Math.abs(bounds[1].x - w / 2),
                 w / Math.abs(bounds[0].x - w / 2),
