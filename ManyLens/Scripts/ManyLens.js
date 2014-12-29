@@ -72,8 +72,10 @@ var ManyLens;
 document.addEventListener('DOMContentLoaded', function () {
     var curveView = new ManyLens.Curve(d3.select("#cruveView"));
     curveView.render([10, 10]);
-    var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
-    pieChartLens.render();
+    //var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
+    //pieChartLens.render();
+    var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
+    wordCloudLens.render();
 });
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
@@ -162,9 +164,9 @@ var ManyLens;
         //}
         BaseD3Lens.prototype.zoomFunc = function () {
             if (d3.event.sourceEvent.type == "mousemove") {
-                var p = d3.mouse(this._element[0][0]);
-                this._lc_cx = p[0];
-                this._lc_cy = p[1];
+                //var p = d3.mouse(this._element[0][0]);
+                this._lc_cx += d3.event.sourceEvent.movementX; //p[0];
+                this._lc_cy += d3.event.sourceEvent.movementY; //p[1];
             }
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
             var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
@@ -175,6 +177,16 @@ var ManyLens;
         return BaseD3Lens;
     })(ManyLens.D3ChartObject);
     ManyLens.BaseD3Lens = BaseD3Lens;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/BaseD3Lens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var NetworkTreeLens = (function () {
+        function NetworkTreeLens() {
+        }
+        return NetworkTreeLens;
+    })();
+    ManyLens.NetworkTreeLens = NetworkTreeLens;
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/BaseD3Lens.ts" />
 var ManyLens;
@@ -210,8 +222,8 @@ var ManyLens;
             lensG.selectAll("path").data(this._pie).enter().append("path").attr("fill", function (d, i) {
                 return _this._color(i);
             }).attr("d", this._arc);
-            d3.select("g.lcthings").select("g").append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._innerRadius).attr("fill", "rgb(221,221,221)").attr("fill-opacity", 0.3);
-            d3.select("g.lcthings").select("g").transition().duration(p.duration).attr("opacity", "1");
+            this._lens_circle = lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._innerRadius).attr("fill", "rgb(221,221,221)");
+            lensG.transition().duration(p.duration).attr("opacity", "1");
         };
         PieChartLens.prototype.zoomFunc = function () {
             _super.prototype.zoomFunc.call(this);
@@ -228,5 +240,78 @@ var ManyLens;
         return SOMMap;
     })();
     ManyLens.SOMMap = SOMMap;
+})(ManyLens || (ManyLens = {}));
+var ManyLens;
+(function (ManyLens) {
+    var WordCloudLens = (function (_super) {
+        __extends(WordCloudLens, _super);
+        function WordCloudLens(element) {
+            _super.call(this, element);
+            this._font_size = d3.scale.sqrt();
+            this._cloud = d3.layout.cloud();
+            this._cloud_w = this._lc_radius * 2; //Math.sqrt(2);
+            this._cloud_h = this._cloud_w;
+            this._cloud_padding = 1;
+            this._cloud_font = "Calibri";
+            this._cloud_font_weight = "normal";
+            this._cloud_rotate = 0;
+            this._color = d3.scale.category20c();
+        }
+        WordCloudLens.prototype.render = function () {
+            _super.prototype.render.call(this);
+        };
+        // data shape {text: size:}
+        WordCloudLens.prototype.extractData = function () {
+            var data;
+            data = [{ text: "Samsung", value: 90 }, { text: "Apple", value: 80 }, { text: "Lenovo", value: 50 }, { text: "LG", value: 60 }, { text: "Nokia", value: 30 }, { text: "Huawei", value: 40 }, { text: "Meizu", value: 50 }, { text: "HTC", value: 60 }, { text: "XiaoMi", value: 60 }, { text: "ZTE", value: 40 }, { text: "Galaxy Note Edge", value: 60 }, { text: "LED H5205", value: 70 }, { text: "Galaxy Tab3 8.0", value: 50 }, { text: "Galaxy Tab3 10.1", value: 50 }, { text: "Gear S", value: 70 }, { text: "Gear Fit", value: 40 }, { text: "Gear Fit2", value: 30 }, { text: "Galaxy S4", value: 60 }];
+            this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
+                return d.value;
+            }));
+            return data;
+        };
+        WordCloudLens.prototype.showLens = function (data) {
+            var _this = this;
+            var p = _super.prototype.showLens.call(this);
+            var container = this._element;
+            var lensG = container.select("g.lcthings").select("g").attr("transform", "translate(" + [p.lcx, p.lcy] + ")").attr("opacity", "1e-6");
+            this._lens_circle = lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
+            lensG.transition().duration(p.duration).attr("opacity", "1");
+            this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(this._cloud_rotate).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                return _this._font_size(d.value);
+            }).on("end", function (words, bounds) {
+                _this.drawCloud(words, bounds);
+            });
+            this._cloud.start();
+        };
+        WordCloudLens.prototype.drawCloud = function (words, bounds) {
+            var _this = this;
+            var w = this._cloud_w;
+            var h = this._cloud_h;
+            var container = this._element;
+            var scale = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
+            console.log(scale);
+            var text = container.select("g.lcthings").select("g").selectAll("text").data(words, function (d) {
+                return d.text;
+            }).enter().append("text");
+            text.attr("text-anchor", "middle").style("font-size", function (d) {
+                return d.size + "px";
+            }).style("font-weight", function (d) {
+                return d.weight;
+            }).style("font-family", function (d) {
+                return d.font;
+            }).style("fill", function (d, i) {
+                return _this._color(d.size);
+            }).style("opacity", 1e-6).attr("text-anchor", "middle").attr("class", "show").attr("transform", function (d) {
+                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+            }).text(function (d) {
+                return d.text;
+            }).transition().duration(200).style("opacity", 1);
+        };
+        WordCloudLens.prototype.zoomFunc = function () {
+            _super.prototype.zoomFunc.call(this);
+        };
+        return WordCloudLens;
+    })(ManyLens.BaseD3Lens);
+    ManyLens.WordCloudLens = WordCloudLens;
 })(ManyLens || (ManyLens = {}));
 //# sourceMappingURL=ManyLens.js.map

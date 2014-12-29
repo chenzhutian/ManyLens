@@ -13,6 +13,7 @@ module ManyLens {
         protected _lc_cx: number;
         protected _lc_cy: number;
 
+        protected _color: D3.Scale.OrdinalScale;
         protected _zoom: D3.Behavior.Zoom = d3.behavior.zoom();
         constructor(element: D3.Selection) {
             super(element);
@@ -132,12 +133,10 @@ module ManyLens {
         //}
 
         protected zoomFunc(): void {
-
             if (d3.event.sourceEvent.type == "mousemove") {
-                var p = d3.mouse(this._element[0][0]);
-                this._lc_cx = p[0];
-                this._lc_cy = p[1];
-
+                //var p = d3.mouse(this._element[0][0]);
+                this._lc_cx += d3.event.sourceEvent.movementX;//p[0];
+                this._lc_cy += d3.event.sourceEvent.movementY;//p[1];
             }
 
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));

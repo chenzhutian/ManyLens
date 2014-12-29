@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var curveView = new ManyLens.Curve(d3.select("#cruveView"));
     curveView.render([10, 10]);
 
-    var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
-    pieChartLens.render();
+    //var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
+    //pieChartLens.render();
+    var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
+    wordCloudLens.render();
 });

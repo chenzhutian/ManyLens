@@ -11,7 +11,7 @@ module ManyLens{
             .outerRadius(this._outterRadius)
         //    .startAngle(0)
         ;
-        private _color: D3.Scale.OrdinalScale = d3.scale.category20();
+        protected _color: D3.Scale.OrdinalScale = d3.scale.category20();
 
         constructor(element: D3.Selection) {
             super(element);
@@ -43,37 +43,32 @@ module ManyLens{
             ;
 
             var lensG = container
-                .select("g.lcthings").select("g").datum(data)
+                .select("g.lcthings").select("g")
+                .datum(data)
                 .attr("opacity", "1e-6")
                 .attr("transform", "translate(" + [p.lcx, p.lcy] + ")")
-                //.on("mousedown", () => {
-                //    lensG.on("mousemove", () => { this.moveLens(); })
-                //})
-                //.on("mouseup", function () {
-                //    lensG.on("mousemove", null);
-                //})
+            ;
+                lensG.selectAll("path")
+                    .data(this._pie)
+                .enter().append("path")
+                    .attr("fill", (d, i) => {
+                        return this._color(i);
+                    })
+                    .attr("d", this._arc)
             ;
 
-            lensG.selectAll("path")
-                .data(this._pie)
-            .enter().append("path")
-                .attr("fill", (d, i) => {
-                    return this._color(i);
-                })
-                .attr("d", this._arc)
-            ;
-
-            d3.select("g.lcthings").select("g")
+           this._lens_circle =  lensG
                 .append("circle")
                 .attr("cx", 0)
                 .attr("cy", 0)
                 .attr("r", this._innerRadius)
                 .attr("fill", "rgb(221,221,221)")
-                .attr("fill-opacity", 0.3)
+                //.attr("fill-opacity", 0.3)
             ;
-            d3.select("g.lcthings").select("g")
+            lensG
                 .transition().duration(p.duration)
                 .attr("opacity", "1")
+            ;
         }
 
         protected zoomFunc(): void {

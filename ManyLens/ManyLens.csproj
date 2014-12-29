@@ -23,6 +23,7 @@
     <Content Include="LICENSE.txt" />
     <Content Include="ManyLens.html" />
     <Content Include="Scripts\d3.js" />
+    <Content Include="Scripts\d3.layout.cloud.js" />
     <Content Include="Scripts\d3.min.js" />
     <None Include="Scripts\jquery-2.1.1.intellisense.js" />
     <Content Include="Scripts\jquery-2.1.1.js" />
@@ -41,8 +42,10 @@
     <TypeScriptCompile Include="tsScripts\BaseD3Lens.ts" />
     <TypeScriptCompile Include="tsScripts\D3ChartObject.ts" />
     <TypeScriptCompile Include="tsScripts\Cruve.ts" />
+    <TypeScriptCompile Include="tsScripts\NetworkTreeLens.ts" />
     <TypeScriptCompile Include="tsScripts\PieChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\SOMMap.ts" />
+    <TypeScriptCompile Include="tsScripts\WordCloudLens.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
