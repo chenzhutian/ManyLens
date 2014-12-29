@@ -76,8 +76,10 @@ document.addEventListener('DOMContentLoaded', function () {
     //pieChartLens.render();
     //var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
     //wordCloudLens.render();
-    var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
-    networkLens.render();
+    //var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
+    //networkLens.render();
+    var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
+    barChartLens.render();
 });
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
@@ -150,21 +152,6 @@ var ManyLens;
                 duration: duration
             };
         };
-        //protected moveLens(): void {
-        //    var p = d3.mouse(this._element[0][0]);
-        //    d3.select("g.lcthings").select("g")
-        //        .attr("transform", "translate(" + [p[0], p[1]] + ")")
-        //    ;
-        //    var theta = Math.atan((p[1] - this._sc_cy) / (p[0] - this._sc_cx));
-        //    var cosTheta = p[0] > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-        //    var sinTheta = p[0] > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-        //    d3.select("g.lcthings").select("line")
-        //        .attr("x1", this._sc_cx + this._sc_radius * cosTheta)
-        //        .attr("y1", this._sc_cy + this._sc_radius * sinTheta)
-        //        .attr("x2", p[0] - this._lc_radius * cosTheta)
-        //        .attr("y2", p[1] - this._lc_radius * sinTheta)
-        //    ;
-        //}
         BaseD3Lens.prototype.zoomFunc = function () {
             if (d3.event.sourceEvent.type == "mousemove") {
                 //var p = d3.mouse(this._element[0][0]);
@@ -180,6 +167,55 @@ var ManyLens;
         return BaseD3Lens;
     })(ManyLens.D3ChartObject);
     ManyLens.BaseD3Lens = BaseD3Lens;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/BaseD3Lens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var BarChartLens = (function (_super) {
+        __extends(BarChartLens, _super);
+        function BarChartLens(element) {
+            _super.call(this, element);
+            this._x_axis_gen = d3.svg.axis();
+            this._bar_chart_width = this._lc_radius * Math.SQRT2;
+            this._bar_chart_height = this._bar_chart_width;
+        }
+        BarChartLens.prototype.render = function () {
+            _super.prototype.render.call(this);
+        };
+        BarChartLens.prototype.extractData = function () {
+            var data;
+            data = d3.range(12).map(function (d) {
+                return 10 + 70 * Math.random();
+            });
+            return data;
+        };
+        BarChartLens.prototype.showLens = function (data) {
+            var _this = this;
+            var p = _super.prototype.showLens.call(this);
+            var container = this._element;
+            var lensG = container.select("g.lcthings").select("g").attr("transform", "translate(" + [p.lcx, p.lcy] + ")").attr("opacity", "1e-6");
+            this._lens_circle = lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
+            var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, data.length]);
+            this._x_axis_gen.scale(x).ticks(0).orient("bottom");
+            this._x_axis = lensG.append("g").attr("class", "x-axis").attr("transform", function () {
+                return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
+            }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
+            this._bar_width = (this._bar_chart_width - 20) / data.length;
+            var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(data));
+            var bar = lensG.selectAll(".bar").data(data).enter().append("g").attr("transform", function (d, i) {
+                return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
+            });
+            bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
+                return barHeight(d);
+            }).attr("fill", "steelblue");
+            lensG.transition().duration(p.duration).attr("opacity", "1");
+        };
+        BarChartLens.prototype.zoomFunc = function () {
+            _super.prototype.zoomFunc.call(this);
+        };
+        return BarChartLens;
+    })(ManyLens.BaseD3Lens);
+    ManyLens.BarChartLens = BarChartLens;
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/BaseD3Lens.ts" />
 var ManyLens;
@@ -313,6 +349,7 @@ var ManyLens;
     })();
     ManyLens.SOMMap = SOMMap;
 })(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/BaseD3Lens.ts" />
 var ManyLens;
 (function (ManyLens) {
     var WordCloudLens = (function (_super) {

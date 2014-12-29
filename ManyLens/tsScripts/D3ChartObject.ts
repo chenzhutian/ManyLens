@@ -1,4 +1,5 @@
 ﻿module ManyLens {
+
     export class D3ChartObject {
         protected _element: D3.Selection;
         protected _data: Array<any>;

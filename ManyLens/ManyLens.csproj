@@ -17,7 +17,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="CSS\app.css" />
-    <Content Include="CSS\flat-ui.css" />
     <Content Include="CSS\ManyLens.css" />
     <Content Include="index.html" />
     <Content Include="LICENSE.txt" />
@@ -39,6 +38,7 @@
     <TypeScriptCompile Include="Scripts\typings\d3\d3.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\d3\plugins\d3.superformula.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\signalr\signalr.d.ts" />
+    <TypeScriptCompile Include="tsScripts\BarChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\BaseD3Lens.ts" />
     <TypeScriptCompile Include="tsScripts\D3ChartObject.ts" />
     <TypeScriptCompile Include="tsScripts\Cruve.ts" />

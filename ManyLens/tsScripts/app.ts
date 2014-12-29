@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
     //pieChartLens.render();
     //var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
     //wordCloudLens.render();
-    var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
-    networkLens.render();
+    //var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
+    //networkLens.render();
+    var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
+    barChartLens.render();
 });

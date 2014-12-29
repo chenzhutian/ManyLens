@@ -1,4 +1,5 @@
-﻿module ManyLens{
+﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
+module ManyLens{
     interface cloudData {
         text: string;
         value: number;

@@ -114,24 +114,6 @@ module ManyLens {
             }
         }
 
-        //protected moveLens(): void {
-        //    var p = d3.mouse(this._element[0][0]);
-        //    d3.select("g.lcthings").select("g")
-        //        .attr("transform", "translate(" + [p[0], p[1]] + ")")
-        //    ;
-
-        //    var theta = Math.atan((p[1] - this._sc_cy) / (p[0] - this._sc_cx));
-        //    var cosTheta = p[0] > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-        //    var sinTheta = p[0] > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-
-        //    d3.select("g.lcthings").select("line")
-        //        .attr("x1", this._sc_cx + this._sc_radius * cosTheta)
-        //        .attr("y1", this._sc_cy + this._sc_radius * sinTheta)
-        //        .attr("x2", p[0] - this._lc_radius * cosTheta)
-        //        .attr("y2", p[1] - this._lc_radius * sinTheta)
-        //    ;
-        //}
-
         protected zoomFunc(): void {
             if (d3.event.sourceEvent.type == "mousemove") {
                 //var p = d3.mouse(this._element[0][0]);
