@@ -38,6 +38,7 @@
     <TypeScriptCompile Include="tsScripts\BaseD3Lens.ts" />
     <TypeScriptCompile Include="tsScripts\D3ChartObject.ts" />
     <TypeScriptCompile Include="tsScripts\Cruve.ts" />
+    <TypeScriptCompile Include="tsScripts\HistoryTree.ts" />
     <TypeScriptCompile Include="tsScripts\LensPane.ts" />
     <TypeScriptCompile Include="tsScripts\LocationLens.ts" />
     <TypeScriptCompile Include="tsScripts\NetworkTreeLens.ts" />

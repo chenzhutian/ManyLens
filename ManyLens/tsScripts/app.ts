@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function () {
     //barChartLens.render();
     //var locationMap = new ManyLens.LocationLens(d3.select("#mapView").select("svg"));
     //locationMap.render();
+
+    var historyTrees = new ManyLens.HistoryTrees(d3.select("#historyView").select("svg"));
     var lensPane = new ManyLens.LensPane(d3.select("#mapView").select("svg"));
+    lensPane.bindHistoryTrees(historyTrees);
     lensPane.render();
 });

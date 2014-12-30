@@ -17,6 +17,8 @@ module ManyLens {
         private _pane_color: D3.Scale.OrdinalScale = d3.scale.category20();
         private _current_pane_g: PaneG = null;
 
+        private _history_trees: HistoryTrees;
+
         constructor(element: D3.Selection) {
             super(element);
 
@@ -36,6 +38,13 @@ module ManyLens {
                 this.openPane();
             });
 
+        }
+
+        public bindHistoryTrees(historyTrees: HistoryTrees) {
+            this._history_trees = historyTrees;
+
+            //the new tree should not be added here, need to re-write
+            this._history_trees.addTree();
         }
 
         private openPane() {
@@ -67,7 +76,7 @@ module ManyLens {
                     }, 1000);
                 })
                 .on("click", (d, i) => {
-                    var len;
+                    var len:BaseD3Lens;
                     switch (i) {
                         case 0: {
                             len = new BarChartLens(this._element);
@@ -92,6 +101,7 @@ module ManyLens {
                     }
                     this._lens.push(len);
                     len.render(this._pane_color(i));
+                    this._history_trees.addNode({ color: this._pane_color(i), lensType: len.Type, tree_id: 0 });
                     d3.event.stopPropagation();
                     this.closePane("select a lens");
                 })
