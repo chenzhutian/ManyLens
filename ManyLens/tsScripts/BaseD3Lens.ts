@@ -42,6 +42,7 @@ module ManyLens {
                 .attr("fill-opacity",0.3)
                 .on("mousedown", () => {
                     container.on("mousemove", moveSelectCircle);
+                    d3.event.stopPropagation();
                 })
                 .on("mouseup", () => {
                     this._sc_cx = parseFloat(selectCircle.attr("cx"));
@@ -54,6 +55,7 @@ module ManyLens {
                     }
 
                     container.on("mousemove", null);
+                    d3.event.stopPropagation();
                 })
                 .on("click", () => {
                     d3.event.stopPropagation();
@@ -114,7 +116,16 @@ module ManyLens {
 
             this._zoom
                 .scaleExtent([1, 2])
-                .on("zoom", () => { this.zoomFunc(); })
+                .on("zoomstart", () => {
+                    console.log("start");
+                })
+                .on("zoom", () => {
+                    this.zoomFunc();
+                    console.log("move");
+                })
+                .on("zoomend", () => {
+                    console.log("end");
+                })
             ;
 
             this._lensG = this._sc_lc_svg.append("g")
@@ -123,7 +134,14 @@ module ManyLens {
                 .on("click", () => {
                     d3.event.stopPropagation();
                 })
+
                 .call(this._zoom)
+                .on("mousedown", () => {
+                    console.log("mousedown");
+                })
+                .on("mouseup", () => {
+                    console.log("mouseup");
+                })
             ;
 
             this._lens_circle = this._lensG.append("circle")

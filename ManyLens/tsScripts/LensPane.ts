@@ -93,6 +93,7 @@ module ManyLens {
                     this._lens.push(len);
                     len.render(this._pane_color(i));
                     d3.event.stopPropagation();
+                    this.closePane("select a lens");
                 })
                 .transition().duration(750)
                 .attr("transform", (d) => {

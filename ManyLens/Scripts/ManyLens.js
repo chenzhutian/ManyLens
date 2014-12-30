@@ -111,6 +111,7 @@ var ManyLens;
             var sclcSvg = this._sc_lc_svg = container.append("g").attr("class", "lcthings");
             var selectCircle = this._select_circle = this._sc_lc_svg.append("circle").attr("r", cr).attr("fill", color).attr("fill-opacity", 0.3).on("mousedown", function () {
                 container.on("mousemove", moveSelectCircle);
+                d3.event.stopPropagation();
             }).on("mouseup", function () {
                 _this._sc_cx = parseFloat(selectCircle.attr("cx"));
                 _this._sc_cy = parseFloat(selectCircle.attr("cy"));
@@ -120,6 +121,7 @@ var ManyLens;
                     hasShow = true;
                 }
                 container.on("mousemove", null);
+                d3.event.stopPropagation();
             }).on("click", function () {
                 d3.event.stopPropagation();
             });
@@ -157,12 +159,21 @@ var ManyLens;
             });
             this._lc_cx = cx + (this._lc_radius * cosTheta);
             this._lc_cy = cy + (this._lc_radius * sinTheta);
-            this._zoom.scaleExtent([1, 2]).on("zoom", function () {
+            this._zoom.scaleExtent([1, 2]).on("zoomstart", function () {
+                console.log("start");
+            }).on("zoom", function () {
                 _this.zoomFunc();
+                console.log("move");
+            }).on("zoomend", function () {
+                console.log("end");
             });
             this._lensG = this._sc_lc_svg.append("g").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")").attr("opacity", "1e-6").on("click", function () {
                 d3.event.stopPropagation();
-            }).call(this._zoom);
+            }).call(this._zoom).on("mousedown", function () {
+                console.log("mousedown");
+            }).on("mouseup", function () {
+                console.log("mouseup");
+            });
             this._lens_circle = this._lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
             return {
                 lcx: this._lc_cx,
@@ -234,6 +245,21 @@ var ManyLens;
         return BarChartLens;
     })(ManyLens.BaseD3Lens);
     ManyLens.BarChartLens = BarChartLens;
+})(ManyLens || (ManyLens = {}));
+var ManyLens;
+(function (ManyLens) {
+    var HistoryTree = (function (_super) {
+        __extends(HistoryTree, _super);
+        function HistoryTree(element) {
+            _super.call(this, element);
+        }
+        HistoryTree.prototype.render = function () {
+        };
+        HistoryTree.prototype.addNode = function () {
+        };
+        return HistoryTree;
+    })(ManyLens.D3ChartObject);
+    ManyLens.HistoryTree = HistoryTree;
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
@@ -314,6 +340,7 @@ var ManyLens;
                 _this._lens.push(len);
                 len.render(_this._pane_color(i));
                 d3.event.stopPropagation();
+                _this.closePane("select a lens");
             }).transition().duration(750).attr("transform", function (d) {
                 return "translate(" + _this._pane_arc.centroid(d) + ")";
             });
