@@ -18,8 +18,8 @@ module ManyLens{
 
         }
 
-        public render(): void {
-            super.render();
+        public render(color:string): void {
+            super.render(color);
             
         }
 
@@ -36,35 +36,23 @@ module ManyLens{
         protected showLens(data: Array<any>): any {
             var p = super.showLens();
             var container = this._element;
+            var lensG = this._lensG;
+
             this._pie.value((d) => {
                     return d;
                  })
                 .sort(null)
             ;
 
-            var lensG = container
-                .select("g.lcthings").select("g")
-                .datum(data)
-                .attr("opacity", "1e-6")
-                .attr("transform", "translate(" + [p.lcx, p.lcy] + ")")
-            ;
-                lensG.selectAll("path")
-                    .data(this._pie)
-                .enter().append("path")
-                    .attr("fill", (d, i) => {
-                        return this._color(i);
-                    })
-                    .attr("d", this._arc)
+            lensG.selectAll("path")
+                .data(this._pie(data))
+            .enter().append("path")
+                .attr("fill", (d, i) => {
+                    return this._color(i);
+                })
+                .attr("d", this._arc)
             ;
 
-           this._lens_circle =  lensG
-                .append("circle")
-                .attr("cx", 0)
-                .attr("cy", 0)
-                .attr("r", this._innerRadius)
-                .attr("fill", "rgb(221,221,221)")
-                //.attr("fill-opacity", 0.3)
-            ;
             lensG
                 .transition().duration(p.duration)
                 .attr("opacity", "1")

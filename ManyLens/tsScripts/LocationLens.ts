@@ -10,8 +10,8 @@ module ManyLens {
             super(element,"LocationLens");
         }
 
-        public render(): void {
-            super.render();
+        public render(color:string): void {
+            super.render(color);
         }
 
         protected extractData(): any {
@@ -23,20 +23,7 @@ module ManyLens {
         protected showLens(data: Array<any>): any {
             var p = super.showLens();
             var container = this._element;
-            var lensG = container
-                .select("g.lcthings").select("g")
-                .attr("transform", "translate(" + [p.lcx, p.lcy] + ")")
-                .attr("opacity", "1e-6")
-            ;
-
-            this._lens_circle = lensG.append("circle")
-                .attr("cx", 0)
-                .attr("cy", 0)
-                .attr("r", this._lc_radius)
-                .attr("fill", "#fff")
-                .attr("stroke", "black")
-                .attr("stroke-width", 1)
-            ;
+            var lensG = this._lensG;
 
             //TODO
             lensG.append("image")

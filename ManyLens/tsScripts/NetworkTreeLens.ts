@@ -9,8 +9,8 @@ module ManyLens {
             super(element,"NetworkLens");
         }
 
-        public render(): void {
-            super.render();
+        public render(color:string): void {
+            super.render(color);
         }
 
         protected extractData(): D3.Layout.GraphNode {
@@ -59,16 +59,12 @@ module ManyLens {
         protected showLens(data:D3.Layout.GraphNode):any {
             var p = super.showLens();
             var container = this._element;
+            var lensG = this._lensG;
+
             var nodeRadius = 4.5;
             var diagonal = d3.svg.diagonal.radial()
                 .projection(function (d) { return [d.y, d.x / 180 * Math.PI]; });
 
-            var lensG = container
-                .select("g.lcthings").select("g")
-                .attr("transform", "translate(" + [p.lcx, p.lcy] + ")")
-                .attr("opacity", "1e-6")
-            ;
-            
             this._lens_circle = lensG.append("circle")
                 .attr("cx", 0)
                 .attr("cy", 0)

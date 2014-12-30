@@ -3,6 +3,7 @@ module ManyLens {
 
     export class BaseD3Lens extends D3ChartObject {
 
+        protected _lensG: D3.Selection;
         protected _type: string;
         protected _select_circle: D3.Selection;
         protected _sc_radius: number = 10;
@@ -26,14 +27,14 @@ module ManyLens {
             this._type = type;
         }
 
-        public render(): void {
+        public render(color:string): void {
             var container = this._element;
             var cr = this._sc_radius; 
             var hasShow = false;
-
+            console.log(color);
             var selectCircle = this._select_circle = this._element.append("circle")
                 .attr("r", cr)
-                .attr("fill", "purple")
+                .attr("fill", color)
                 .attr("fill-opacity",0.3)
                 .on("mousedown", () => {
                     container.on("mousemove", moveSelectCircle);
@@ -49,6 +50,9 @@ module ManyLens {
                     }
 
                     container.on("mousemove", null);
+                })
+                .on("click", () => {
+                    d3.event.stopPropagation();
                 })
             ;
 
@@ -113,6 +117,27 @@ module ManyLens {
                 .call(this._zoom)
             ;
 
+            this._lensG = container
+                .select("g.lcthings").select("g")
+                .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")")
+                .attr("opacity", "1e-6")
+                .on("mousedown", () => {
+                    d3.event.stopPropagation();
+                })
+                .on("click", () => {
+                    d3.event.stopPropagation();
+                })
+            ;
+
+            this._lens_circle = this._lensG.append("circle")
+                .attr("cx", 0)
+                .attr("cy", 0)
+                .attr("r", this._lc_radius)
+                .attr("fill", "#fff")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+            ;
+
             return {
                 lcx: this._lc_cx,
                 lcy: this._lc_cy,
@@ -123,9 +148,12 @@ module ManyLens {
 
         protected zoomFunc(): void {
             if (d3.event.sourceEvent.type == "mousemove") {
-                //var p = d3.mouse(this._element[0][0]);
-                this._lc_cx += d3.event.sourceEvent.movementX;//p[0];
-                this._lc_cy += d3.event.sourceEvent.movementY;//p[1];
+                var p1 = d3.mouse(this._element[0][0]);
+
+                this._lc_cx = p1[0];
+                this._lc_cy = p1[1];
+                //this._lc_cx += d3.event.sourceEvent.movementX;
+                //this._lc_cy += d3.event.sourceEvent.movementY;
             }
 
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));

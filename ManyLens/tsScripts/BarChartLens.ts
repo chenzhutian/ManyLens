@@ -12,8 +12,8 @@ module ManyLens {
             super(element,"BarChartLens");
         }
 
-        public render(): void {
-            super.render();
+        public render(color:string): void {
+            super.render(color);
 
         }
 
@@ -29,11 +29,7 @@ module ManyLens {
         protected showLens(data:Array<number>):any {
             var p = super.showLens();
             var container = this._element;
-            var lensG = container
-                .select("g.lcthings").select("g")
-                .attr("transform", "translate(" + [p.lcx, p.lcy] + ")")
-                .attr("opacity", "1e-6")
-            ;
+            var lensG = this._lensG;
 
             this._lens_circle = lensG.append("circle")
                 .attr("cx", 0)
