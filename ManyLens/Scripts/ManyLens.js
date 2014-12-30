@@ -108,8 +108,8 @@ var ManyLens;
             var container = this._element;
             var cr = this._sc_radius;
             var hasShow = false;
-            console.log(color);
-            var selectCircle = this._select_circle = this._element.append("circle").attr("r", cr).attr("fill", color).attr("fill-opacity", 0.3).on("mousedown", function () {
+            var sclcSvg = this._sc_lc_svg = container.append("g").attr("class", "lcthings");
+            var selectCircle = this._select_circle = this._sc_lc_svg.append("circle").attr("r", cr).attr("fill", color).attr("fill-opacity", 0.3).on("mousedown", function () {
                 container.on("mousemove", moveSelectCircle);
             }).on("mouseup", function () {
                 _this._sc_cx = parseFloat(selectCircle.attr("cx"));
@@ -125,7 +125,8 @@ var ManyLens;
             });
             container.on("mousemove", moveSelectCircle);
             function moveSelectCircle() {
-                container.select(".lcthings").remove();
+                sclcSvg.select("g").remove();
+                sclcSvg.select("line").remove();
                 var p = d3.mouse(container[0][0]);
                 selectCircle.attr("cx", p[0]).attr("cy", p[1]);
                 hasShow = false;
@@ -140,30 +141,28 @@ var ManyLens;
             if (any === void 0) { any = null; }
             var sc_lc_dist = 100;
             var theta = Math.random() * Math.PI;
+            var cosTheta = Math.cos(theta);
+            var sinTheta = Math.sin(theta);
             var container = this._element;
             var cr = this._sc_radius;
-            var cx = this._sc_cx + (cr * Math.cos(theta));
-            var cy = this._sc_cy + (cr * Math.sin(theta));
+            var cx = this._sc_cx + (cr * cosTheta);
+            var cy = this._sc_cy + (cr * sinTheta);
             var duration = 300;
-            var svg = container.append("g").attr("class", "lcthings");
-            svg.append("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
-                cx = cx + (sc_lc_dist * Math.cos(theta));
+            this._sc_lc_svg.append("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
+                cx = cx + (sc_lc_dist * cosTheta);
                 return cx;
             }).attr("y2", function () {
-                cy = cy + (sc_lc_dist * Math.sin(theta));
+                cy = cy + (sc_lc_dist * sinTheta);
                 return cy;
             });
-            this._lc_cx = cx + (this._lc_radius * Math.cos(theta));
-            this._lc_cy = cy + (this._lc_radius * Math.sin(theta));
+            this._lc_cx = cx + (this._lc_radius * cosTheta);
+            this._lc_cy = cy + (this._lc_radius * sinTheta);
             this._zoom.scaleExtent([1, 2]).on("zoom", function () {
                 _this.zoomFunc();
             });
-            svg.append("g").call(this._zoom);
-            this._lensG = container.select("g.lcthings").select("g").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")").attr("opacity", "1e-6").on("mousedown", function () {
+            this._lensG = this._sc_lc_svg.append("g").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")").attr("opacity", "1e-6").on("click", function () {
                 d3.event.stopPropagation();
-            }).on("click", function () {
-                d3.event.stopPropagation();
-            });
+            }).call(this._zoom);
             this._lens_circle = this._lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
             return {
                 lcx: this._lc_cx,
@@ -181,8 +180,8 @@ var ManyLens;
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
             var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
             var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-            d3.select("g.lcthings").select("g").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + d3.event.scale + ")");
-            d3.select("g.lcthings").select("line").attr("x1", this._sc_cx + this._sc_radius * cosTheta).attr("y1", this._sc_cy + this._sc_radius * sinTheta).attr("x2", this._lc_cx - this._lc_radius * d3.event.scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * d3.event.scale * sinTheta);
+            this._lensG.attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + d3.event.scale + ")");
+            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * cosTheta).attr("y1", this._sc_cy + this._sc_radius * sinTheta).attr("x2", this._lc_cx - this._lc_radius * d3.event.scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * d3.event.scale * sinTheta);
         };
         return BaseD3Lens;
     })(ManyLens.D3ChartObject);
@@ -249,11 +248,6 @@ var ManyLens;
             this._pane_pie = d3.layout.pie();
             this._pane_color = d3.scale.category20();
             this._current_pane_g = null;
-            this._lens.push(new ManyLens.BarChartLens(element));
-            this._lens.push(new ManyLens.LocationLens(element));
-            this._lens.push(new ManyLens.NetworkTreeLens(element));
-            this._lens.push(new ManyLens.PieChartLens(element));
-            this._lens.push(new ManyLens.WordCloudLens(element));
             this._pane_pie.startAngle(-Math.PI / 2).endAngle(Math.PI / 2).value(function () {
                 return 1;
             });
@@ -278,7 +272,7 @@ var ManyLens;
                 _this.closePane("time out close");
             }, 2000);
             var svg = this._element.append("g").attr("transform", "translate(" + p[0] + "," + p[1] + ")");
-            svg.selectAll("circle").data(this._pane_pie(this._lens)).enter().append("circle").attr("class", "paneCircle").attr("id", function (d, i) {
+            svg.selectAll("circle").data(this._pane_pie([1, 1, 1, 1, 1])).enter().append("circle").attr("class", "paneCircle").attr("id", function (d, i) {
                 return "lens" + i;
             }).style("fill", function (d, i) {
                 return _this._pane_color(i);
@@ -289,8 +283,36 @@ var ManyLens;
                     _this.closePane("time out close");
                 }, 1000);
             }).on("click", function (d, i) {
-                var c = _this._pane_color(i);
-                _this._lens[i].render(c);
+                var len;
+                switch (i) {
+                    case 0:
+                        {
+                            len = new ManyLens.BarChartLens(_this._element);
+                            break;
+                        }
+                    case 1:
+                        {
+                            len = new ManyLens.LocationLens(_this._element);
+                            break;
+                        }
+                    case 2:
+                        {
+                            len = new ManyLens.NetworkTreeLens(_this._element);
+                            break;
+                        }
+                    case 3:
+                        {
+                            len = new ManyLens.PieChartLens(_this._element);
+                            break;
+                        }
+                    case 4:
+                        {
+                            len = new ManyLens.WordCloudLens(_this._element);
+                            break;
+                        }
+                }
+                _this._lens.push(len);
+                len.render(_this._pane_color(i));
                 d3.event.stopPropagation();
             }).transition().duration(750).attr("transform", function (d) {
                 return "translate(" + _this._pane_arc.centroid(d) + ")";
@@ -522,7 +544,7 @@ var ManyLens;
             //Maybe need to scale, but I haven't implemented it now
             var scale = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
             console.log(scale);
-            var text = container.select("g.lcthings").select("g").selectAll("text").data(words, function (d) {
+            var text = this._lensG.selectAll("text").data(words, function (d) {
                 return d.text;
             }).enter().append("text");
             text.attr("text-anchor", "middle").style("font-size", function (d) {

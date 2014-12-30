@@ -19,11 +19,6 @@ module ManyLens {
 
         constructor(element: D3.Selection) {
             super(element);
-            this._lens.push(new BarChartLens(element));
-            this._lens.push(new LocationLens(element));
-            this._lens.push(new NetworkTreeLens(element));
-            this._lens.push(new PieChartLens(element));
-            this._lens.push(new WordCloudLens(element));
 
             this._pane_pie
                 .startAngle(-Math.PI / 2)
@@ -57,7 +52,7 @@ module ManyLens {
                 .attr("transform", "translate(" + p[0] + "," + p[1] + ")");
 
             svg.selectAll("circle")
-                .data(this._pane_pie(this._lens))
+                .data(this._pane_pie([1,1,1,1,1]))
                 .enter().append("circle")
                 .attr("class", "paneCircle")
                 .attr("id", (d, i) => { return "lens" + i; })
@@ -72,8 +67,31 @@ module ManyLens {
                     }, 1000);
                 })
                 .on("click", (d, i) => {
-                    var c = this._pane_color(i);
-                    this._lens[i].render(c);
+                    var len;
+                    switch (i) {
+                        case 0: {
+                            len = new BarChartLens(this._element);
+                            break;
+                        }
+                        case 1: {
+                            len = new LocationLens(this._element);
+                            break;
+                        }
+                        case 2: {
+                            len = new NetworkTreeLens(this._element);
+                            break;
+                        }
+                        case 3: {
+                            len = new PieChartLens(this._element);
+                            break;
+                        }
+                        case 4: {
+                            len = new WordCloudLens(this._element);
+                            break;
+                        }
+                    }
+                    this._lens.push(len);
+                    len.render(this._pane_color(i));
                     d3.event.stopPropagation();
                 })
                 .transition().duration(750)

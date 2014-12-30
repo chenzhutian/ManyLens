@@ -65,14 +65,7 @@ module ManyLens {
             var diagonal = d3.svg.diagonal.radial()
                 .projection(function (d) { return [d.y, d.x / 180 * Math.PI]; });
 
-            this._lens_circle = lensG.append("circle")
-                .attr("cx", 0)
-                .attr("cy", 0)
-                .attr("r", this._lc_radius)
-                .attr("fill", "#fff")
-                .attr("stroke", "black")
-                .attr("stroke-width", 1)
-            ;
+
 
             this._tree
                 .size([this._theta, this._lc_radius- nodeRadius])

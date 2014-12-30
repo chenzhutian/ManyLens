@@ -3,6 +3,7 @@ module ManyLens {
 
     export class BaseD3Lens extends D3ChartObject {
 
+        protected _sc_lc_svg: D3.Selection;
         protected _lensG: D3.Selection;
         protected _type: string;
         protected _select_circle: D3.Selection;
@@ -31,8 +32,11 @@ module ManyLens {
             var container = this._element;
             var cr = this._sc_radius; 
             var hasShow = false;
-            console.log(color);
-            var selectCircle = this._select_circle = this._element.append("circle")
+
+            var sclcSvg =  this._sc_lc_svg = container.append("g")
+                .attr("class", "lcthings");
+
+            var selectCircle = this._select_circle = this._sc_lc_svg.append("circle")
                 .attr("r", cr)
                 .attr("fill", color)
                 .attr("fill-opacity",0.3)
@@ -61,7 +65,8 @@ module ManyLens {
             ;
 
             function moveSelectCircle() {
-                container.select(".lcthings").remove();
+                sclcSvg.select("g").remove();
+                sclcSvg.select("line").remove();
                 var p = d3.mouse(container[0][0]);
                 selectCircle
                     .attr("cx", p[0])
@@ -78,16 +83,15 @@ module ManyLens {
         protected showLens(any = null): { lcx: number; lcy: number; theta: number; duration:number} {
             var sc_lc_dist = 100;
             var theta = Math.random() * Math.PI;
+            var cosTheta = Math.cos(theta);
+            var sinTheta = Math.sin(theta);
             var container = this._element;
             var cr = this._sc_radius;
-            var cx = this._sc_cx + (cr * Math.cos(theta));
-            var cy = this._sc_cy + (cr * Math.sin(theta));
+            var cx = this._sc_cx + (cr * cosTheta);
+            var cy = this._sc_cy + (cr * sinTheta);
             var duration: number = 300;
 
-            var svg = container.append("g")
-                .attr("class", "lcthings")
-            ;
-            svg.append("line")
+            this._sc_lc_svg.append("line")
                 .attr("x1", cx)
                 .attr("y1", cy)
                 .attr("x2", cx)
@@ -96,37 +100,30 @@ module ManyLens {
                 .attr("stroke", "red")
             .transition().duration(duration)
                 .attr("x2", () => {
-                    cx = cx + (sc_lc_dist * Math.cos(theta));
+                    cx = cx + (sc_lc_dist * cosTheta);
                     return cx;
                 })
                 .attr("y2", () => {
-                    cy = cy + (sc_lc_dist * Math.sin(theta));
+                    cy = cy + (sc_lc_dist * sinTheta);
                     return cy;
                 })
             ;
 
-            this._lc_cx = cx + (this._lc_radius * Math.cos(theta));
-            this._lc_cy = cy + (this._lc_radius * Math.sin(theta));
+            this._lc_cx = cx + (this._lc_radius * cosTheta);
+            this._lc_cy = cy + (this._lc_radius * sinTheta);
 
             this._zoom
                 .scaleExtent([1, 2])
                 .on("zoom", () => { this.zoomFunc(); })
             ;
 
-            svg.append("g")
-                .call(this._zoom)
-            ;
-
-            this._lensG = container
-                .select("g.lcthings").select("g")
+            this._lensG = this._sc_lc_svg.append("g")
                 .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")")
                 .attr("opacity", "1e-6")
-                .on("mousedown", () => {
-                    d3.event.stopPropagation();
-                })
                 .on("click", () => {
                     d3.event.stopPropagation();
                 })
+                .call(this._zoom)
             ;
 
             this._lens_circle = this._lensG.append("circle")
@@ -160,11 +157,11 @@ module ManyLens {
             var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
             var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
 
-            d3.select("g.lcthings").select("g")
+            this._lensG
                 .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + d3.event.scale + ")")
             ;
 
-            d3.select("g.lcthings").select("line")
+            this._sc_lc_svg.select("line")
                 .attr("x1", this._sc_cx + this._sc_radius * cosTheta)
                 .attr("y1", this._sc_cy + this._sc_radius * sinTheta)
                 .attr("x2", this._lc_cx - this._lc_radius * d3.event.scale * cosTheta)

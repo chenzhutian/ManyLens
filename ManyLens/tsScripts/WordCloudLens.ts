@@ -62,14 +62,7 @@ module ManyLens{
             var container = this._element;
             var lensG = this._lensG;
 
-            this._lens_circle = lensG.append("circle")
-                .attr("cx", 0)
-                .attr("cy", 0)
-                .attr("r", this._lc_radius)
-                .attr("fill", "#fff")
-                .attr("stroke", "black")
-                .attr("stroke-width",1)
-            ;
+
 
 
             lensG
@@ -104,8 +97,7 @@ module ManyLens{
                 h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
 
             console.log(scale);
-            var text = container
-                .select("g.lcthings").select("g").selectAll("text")
+            var text = this._lensG.selectAll("text")
                 .data(words, function (d) { return d.text; })
                 .enter().append("text");
 

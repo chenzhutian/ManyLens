@@ -31,14 +31,6 @@ module ManyLens {
             var container = this._element;
             var lensG = this._lensG;
 
-            this._lens_circle = lensG.append("circle")
-                .attr("cx", 0)
-                .attr("cy", 0)
-                .attr("r", this._lc_radius)
-                .attr("fill", "#fff")
-                .attr("stroke", "black")
-                .attr("stroke-width", 1)
-            ;
 
             var x = d3.scale.linear()
                 .range([0, this._bar_chart_width])
