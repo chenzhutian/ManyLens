@@ -73,18 +73,18 @@ document.addEventListener('DOMContentLoaded', function () {
     curveView.render([10, 10]);
     //var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
     //pieChartLens.render();
-    //var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
-    //wordCloudLens.render();
+    var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
+    wordCloudLens.render();
     //var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
     //networkLens.render();
     //var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
     //barChartLens.render();
     //var locationMap = new ManyLens.LocationLens(d3.select("#mapView").select("svg"));
     //locationMap.render();
-    var historyTrees = new ManyLens.HistoryTrees(d3.select("#historyView").select("svg"));
-    var lensPane = new ManyLens.LensPane(d3.select("#mapView").select("svg"));
-    lensPane.bindHistoryTrees(historyTrees);
-    lensPane.render();
+    //var historyTrees = new ManyLens.HistoryTrees(d3.select("#historyView").select("svg"));
+    //var lensPane = new ManyLens.LensPane(d3.select("#mapView").select("svg"));
+    //lensPane.bindHistoryTrees(historyTrees);
+    //lensPane.render();
 });
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
@@ -108,10 +108,9 @@ var ManyLens;
         BaseD3Lens.prototype.render = function (color) {
             var _this = this;
             var container = this._element;
-            var cr = this._sc_radius;
             var hasShow = false;
             var sclcSvg = this._sc_lc_svg = container.append("g").attr("class", "lcthings");
-            var selectCircle = this._select_circle = this._sc_lc_svg.append("circle").attr("r", cr).attr("fill", color).attr("fill-opacity", 0.3).on("mousedown", function () {
+            var selectCircle = this._select_circle = this._sc_lc_svg.append("circle").attr("r", this._sc_radius).attr("fill", color).attr("fill-opacity", 0.3).on("mousedown", function () {
                 container.on("mousemove", moveSelectCircle);
                 d3.event.stopPropagation();
             }).on("mouseup", function () {
@@ -162,19 +161,14 @@ var ManyLens;
             this._lc_cx = cx + (this._lc_radius * cosTheta);
             this._lc_cy = cy + (this._lc_radius * sinTheta);
             this._zoom.scaleExtent([1, 2]).on("zoomstart", function () {
-                console.log("start");
             }).on("zoom", function () {
                 _this.zoomFunc();
-                console.log("move");
             }).on("zoomend", function () {
-                console.log("end");
             });
             this._lensG = this._sc_lc_svg.append("g").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")").attr("opacity", "1e-6").on("click", function () {
                 d3.event.stopPropagation();
             }).call(this._zoom).on("mousedown", function () {
-                console.log("mousedown");
             }).on("mouseup", function () {
-                console.log("mouseup");
             });
             this._lens_circle = this._lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
             return {
@@ -587,6 +581,7 @@ var ManyLens;
 (function (ManyLens) {
     var WordCloudLens = (function (_super) {
         __extends(WordCloudLens, _super);
+        //private _cloud_rotate: number = 0;
         function WordCloudLens(element) {
             _super.call(this, element, "WordCloudLens");
             this._font_size = d3.scale.sqrt();
@@ -596,16 +591,35 @@ var ManyLens;
             this._cloud_padding = 1;
             this._cloud_font = "Calibri";
             this._cloud_font_weight = "normal";
-            this._cloud_rotate = 0;
             this._color = d3.scale.category20c();
         }
         WordCloudLens.prototype.render = function (color) {
+            if (color === void 0) { color = "red"; }
             _super.prototype.render.call(this, color);
         };
         // data shape {text: size:}
         WordCloudLens.prototype.extractData = function () {
             var data;
-            data = [{ text: "Samsung", value: 90 }, { text: "Apple", value: 80 }, { text: "Lenovo", value: 50 }, { text: "LG", value: 60 }, { text: "Nokia", value: 30 }, { text: "Huawei", value: 40 }, { text: "Meizu", value: 50 }, { text: "HTC", value: 60 }, { text: "XiaoMi", value: 60 }, { text: "ZTE", value: 40 }, { text: "Galaxy Note Edge", value: 60 }, { text: "LED H5205", value: 70 }, { text: "Galaxy Tab3 8.0", value: 50 }, { text: "Galaxy Tab3 10.1", value: 50 }, { text: "Gear S", value: 70 }, { text: "Gear Fit", value: 40 }, { text: "Gear Fit2", value: 30 }, { text: "Galaxy S4", value: 60 }];
+            data = [
+                { text: "Samsung", value: 90 },
+                { text: "Apple", value: 80 },
+                { text: "Lenovo", value: 50 },
+                { text: "LG", value: 60 },
+                { text: "Nokia", value: 30 },
+                { text: "Huawei", value: 40 },
+                { text: "Meizu", value: 50 },
+                { text: "HTC", value: 60 },
+                { text: "XiaoMi", value: 60 },
+                { text: "ZTE", value: 40 },
+                { text: "Galaxy Note Edge", value: 60 },
+                { text: "LED H5205", value: 70 },
+                { text: "Galaxy Tab3 8.0", value: 50 },
+                { text: "Galaxy Tab3 10.1", value: 50 },
+                { text: "Gear S", value: 70 },
+                { text: "Gear Fit", value: 40 },
+                { text: "Gear Fit2", value: 30 },
+                { text: "Galaxy S4", value: 60 }
+            ];
             this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
                 return d.value;
             }));
@@ -617,7 +631,7 @@ var ManyLens;
             var container = this._element;
             var lensG = this._lensG;
             lensG.transition().duration(p.duration).attr("opacity", "1");
-            this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(this._cloud_rotate).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+            this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                 return _this._font_size(d.value);
             }).on("end", function (words, bounds) {
                 _this.drawCloud(words, bounds);
@@ -631,7 +645,6 @@ var ManyLens;
             var container = this._element;
             //Maybe need to scale, but I haven't implemented it now
             var scale = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
-            console.log(scale);
             var text = this._lensG.selectAll("text").data(words, function (d) {
                 return d.text;
             }).enter().append("text");
@@ -643,8 +656,8 @@ var ManyLens;
                 return d.font;
             }).style("fill", function (d, i) {
                 return _this._color(d.size);
-            }).style("opacity", 1e-6).attr("text-anchor", "middle").attr("class", "show").attr("transform", function (d) {
-                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+            }).style("opacity", 1e-6).attr("text-anchor", "middle").attr("transform", function (d) {
+                return "translate(" + [d.x, d.y] + ")";
             }).text(function (d) {
                 return d.text;
             }).transition().duration(200).style("opacity", 1);

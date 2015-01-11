@@ -13,7 +13,7 @@ module ManyLens{
         private _cloud_padding: number = 1;
         private _cloud_font: string = "Calibri"
         private _cloud_font_weight: string = "normal";
-        private _cloud_rotate: number = 0;
+        //private _cloud_rotate: number = 0;
 
         constructor(element: D3.Selection) {
             super(element,"WordCloudLens");
@@ -21,7 +21,7 @@ module ManyLens{
 
         }
 
-        public render(color:string): void {
+        public render(color = "red"): void {
             super.render(color);
             
         }
@@ -29,7 +29,8 @@ module ManyLens{
         // data shape {text: size:}
         protected extractData(): Array<cloudData> {
             var data: Array<cloudData>
-            data = [{ text: "Samsung", value: 90 },
+            data = [
+                { text: "Samsung", value: 90 },
                 { text: "Apple", value: 80 },
                 { text: "Lenovo", value: 50 },
                 { text: "LG", value: 60 },
@@ -46,7 +47,8 @@ module ManyLens{
                 { text: "Gear S", value: 70 },
                 { text: "Gear Fit", value: 40 },
                 { text: "Gear Fit2", value: 30 },
-                { text: "Galaxy S4", value: 60 }]
+                { text: "Galaxy S4", value: 60 }
+            ]
             ;
 
             this._font_size
@@ -73,7 +75,7 @@ module ManyLens{
             this._cloud.size([this._cloud_w,this._cloud_h])
                 .words(data)
                 .padding(this._cloud_padding)
-                .rotate(this._cloud_rotate)
+                .rotate(0)
                 .font(this._cloud_font)
                 .fontWeight(this._cloud_font_weight)
                 .fontSize((d) => { return this._font_size(d.value); })
@@ -96,7 +98,6 @@ module ManyLens{
                 h / Math.abs(bounds[1].y - h / 2),
                 h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
 
-            console.log(scale);
             var text = this._lensG.selectAll("text")
                 .data(words, function (d) { return d.text; })
                 .enter().append("text");
@@ -108,9 +109,9 @@ module ManyLens{
                 .style("fill", (d, i) =>{ return this._color(d.size); })
                 .style("opacity", 1e-6)
                 .attr("text-anchor", "middle")
-                .attr("class", "show")
+                //.attr("class", "show")
                 .attr("transform", function (d) {
-                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                    return "translate(" + [d.x, d.y] + ")";
                 })
                 .text(function (d) { return d.text; })
                 .transition().duration(200)

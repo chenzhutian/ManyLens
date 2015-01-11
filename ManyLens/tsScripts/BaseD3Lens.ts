@@ -30,14 +30,13 @@ module ManyLens {
 
         public render(color:string): void {
             var container = this._element;
-            var cr = this._sc_radius; 
             var hasShow = false;
 
             var sclcSvg =  this._sc_lc_svg = container.append("g")
                 .attr("class", "lcthings");
 
             var selectCircle = this._select_circle = this._sc_lc_svg.append("circle")
-                .attr("r", cr)
+                .attr("r", this._sc_radius)
                 .attr("fill", color)
                 .attr("fill-opacity",0.3)
                 .on("mousedown", () => {
@@ -117,14 +116,11 @@ module ManyLens {
             this._zoom
                 .scaleExtent([1, 2])
                 .on("zoomstart", () => {
-                    console.log("start");
                 })
                 .on("zoom", () => {
                     this.zoomFunc();
-                    console.log("move");
                 })
                 .on("zoomend", () => {
-                    console.log("end");
                 })
             ;
 
@@ -134,13 +130,10 @@ module ManyLens {
                 .on("click", () => {
                     d3.event.stopPropagation();
                 })
-
                 .call(this._zoom)
                 .on("mousedown", () => {
-                    console.log("mousedown");
                 })
                 .on("mouseup", () => {
-                    console.log("mouseup");
                 })
             ;
 
