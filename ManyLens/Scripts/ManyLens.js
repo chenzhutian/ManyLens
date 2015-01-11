@@ -73,8 +73,8 @@ document.addEventListener('DOMContentLoaded', function () {
     curveView.render([10, 10]);
     //var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
     //pieChartLens.render();
-    var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
-    wordCloudLens.render();
+    //var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
+    //wordCloudLens.render();
     //var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
     //networkLens.render();
     //var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
@@ -85,6 +85,8 @@ document.addEventListener('DOMContentLoaded', function () {
     //var lensPane = new ManyLens.LensPane(d3.select("#mapView").select("svg"));
     //lensPane.bindHistoryTrees(historyTrees);
     //lensPane.render();
+    var lensPane = new ManyLens.ClassicLensPane(d3.select("#mapView").select("svg"));
+    lensPane.render();
 });
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
@@ -241,6 +243,53 @@ var ManyLens;
         return BarChartLens;
     })(ManyLens.BaseD3Lens);
     ManyLens.BarChartLens = BarChartLens;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/D3ChartObject.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var ClassicLensPane = (function (_super) {
+        __extends(ClassicLensPane, _super);
+        function ClassicLensPane(element) {
+            var _this = this;
+            _super.call(this, element);
+            this._lens = new Array();
+            this._pane_color = d3.scale.category20();
+            this._drag = d3.behavior.drag();
+            this._drag.origin(function (d) {
+                return d;
+            }).on("drag", function () {
+                _this.dragFunc();
+            });
+        }
+        ClassicLensPane.prototype.render = function () {
+            this.openPane();
+        };
+        ClassicLensPane.prototype.bindHistoryTrees = function (historyTrees) {
+            this._history_trees = historyTrees;
+            //the new tree should not be added here, need to re-write
+            this._history_trees.addTree();
+        };
+        ClassicLensPane.prototype.openPane = function () {
+            var container = this._element;
+            var pane_g_x = 10, pane_g_y = 10;
+            this._pang_g = {
+                svg_g: container.append("g"),
+                x: 10,
+                y: 10,
+                rect_height: 100,
+                rect_width: 50
+            };
+            var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("transform", "translate(" + [pane_g_x, pane_g_y] + ")").call(this._drag);
+            pane_g.append("rect").attr("x", 0).attr("y", 0).attr("width", this._pang_g.rect_width).attr("height", this._pang_g.rect_height).attr("fill", "#fff7bc").attr("stroke", "pink").attr("stroke-width", 2);
+        };
+        ClassicLensPane.prototype.closePane = function (msg) {
+        };
+        ClassicLensPane.prototype.dragFunc = function () {
+            this._pang_g.svg_g.attr("transform", "translate(" + [this._pang_g.x = d3.event.x, this._pang_g.y = d3.event.y] + ")");
+        };
+        return ClassicLensPane;
+    })(ManyLens.D3ChartObject);
+    ManyLens.ClassicLensPane = ClassicLensPane;
 })(ManyLens || (ManyLens = {}));
 var ManyLens;
 (function (ManyLens) {

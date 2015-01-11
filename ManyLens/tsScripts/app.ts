@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //var pieChartLens = new ManyLens.PieChartLens(d3.select("#mapView").select("svg"));
     //pieChartLens.render();
-    var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
-    wordCloudLens.render();
+    //var wordCloudLens = new ManyLens.WordCloudLens(d3.select("#mapView").select("svg"));
+    //wordCloudLens.render();
     //var networkLens = new ManyLens.NetworkTreeLens(d3.select("#mapView").select("svg"));
     //networkLens.render();
     //var barChartLens = new ManyLens.BarChartLens(d3.select("#mapView").select("svg"));
@@ -21,4 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //var lensPane = new ManyLens.LensPane(d3.select("#mapView").select("svg"));
     //lensPane.bindHistoryTrees(historyTrees);
     //lensPane.render();
+
+    var lensPane = new ManyLens.ClassicLensPane(d3.select("#mapView").select("svg"));
+    lensPane.render();
 });
