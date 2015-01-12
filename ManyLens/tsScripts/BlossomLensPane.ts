@@ -8,7 +8,7 @@ module ManyLens {
         isOpened: boolean;
     }
 
-    export class LensPane extends D3ChartObject {
+    export class BlossomLensPane extends D3ChartObject {
 
         private _lens: Array<BaseD3Lens> = new Array<BaseD3Lens>();
         private _pane_radius: number = 100;
@@ -63,7 +63,7 @@ module ManyLens {
             svg.selectAll("circle")
                 .data(this._pane_pie([1,1,1,1,1]))
                 .enter().append("circle")
-                .attr("class", "paneCircle")
+                .attr("class", "pane-Lens-Circle")
                 .attr("id", (d, i) => { return "lens" + i; })
                 .style("fill", (d, i) => { return this._pane_color(i); })
                 .attr("r", 10)

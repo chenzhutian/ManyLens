@@ -2,11 +2,11 @@
 module ManyLens {
 
     export class BaseD3Lens extends D3ChartObject {
-
-        protected _sc_lc_svg: D3.Selection;
         protected _lensG: D3.Selection;
         protected _type: string;
+
         protected _select_circle: D3.Selection;
+        protected _sc_lc_svg: D3.Selection;
         protected _sc_radius: number = 10;
         protected _sc_cx: number;
         protected _sc_cy: number;
@@ -32,16 +32,21 @@ module ManyLens {
             var container = this._element;
             var hasShow = false;
 
-            var sclcSvg = this._sc_lc_svg = container.insert("g", ":first-child")
+            var sclcSvg = this._sc_lc_svg = container
+                //.insert("g", ":first-child")
+                .append("g")
                 .attr("class", "lcthings");
 
             var selectCircle = this._select_circle = this._sc_lc_svg.append("circle")
                 .attr("r", this._sc_radius)
                 .attr("fill", color)
-                .attr("fill-opacity",0.3)
+                .attr("fill-opacity", 0.3)
+                .attr("stroke", "black")
+                .attr("stroke-width",1)
                 .on("mousedown", () => {
-                    container.on("mousemove", moveSelectCircle);
-                    d3.event.stopPropagation();
+                    container.on("mousemove", moveSelectCircle);    //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
+
+                    //d3.event.stopPropagation();                   //sc重叠的时候会出问题
                 })
                 .on("mouseup", () => {
                     this._sc_cx = parseFloat(selectCircle.attr("cx"));
@@ -53,17 +58,21 @@ module ManyLens {
                         hasShow = true;
                     }
 
-                    container.on("mousemove", null);
-                    d3.event.stopPropagation();
+                    container.on("mousemove", null);                //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
+
+                    //re-order the g elements so the paneG could on the toppest
+                    var tempGs = d3.select("#mapView").selectAll("svg > g");
+                    tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
+                    tempGs.order();
+
+                    //d3.event.stopPropagation();
                 })
                 .on("click", () => {
-                    d3.event.stopPropagation();
+                    //d3.event.stopPropagation();
                 })
             ;
 
-            container
-                .on("mousemove", moveSelectCircle)
-            ;
+            container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
 
             function moveSelectCircle() {
                 sclcSvg.select("g").remove();

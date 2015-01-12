@@ -23,7 +23,7 @@ module ManyLens{
 
         public render(color = "red"): void {
             super.render(color);
-            
+
         }
 
         // data shape {text: size:}

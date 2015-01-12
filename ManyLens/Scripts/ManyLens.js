@@ -113,10 +113,10 @@ var ManyLens;
             var _this = this;
             var container = this._element;
             var hasShow = false;
-            var sclcSvg = this._sc_lc_svg = container.insert("g", ":first-child").attr("class", "lcthings");
-            var selectCircle = this._select_circle = this._sc_lc_svg.append("circle").attr("r", this._sc_radius).attr("fill", color).attr("fill-opacity", 0.3).on("mousedown", function () {
-                container.on("mousemove", moveSelectCircle);
-                d3.event.stopPropagation();
+            var sclcSvg = this._sc_lc_svg = container.append("g").attr("class", "lcthings");
+            var selectCircle = this._select_circle = this._sc_lc_svg.append("circle").attr("r", this._sc_radius).attr("fill", color).attr("fill-opacity", 0.3).attr("stroke", "black").attr("stroke-width", 1).on("mousedown", function () {
+                container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
+                //d3.event.stopPropagation();                   //sc重叠的时候会出问题
             }).on("mouseup", function () {
                 _this._sc_cx = parseFloat(selectCircle.attr("cx"));
                 _this._sc_cy = parseFloat(selectCircle.attr("cy"));
@@ -125,12 +125,16 @@ var ManyLens;
                     _this.showLens(data);
                     hasShow = true;
                 }
-                container.on("mousemove", null);
-                d3.event.stopPropagation();
+                container.on("mousemove", null); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
+                //re-order the g elements so the paneG could on the toppest
+                var tempGs = d3.select("#mapView").selectAll("svg > g");
+                tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
+                tempGs.order();
+                //d3.event.stopPropagation();
             }).on("click", function () {
-                d3.event.stopPropagation();
+                //d3.event.stopPropagation();
             });
-            container.on("mousemove", moveSelectCircle);
+            container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
             function moveSelectCircle() {
                 sclcSvg.select("g").remove();
                 sclcSvg.select("line").remove();
@@ -249,6 +253,112 @@ var ManyLens;
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
 (function (ManyLens) {
+    var BlossomLensPane = (function (_super) {
+        __extends(BlossomLensPane, _super);
+        function BlossomLensPane(element) {
+            _super.call(this, element);
+            this._lens = new Array();
+            this._pane_radius = 100;
+            this._pane_arc = d3.svg.arc();
+            this._pane_pie = d3.layout.pie();
+            this._pane_color = d3.scale.category20();
+            this._current_pane_g = null;
+            this._pane_pie.startAngle(-Math.PI / 2).endAngle(Math.PI / 2).value(function () {
+                return 1;
+            });
+            this._pane_arc.innerRadius(this._pane_radius - 40).outerRadius(this._pane_radius);
+        }
+        BlossomLensPane.prototype.render = function () {
+            var _this = this;
+            var container = this._element;
+            container.on("click", function () {
+                _this.openPane();
+            });
+        };
+        BlossomLensPane.prototype.bindHistoryTrees = function (historyTrees) {
+            this._history_trees = historyTrees;
+            //the new tree should not be added here, need to re-write
+            this._history_trees.addTree();
+        };
+        BlossomLensPane.prototype.openPane = function () {
+            var _this = this;
+            if (this._current_pane_g && this._current_pane_g.isOpened) {
+                (function () {
+                    _this.closePane("click close");
+                })();
+            }
+            var p = d3.mouse(this._element[0][0]);
+            var timer = setTimeout(function () {
+                _this.closePane("time out close");
+            }, 2000);
+            var svg = this._element.append("g").attr("transform", "translate(" + p[0] + "," + p[1] + ")");
+            svg.selectAll("circle").data(this._pane_pie([1, 1, 1, 1, 1])).enter().append("circle").attr("class", "pane-Lens-Circle").attr("id", function (d, i) {
+                return "lens" + i;
+            }).style("fill", function (d, i) {
+                return _this._pane_color(i);
+            }).attr("r", 10).on("mouseover", function () {
+                clearTimeout(_this._current_pane_g.timer);
+            }).on("mouseout", function () {
+                _this._current_pane_g.timer = setTimeout(function () {
+                    _this.closePane("time out close");
+                }, 1000);
+            }).on("click", function (d, i) {
+                var len;
+                switch (i) {
+                    case 0:
+                        {
+                            len = new ManyLens.BarChartLens(_this._element);
+                            break;
+                        }
+                    case 1:
+                        {
+                            len = new ManyLens.LocationLens(_this._element);
+                            break;
+                        }
+                    case 2:
+                        {
+                            len = new ManyLens.NetworkTreeLens(_this._element);
+                            break;
+                        }
+                    case 3:
+                        {
+                            len = new ManyLens.PieChartLens(_this._element);
+                            break;
+                        }
+                    case 4:
+                        {
+                            len = new ManyLens.WordCloudLens(_this._element);
+                            break;
+                        }
+                }
+                _this._lens.push(len);
+                len.render(_this._pane_color(i));
+                _this._history_trees.addNode({ color: _this._pane_color(i), lensType: len.Type, tree_id: 0 });
+                d3.event.stopPropagation();
+                _this.closePane("select a lens");
+            }).transition().duration(750).attr("transform", function (d) {
+                return "translate(" + _this._pane_arc.centroid(d) + ")";
+            });
+            this._current_pane_g = { svg_g: svg, timer: timer, isOpened: true };
+        };
+        BlossomLensPane.prototype.closePane = function (msg) {
+            console.log(msg);
+            var t = 400;
+            var closeG = this._current_pane_g;
+            clearTimeout(closeG.timer);
+            closeG.isOpened = false;
+            closeG.svg_g.selectAll(".paneCircle").transition().duration(t).attr("transform", "translate(0)").remove();
+            setTimeout(function () {
+                closeG.svg_g.remove();
+            }, t);
+        };
+        return BlossomLensPane;
+    })(ManyLens.D3ChartObject);
+    ManyLens.BlossomLensPane = BlossomLensPane;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/D3ChartObject.ts" />
+var ManyLens;
+(function (ManyLens) {
     var ClassicLensPane = (function (_super) {
         __extends(ClassicLensPane, _super);
         function ClassicLensPane(element) {
@@ -287,12 +397,14 @@ var ManyLens;
         ClassicLensPane.prototype.openPane = function () {
             var _this = this;
             var container = this._element;
-            var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("transform", "translate(" + [10, 10] + ")").call(this._drag);
+            var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("class", "lensPane").attr("transform", "translate(" + [10, 10] + ")").call(this._drag);
             pane_g.append("rect").attr("x", 0).attr("y", 0).attr("width", this._pang_g.rect_width).attr("height", this._pang_g.rect_height).attr("fill", "#fff7bc").attr("stroke", "pink").attr("stroke-width", 2);
-            pane_g.selectAll("circle").data([1, 1, 1, 1, 1]).enter().append("circle").attr("r", this._pang_g.lens_icon_r).attr("cx", this._pang_g.rect_width / 2).attr("cy", function (d, i) {
+            pane_g.selectAll("circle").data([1, 1, 1, 1, 1]).enter().append("circle").attr("class", "pane-Lens-Circle").attr("r", this._pang_g.lens_icon_r).attr("cx", this._pang_g.rect_width / 2).attr("cy", function (d, i) {
                 return _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding + i * (2 * _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding);
             }).attr("fill", function (d, i) {
                 return _this._pane_color(i);
+            }).on("mousedown", function () {
+                d3.event.stopPropagation();
             }).on("click", function (d, i) {
                 var len;
                 switch (i) {
@@ -408,112 +520,6 @@ var ManyLens;
         return HistoryTrees;
     })(ManyLens.D3ChartObject);
     ManyLens.HistoryTrees = HistoryTrees;
-})(ManyLens || (ManyLens = {}));
-///<reference path = "../tsScripts/D3ChartObject.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var LensPane = (function (_super) {
-        __extends(LensPane, _super);
-        function LensPane(element) {
-            _super.call(this, element);
-            this._lens = new Array();
-            this._pane_radius = 100;
-            this._pane_arc = d3.svg.arc();
-            this._pane_pie = d3.layout.pie();
-            this._pane_color = d3.scale.category20();
-            this._current_pane_g = null;
-            this._pane_pie.startAngle(-Math.PI / 2).endAngle(Math.PI / 2).value(function () {
-                return 1;
-            });
-            this._pane_arc.innerRadius(this._pane_radius - 40).outerRadius(this._pane_radius);
-        }
-        LensPane.prototype.render = function () {
-            var _this = this;
-            var container = this._element;
-            container.on("click", function () {
-                _this.openPane();
-            });
-        };
-        LensPane.prototype.bindHistoryTrees = function (historyTrees) {
-            this._history_trees = historyTrees;
-            //the new tree should not be added here, need to re-write
-            this._history_trees.addTree();
-        };
-        LensPane.prototype.openPane = function () {
-            var _this = this;
-            if (this._current_pane_g && this._current_pane_g.isOpened) {
-                (function () {
-                    _this.closePane("click close");
-                })();
-            }
-            var p = d3.mouse(this._element[0][0]);
-            var timer = setTimeout(function () {
-                _this.closePane("time out close");
-            }, 2000);
-            var svg = this._element.append("g").attr("transform", "translate(" + p[0] + "," + p[1] + ")");
-            svg.selectAll("circle").data(this._pane_pie([1, 1, 1, 1, 1])).enter().append("circle").attr("class", "paneCircle").attr("id", function (d, i) {
-                return "lens" + i;
-            }).style("fill", function (d, i) {
-                return _this._pane_color(i);
-            }).attr("r", 10).on("mouseover", function () {
-                clearTimeout(_this._current_pane_g.timer);
-            }).on("mouseout", function () {
-                _this._current_pane_g.timer = setTimeout(function () {
-                    _this.closePane("time out close");
-                }, 1000);
-            }).on("click", function (d, i) {
-                var len;
-                switch (i) {
-                    case 0:
-                        {
-                            len = new ManyLens.BarChartLens(_this._element);
-                            break;
-                        }
-                    case 1:
-                        {
-                            len = new ManyLens.LocationLens(_this._element);
-                            break;
-                        }
-                    case 2:
-                        {
-                            len = new ManyLens.NetworkTreeLens(_this._element);
-                            break;
-                        }
-                    case 3:
-                        {
-                            len = new ManyLens.PieChartLens(_this._element);
-                            break;
-                        }
-                    case 4:
-                        {
-                            len = new ManyLens.WordCloudLens(_this._element);
-                            break;
-                        }
-                }
-                _this._lens.push(len);
-                len.render(_this._pane_color(i));
-                _this._history_trees.addNode({ color: _this._pane_color(i), lensType: len.Type, tree_id: 0 });
-                d3.event.stopPropagation();
-                _this.closePane("select a lens");
-            }).transition().duration(750).attr("transform", function (d) {
-                return "translate(" + _this._pane_arc.centroid(d) + ")";
-            });
-            this._current_pane_g = { svg_g: svg, timer: timer, isOpened: true };
-        };
-        LensPane.prototype.closePane = function (msg) {
-            console.log(msg);
-            var t = 400;
-            var closeG = this._current_pane_g;
-            clearTimeout(closeG.timer);
-            closeG.isOpened = false;
-            closeG.svg_g.selectAll(".paneCircle").transition().duration(t).attr("transform", "translate(0)").remove();
-            setTimeout(function () {
-                closeG.svg_g.remove();
-            }, t);
-        };
-        return LensPane;
-    })(ManyLens.D3ChartObject);
-    ManyLens.LensPane = LensPane;
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/BaseD3Lens.ts" />
 var ManyLens;

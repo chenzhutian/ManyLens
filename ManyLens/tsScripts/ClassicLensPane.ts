@@ -65,6 +65,7 @@ module ManyLens {
             var container = this._element;
 
             var pane_g = this._pang_g.svg_g.data([this._pang_g])
+                .attr("class","lensPane")
                 .attr("transform", "translate(" + [10, 10] + ")")
                 .call(this._drag);
 
@@ -80,6 +81,7 @@ module ManyLens {
 
             pane_g.selectAll("circle").data([1, 1, 1, 1, 1])
                 .enter().append("circle")
+                .attr("class", "pane-Lens-Circle")
                 .attr("r", this._pang_g.lens_icon_r)
                 .attr("cx", this._pang_g.rect_width / 2)
                 .attr("cy", (d, i) => {
@@ -88,6 +90,9 @@ module ManyLens {
                         + i * (2 * this._pang_g.lens_icon_r + this._pang_g.lens_icon_padding);
                 })
                 .attr("fill", (d, i) => { return this._pane_color(i); })
+                .on("mousedown", function () {
+                    d3.event.stopPropagation();
+                })
                 .on("click", (d, i) => {
                     var len: BaseD3Lens;
                     switch (i) {
