@@ -32,7 +32,7 @@ module ManyLens {
             var container = this._element;
             var hasShow = false;
 
-            var sclcSvg =  this._sc_lc_svg = container.append("g")
+            var sclcSvg = this._sc_lc_svg = container.insert("g", ":first-child")
                 .attr("class", "lcthings");
 
             var selectCircle = this._select_circle = this._sc_lc_svg.append("circle")

@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', function () {
     //lensPane.bindHistoryTrees(historyTrees);
     //lensPane.render();
 
+    var historyTrees = new ManyLens.HistoryTrees(d3.select("#historyView").select("svg"));
     var lensPane = new ManyLens.ClassicLensPane(d3.select("#mapView").select("svg"));
+    lensPane.bindHistoryTrees(historyTrees);
     lensPane.render();
 });
