@@ -59,7 +59,7 @@ module ManyLens {
         protected showLens(data:D3.Layout.GraphNode):any {
             var p = super.showLens();
             var container = this._element;
-            var lensG = this._lensG;
+            var lensG = this._lens_circle_G;
 
             var nodeRadius = 4.5;
             var diagonal = d3.svg.diagonal.radial()
@@ -107,8 +107,8 @@ module ManyLens {
             ;
         }
 
-        protected zoomFunc(): void {
-            super.zoomFunc();
+        protected LensCircleZoomFunc(): void {
+            super.LensCircleZoomFunc();
         }
     }
 }

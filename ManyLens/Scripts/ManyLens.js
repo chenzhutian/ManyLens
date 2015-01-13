@@ -98,8 +98,10 @@ var ManyLens;
         function BaseD3Lens(element, type) {
             _super.call(this, element);
             this._sc_radius = 10;
+            this._sc_scale = 1;
+            this._sc_zoom = d3.behavior.zoom();
             this._lc_radius = 100;
-            this._zoom = d3.behavior.zoom();
+            this._lc_zoom = d3.behavior.zoom();
             this._type = type;
         }
         Object.defineProperty(BaseD3Lens.prototype, "Type", {
@@ -113,19 +115,27 @@ var ManyLens;
             var _this = this;
             var container = this._element;
             var hasShow = false;
-            var sclcSvg = this._sc_lc_svg = container.append("g").attr("class", "lcthings");
-            var selectCircle = this._select_circle = this._sc_lc_svg.append("circle").attr("r", this._sc_radius).attr("fill", color).attr("fill-opacity", 0.3).attr("stroke", "black").attr("stroke-width", 1).on("mousedown", function () {
+            var sclcSvg = this._sc_lc_svg = container.append("g").attr("class", "lens");
+            this._sc_zoom.scaleExtent([1, 2]).on("zoomstart", function () {
+            }).on("zoom", function () {
+                _this.SelectCircleZoomFunc();
+            }).on("zoomend", function () {
+            });
+            var sc_g = this._select_circle_G = this._sc_lc_svg.append("g").attr("class", "select-circle");
+            var selectCircle = this._select_circle = this._select_circle_G.append("circle");
+            selectCircle.attr("r", this._sc_radius).attr("fill", color).attr("fill-opacity", 0.3).attr("stroke", "black").attr("stroke-width", 1).on("mousedown", function () {
                 container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 //d3.event.stopPropagation();                   //sc重叠的时候会出问题
             }).on("mouseup", function () {
                 _this._sc_cx = parseFloat(selectCircle.attr("cx"));
                 _this._sc_cy = parseFloat(selectCircle.attr("cy"));
+                //传递数据给Lens显示
                 var data = _this.extractData();
                 if (!hasShow) {
                     _this.showLens(data);
                     hasShow = true;
                 }
-                container.on("mousemove", null); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
+                container.on("mousemove", null); //鼠标松开，取消回调函数
                 //re-order the g elements so the paneG could on the toppest
                 var tempGs = d3.select("#mapView").selectAll("svg > g");
                 tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
@@ -133,10 +143,10 @@ var ManyLens;
                 //d3.event.stopPropagation();
             }).on("click", function () {
                 //d3.event.stopPropagation();
-            });
+            }).call(this._sc_zoom);
             container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
             function moveSelectCircle() {
-                sclcSvg.select("g").remove();
+                sclcSvg.select("g.lens-circle").remove();
                 sclcSvg.select("line").remove();
                 var p = d3.mouse(container[0][0]);
                 selectCircle.attr("cx", p[0]).attr("cy", p[1]);
@@ -156,8 +166,8 @@ var ManyLens;
             var sinTheta = Math.sin(theta);
             var container = this._element;
             var cr = this._sc_radius;
-            var cx = this._sc_cx + (cr * cosTheta);
-            var cy = this._sc_cy + (cr * sinTheta);
+            var cx = this._sc_cx + (cr * cosTheta * this._sc_scale);
+            var cy = this._sc_cy + (cr * sinTheta * this._sc_scale);
             var duration = 300;
             this._sc_lc_svg.append("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
                 cx = cx + (sc_lc_dist * cosTheta);
@@ -168,17 +178,25 @@ var ManyLens;
             });
             this._lc_cx = cx + (this._lc_radius * cosTheta);
             this._lc_cy = cy + (this._lc_radius * sinTheta);
-            this._zoom.scaleExtent([1, 2]).on("zoomstart", function () {
+            this._lc_zoom.scaleExtent([1, 2]).on("zoomstart", function () {
             }).on("zoom", function () {
-                _this.zoomFunc();
+                _this.LensCircleZoomFunc();
             }).on("zoomend", function () {
             });
-            this._lensG = this._sc_lc_svg.append("g").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")").attr("opacity", "1e-6").on("click", function () {
-                d3.event.stopPropagation();
-            }).call(this._zoom).on("mousedown", function () {
+            this._lens_circle_G = this._sc_lc_svg.append("g").attr("class", "lens-circle").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")").attr("opacity", "1e-6").on("click", function () {
+                d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
+            }).call(this._lc_zoom).on("mousedown", function () {
+                //TODO
             }).on("mouseup", function () {
+                //TODO
             });
-            this._lens_circle = this._lensG.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
+            this._lens_circle = this._lens_circle_G.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
+            //re-order the line, select-circle and lens-circle
+            var tempChildren = d3.selectAll(this._sc_lc_svg[0][0].children);
+            var tt = tempChildren[0][0];
+            tempChildren[0][0] = tempChildren[0][1];
+            tempChildren[0][1] = tt;
+            tempChildren.order();
             return {
                 lcx: this._lc_cx,
                 lcy: this._lc_cy,
@@ -186,7 +204,25 @@ var ManyLens;
                 duration: duration
             };
         };
-        BaseD3Lens.prototype.zoomFunc = function () {
+        BaseD3Lens.prototype.SelectCircleZoomFunc = function () {
+            if (d3.event.sourceEvent.type == "mousemove") {
+                return;
+            }
+            //if (d3.event.scale >= this._sc_zoom.scaleExtent()[1]) {
+            //    return;
+            //}
+            //if (d3.event.scale <= this._sc_zoom.scaleExtent()[0]) {
+            //    return;
+            //}
+            console.log(d3.event.scale);
+            var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
+            var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+            var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+            this._sc_scale = d3.event.scale;
+            this._select_circle.attr("r", this._sc_radius * this._sc_scale);
+            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * d3.event.scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * d3.event.scale * sinTheta);
+        };
+        BaseD3Lens.prototype.LensCircleZoomFunc = function () {
             if (d3.event.sourceEvent.type == "mousemove") {
                 var p1 = d3.mouse(this._element[0][0]);
                 this._lc_cx = p1[0];
@@ -195,8 +231,8 @@ var ManyLens;
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
             var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
             var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-            this._lensG.attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + d3.event.scale + ")");
-            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * cosTheta).attr("y1", this._sc_cy + this._sc_radius * sinTheta).attr("x2", this._lc_cx - this._lc_radius * d3.event.scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * d3.event.scale * sinTheta);
+            this._lens_circle_G.attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + d3.event.scale + ")");
+            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * d3.event.scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * d3.event.scale * sinTheta);
         };
         return BaseD3Lens;
     })(ManyLens.D3ChartObject);
@@ -227,7 +263,7 @@ var ManyLens;
             var _this = this;
             var p = _super.prototype.showLens.call(this);
             var container = this._element;
-            var lensG = this._lensG;
+            var lensG = this._lens_circle_G;
             var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, data.length]);
             this._x_axis_gen.scale(x).ticks(0).orient("bottom");
             this._x_axis = lensG.append("g").attr("class", "x-axis").attr("transform", function () {
@@ -243,8 +279,8 @@ var ManyLens;
             }).attr("fill", "steelblue");
             lensG.transition().duration(p.duration).attr("opacity", "1");
         };
-        BarChartLens.prototype.zoomFunc = function () {
-            _super.prototype.zoomFunc.call(this);
+        BarChartLens.prototype.LensCircleZoomFunc = function () {
+            _super.prototype.LensCircleZoomFunc.call(this);
         };
         return BarChartLens;
     })(ManyLens.BaseD3Lens);
@@ -542,7 +578,7 @@ var ManyLens;
         LocationLens.prototype.showLens = function (data) {
             var p = _super.prototype.showLens.call(this);
             var container = this._element;
-            var lensG = this._lensG;
+            var lensG = this._lens_circle_G;
             //TODO
             lensG.append("image").attr("xlink:href", this._map_path).attr("x", -this._map_width / 2).attr("y", -this._map_height / 2).attr("width", this._map_width).attr("height", this._map_height);
             lensG.transition().duration(p.duration).attr("opacity", "1");
@@ -606,7 +642,7 @@ var ManyLens;
         NetworkTreeLens.prototype.showLens = function (data) {
             var p = _super.prototype.showLens.call(this);
             var container = this._element;
-            var lensG = this._lensG;
+            var lensG = this._lens_circle_G;
             var nodeRadius = 4.5;
             var diagonal = d3.svg.diagonal.radial().projection(function (d) {
                 return [d.y, d.x / 180 * Math.PI];
@@ -622,8 +658,8 @@ var ManyLens;
             node.append("circle").attr("r", nodeRadius).attr("stroke", "steelblue").attr("fill", "#fff").attr("stroke-width", 1.5);
             lensG.transition().duration(p.duration).attr("opacity", "1");
         };
-        NetworkTreeLens.prototype.zoomFunc = function () {
-            _super.prototype.zoomFunc.call(this);
+        NetworkTreeLens.prototype.LensCircleZoomFunc = function () {
+            _super.prototype.LensCircleZoomFunc.call(this);
         };
         return NetworkTreeLens;
     })(ManyLens.BaseD3Lens);
@@ -656,7 +692,7 @@ var ManyLens;
             var _this = this;
             var p = _super.prototype.showLens.call(this);
             var container = this._element;
-            var lensG = this._lensG;
+            var lensG = this._lens_circle_G;
             this._pie.value(function (d) {
                 return d;
             }).sort(null);
@@ -665,8 +701,8 @@ var ManyLens;
             }).attr("d", this._arc);
             lensG.transition().duration(p.duration).attr("opacity", "1");
         };
-        PieChartLens.prototype.zoomFunc = function () {
-            _super.prototype.zoomFunc.call(this);
+        PieChartLens.prototype.LensCircleZoomFunc = function () {
+            _super.prototype.LensCircleZoomFunc.call(this);
         };
         return PieChartLens;
     })(ManyLens.BaseD3Lens);
@@ -707,23 +743,44 @@ var ManyLens;
             var data;
             data = [
                 { text: "Samsung", value: 90 },
-                { text: "Apple", value: 80 },
+                { text: "Apple", value: 50 },
                 { text: "Lenovo", value: 50 },
                 { text: "LG", value: 60 },
                 { text: "Nokia", value: 30 },
                 { text: "Huawei", value: 40 },
                 { text: "Meizu", value: 50 },
-                { text: "HTC", value: 60 },
-                { text: "XiaoMi", value: 60 },
+                { text: "eizu", value: 50 },
                 { text: "ZTE", value: 40 },
-                { text: "Galaxy Note Edge", value: 60 },
-                { text: "LED H5205", value: 70 },
-                { text: "Galaxy Tab3 8.0", value: 50 },
-                { text: "Galaxy Tab3 10.1", value: 50 },
-                { text: "Gear S", value: 70 },
-                { text: "Gear Fit", value: 40 },
-                { text: "Gear Fit2", value: 30 },
-                { text: "Galaxy S4", value: 60 }
+                { text: "Fiiit", value: 40 },
+                { text: "qweri", value: 40 },
+                { text: "bnm", value: 40 },
+                { text: "tytyt", value: 40 },
+                { text: "asdf", value: 40 },
+                { text: "Fit", value: 40 },
+                { text: "Gear", value: 30 },
+                { text: "fear", value: 20 },
+                { text: "pear", value: 20 },
+                { text: "jjear", value: 20 },
+                { text: "weqr", value: 20 },
+                { text: "vbn", value: 20 },
+                { text: "lk", value: 20 },
+                { text: "lopxcv", value: 20 },
+                { text: "yyyy", value: 20 },
+                { text: "lxzcvk", value: 20 },
+                { text: "tyu", value: 20 },
+                { text: "Gea", value: 10 },
+                { text: "Ge", value: 10 },
+                { text: "Gfa", value: 10 },
+                { text: "a", value: 10 },
+                { text: "bvea", value: 10 },
+                { text: "Gea", value: 10 },
+                { text: "cea", value: 10 },
+                { text: "uea", value: 10 },
+                { text: "lea", value: 10 },
+                { text: "ea", value: 10 },
+                { text: "pp", value: 10 },
+                { text: "nh", value: 10 },
+                { text: "erw", value: 10 }
             ];
             this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
                 return d.value;
@@ -734,7 +791,7 @@ var ManyLens;
             var _this = this;
             var p = _super.prototype.showLens.call(this);
             var container = this._element;
-            var lensG = this._lensG;
+            var lensG = this._lens_circle_G;
             lensG.transition().duration(p.duration).attr("opacity", "1");
             this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                 return _this._font_size(d.value);
@@ -750,7 +807,7 @@ var ManyLens;
             var container = this._element;
             //Maybe need to scale, but I haven't implemented it now
             var scale = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
-            var text = this._lensG.selectAll("text").data(words, function (d) {
+            var text = this._lens_circle_G.selectAll("text").data(words, function (d) {
                 return d.text;
             }).enter().append("text");
             text.attr("text-anchor", "middle").style("font-size", function (d) {
@@ -767,8 +824,8 @@ var ManyLens;
                 return d.text;
             }).transition().duration(200).style("opacity", 1);
         };
-        WordCloudLens.prototype.zoomFunc = function () {
-            _super.prototype.zoomFunc.call(this);
+        WordCloudLens.prototype.LensCircleZoomFunc = function () {
+            _super.prototype.LensCircleZoomFunc.call(this);
         };
         return WordCloudLens;
     })(ManyLens.BaseD3Lens);
