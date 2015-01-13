@@ -19,7 +19,9 @@ module ManyLens {
         protected _lc_radius: number = 100;
         protected _lc_cx: number;
         protected _lc_cy: number;
+        protected _lc_scale: number = 1;
         protected _lc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
+        protected _lc_drag: D3.Behavior.Drag = d3.behavior.drag();
 
         protected _color: D3.Scale.OrdinalScale;
 
@@ -42,7 +44,7 @@ module ManyLens {
                 .attr("class", "lens");
 
             this._sc_zoom
-                .scaleExtent([1, 2])
+                .scaleExtent([1, 4])
                 .on("zoomstart", () => {
 
                 })
@@ -159,9 +161,17 @@ module ManyLens {
                 })
             ;
 
+            this._lc_drag
+                .origin(function (d) { return d; })
+                .on("drag", () => {
+                    this.LensCircleDragFunc();
+                })
+            ;
+
             this._lens_circle_G = this._sc_lc_svg.append("g")
+                .data([{x:this._lc_cx,y:this._lc_cy}])
                 .attr("class","lens-circle")
-                .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")")
+                .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(1)")
                 .attr("opacity", "1e-6")
                 .on("click", () => {
                     d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
@@ -184,12 +194,12 @@ module ManyLens {
                 .attr("stroke-width", 1)
             ;
 
-            //re-order the line, select-circle and lens-circle
-            var tempChildren = d3.selectAll(this._sc_lc_svg[0][0].children);
-            var tt = tempChildren[0][0];
-            tempChildren[0][0] = tempChildren[0][1];
-            tempChildren[0][1] = tt;
-            tempChildren.order();
+            ////re-order the line, select-circle and lens-circle
+            //var tempChildren = d3.selectAll(this._sc_lc_svg[0][0].children);
+            //var tt = tempChildren[0][0];
+            //tempChildren[0][0] = tempChildren[0][1];
+            //tempChildren[0][1] = tt;
+            //tempChildren.order();
 
             return {
                 lcx: this._lc_cx,
@@ -205,21 +215,27 @@ module ManyLens {
                 return;
             }
 
+            if (d3.event.scale == this._sc_scale) {
+                return;
+            }
+            if (d3.event.scale == this._sc_scale) {
+                return;
+            }
+
             //if (d3.event.scale >= this._sc_zoom.scaleExtent()[1]) {
             //    return;
             //}
             //if (d3.event.scale <= this._sc_zoom.scaleExtent()[0]) {
             //    return;
             //}
-            
 
-
-            console.log(d3.event.scale);
+            this._sc_scale = d3.event.scale;
+            console.log(this._sc_scale);
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
             var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
             var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
 
-            this._sc_scale = d3.event.scale;
+            
             this._select_circle
                 .attr("r", this._sc_radius * this._sc_scale)
             ;
@@ -227,13 +243,37 @@ module ManyLens {
             this._sc_lc_svg.select("line")
                 .attr("x1", this._sc_cx + this._sc_radius * d3.event.scale * cosTheta)
                 .attr("y1", this._sc_cy + this._sc_radius * d3.event.scale * sinTheta)
-                //.attr("x2", this._lc_cx - this._lc_radius *  * cosTheta)
-                //.attr("y2", this._lc_cy - this._lc_radius *  * sinTheta)
             ;
 
         }
 
         protected LensCircleZoomFunc(): void {
+            if (d3.event.sourceEvent.type == "mousemove") {
+                return;
+            }
+            
+            if (d3.event.scale == this._lc_scale && d3.event.sourceEvent.type == "wheel") {
+                return;
+            }
+            if (d3.event.scale == this._lc_scale && d3.event.sourceEvent.type == "wheel") {
+                return;
+            }
+            this._lc_scale = d3.event.scale;
+
+            this._lens_circle_G
+                .attr("transform", function () {
+                    //正则表达式没搞好
+                    var transform = d3.select(this).attr("transform");
+                    transform.replace(/scale[\(d+\)]/, "scale(" + d3.event.scale + ")");
+                    console.log(transform);
+                    return transform;
+                })
+            ;
+
+
+        }
+
+        protected LensCircleDragFunc(): void {
             if (d3.event.sourceEvent.type == "mousemove") {
                 var p1 = d3.mouse(this._element[0][0]);
 
@@ -246,10 +286,6 @@ module ManyLens {
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
             var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
             var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-
-            this._lens_circle_G
-                .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + d3.event.scale + ")")
-            ;
 
             this._sc_lc_svg.select("line")
                 .attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta)
