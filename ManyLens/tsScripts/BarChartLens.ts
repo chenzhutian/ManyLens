@@ -29,7 +29,7 @@ module ManyLens {
         protected showLens(data:Array<number>):any {
             var p = super.showLens();
             var container = this._element;
-            var lensG = this._lensG;
+            var lensG = this._lens_circle_G;
 
 
             var x = d3.scale.linear()
@@ -81,8 +81,8 @@ module ManyLens {
             ;
         }
 
-        protected zoomFunc() {
-            super.zoomFunc();
+        protected LensCircleZoomFunc() {
+            super.LensCircleZoomFunc();
         }
     }
 }

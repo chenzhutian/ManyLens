@@ -23,7 +23,7 @@ module ManyLens {
         protected showLens(data: Array<any>): any {
             var p = super.showLens();
             var container = this._element;
-            var lensG = this._lensG;
+            var lensG = this._lens_circle_G;
 
             //TODO
             lensG.append("image")

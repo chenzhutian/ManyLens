@@ -69,3 +69,10 @@ div#tweetsView {
     width:25%;
     height:100%;
 }
+
+
+circle.pane-Lens-Circle:hover {
+    opacity:0.7;
+    stroke:#0593fa;
+    stroke-width:2px;
+}
