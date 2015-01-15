@@ -192,7 +192,7 @@ var ManyLens;
             });
             this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("class", "lens-circle").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(1)").attr("opacity", "1e-6").on("click", function () {
                 d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
-            }).call(this._lc_zoom).on("mousedown", function () {
+            }).call(this._lc_zoom).call(this._lc_drag).on("mousedown", function () {
                 //TODO
             }).on("mouseup", function () {
                 //TODO
@@ -221,14 +221,7 @@ var ManyLens;
             if (d3.event.scale == this._sc_scale) {
                 return;
             }
-            //if (d3.event.scale >= this._sc_zoom.scaleExtent()[1]) {
-            //    return;
-            //}
-            //if (d3.event.scale <= this._sc_zoom.scaleExtent()[0]) {
-            //    return;
-            //}
             this._sc_scale = d3.event.scale;
-            console.log(this._sc_scale);
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
             var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
             var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
@@ -245,25 +238,26 @@ var ManyLens;
             if (d3.event.scale == this._lc_scale && d3.event.sourceEvent.type == "wheel") {
                 return;
             }
-            this._lc_scale = d3.event.scale;
+            var scale = this._lc_scale = d3.event.scale;
             this._lens_circle_G.attr("transform", function () {
-                //正则表达式没搞好
                 var transform = d3.select(this).attr("transform");
-                transform.replace(/scale[\(d+\)]/, "scale(" + d3.event.scale + ")");
-                console.log(transform);
+                transform = transform.replace(/(scale\()\d+\.?\d*(\))/, "$1" + scale + "$2");
                 return transform;
             });
         };
         BaseD3Lens.prototype.LensCircleDragFunc = function () {
-            if (d3.event.sourceEvent.type == "mousemove") {
-                var p1 = d3.mouse(this._element[0][0]);
-                this._lc_cx = p1[0];
-                this._lc_cy = p1[1];
-            }
+            var _this = this;
+            var transform = this._lens_circle_G.attr("transform");
+            this._lens_circle_G.attr("transform", function (d) {
+                _this._lc_cx = d.x = Math.max(_this._lc_radius, Math.min(parseFloat(_this._element.style("width")) - _this._lc_radius, d3.event.x));
+                _this._lc_cy = d.y = Math.max(_this._lc_radius, Math.min(parseFloat(_this._element.style("height")) - _this._lc_radius, d3.event.y));
+                transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
+                return transform;
+            });
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
             var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
             var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * d3.event.scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * d3.event.scale * sinTheta);
+            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta);
         };
         return BaseD3Lens;
     })(ManyLens.D3ChartObject);
@@ -791,6 +785,14 @@ var ManyLens;
                 { text: "Gear", value: 30 },
                 { text: "fear", value: 20 },
                 { text: "pear", value: 20 },
+                { text: "jjear", value: 20 },
+                { text: "weqr", value: 20 },
+                { text: "vbn", value: 20 },
+                { text: "lk", value: 20 },
+                { text: "lopxcv", value: 20 },
+                { text: "yyyy", value: 20 },
+                { text: "lxzcvk", value: 20 },
+                { text: "tyu", value: 20 },
                 { text: "jjear", value: 20 },
                 { text: "weqr", value: 20 },
                 { text: "vbn", value: 20 },
