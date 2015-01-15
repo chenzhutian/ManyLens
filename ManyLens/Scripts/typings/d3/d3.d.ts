@@ -1143,7 +1143,7 @@ declare module D3 {
                 (word: (d: any, i: number) => string[]): CloudLayout;
             }
             size: {
-                (): [number, number];
+                ():[number, number];
                 (size: [number, number]): CloudLayout;
                 (size: () => [number, number]): CloudLayout;
                 (size: (d: any) => [number, number]): CloudLayout;
