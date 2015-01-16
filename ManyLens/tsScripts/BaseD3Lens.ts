@@ -4,7 +4,9 @@ module ManyLens {
     export class BaseD3Lens extends D3ChartObject {
 
         protected _type: string;
+        protected _has_put_down: boolean = false;
         protected _sc_lc_svg: D3.Selection;
+        protected _color: D3.Scale.OrdinalScale;
 
         protected _select_circle_G: D3.Selection;
         protected _select_circle: D3.Selection;
@@ -13,6 +15,7 @@ module ManyLens {
         protected _sc_cy: number;
         protected _sc_scale: number = 1;
         protected _sc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
+        protected _sc_drag: D3.Behavior.Drag = d3.behavior.drag();
 
         protected _lens_circle_G: D3.Selection;
         protected _lens_circle: D3.Selection;
@@ -22,8 +25,6 @@ module ManyLens {
         protected _lc_scale: number = 1;
         protected _lc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
         protected _lc_drag: D3.Behavior.Drag = d3.behavior.drag();
-
-        protected _color: D3.Scale.OrdinalScale;
 
         public get Type(): string {
             return this._type;
@@ -56,27 +57,23 @@ module ManyLens {
                 })
             ;
 
-             var sc_g =  this._select_circle_G = this._sc_lc_svg.append("g")
-                .attr("class", "select-circle")
-            ;
-            var selectCircle = this._select_circle = 
-                this._select_circle_G.append("circle")
-            ;
-
-            selectCircle
-                .attr("r", this._sc_radius)
-                .attr("fill", color)
-                .attr("fill-opacity", 0.3)
-                .attr("stroke", "black")
-                .attr("stroke-width",1)
-                .on("mousedown", () => {
-                    container.on("mousemove", moveSelectCircle);    //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
-
-                    //d3.event.stopPropagation();                   //sc重叠的时候会出问题
+            this._sc_drag
+                .origin(function (d) { return d; })
+                .on("dragstart", () => {
+                    console.log("drag start!");
                 })
-                .on("mouseup", () => {
-                    this._sc_cx = parseFloat(selectCircle.attr("cx"));
-                    this._sc_cy = parseFloat(selectCircle.attr("cy"));
+                .on("drag", () => {
+                    sclcSvg.select("g.lens-circle").remove(); 
+                    sclcSvg.select("line").remove();
+                    selectCircle
+                        .attr("cx", (d) => { return d.x = d3.event.x; })
+                        .attr("cy", (d) => { return d.y = d3.event.y; })
+                    ;
+                    hasShow = false;
+                })
+                .on("dragend", (d) => {
+                    this._sc_cx = d.x;
+                    this._sc_cy = d.y;
 
                     //传递数据给Lens显示
                     var data = this.extractData();
@@ -85,32 +82,46 @@ module ManyLens {
                         hasShow = true;
                     }
 
-                    container.on("mousemove", null);                //鼠标松开，取消回调函数
-
                     //re-order the g elements so the paneG could on the toppest
                     var tempGs = d3.select("#mapView").selectAll("svg > g");
                     tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
                     tempGs.order();
-
-                    //d3.event.stopPropagation();
                 })
-                .on("click", () => {
-                    //d3.event.stopPropagation();
+            ;
+
+            this._select_circle_G = this._sc_lc_svg.append("g")
+                .attr("class", "select-circle")
+            ;
+            var selectCircle = this._select_circle = 
+                this._select_circle_G.append("circle").data([{x:this._sc_cx,y:this._sc_cy}])
+            ;
+
+            selectCircle
+                .attr("r", this._sc_radius)
+                .attr("fill", color)
+                .attr("fill-opacity", 0.3)
+                .attr("stroke", "black")
+                .attr("stroke-width",1)
+                .on("mouseup", (d) => {
+                    if (!this._has_put_down) {
+                        this._has_put_down = true;
+                        d.x = this._sc_cx = parseFloat(selectCircle.attr("cx"));
+                        d.y = this._sc_cy = parseFloat(selectCircle.attr("cy"));
+                        container.on("mousemove", null);
+                    }
+
                 })
                 .call(this._sc_zoom)
+                .call(this._sc_drag)
             ;
 
             container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
-
             function moveSelectCircle() {
-                sclcSvg.select("g.lens-circle").remove();
-                sclcSvg.select("line").remove();
                 var p = d3.mouse(container[0][0]);
                 selectCircle
                     .attr("cx", p[0])
                     .attr("cy", p[1])
                 ;
-                hasShow = false;
             }
         }
 
@@ -119,6 +130,7 @@ module ManyLens {
         }
 
         protected showLens(any = null): { lcx: number; lcy: number; theta: number; duration:number} {
+
             var sc_lc_dist = 100;
             var theta = Math.random() * Math.PI;
             var cosTheta = Math.cos(theta);
@@ -171,7 +183,7 @@ module ManyLens {
             this._lens_circle_G = this._sc_lc_svg.append("g")
                 .data([{x:this._lc_cx,y:this._lc_cy}])
                 .attr("class","lens-circle")
-                .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(1)")
+                .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale("+this._lc_scale+")")
                 .attr("opacity", "1e-6")
                 .on("click", () => {
                     d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
@@ -212,7 +224,7 @@ module ManyLens {
 
         protected SelectCircleZoomFunc(): void {
 
-            if (d3.event.sourceEvent.type == "mousemove") {
+            if (d3.event.sourceEvent.type != "wheel") {
                 return;
             }
 

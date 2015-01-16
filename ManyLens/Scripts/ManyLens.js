@@ -97,9 +97,11 @@ var ManyLens;
         __extends(BaseD3Lens, _super);
         function BaseD3Lens(element, type) {
             _super.call(this, element);
+            this._has_put_down = false;
             this._sc_radius = 10;
             this._sc_scale = 1;
             this._sc_zoom = d3.behavior.zoom();
+            this._sc_drag = d3.behavior.drag();
             this._lc_radius = 100;
             this._lc_scale = 1;
             this._lc_zoom = d3.behavior.zoom();
@@ -123,36 +125,47 @@ var ManyLens;
                 _this.SelectCircleZoomFunc();
             }).on("zoomend", function () {
             });
-            var sc_g = this._select_circle_G = this._sc_lc_svg.append("g").attr("class", "select-circle");
-            var selectCircle = this._select_circle = this._select_circle_G.append("circle");
-            selectCircle.attr("r", this._sc_radius).attr("fill", color).attr("fill-opacity", 0.3).attr("stroke", "black").attr("stroke-width", 1).on("mousedown", function () {
-                container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
-                //d3.event.stopPropagation();                   //sc重叠的时候会出问题
-            }).on("mouseup", function () {
-                _this._sc_cx = parseFloat(selectCircle.attr("cx"));
-                _this._sc_cy = parseFloat(selectCircle.attr("cy"));
+            this._sc_drag.origin(function (d) {
+                return d;
+            }).on("dragstart", function () {
+                console.log("drag start!");
+            }).on("drag", function () {
+                sclcSvg.select("g.lens-circle").remove();
+                sclcSvg.select("line").remove();
+                selectCircle.attr("cx", function (d) {
+                    return d.x = d3.event.x;
+                }).attr("cy", function (d) {
+                    return d.y = d3.event.y;
+                });
+                hasShow = false;
+            }).on("dragend", function (d) {
+                _this._sc_cx = d.x;
+                _this._sc_cy = d.y;
                 //传递数据给Lens显示
                 var data = _this.extractData();
                 if (!hasShow) {
                     _this.showLens(data);
                     hasShow = true;
                 }
-                container.on("mousemove", null); //鼠标松开，取消回调函数
                 //re-order the g elements so the paneG could on the toppest
                 var tempGs = d3.select("#mapView").selectAll("svg > g");
                 tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
                 tempGs.order();
-                //d3.event.stopPropagation();
-            }).on("click", function () {
-                //d3.event.stopPropagation();
-            }).call(this._sc_zoom);
+            });
+            this._select_circle_G = this._sc_lc_svg.append("g").attr("class", "select-circle");
+            var selectCircle = this._select_circle = this._select_circle_G.append("circle").data([{ x: this._sc_cx, y: this._sc_cy }]);
+            selectCircle.attr("r", this._sc_radius).attr("fill", color).attr("fill-opacity", 0.3).attr("stroke", "black").attr("stroke-width", 1).on("mouseup", function (d) {
+                if (!_this._has_put_down) {
+                    _this._has_put_down = true;
+                    d.x = _this._sc_cx = parseFloat(selectCircle.attr("cx"));
+                    d.y = _this._sc_cy = parseFloat(selectCircle.attr("cy"));
+                    container.on("mousemove", null);
+                }
+            }).call(this._sc_zoom).call(this._sc_drag);
             container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
             function moveSelectCircle() {
-                sclcSvg.select("g.lens-circle").remove();
-                sclcSvg.select("line").remove();
                 var p = d3.mouse(container[0][0]);
                 selectCircle.attr("cx", p[0]).attr("cy", p[1]);
-                hasShow = false;
             }
         };
         BaseD3Lens.prototype.extractData = function (any) {
@@ -190,7 +203,7 @@ var ManyLens;
             }).on("drag", function () {
                 _this.LensCircleDragFunc();
             });
-            this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("class", "lens-circle").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(1)").attr("opacity", "1e-6").on("click", function () {
+            this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("class", "lens-circle").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")").attr("opacity", "1e-6").on("click", function () {
                 d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
             }).call(this._lc_zoom).call(this._lc_drag).on("mousedown", function () {
                 //TODO
@@ -212,7 +225,7 @@ var ManyLens;
             };
         };
         BaseD3Lens.prototype.SelectCircleZoomFunc = function () {
-            if (d3.event.sourceEvent.type == "mousemove") {
+            if (d3.event.sourceEvent.type != "wheel") {
                 return;
             }
             if (d3.event.scale == this._sc_scale) {
