@@ -119,7 +119,7 @@ var ManyLens;
             var _this = this;
             var container = this._element;
             var hasShow = false;
-            var sclcSvg = this._sc_lc_svg = container.append("g").attr("class", "lens");
+            this._sc_lc_svg = container.append("g").attr("class", "lens");
             this._sc_zoom.scaleExtent([1, 4]).on("zoomstart", function () {
             }).on("zoom", function () {
                 _this.SelectCircleZoomFunc();
@@ -128,10 +128,17 @@ var ManyLens;
             this._sc_drag.origin(function (d) {
                 return d;
             }).on("dragstart", function () {
-                console.log("drag start!");
+                if (!_this._has_put_down)
+                    return;
+                if (d3.event.sourceEvent.button != 0)
+                    return;
             }).on("drag", function () {
-                sclcSvg.select("g.lens-circle").remove();
-                sclcSvg.select("line").remove();
+                if (!_this._has_put_down)
+                    return;
+                if (d3.event.sourceEvent.button != 0)
+                    return;
+                _this._sc_lc_svg.select("g.lens-circle").remove();
+                _this._sc_lc_svg.select("line").remove();
                 selectCircle.attr("cx", function (d) {
                     return d.x = Math.max(0, Math.min(parseFloat(_this._element.style("width")), d3.event.x));
                 }).attr("cy", function (d) {
@@ -139,6 +146,10 @@ var ManyLens;
                 });
                 hasShow = false;
             }).on("dragend", function (d) {
+                if (!_this._has_put_down)
+                    return;
+                if (d3.event.sourceEvent.button != 0)
+                    return;
                 _this._sc_cx = d.x;
                 _this._sc_cy = d.y;
                 //传递数据给Lens显示
@@ -161,6 +172,9 @@ var ManyLens;
                     d.y = _this._sc_cy = parseFloat(selectCircle.attr("cy"));
                     container.on("mousemove", null);
                 }
+            }).on("contextmenu", function () {
+                _this._sc_lc_svg.remove();
+                d3.event.preventDefault();
             }).call(this._sc_zoom).call(this._sc_drag);
             container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
             function moveSelectCircle() {
@@ -203,13 +217,15 @@ var ManyLens;
             }).on("drag", function () {
                 _this.LensCircleDragFunc();
             });
-            this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("class", "lens-circle").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")").attr("opacity", "1e-6").on("click", function () {
-                d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
-            }).call(this._lc_zoom).call(this._lc_drag).on("mousedown", function () {
+            this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("class", "lens-circle").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")").attr("opacity", "1e-6").on("contextmenu", function () {
+                d3.event.preventDefault();
+            }).on("click", function () {
+                //d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
+            }).on("mousedown", function () {
                 //TODO
             }).on("mouseup", function () {
                 //TODO
-            });
+            }).call(this._lc_zoom).call(this._lc_drag);
             this._lens_circle = this._lens_circle_G.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
             ////re-order the line, select-circle and lens-circle
             //var tempChildren = d3.selectAll(this._sc_lc_svg[0][0].children);

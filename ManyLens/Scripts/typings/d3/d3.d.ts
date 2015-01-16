@@ -55,6 +55,7 @@ declare module D3 {
         clientY: number;
         translate: number[];
         scale: number;
+        button: number;
         sourceEvent: D3Event;
         x: number;
         y: number;

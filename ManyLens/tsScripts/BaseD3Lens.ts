@@ -39,7 +39,7 @@ module ManyLens {
             var container = this._element;
             var hasShow = false;
 
-            var sclcSvg = this._sc_lc_svg = container
+            this._sc_lc_svg = container
             //.insert("g", ":first-child")
                 .append("g")
                 .attr("class", "lens");
@@ -60,11 +60,15 @@ module ManyLens {
             this._sc_drag
                 .origin(function (d) { return d; })
                 .on("dragstart", () => {
-                    console.log("drag start!");
+                    if (!this._has_put_down) return;
+                    if (d3.event.sourceEvent.button != 0) return;
                 })
                 .on("drag", () => {
-                    sclcSvg.select("g.lens-circle").remove();
-                    sclcSvg.select("line").remove();
+                    if (!this._has_put_down) return;
+                    if (d3.event.sourceEvent.button != 0) return;
+
+                    this._sc_lc_svg.select("g.lens-circle").remove();
+                    this._sc_lc_svg.select("line").remove();
                     selectCircle
                         .attr("cx", (d) => { return d.x = Math.max(0, Math.min(parseFloat(this._element.style("width")),d3.event.x)); })
                         .attr("cy", (d) => { return d.y = Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y)); })
@@ -72,6 +76,9 @@ module ManyLens {
                     hasShow = false;
                 })
                 .on("dragend", (d) => {
+                    if (!this._has_put_down) return;
+                    if (d3.event.sourceEvent.button != 0) return;
+
                     this._sc_cx = d.x;
                     this._sc_cy = d.y;
 
@@ -111,7 +118,10 @@ module ManyLens {
                     }
 
                 })
-                
+                .on("contextmenu",() => {
+                    this._sc_lc_svg.remove();
+                    d3.event.preventDefault();
+                })
                 .call(this._sc_zoom)
                 .call(this._sc_drag)
             ;
@@ -186,17 +196,22 @@ module ManyLens {
                 .attr("class", "lens-circle")
                 .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")")
                 .attr("opacity", "1e-6")
-                .on("click", () => {
-                    d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
+                .on("contextmenu", () => {
+                    
+                    d3.event.preventDefault();
                 })
-                .call(this._lc_zoom)
-                .call(this._lc_drag)
+                .on("click", () => {
+                    //d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
+                })
                 .on("mousedown", () => {
                     //TODO
                 })
                 .on("mouseup", () => {
                     //TODO
                 })
+                .call(this._lc_zoom)
+                .call(this._lc_drag)
+
             ;
 
             this._lens_circle = this._lens_circle_G.append("circle")
