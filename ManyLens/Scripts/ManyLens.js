@@ -133,9 +133,9 @@ var ManyLens;
                 sclcSvg.select("g.lens-circle").remove();
                 sclcSvg.select("line").remove();
                 selectCircle.attr("cx", function (d) {
-                    return d.x = d3.event.x;
+                    return d.x = Math.max(0, Math.min(parseFloat(_this._element.style("width")), d3.event.x));
                 }).attr("cy", function (d) {
-                    return d.y = d3.event.y;
+                    return d.y = Math.max(0, Math.min(parseFloat(_this._element.style("height")), d3.event.y));
                 });
                 hasShow = false;
             }).on("dragend", function (d) {
@@ -242,13 +242,13 @@ var ManyLens;
             this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * d3.event.scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * d3.event.scale * sinTheta);
         };
         BaseD3Lens.prototype.LensCircleZoomFunc = function () {
-            if (d3.event.sourceEvent.type == "mousemove") {
+            if (d3.event.sourceEvent.type != "wheel") {
                 return;
             }
-            if (d3.event.scale == this._lc_scale && d3.event.sourceEvent.type == "wheel") {
+            if (d3.event.scale == this._lc_scale) {
                 return;
             }
-            if (d3.event.scale == this._lc_scale && d3.event.sourceEvent.type == "wheel") {
+            if (d3.event.scale == this._lc_scale) {
                 return;
             }
             var scale = this._lc_scale = d3.event.scale;
@@ -257,6 +257,10 @@ var ManyLens;
                 transform = transform.replace(/(scale\()\d+\.?\d*(\))/, "$1" + scale + "$2");
                 return transform;
             });
+            var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
+            var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+            var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta);
         };
         BaseD3Lens.prototype.LensCircleDragFunc = function () {
             var _this = this;
