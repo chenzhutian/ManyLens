@@ -20,7 +20,7 @@ module ManyLens {
         private _pang_g: PaneG;
 
         private _history_trees: HistoryTrees;
-        private _lens_count: number = 5;
+        private _lens_count: number = 6;
 
         private _drag: D3.Behavior.Drag = d3.behavior.drag();
 
@@ -79,7 +79,7 @@ module ManyLens {
                 .attr("stroke-width", 2)
             ;
 
-            pane_g.selectAll("circle").data([1, 1, 1, 1, 1])
+            pane_g.selectAll("circle").data(d3.range(this._lens_count))
                 .enter().append("circle")
                 .attr("class", "pane-Lens-Circle")
                 .attr("r", this._pang_g.lens_icon_r)
@@ -114,6 +114,10 @@ module ManyLens {
                         }
                         case 4: {
                             len = new WordCloudLens(this._element);
+                            break;
+                        }
+                        case 5: {
+                            len = new BoundleLens(this._element);
                             break;
                         }
                     }

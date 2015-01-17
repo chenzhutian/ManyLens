@@ -107,8 +107,6 @@ module ManyLens {
             ;
         }
 
-        protected LensCircleZoomFunc(): void {
-            super.LensCircleZoomFunc();
-        }
+       
     }
 }

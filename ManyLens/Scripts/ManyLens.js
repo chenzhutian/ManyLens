@@ -98,6 +98,7 @@ var ManyLens;
         function BaseD3Lens(element, type) {
             _super.call(this, element);
             this._has_put_down = false;
+            this._has_showed_lens = false;
             this._sc_radius = 10;
             this._sc_scale = 1;
             this._sc_zoom = d3.behavior.zoom();
@@ -120,49 +121,20 @@ var ManyLens;
             var container = this._element;
             var hasShow = false;
             this._sc_lc_svg = container.append("g").attr("class", "lens");
-            this._sc_zoom.scaleExtent([1, 4]).on("zoomstart", function () {
-            }).on("zoom", function () {
+            this._sc_zoom.scaleExtent([1, 4]).on("zoom", function () {
                 _this.SelectCircleZoomFunc();
-            }).on("zoomend", function () {
             });
             this._sc_drag.origin(function (d) {
                 return d;
             }).on("dragstart", function () {
-                if (!_this._has_put_down)
-                    return;
-                if (d3.event.sourceEvent.button != 0)
-                    return;
+                //if (!this._has_put_down) return;
+                //if (d3.event.sourceEvent.button != 0) return;
             }).on("drag", function () {
-                if (!_this._has_put_down)
-                    return;
-                if (d3.event.sourceEvent.button != 0)
-                    return;
-                _this._sc_lc_svg.select("g.lens-circle").remove();
-                _this._sc_lc_svg.select("line").remove();
-                selectCircle.attr("cx", function (d) {
-                    return d.x = Math.max(0, Math.min(parseFloat(_this._element.style("width")), d3.event.x));
-                }).attr("cy", function (d) {
-                    return d.y = Math.max(0, Math.min(parseFloat(_this._element.style("height")), d3.event.y));
-                });
-                hasShow = false;
+                _this.SelectCircleDragFunc();
             }).on("dragend", function (d) {
-                if (!_this._has_put_down)
-                    return;
-                if (d3.event.sourceEvent.button != 0)
-                    return;
-                _this._sc_cx = d.x;
-                _this._sc_cy = d.y;
-                //传递数据给Lens显示
-                var data = _this.extractData();
-                if (!hasShow) {
-                    _this.showLens(data);
-                    hasShow = true;
-                }
-                //re-order the g elements so the paneG could on the toppest
-                var tempGs = d3.select("#mapView").selectAll("svg > g");
-                tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
-                tempGs.order();
+                _this.SelectCircleDragendFunc(d);
             });
+            this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
             this._select_circle_G = this._sc_lc_svg.append("g").attr("class", "select-circle");
             var selectCircle = this._select_circle = this._select_circle_G.append("circle").data([{ x: this._sc_cx, y: this._sc_cy }]);
             selectCircle.attr("r", this._sc_radius).attr("fill", color).attr("fill-opacity", 0.3).attr("stroke", "black").attr("stroke-width", 1).on("mouseup", function (d) {
@@ -198,7 +170,7 @@ var ManyLens;
             var cx = this._sc_cx + (cr * cosTheta * this._sc_scale);
             var cy = this._sc_cy + (cr * sinTheta * this._sc_scale);
             var duration = 300;
-            this._sc_lc_svg.append("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
+            this._sc_lc_svg.select("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
                 cx = cx + (sc_lc_dist * cosTheta);
                 return cx;
             }).attr("y2", function () {
@@ -207,27 +179,31 @@ var ManyLens;
             });
             this._lc_cx = cx + (this._lc_radius * cosTheta);
             this._lc_cy = cy + (this._lc_radius * sinTheta);
-            this._lc_zoom.scaleExtent([1, 2]).on("zoomstart", function () {
-            }).on("zoom", function () {
+            this._lc_zoom.scaleExtent([1, 2]).on("zoom", function () {
                 _this.LensCircleZoomFunc();
-            }).on("zoomend", function () {
             });
             this._lc_drag.origin(function (d) {
                 return d;
+            }).on("dragstart", function () {
+                console.log("dragstart " + _this._type);
+                _this.LensCircleDragstartFunc();
             }).on("drag", function () {
                 _this.LensCircleDragFunc();
+            }).on("dragend", function () {
+                _this.LensCircleDragendFunc();
+                console.log("dragend " + _this._type);
             });
-            this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("class", "lens-circle").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")").attr("opacity", "1e-6").on("contextmenu", function () {
-                d3.event.preventDefault();
-            }).on("click", function () {
-                //d3.event.stopPropagation(); //为了防止重叠的问题，还没做好
+            this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("class", "lens-circle-g").attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")").attr("opacity", "1e-6").on("contextmenu", function () {
+                //d3.event.preventDefault();
             }).on("mousedown", function () {
-                //TODO
+                console.log("mousedown " + _this._type);
             }).on("mouseup", function () {
-                //TODO
+                console.log("mouseup " + _this._type);
+            }).on("click", function () {
+                console.log("click " + _this._type);
             }).call(this._lc_zoom).call(this._lc_drag);
-            this._lens_circle = this._lens_circle_G.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
-            ////re-order the line, select-circle and lens-circle
+            this._lens_circle = this._lens_circle_G.append("circle").attr("class", "lens-circle").attr("cx", 0).attr("cy", 0).attr("r", this._lc_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
+            //re-order the line, select-circle and lens-circle
             //var tempChildren = d3.selectAll(this._sc_lc_svg[0][0].children);
             //var tt = tempChildren[0][0];
             //tempChildren[0][0] = tempChildren[0][1];
@@ -239,6 +215,40 @@ var ManyLens;
                 theta: theta,
                 duration: duration
             };
+        };
+        BaseD3Lens.prototype.SelectCircleDragFunc = function () {
+            var _this = this;
+            if (!this._has_put_down)
+                return;
+            if (d3.event.sourceEvent.button != 0)
+                return;
+            this._sc_lc_svg.select("g.lens-circle").remove();
+            this._sc_lc_svg.select("line").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", 0);
+            this._select_circle.attr("cx", function (d) {
+                return d.x = Math.max(0, Math.min(parseFloat(_this._element.style("width")), d3.event.x));
+            }).attr("cy", function (d) {
+                return d.y = Math.max(0, Math.min(parseFloat(_this._element.style("height")), d3.event.y));
+            });
+            this._has_showed_lens = false;
+        };
+        BaseD3Lens.prototype.SelectCircleDragendFunc = function (selectCircle) {
+            if (!this._has_put_down)
+                return;
+            if (d3.event.sourceEvent.button != 0)
+                return;
+            this._sc_cx = selectCircle.x;
+            this._sc_cy = selectCircle.y;
+            //传递数据给Lens显示
+            var data = this.extractData();
+            if (!this._has_showed_lens) {
+                this.showLens(data);
+                this._has_showed_lens = true;
+            }
+            //z-index的问题先不解决
+            ////re-order the g elements so the paneG could on the toppest
+            //var tempGs = d3.select("#mapView").selectAll("svg > g");
+            //tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
+            //tempGs.order();
         };
         BaseD3Lens.prototype.SelectCircleZoomFunc = function () {
             if (d3.event.sourceEvent.type != "wheel") {
@@ -257,6 +267,43 @@ var ManyLens;
             this._select_circle.attr("r", this._sc_radius * this._sc_scale);
             this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * d3.event.scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * d3.event.scale * sinTheta);
         };
+        BaseD3Lens.prototype.LensCircleDragstartFunc = function () {
+            var tempGs = d3.select("#mapView").selectAll("svg > g");
+            var index = tempGs[0].indexOf(this._sc_lc_svg[0][0]);
+            tempGs[0].splice(index, 1);
+            tempGs[0].push(this._sc_lc_svg[0][0]);
+            tempGs.order();
+        };
+        BaseD3Lens.prototype.LensCircleDragFunc = function () {
+            var _this = this;
+            var transform = this._lens_circle_G.attr("transform");
+            this._lens_circle_G.attr("transform", function (d) {
+                _this._lc_cx = d.x = Math.max(_this._lc_radius, Math.min(parseFloat(_this._element.style("width")) - _this._lc_radius, d3.event.x));
+                _this._lc_cy = d.y = Math.max(_this._lc_radius, Math.min(parseFloat(_this._element.style("height")) - _this._lc_radius, d3.event.y));
+                transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
+                return transform;
+            });
+            var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
+            var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+            var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta);
+        };
+        BaseD3Lens.prototype.LensCircleDragendFunc = function () {
+            var res = [];
+            var eles = [];
+            var x = d3.event.sourceEvent.x, y = d3.event.sourceEvent.y;
+            var ele = d3.select(document.elementFromPoint(x, y));
+            while (ele && ele.attr("id") != "mapSvg") {
+                if (ele.attr("class") == "lens-circle")
+                    res.push(ele);
+                eles.push(ele);
+                ele.style("visibility", "hidden");
+                ele = d3.select(document.elementFromPoint(x, y));
+            }
+            for (var i = 0; i < eles.length; i++) {
+                eles[i].style("visibility", "visible");
+            }
+        };
         BaseD3Lens.prototype.LensCircleZoomFunc = function () {
             if (d3.event.sourceEvent.type != "wheel") {
                 return;
@@ -271,20 +318,6 @@ var ManyLens;
             this._lens_circle_G.attr("transform", function () {
                 var transform = d3.select(this).attr("transform");
                 transform = transform.replace(/(scale\()\d+\.?\d*(\))/, "$1" + scale + "$2");
-                return transform;
-            });
-            var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
-            var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-            var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-            this._sc_lc_svg.select("line").attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta).attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta);
-        };
-        BaseD3Lens.prototype.LensCircleDragFunc = function () {
-            var _this = this;
-            var transform = this._lens_circle_G.attr("transform");
-            this._lens_circle_G.attr("transform", function (d) {
-                _this._lc_cx = d.x = Math.max(_this._lc_radius, Math.min(parseFloat(_this._element.style("width")) - _this._lc_radius, d3.event.x));
-                _this._lc_cy = d.y = Math.max(_this._lc_radius, Math.min(parseFloat(_this._element.style("height")) - _this._lc_radius, d3.event.y));
-                transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
                 return transform;
             });
             var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
@@ -450,6 +483,148 @@ var ManyLens;
     })(ManyLens.D3ChartObject);
     ManyLens.BlossomLensPane = BlossomLensPane;
 })(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/BaseD3Lens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var BoundleLens = (function (_super) {
+        __extends(BoundleLens, _super);
+        function BoundleLens(element) {
+            _super.call(this, element, "BoundleLens");
+            this._innerRadius = this._lc_radius - 0;
+            this._cluster = d3.layout.cluster();
+            this._boundle = d3.layout.bundle();
+            this._line = d3.svg.line.radial();
+            this._cluster.size([360, this._innerRadius]).sort(null).value(function (d) {
+                return d.size;
+            });
+            this._line.interpolate("bundle").tension(.85).radius(function (d) {
+                return d.y;
+            }).angle(function (d) {
+                return d.x / 180 * Math.PI;
+            });
+        }
+        BoundleLens.prototype.render = function (color) {
+            _super.prototype.render.call(this, color);
+        };
+        BoundleLens.prototype.extractData = function () {
+            var data = [
+                { "name": "flare.util.palette.ShapePalette", "size": 2059, "imports": ["flare.util.palette.Palette", "flare.util.Shapes"] },
+                { "name": "flare.util.palette.SizePalette", "size": 2291, "imports": ["flare.util.palette.Palette"] },
+                { "name": "flare.util.Property", "size": 5559, "imports": ["flare.util.IPredicate", "flare.util.IValueProxy", "flare.util.IEvaluable"] },
+                { "name": "flare.util.Shapes", "size": 19118, "imports": ["flare.util.Arrays"] },
+                { "name": "flare.util.Sort", "size": 6887, "imports": ["flare.util.Arrays", "flare.util.Property"] },
+                { "name": "flare.util.Stats", "size": 6557, "imports": ["flare.util.Arrays", "flare.util.Property"] },
+                { "name": "flare.util.Strings", "size": 22026, "imports": ["flare.util.Dates", "flare.util.Property"] },
+                { "name": "flare.vis.axis.Axes", "size": 1302, "imports": ["flare.animate.Transitioner", "flare.vis.Visualization"] },
+                { "name": "flare.vis.axis.Axis", "size": 24593, "imports": ["flare.animate.Transitioner", "flare.scale.LinearScale", "flare.util.Arrays", "flare.scale.ScaleType", "flare.util.Strings", "flare.display.TextSprite", "flare.scale.Scale", "flare.util.Stats", "flare.scale.IScaleMap", "flare.vis.axis.AxisLabel", "flare.vis.axis.AxisGridLine"] },
+                { "name": "flare.vis.axis.AxisGridLine", "size": 652, "imports": ["flare.vis.axis.Axis", "flare.display.LineSprite"] },
+                { "name": "flare.vis.axis.AxisLabel", "size": 636, "imports": ["flare.vis.axis.Axis", "flare.display.TextSprite"] },
+                { "name": "flare.vis.axis.CartesianAxes", "size": 6703, "imports": ["flare.animate.Transitioner", "flare.display.RectSprite", "flare.vis.axis.Axis", "flare.display.TextSprite", "flare.vis.axis.Axes", "flare.vis.Visualization", "flare.vis.axis.AxisGridLine"] },
+                { "name": "flare.vis.controls.AnchorControl", "size": 2138, "imports": ["flare.vis.controls.Control", "flare.vis.Visualization", "flare.vis.operator.layout.Layout"] },
+                { "name": "flare.vis.controls.ClickControl", "size": 3824, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
+                { "name": "flare.vis.controls.Control", "size": 1353, "imports": ["flare.vis.controls.IControl", "flare.util.Filter"] },
+                { "name": "flare.vis.controls.ControlList", "size": 4665, "imports": ["flare.vis.controls.IControl", "flare.util.Arrays", "flare.vis.Visualization", "flare.vis.controls.Control"] },
+                { "name": "flare.vis.controls.DragControl", "size": 2649, "imports": ["flare.vis.controls.Control", "flare.vis.data.DataSprite"] },
+                { "name": "flare.vis.controls.ExpandControl", "size": 2832, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.vis.controls.Control", "flare.vis.Visualization"] },
+                { "name": "flare.vis.controls.HoverControl", "size": 4896, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
+                { "name": "flare.vis.controls.IControl", "size": 763, "imports": ["flare.vis.controls.Control"] },
+                { "name": "flare.vis.controls.PanZoomControl", "size": 5222, "imports": ["flare.util.Displays", "flare.vis.controls.Control"] },
+                { "name": "flare.vis.controls.SelectionControl", "size": 7862, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
+                { "name": "flare.vis.controls.TooltipControl", "size": 8435, "imports": ["flare.animate.Tween", "flare.display.TextSprite", "flare.vis.controls.Control", "flare.vis.events.TooltipEvent"] },
+                { "name": "flare.vis.data.Data", "size": 20544, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.data.DataSprite", "flare.vis.data.Tree", "flare.vis.events.DataEvent", "flare.data.DataSet", "flare.vis.data.TreeBuilder", "flare.vis.data.DataList", "flare.data.DataSchema", "flare.util.Sort", "flare.data.DataField", "flare.util.Property"] },
+                { "name": "flare.vis.data.DataList", "size": 19788, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.util.math.DenseMatrix", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.events.DataEvent", "flare.util.Stats", "flare.util.math.IMatrix", "flare.util.Sort", "flare.util.Filter", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.data.Data"] },
+                { "name": "flare.vis.data.DataSprite", "size": 10349, "imports": ["flare.util.Colors", "flare.vis.data.Data", "flare.display.DirtySprite", "flare.vis.data.render.IRenderer", "flare.vis.data.render.ShapeRenderer"] },
+                { "name": "flare.vis.data.EdgeSprite", "size": 3301, "imports": ["flare.vis.data.render.EdgeRenderer", "flare.vis.data.DataSprite", "flare.vis.data.NodeSprite", "flare.vis.data.render.ArrowType", "flare.vis.data.Data"] },
+                { "name": "flare.vis.data.NodeSprite", "size": 19382, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.data.Tree", "flare.util.Sort", "flare.util.Filter", "flare.util.IEvaluable", "flare.vis.data.Data"] },
+                { "name": "flare.vis.data.render.ArrowType", "size": 698, "imports": [] },
+                { "name": "flare.vis.data.render.EdgeRenderer", "size": 5569, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.DataSprite", "flare.vis.data.render.IRenderer", "flare.util.Shapes", "flare.util.Geometry", "flare.vis.data.render.ArrowType"] },
+                { "name": "flare.vis.data.render.IRenderer", "size": 353, "imports": ["flare.vis.data.DataSprite"] },
+                { "name": "flare.vis.data.render.ShapeRenderer", "size": 2247, "imports": ["flare.util.Shapes", "flare.vis.data.render.IRenderer", "flare.vis.data.DataSprite"] },
+                { "name": "flare.vis.data.ScaleBinding", "size": 11275, "imports": ["flare.scale.TimeScale", "flare.scale.ScaleType", "flare.scale.LinearScale", "flare.scale.LogScale", "flare.scale.OrdinalScale", "flare.scale.RootScale", "flare.scale.Scale", "flare.scale.QuantileScale", "flare.util.Stats", "flare.scale.QuantitativeScale", "flare.vis.events.DataEvent", "flare.vis.data.Data"] },
+                { "name": "flare.vis.data.Tree", "size": 7147, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.events.DataEvent", "flare.vis.data.NodeSprite", "flare.vis.data.Data"] },
+                { "name": "flare.vis.data.TreeBuilder", "size": 9930, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.Tree", "flare.util.heap.HeapNode", "flare.util.heap.FibonacciHeap", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.data.Data"] },
+                { "name": "flare.vis.events.DataEvent", "size": 2313, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.DataList", "flare.vis.data.DataSprite"] },
+                { "name": "flare.vis.events.SelectionEvent", "size": 1880, "imports": ["flare.vis.events.DataEvent"] },
+                { "name": "flare.vis.operator.layout.IndentedTreeLayout", "size": 3174, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.operator.layout.Layout", "flare.vis.data.EdgeSprite"] },
+                { "name": "flare.vis.operator.layout.Layout", "size": 7881, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.vis.data.DataList", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.Visualization", "flare.vis.axis.CartesianAxes", "flare.vis.axis.Axes", "flare.animate.TransitionEvent", "flare.vis.operator.Operator"] },
+                { "name": "flare.vis.operator.layout.NodeLinkTreeLayout", "size": 12870, "imports": ["flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.util.Orientation", "flare.vis.operator.layout.Layout"] },
+                { "name": "flare.vis.operator.layout.PieLayout", "size": 2728, "imports": ["flare.vis.data.DataList", "flare.vis.data.DataSprite", "flare.util.Shapes", "flare.util.Property", "flare.vis.operator.layout.Layout", "flare.vis.data.Data"] },
+                { "name": "flare.vis.operator.layout.RadialTreeLayout", "size": 12348, "imports": ["flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.operator.layout.Layout"] },
+                { "name": "flare.vis.operator.layout.RandomLayout", "size": 870, "imports": ["flare.vis.operator.layout.Layout", "flare.vis.data.DataSprite", "flare.vis.data.Data"] },
+                { "name": "flare.vis.operator.layout.StackedAreaLayout", "size": 9121, "imports": ["flare.scale.TimeScale", "flare.scale.LinearScale", "flare.util.Arrays", "flare.scale.OrdinalScale", "flare.vis.data.NodeSprite", "flare.scale.Scale", "flare.vis.axis.CartesianAxes", "flare.util.Stats", "flare.util.Orientation", "flare.scale.QuantitativeScale", "flare.util.Maths", "flare.vis.operator.layout.Layout"] },
+                { "name": "flare.vis.operator.layout.TreeMapLayout", "size": 9191, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Property", "flare.vis.operator.layout.Layout"] },
+                { "name": "flare.vis.operator.Operator", "size": 2490, "imports": ["flare.animate.Transitioner", "flare.vis.operator.IOperator", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.Visualization"] },
+                { "name": "flare.vis.operator.OperatorList", "size": 5248, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.operator.IOperator", "flare.vis.Visualization", "flare.vis.operator.Operator"] },
+                { "name": "flare.vis.operator.OperatorSequence", "size": 4190, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.operator.IOperator", "flare.vis.operator.OperatorList", "flare.animate.FunctionSequence", "flare.vis.operator.Operator"] },
+                { "name": "flare.vis.operator.OperatorSwitch", "size": 2581, "imports": ["flare.animate.Transitioner", "flare.vis.operator.OperatorList", "flare.vis.operator.IOperator", "flare.vis.operator.Operator"] },
+                { "name": "flare.vis.operator.SortOperator", "size": 2023, "imports": ["flare.vis.operator.Operator", "flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.data.Data"] },
+                { "name": "flare.vis.Visualization", "size": 16540, "imports": ["flare.animate.Transitioner", "flare.vis.operator.IOperator", "flare.animate.Scheduler", "flare.vis.events.VisualizationEvent", "flare.vis.data.Tree", "flare.vis.events.DataEvent", "flare.vis.axis.Axes", "flare.vis.axis.CartesianAxes", "flare.util.Displays", "flare.vis.operator.OperatorList", "flare.vis.controls.ControlList", "flare.animate.ISchedulable", "flare.vis.data.Data"] }
+            ];
+            return data;
+        };
+        BoundleLens.prototype.showLens = function (data) {
+            var p = _super.prototype.showLens.call(this);
+            var container = this._element;
+            var lensG = this._lens_circle_G;
+            var nodes = this._cluster.nodes(packageHierarchy(data)), links = packageImports(nodes);
+            lensG.selectAll(".link").data(this._boundle(links)).enter().append("path").attr("class", "link").attr("d", this._line).attr("stroke", "steelblue").attr("stroke-opacity", ".4").attr("fill", "none");
+            lensG.selectAll(".node").data(nodes.filter(function (n) {
+                return !n.children;
+            })).enter().append("g").attr("class", "node").attr("transform", function (d) {
+                return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
+            }).attr("font", '11px "Helvetica Neue", Helvetica, Arial, sans-serif').append("text").attr("dx", function (d) {
+                return d.x < 180 ? 8 : -8;
+            }).attr("dy", ".31em").attr("text-anchor", function (d) {
+                return d.x < 180 ? "start" : "end";
+            }).attr("transform", function (d) {
+                return d.x < 180 ? null : "rotate(180)";
+            }).text(function (d) {
+                return d.key;
+            });
+            lensG.transition().duration(p.duration).attr("opacity", "1");
+            function packageHierarchy(classes) {
+                var map = {};
+                function find(name, data) {
+                    var node = map[name], i;
+                    if (!node) {
+                        node = map[name] = data || { name: name, children: [] };
+                        if (name.length) {
+                            node.parent = find(name.substring(0, i = name.lastIndexOf(".")), null);
+                            node.parent.children.push(node);
+                            node.key = name.substring(i + 1);
+                        }
+                    }
+                    return node;
+                }
+                classes.forEach(function (d) {
+                    find(d.name, d);
+                });
+                return map[""];
+            }
+            // Return a list of imports for the given array of nodes.
+            function packageImports(nodes) {
+                var map = {}, imports = [];
+                // Compute a map from name to node.
+                nodes.forEach(function (d) {
+                    map[d.name] = d;
+                });
+                // For each import, construct a link from the source to target node.
+                nodes.forEach(function (d) {
+                    if (d.imports)
+                        d.imports.forEach(function (i) {
+                            var t = map[i];
+                            if (t) {
+                                imports.push({ source: map[d.name], target: t });
+                            }
+                        });
+                });
+                return imports;
+            }
+        };
+        return BoundleLens;
+    })(ManyLens.BaseD3Lens);
+    ManyLens.BoundleLens = BoundleLens;
+})(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/D3ChartObject.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -460,7 +635,7 @@ var ManyLens;
             _super.call(this, element);
             this._lens = new Array();
             this._pane_color = d3.scale.category20();
-            this._lens_count = 5;
+            this._lens_count = 6;
             this._drag = d3.behavior.drag();
             this._drag.origin(function (d) {
                 return d;
@@ -493,7 +668,7 @@ var ManyLens;
             var container = this._element;
             var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("class", "lensPane").attr("transform", "translate(" + [10, 10] + ")").call(this._drag);
             pane_g.append("rect").attr("x", 0).attr("y", 0).attr("width", this._pang_g.rect_width).attr("height", this._pang_g.rect_height).attr("fill", "#fff7bc").attr("stroke", "pink").attr("stroke-width", 2);
-            pane_g.selectAll("circle").data([1, 1, 1, 1, 1]).enter().append("circle").attr("class", "pane-Lens-Circle").attr("r", this._pang_g.lens_icon_r).attr("cx", this._pang_g.rect_width / 2).attr("cy", function (d, i) {
+            pane_g.selectAll("circle").data(d3.range(this._lens_count)).enter().append("circle").attr("class", "pane-Lens-Circle").attr("r", this._pang_g.lens_icon_r).attr("cx", this._pang_g.rect_width / 2).attr("cy", function (d, i) {
                 return _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding + i * (2 * _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding);
             }).attr("fill", function (d, i) {
                 return _this._pane_color(i);
@@ -525,6 +700,11 @@ var ManyLens;
                     case 4:
                         {
                             len = new ManyLens.WordCloudLens(_this._element);
+                            break;
+                        }
+                    case 5:
+                        {
+                            len = new ManyLens.BoundleLens(_this._element);
                             break;
                         }
                 }
@@ -716,9 +896,6 @@ var ManyLens;
             node.append("circle").attr("r", nodeRadius).attr("stroke", "steelblue").attr("fill", "#fff").attr("stroke-width", 1.5);
             lensG.transition().duration(p.duration).attr("opacity", "1");
         };
-        NetworkTreeLens.prototype.LensCircleZoomFunc = function () {
-            _super.prototype.LensCircleZoomFunc.call(this);
-        };
         return NetworkTreeLens;
     })(ManyLens.BaseD3Lens);
     ManyLens.NetworkTreeLens = NetworkTreeLens;
@@ -758,9 +935,6 @@ var ManyLens;
                 return _this._color(i);
             }).attr("d", this._arc);
             lensG.transition().duration(p.duration).attr("opacity", "1");
-        };
-        PieChartLens.prototype.LensCircleZoomFunc = function () {
-            _super.prototype.LensCircleZoomFunc.call(this);
         };
         return PieChartLens;
     })(ManyLens.BaseD3Lens);

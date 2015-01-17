@@ -19,7 +19,6 @@
     <Content Include="CSS\app.css" />
     <Content Include="CSS\ManyLens.css" />
     <Content Include="img\chinamap.svg" />
-    <Content Include="img\test.jpg" />
     <Content Include="img\usmap.svg" />
     <Content Include="ManyLens.html" />
     <Content Include="Scripts\d3.js" />
@@ -37,6 +36,7 @@
     <TypeScriptCompile Include="Scripts\typings\signalr\signalr.d.ts" />
     <TypeScriptCompile Include="tsScripts\BarChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\BaseD3Lens.ts" />
+    <TypeScriptCompile Include="tsScripts\BoundleLens.ts" />
     <TypeScriptCompile Include="tsScripts\ClassicLensPane.ts" />
     <TypeScriptCompile Include="tsScripts\D3ChartObject.ts" />
     <TypeScriptCompile Include="tsScripts\Cruve.ts" />
