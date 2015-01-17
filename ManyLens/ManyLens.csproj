@@ -19,6 +19,7 @@
     <Content Include="CSS\app.css" />
     <Content Include="CSS\ManyLens.css" />
     <Content Include="img\chinamap.svg" />
+    <Content Include="img\test.jpg" />
     <Content Include="img\usmap.svg" />
     <Content Include="ManyLens.html" />
     <Content Include="Scripts\d3.js" />
@@ -50,6 +51,9 @@
   <ItemGroup>
     <Content Include="packages.config" />
     <Content Include="Scripts\d3\LICENSE" />
+    <None Include="manylens - FTP.pubxml" />
+    <None Include="manylens - Web Deploy.pubxml" />
+    <Content Include="Scripts\ManyLens.js.map" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
