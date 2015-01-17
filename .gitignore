@@ -229,16 +229,4 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-ManyLens/tsScripts/app.js
-ManyLens/tsScripts/BarChartLens.js
-ManyLens/tsScripts/BaseD3Lens.js
-ManyLens/tsScripts/BlossomLensPane.js
-ManyLens/tsScripts/ClassicLensPane.js
-ManyLens/tsScripts/Cruve.js
-ManyLens/tsScripts/D3ChartObject.js
-ManyLens/tsScripts/HistoryTree.js
-ManyLens/tsScripts/LocationLens.js
-ManyLens/tsScripts/NetworkTreeLens.js
-ManyLens/tsScripts/PieChartLens.js
-ManyLens/tsScripts/WordCloudLens.js
-ManyLens/tsScripts/SOMMap.js
+ManyLens/tsScripts/*.js
