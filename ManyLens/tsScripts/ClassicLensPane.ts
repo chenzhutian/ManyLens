@@ -20,7 +20,7 @@ module ManyLens {
         private _pang_g: PaneG;
 
         private _history_trees: HistoryTrees;
-        private _lens_count: number = 6;
+        private _lens_count: number = 2;
 
         private _drag: D3.Behavior.Drag = d3.behavior.drag();
 
@@ -97,15 +97,17 @@ module ManyLens {
                     var len: BaseD3Lens;
                     switch (i) {
                         case 0: {
-                            len = new BarChartLens(this._element);
+                            len = new NetworkLens(this._element);
+                            
                             break;
                         }
                         case 1: {
-                            len = new LocationLens(this._element);
+                            len = new WordCloudLens(this._element);
+                           
                             break;
                         }
                         case 2: {
-                            len = new NetworkTreeLens(this._element);
+                            len = new BarChartLens(this._element);
                             break;
                         }
                         case 3: {
@@ -113,7 +115,7 @@ module ManyLens {
                             break;
                         }
                         case 4: {
-                            len = new WordCloudLens(this._element);
+                            len = new LocationLens(this._element);
                             break;
                         }
                         case 5: {

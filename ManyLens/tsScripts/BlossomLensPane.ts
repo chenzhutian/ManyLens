@@ -87,7 +87,7 @@ module ManyLens {
                             break;
                         }
                         case 2: {
-                            len = new NetworkTreeLens(this._element);
+                            len = new NetworkLens(this._element);
                             break;
                         }
                         case 3: {

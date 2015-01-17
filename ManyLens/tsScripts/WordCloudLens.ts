@@ -1,5 +1,5 @@
 ﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
-module ManyLens{
+module ManyLens {
     interface cloudData {
         text: string;
         value: number;
@@ -7,7 +7,7 @@ module ManyLens{
     export class WordCloudLens extends BaseD3Lens {
 
         private _font_size: D3.Scale.SqrtScale = d3.scale.sqrt();
-        private _cloud:D3.Layout.CloudLayout = d3.layout.cloud();
+        private _cloud: D3.Layout.CloudLayout = d3.layout.cloud();
         private _cloud_w: number = this._lc_radius * 2;//Math.sqrt(2);
         private _cloud_h: number = this._cloud_w;
         private _cloud_padding: number = 1;
@@ -16,7 +16,7 @@ module ManyLens{
         //private _cloud_rotate: number = 0;
 
         constructor(element: D3.Selection) {
-            super(element,"WordCloudLens");
+            super(element, "WordCloudLens");
             this._color = d3.scale.category20c();
 
         }
@@ -31,7 +31,7 @@ module ManyLens{
             var data: Array<cloudData>
             data = [
                 { text: "Samsung", value: 90 },
-                { text: "Apple", value: 50},
+                { text: "Apple", value: 50 },
                 { text: "Lenovo", value: 50 },
                 { text: "LG", value: 60 },
                 { text: "Nokia", value: 30 },
@@ -81,27 +81,24 @@ module ManyLens{
             ;
 
             this._font_size
-                .range([10, this._cloud_w/8])
+                .range([10, this._cloud_w / 8])
                 .domain(d3.extent(data, function (d) { return d.value; }))
             ;
 
             return data;
         }
 
-        protected showLens(data: Array<any>): any {
-            var p = super.showLens();
+        public showLens(data: Array<any>,lc_cx = null, lc_cy = null): any {
+            var p = super.showLens(null,lc_cx,lc_cy);
             var container = this._element;
             var lensG = this._lens_circle_G;
-
-
-
 
             lensG
                 .transition().duration(p.duration)
                 .attr("opacity", "1")
             ;
 
-            this._cloud.size([this._cloud_w,this._cloud_h])
+            this._cloud.size([this._cloud_w, this._cloud_h])
                 .words(data)
                 .padding(this._cloud_padding)
                 .rotate(0)
@@ -135,10 +132,10 @@ module ManyLens{
                 .style("font-size", function (d) { return d.size + "px"; })
                 .style("font-weight", function (d) { return d.weight; })
                 .style("font-family", function (d) { return d.font })
-                .style("fill", (d, i) =>{ return this._color(d.size); })
+                .style("fill", (d, i) => { return this._color(d.size); })
                 .style("opacity", 1e-6)
                 .attr("text-anchor", "middle")
-                //.attr("class", "show")
+            //.attr("class", "show")
                 .attr("transform", function (d) {
                     return "translate(" + [d.x, d.y] + ")";
                 })
@@ -148,8 +145,19 @@ module ManyLens{
             ;
         }
 
-        protected LensCircleZoomFunc(): void {
-            super.LensCircleZoomFunc();
+        protected LensCircleDragendFunc(): any {
+            var res = super.LensCircleDragendFunc();
+            if (res.length == 2) {
+                var lensA = d3.select(res[0].parentNode);
+                var lensB = d3.select(res[1].parentNode);
+                if ((lensA.attr("class").split(" ")[1]) == "WordCloudLens" && (lensB.attr("class").split(" ")[1]) == "NetworkLens"
+                    || (lensB.attr("class").split(" ")[1]) == "WordCloudLens" && (lensA.attr("class").split(" ")[1]) == "NetworkLens") {
+                    var bl = new BoundleLens(this._element);
+                    bl.showLens(bl.testExtractData(), this._lc_cx, this._lc_cy);
+                    lensA.remove();
+                    lensB.remove();
+                }
+            }
         }
     }
 }

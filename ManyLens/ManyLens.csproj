@@ -43,7 +43,7 @@
     <TypeScriptCompile Include="tsScripts\HistoryTree.ts" />
     <TypeScriptCompile Include="tsScripts\BlossomLensPane.ts" />
     <TypeScriptCompile Include="tsScripts\LocationLens.ts" />
-    <TypeScriptCompile Include="tsScripts\NetworkTreeLens.ts" />
+    <TypeScriptCompile Include="tsScripts\NetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\PieChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\SOMMap.ts" />
     <TypeScriptCompile Include="tsScripts\WordCloudLens.ts" />

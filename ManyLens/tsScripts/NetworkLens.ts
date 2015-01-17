@@ -1,6 +1,6 @@
 ﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
 module ManyLens {
-    export class NetworkTreeLens extends BaseD3Lens{
+    export class NetworkLens extends BaseD3Lens{
 
         private _theta: number = 360;
         private _tree: D3.Layout.TreeLayout = d3.layout.tree();
@@ -56,8 +56,8 @@ module ManyLens {
             return data;
         }
 
-        protected showLens(data:D3.Layout.GraphNode):any {
-            var p = super.showLens();
+        public showLens(data: D3.Layout.GraphNode, lc_cx = null, lc_cy = null):any {
+            var p = super.showLens(null, lc_cx, lc_cy);
             var container = this._element;
             var lensG = this._lens_circle_G;
 
@@ -107,6 +107,19 @@ module ManyLens {
             ;
         }
 
-       
+        protected LensCircleDragendFunc(): any {
+            var res = super.LensCircleDragendFunc();
+            if (res.length == 2) {
+                var lensA = d3.select(res[0].parentNode);
+                var lensB = d3.select(res[1].parentNode);
+                if ((lensA.attr("class").split(" ")[1]) == "WordCloudLens" && (lensB.attr("class").split(" ")[1]) == "NetworkLens"
+                    || (lensB.attr("class").split(" ")[1]) == "WordCloudLens" && (lensA.attr("class").split(" ")[1]) == "NetworkLens") {
+                    var bl = new BoundleLens(this._element);
+                    bl.showLens(bl.testExtractData(), this._lc_cx, this._lc_cy);
+                    lensA.remove();
+                    lensB.remove();
+                } 
+            }
+        }
     }
 }

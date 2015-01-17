@@ -11,9 +11,9 @@ module ManyLens {
 
         protected _select_circle_G: D3.Selection;
         protected _select_circle: D3.Selection;
-        protected _sc_radius: number = 10;
-        protected _sc_cx: number;
-        protected _sc_cy: number;
+        protected _sc_radius: number = 0;
+        protected _sc_cx: number = 0;
+        protected _sc_cy: number = 0;
         protected _sc_scale: number = 1;
         protected _sc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
         protected _sc_drag: D3.Behavior.Drag = d3.behavior.drag();
@@ -34,6 +34,7 @@ module ManyLens {
         constructor(element: D3.Selection, type: string) {
             super(element);
             this._type = type;
+            this._sc_radius = 10;
         }
 
         public render(color: string): void {
@@ -115,38 +116,47 @@ module ManyLens {
             throw new Error('This method is abstract');
         }
 
-        protected showLens(any = null): { lcx: number; lcy: number; theta: number; duration: number } {
-
+        public showLens(any = null,lc_cx = null,lc_cy = null): { lcx: number; lcy: number; theta: number; duration: number } {
             var sc_lc_dist = 100;
-            var theta = Math.random() * Math.PI;
+            var container = this._element;
+
+            var theta = lc_cx ? 0 : Math.random() * Math.PI;
             var cosTheta = Math.cos(theta);
             var sinTheta = Math.sin(theta);
-            var container = this._element;
+
             var cr = this._sc_radius;
-            var cx = this._sc_cx + (cr * cosTheta * this._sc_scale);
-            var cy = this._sc_cy + (cr * sinTheta * this._sc_scale);
+            var cx = lc_cx || this._sc_cx + (cr * cosTheta * this._sc_scale);
+            var cy = lc_cy || this._sc_cy + (cr * sinTheta * this._sc_scale);
+
             var duration: number = 300;
 
-            this._sc_lc_svg.select("line")
-                .attr("x1", cx)
-                .attr("y1", cy)
-                .attr("x2", cx)
-                .attr("y2", cy)
-                .attr("stoke-width", 2)
-                .attr("stroke", "red")
-                .transition().duration(duration)
-                .attr("x2", () => {
-                    cx = cx + (sc_lc_dist * cosTheta);
-                    return cx;
-                })
-                .attr("y2", () => {
-                    cy = cy + (sc_lc_dist * sinTheta);
-                    return cy;
-                })
-            ;
-
-            this._lc_cx = cx + (this._lc_radius * cosTheta);
-            this._lc_cy = cy + (this._lc_radius * sinTheta);
+            if (this._sc_lc_svg) {
+                this._sc_lc_svg.select("line")
+                    .attr("x1", cx)
+                    .attr("y1", cy)
+                    .attr("x2", cx)
+                    .attr("y2", cy)
+                    .attr("stoke-width", 2)
+                    .attr("stroke", "red")
+                    .transition().duration(duration)
+                    .attr("x2", () => {
+                        cx = cx + (sc_lc_dist * cosTheta);
+                        return cx;
+                    })
+                    .attr("y2", () => {
+                        cy = cy + (sc_lc_dist * sinTheta);
+                        return cy;
+                    })
+                ;
+                this._lc_cx = cx + (this._lc_radius * cosTheta);
+                this._lc_cy = cy + (this._lc_radius * sinTheta);
+            } else {
+                this._sc_lc_svg = container
+                    .append("g")
+                    .attr("class", "lens");
+                this._lc_cx = cx;
+                this._lc_cy = cy;
+            }
 
             this._lc_zoom
                 .scaleExtent([1, 2])
@@ -165,14 +175,15 @@ module ManyLens {
                     this.LensCircleDragFunc();
                 })
                 .on("dragend", () => {
-                    this.LensCircleDragendFunc();
                     console.log("dragend " + this._type);
+                    this.LensCircleDragendFunc();
+                    
                 })
             ;
 
             this._lens_circle_G = this._sc_lc_svg.append("g")
                 .data([{ x: this._lc_cx, y: this._lc_cy }])
-                .attr("class", "lens-circle-g")
+                .attr("class", "lens-circle-g "+this._type)
                 .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")")
                 .attr("opacity", "1e-6")
                 .on("contextmenu", () => {
@@ -312,14 +323,14 @@ module ManyLens {
             ;
         }
 
-        protected LensCircleDragendFunc(): void {
+        protected LensCircleDragendFunc(): Array<Element> {
             var res = [];
             var eles = [];
             var x = d3.event.sourceEvent.x,
                 y = d3.event.sourceEvent.y;
             var ele = d3.select(document.elementFromPoint(x, y));
             while (ele && ele.attr("id") != "mapSvg") {
-                if (ele.attr("class") == "lens-circle") res.push(ele);
+                if (ele.attr("class") == "lens-circle") res.push(ele[0][0]);
                 eles.push(ele);
                 ele.style("visibility", "hidden");
                 ele = d3.select(document.elementFromPoint(x, y));
@@ -329,8 +340,7 @@ module ManyLens {
                 eles[i].style("visibility", "visible");
             }
 
-
-
+            return res;
         }
 
         protected LensCircleZoomFunc(): void {

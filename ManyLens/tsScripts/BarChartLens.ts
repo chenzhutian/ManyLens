@@ -26,8 +26,8 @@ module ManyLens {
             return data;
         }
 
-        protected showLens(data:Array<number>):any {
-            var p = super.showLens();
+        public showLens(data: Array<number>, lc_cx = null, lc_cy = null): any {
+            var p = super.showLens(null, lc_cx, lc_cy);
             var container = this._element;
             var lensG = this._lens_circle_G;
 
