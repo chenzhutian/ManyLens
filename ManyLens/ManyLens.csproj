@@ -35,6 +35,7 @@
     <TypeScriptCompile Include="Scripts\typings\d3\plugins\d3.superformula.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\signalr\signalr.d.ts" />
     <TypeScriptCompile Include="tsScripts\BarChartLens.ts" />
+    <TypeScriptCompile Include="tsScripts\BaseCompositeLens.ts" />
     <TypeScriptCompile Include="tsScripts\BaseD3Lens.ts" />
     <TypeScriptCompile Include="tsScripts\BoundleLens.ts" />
     <TypeScriptCompile Include="tsScripts\ClassicLensPane.ts" />
@@ -43,6 +44,7 @@
     <TypeScriptCompile Include="tsScripts\HistoryTree.ts" />
     <TypeScriptCompile Include="tsScripts\BlossomLensPane.ts" />
     <TypeScriptCompile Include="tsScripts\LocationLens.ts" />
+    <TypeScriptCompile Include="tsScripts\ManyLens.ts" />
     <TypeScriptCompile Include="tsScripts\NetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\PieChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\SOMMap.ts" />

@@ -1,88 +1,84 @@
 ﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
 module ManyLens {
-    export class BarChartLens extends BaseD3Lens {
+    export module Lens {
 
-        private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
-        private _x_axis: D3.Selection;
-        private _bar_width: number;
-        private _bar_chart_width: number = this._lc_radius * Math.SQRT2;
-        private _bar_chart_height: number = this._bar_chart_width;
+        export class BarChartLens extends BaseD3Lens {
 
-        constructor(element: D3.Selection) {
-            super(element,"BarChartLens");
-        }
+            private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
+            private _x_axis: D3.Selection;
+            private _bar_width: number;
+            private _bar_chart_width: number = this._lc_radius * Math.SQRT2;
+            private _bar_chart_height: number = this._bar_chart_width;
 
-        public render(color:string): void {
-            super.render(color);
+            constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
+                super(element, "BarChartLens",manyLens);
+            }
 
-        }
+            public render(color: string): void {
+                super.render(color);
 
-        protected extractData(): any {
-            var data: Array<number>;
-            data = d3.range(12).map(function (d) {
-                return 10 + 70 * Math.random();
-            });
+            }
 
-            return data;
-        }
+            protected extractData(): any {
+                var data: Array<number>;
+                data = d3.range(12).map(function (d) {
+                    return 10 + 70 * Math.random();
+                });
 
-        public showLens(data: Array<number>, lc_cx = null, lc_cy = null): any {
-            var p = super.showLens(null, lc_cx, lc_cy);
-            var container = this._element;
-            var lensG = this._lens_circle_G;
+                return data;
+            }
 
-
-            var x = d3.scale.linear()
-                .range([0, this._bar_chart_width])
-                .domain([0, data.length]);
-
-            this._x_axis_gen
-                .scale(x)
-                .ticks(0)
-                .orient("bottom")
-            ;
-            this._x_axis = lensG.append("g")
-                .attr("class", "x-axis")
-                .attr("transform", () => {
-                    return "translate(" + [-this._bar_chart_width / 2, this._bar_chart_height / 2] + ")";
-                })
-                .attr("fill", "none")
-                .attr("stroke", "black")
-                .attr("stroke-width",1)
-                .call(this._x_axis_gen)
-            ;
+            public showLens(data: Array<number>, lc_cx = null, lc_cy = null): any {
+                var p = super.showLens(null, lc_cx, lc_cy);
+                var container = this._element;
+                var lensG = this._lens_circle_G;
 
 
-            this._bar_width = (this._bar_chart_width-20) / data.length;
-            var barHeight = d3.scale.linear()
-                .range([10, this._bar_chart_height])
-                .domain(d3.extent(data));
+                var x = d3.scale.linear()
+                    .range([0, this._bar_chart_width])
+                    .domain([0, data.length]);
 
-            var bar = lensG.selectAll(".bar")
-                .data(data)
-                .enter().append("g")
-                .attr("transform", (d, i) => {
-                    return "translate(" + [10+i * this._bar_width - this._bar_chart_width / 2, this._bar_chart_height/2 - barHeight(d)] + ")";
-                })
-            ;
+                this._x_axis_gen
+                    .scale(x)
+                    .ticks(0)
+                    .orient("bottom")
+                ;
+                this._x_axis = lensG.append("g")
+                    .attr("class", "x-axis")
+                    .attr("transform", () => {
+                        return "translate(" + [-this._bar_chart_width / 2, this._bar_chart_height / 2] + ")";
+                    })
+                    .attr("fill", "none")
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 1)
+                    .call(this._x_axis_gen)
+                ;
 
-            bar.append("rect")
-                .attr("width", this._bar_width)
-                .attr("height", function (d) { return barHeight(d); })
-                .attr("fill","steelblue")
-            ;
 
+                this._bar_width = (this._bar_chart_width - 20) / data.length;
+                var barHeight = d3.scale.linear()
+                    .range([10, this._bar_chart_height])
+                    .domain(d3.extent(data));
 
+                var bar = lensG.selectAll(".bar")
+                    .data(data)
+                    .enter().append("g")
+                    .attr("transform", (d, i) => {
+                        return "translate(" + [10 + i * this._bar_width - this._bar_chart_width / 2, this._bar_chart_height / 2 - barHeight(d)] + ")";
+                    })
+                ;
 
+                bar.append("rect")
+                    .attr("width", this._bar_width)
+                    .attr("height", function (d) { return barHeight(d); })
+                    .attr("fill", "steelblue")
+                ;
 
-            lensG
-                .transition().duration(p.duration)
-                .attr("opacity", "1")
-            ;
-        }
-
-        protected LensCircleZoomFunc() {
-            super.LensCircleZoomFunc();
+                lensG
+                    .transition().duration(p.duration)
+                    .attr("opacity", "1")
+                ;
+            }
         }
     }
 }
