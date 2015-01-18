@@ -2,7 +2,7 @@
 
     export module Lens {
 
-        export class BaseCompositeLens extends D3ChartObject implements ILens{
+        export class BaseCompositeLens extends BaseD3Lens {
 
             protected _id: string;
             protected _type: string;
@@ -15,7 +15,7 @@
             protected _lc_cy: number;
 
 
-            protected _lens: Array<Lens.ILens>;
+            protected _lens: Array<Lens.BaseD3Lens>;
             protected _success: boolean = false;
 
             public get ID(): string {
@@ -43,10 +43,10 @@
                 this._lens_circle_G = lensG;
             }
 
-            constructor(element: D3.Selection,firstLens:Lens.ILens,secondLens:Lens.ILens,manyLens:ManyLens) {
-                super(element);
+            constructor(element: D3.Selection,firstLens:Lens.BaseD3Lens,secondLens:Lens.BaseD3Lens,manyLens:ManyLens) {
+                super(element,"",manyLens);
                 this._manyLens = manyLens;
-                this._lens = new Array<Lens.ILens>();
+                this._lens = new Array<Lens.BaseD3Lens>();
                 this._lens.push(firstLens);
                 this._lens.push(secondLens);
                 this._lc_cx = firstLens.LensCX;
@@ -57,6 +57,11 @@
             }
 
             public render(data: Array<any>): void {
+                this._sc_lc_svg = this._element
+                    .append("g")
+                    .attr("class", "lens")
+                ;
+
 
                 var bl = new BoundleLens(this._element, this._manyLens);
                 bl.showLens(bl.testExtractData(), this._lc_cx, this._lc_cy);
@@ -66,6 +71,12 @@
                     console.log(d);
                 });
 
+            }
+
+            public showLens(any = null): { lcx: number; lcy: number; duration: number } {
+
+
+                return super.showLens();
             }
 
             public extractData(): Array<any> {

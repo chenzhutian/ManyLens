@@ -47,6 +47,7 @@
     <TypeScriptCompile Include="tsScripts\ManyLens.ts" />
     <TypeScriptCompile Include="tsScripts\NetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\PieChartLens.ts" />
+    <TypeScriptCompile Include="tsScripts\BaseSingleLens.ts" />
     <TypeScriptCompile Include="tsScripts\SOMMap.ts" />
     <TypeScriptCompile Include="tsScripts\WordCloudLens.ts" />
   </ItemGroup>

@@ -1,8 +1,8 @@
-﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
+﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
 module ManyLens{
     export module Lens{
 
-        export class PieChartLens extends BaseD3Lens {
+        export class PieChartLens extends BaseSingleLens {
 
             private _innerRadius: number = this._lc_radius - 20;
             private _outterRadius: number = this._lc_radius - 0;
@@ -35,7 +35,7 @@ module ManyLens{
             }
 
             public showLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null, lc_cx, lc_cy);
+                var p = super.showLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 

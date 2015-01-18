@@ -18,10 +18,10 @@
         private _historyTrees: ManyLens.LensHistory.HistoryTrees;
 
         //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
-        private _lens: Map<string, Lens.ILens> = new Map<string, Lens.BaseD3Lens>();
+        private _lens: Map<string, Lens.BaseD3Lens> = new Map<string, Lens.BaseD3Lens>();
         private _lens_count: number = 0;
 
-        public AddLens(lens: Lens.ILens): void {
+        public AddLens(lens: Lens.BaseD3Lens): void {
             this._lens.set("lens_"+this._lens_count, lens);
             this._lens_count++;
             console.log("add Node");
@@ -35,7 +35,7 @@
         public get LensCount(): number {
             return this._lens_count;
         }
-        public GetLens(id: string): Lens.ILens {
+        public GetLens(id: string): Lens.BaseD3Lens {
             return this._lens.get(id);
         }
 

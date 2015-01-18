@@ -1,7 +1,7 @@
-﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
+﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
 module ManyLens {
     export module Lens {
-        export class BoundleLens extends BaseD3Lens {
+        export class BoundleLens extends BaseSingleLens {
             private _innerRadius: number = this._lc_radius - 0;
             private _cluster: D3.Layout.ClusterLayout = d3.layout.cluster();
             private _boundle: D3.Layout.BundleLayout = d3.layout.bundle();
@@ -93,7 +93,7 @@ module ManyLens {
             }
 
             public showLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null, lc_cx, lc_cy);
+                var p = super.showLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 

@@ -1,8 +1,8 @@
-﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
+﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
 module ManyLens {
     export module Lens {
 
-        export class NetworkLens extends BaseD3Lens {
+        export class NetworkLens extends BaseSingleLens {
 
             private _theta: number = 360;
             private _tree: D3.Layout.TreeLayout = d3.layout.tree();
@@ -59,7 +59,7 @@ module ManyLens {
             }
 
             public showLens(data: D3.Layout.GraphNode, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null, lc_cx, lc_cy);
+                var p = super.showLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 

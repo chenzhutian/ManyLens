@@ -1,4 +1,4 @@
-﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
+﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
 module ManyLens {
 
     export module Lens {
@@ -7,7 +7,7 @@ module ManyLens {
             text: string;
             value: number;
         }
-        export class WordCloudLens extends BaseD3Lens {
+        export class WordCloudLens extends BaseSingleLens {
 
             private _font_size: D3.Scale.SqrtScale = d3.scale.sqrt();
             private _cloud: D3.Layout.CloudLayout = d3.layout.cloud();
@@ -94,7 +94,7 @@ module ManyLens {
             }
 
             public showLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null, lc_cx, lc_cy);
+                var p = super.showLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 

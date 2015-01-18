@@ -1,8 +1,8 @@
-﻿///<reference path = "../tsScripts/BaseD3Lens.ts" />
+﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
 module ManyLens {
     export module Lens {
 
-        export class BarChartLens extends BaseD3Lens {
+        export class BarChartLens extends BaseSingleLens {
 
             private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _x_axis: D3.Selection;
@@ -29,7 +29,7 @@ module ManyLens {
             }
 
             public showLens(data: Array<number>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null, lc_cx, lc_cy);
+                var p = super.showLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
