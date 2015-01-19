@@ -6,7 +6,7 @@
         constructor(element: D3.Selection) {
             this._element = element;
         }
-        public render(any): void {
+        public Render(any): void {
 
         }
     }

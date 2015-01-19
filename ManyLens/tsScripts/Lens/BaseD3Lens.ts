@@ -1,15 +1,17 @@
-﻿///<reference path = "../tsScripts/D3ChartObject.ts" />
+﻿///<reference path = "../D3ChartObject.ts" />
 module ManyLens {
     export module Lens {
         export class BaseD3Lens extends D3ChartObject{
+
+            public static Type: string = "BaseD3Lens";
 
             protected _id: string;
             protected _type: string;
             protected _lens_type_color: string;
             protected _manyLens: ManyLens.ManyLens;
- 
+            protected _is_composite_lens: boolean = null;
+
             protected _sc_lc_svg: D3.Selection;
-            protected _is_composite_lens: boolean = false;
 
             protected _lens_circle_G: D3.Selection;
             protected _lens_circle: D3.Selection;
@@ -19,12 +21,6 @@ module ManyLens {
             protected _lc_scale: number = 1;
             protected _lc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _lc_drag: D3.Behavior.Drag = d3.behavior.drag();
-
-            protected _sc_radius: number = 0;
-            protected _sc_cx: number = 0;
-            protected _sc_cy: number = 0;
-            protected _sc_scale: number = 1;
-
 
             public get ID(): string {
                 return this._id;
@@ -57,26 +53,20 @@ module ManyLens {
                 this._type = type;
             }
 
+            public Render(color: string): void {
+                this._lens_type_color = color;
+                this._sc_lc_svg = this._element
+                    .append("g")
+                    .attr("class", "lens")
+                ;
+            }
 
-            protected extractData(any = null): any {
+            protected ExtractData(any = null): any {
                 throw new Error('This method is abstract');
             }
 
-            public showLens(any = null, lc_cx = null, lc_cy = null): { lcx: number; lcy: number;  duration: number } {
- 
-
-                //if (this._sc_lc_svg) {
-                   
-
-                //} else if (lc_cx && lc_cy) {
-                //    this._sc_lc_svg = container
-                //        .append("g")
-                //        .attr("class", "lens")
-                //    ;
-                //    this._lc_cx = lc_cx;
-                //    this._lc_cy = lc_cy;
-
-                //} 
+            public DisplayLens(any = null): any {
+                var duration: number = 300;
 
                 this._lc_zoom
                     .scaleExtent([1, 2])
@@ -140,11 +130,12 @@ module ManyLens {
                 //Add this lens to the app class
                 this._manyLens.AddLens(this);
 
-                return {
-                    lcx: 0,
-                    lcy: 0,
-                    duration: 0
-                }
+                this._lens_circle_G
+                    .transition().duration(duration)
+                    .attr("opacity", "1")
+                ;
+
+                return duration;
             }
 
             protected LensCircleDragstartFunc(): void {
@@ -166,16 +157,7 @@ module ManyLens {
                     return transform;
                 });
 
-                var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
-                var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
 
-                this._sc_lc_svg.select("line")
-                    .attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta)
-                    .attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta)
-                    .attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta)
-                    .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
-                ;
             }
 
             protected LensCircleDragendFunc(): Array<Element> {
@@ -198,14 +180,15 @@ module ManyLens {
                 if (res.length == 2) {
                     var lensA_id: string = d3.select(res[0].parentNode).attr("id");
                     var lensB_id: string = d3.select(res[1].parentNode).attr("id");
-                    var lensC = new BaseCompositeLens(this._element,
+                    var lensC = LensAssemblyFactory.Combine(
+                        this._element,
                         this._manyLens.GetLens(lensA_id),
                         this._manyLens.GetLens(lensB_id),
-                        this._manyLens);
+                        this._manyLens
+                        );
 
-                    if (lensC.isSuccess) {
+                    if (lensC.IsSuccess) {
                         console.log("Base Lens add lens");
-                        lensC.render(lensC.extractData());
                     }
                 }
 
@@ -233,16 +216,6 @@ module ManyLens {
                     })
                 ;
 
-                var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
-                var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-
-                this._sc_lc_svg.select("line")
-                    .attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta)
-                    .attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta)
-                    .attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta)
-                    .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
-                ;
             }
 
             public HideLens() {

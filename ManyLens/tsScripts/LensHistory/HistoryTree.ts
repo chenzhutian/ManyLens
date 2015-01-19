@@ -1,4 +1,5 @@
-﻿module ManyLens {
+﻿///<reference path = "../D3ChartObject.ts" />
+module ManyLens {
     export module LensHistory {
         //This history tree is not urgly, need to refine
         interface HistoryTree {
@@ -24,7 +25,7 @@
                 super(element);
             }
 
-            public render() {
+            public Render() {
 
             }
 

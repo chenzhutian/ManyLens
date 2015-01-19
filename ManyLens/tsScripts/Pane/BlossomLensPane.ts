@@ -1,4 +1,4 @@
-﻿///<reference path = "../tsScripts/D3ChartObject.ts" />
+﻿///<reference path = "../D3ChartObject.ts" />
 
 module ManyLens {
     export module Pane {
@@ -34,24 +34,24 @@ module ManyLens {
                 ;
             }
 
-            public render(): void {
+            public Render(): void {
                 var container = this._element;
                 container.on("click", () => {
-                    this.openPane();
+                    this.OpenPane();
                 });
 
             }
 
 
-            private openPane() {
+            private OpenPane() {
                 if (this._current_pane_g && this._current_pane_g.isOpened) {
                     (() => {
-                        this.closePane("click close");
+                        this.ClosePane("click close");
                     })();
                 }
                 var p = d3.mouse(this._element[0][0]);
 
-                var timer = setTimeout(() => { this.closePane("time out close"); }, 2000);
+                var timer = setTimeout(() => { this.ClosePane("time out close"); }, 2000);
                 var svg = this._element
                     .append("g")
                     .attr("transform", "translate(" + p[0] + "," + p[1] + ")");
@@ -68,7 +68,7 @@ module ManyLens {
                     })
                     .on("mouseout", () => {
                         this._current_pane_g.timer = setTimeout(() => {
-                            this.closePane("time out close");
+                            this.ClosePane("time out close");
                         }, 1000);
                     })
                     .on("click", (d, i) => {
@@ -96,10 +96,10 @@ module ManyLens {
                             }
                         }
                         //this._lens.push(len);
-                        len.render(this._pane_color(i));
+                        len.Render(this._pane_color(i));
                         //this._history_trees.addNode({ color: this._pane_color(i), lensType: len.Type, tree_id: 0 });
                         d3.event.stopPropagation();
-                        this.closePane("select a lens");
+                        this.ClosePane("select a lens");
                     })
                     .transition().duration(750)
                     .attr("transform", (d) => {
@@ -109,7 +109,7 @@ module ManyLens {
                 this._current_pane_g = { svg_g: svg, timer: timer, isOpened: true };
             }
 
-            private closePane(msg: string) {
+            private ClosePane(msg: string) {
                 console.log(msg);
                 var t = 400;
                 var closeG = this._current_pane_g;

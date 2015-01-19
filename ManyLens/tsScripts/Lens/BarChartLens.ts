@@ -1,8 +1,10 @@
-﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
+﻿///<reference path = "./BaseSingleLens.ts" />
 module ManyLens {
     export module Lens {
 
         export class BarChartLens extends BaseSingleLens {
+
+            public static Type: string = "BarChartLens";
 
             private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _x_axis: D3.Selection;
@@ -11,15 +13,15 @@ module ManyLens {
             private _bar_chart_height: number = this._bar_chart_width;
 
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, "BarChartLens",manyLens);
+                super(element, BarChartLens.Type,manyLens);
             }
 
-            public render(color: string): void {
-                super.render(color);
+            public Render(color: string): void {
+                super.Render(color);
 
             }
 
-            protected extractData(): any {
+            protected ExtractData(): any {
                 var data: Array<number>;
                 data = d3.range(12).map(function (d) {
                     return 10 + 70 * Math.random();
@@ -28,8 +30,8 @@ module ManyLens {
                 return data;
             }
 
-            public showLens(data: Array<number>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null);
+            public DisplayLens(data: Array<number>, lc_cx = null, lc_cy = null): any {
+                var p = super.DisplayLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
@@ -74,10 +76,6 @@ module ManyLens {
                     .attr("fill", "steelblue")
                 ;
 
-                lensG
-                    .transition().duration(p.duration)
-                    .attr("opacity", "1")
-                ;
             }
         }
     }

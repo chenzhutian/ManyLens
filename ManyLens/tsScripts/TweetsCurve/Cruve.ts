@@ -1,6 +1,7 @@
-﻿///<reference path = "../tsScripts/D3ChartObject.ts" />
+﻿///<reference path = "../D3ChartObject.ts" />
 
 module ManyLens {
+
     export module TweetsCurve{
 
         export class Curve extends D3ChartObject {
@@ -50,8 +51,8 @@ module ManyLens {
                 ;
             }
 
-            public render<T>(data: Array<T>): void {
-                super.render(data);
+            public Render<T>(data: Array<T>): void {
+                super.Render(data);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
 

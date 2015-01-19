@@ -1,21 +1,23 @@
-﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
+﻿///<reference path = "./BaseSingleLens.ts" />
 module ManyLens {
     export module Lens {
 
         export class NetworkLens extends BaseSingleLens {
 
+            public static Type: string = "NetworkLens";
+
             private _theta: number = 360;
             private _tree: D3.Layout.TreeLayout = d3.layout.tree();
 
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, "NetworkLens",manyLens);
+                super(element, NetworkLens.Type,manyLens);
             }
 
-            public render(color: string): void {
-                super.render(color);
+            public Render(color: string): void {
+                super.Render(color);
             }
 
-            protected extractData(): D3.Layout.GraphNode {
+            protected ExtractData(): D3.Layout.GraphNode {
                 var data: D3.Layout.GraphNode;
 
                 data = {
@@ -58,8 +60,8 @@ module ManyLens {
                 return data;
             }
 
-            public showLens(data: D3.Layout.GraphNode, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null);
+            public DisplayLens(data: D3.Layout.GraphNode, lc_cx = null, lc_cy = null): any {
+                var p = super.DisplayLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
@@ -103,10 +105,6 @@ module ManyLens {
                     .attr("stroke-width", 1.5)
                 ;
 
-                lensG
-                    .transition().duration(p.duration)
-                    .attr("opacity", "1")
-                ;
             }
 
         }

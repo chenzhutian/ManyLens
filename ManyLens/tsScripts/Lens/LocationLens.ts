@@ -1,27 +1,29 @@
-﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
+﻿///<reference path = "./BaseSingleLens.ts" />
 module ManyLens {
     export module Lens{
         export class LocationLens extends BaseSingleLens {
+
+            public static Type: string = "LocationLens";
 
             private _map_width: number = this._lc_radius * Math.SQRT2;
             private _map_height: number = this._map_width;
             private _map_path: string = "./img/chinamap.svg";
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, "LocationLens", manyLens);
+                super(element, LocationLens.Type, manyLens);
             }
 
-            public render(color: string): void {
-                super.render(color);
+            public Render(color: string): void {
+                super.Render(color);
             }
 
-            protected extractData(): any {
+            protected ExtractData(): any {
                 var data: Array<any>;
 
                 return data;
             }
 
-            public showLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null);
+            public DisplayLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
+                var p = super.DisplayLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
@@ -34,12 +36,6 @@ module ManyLens {
                     .attr("height", this._map_height)
                 ;
 
-
-
-                lensG
-                    .transition().duration(p.duration)
-                    .attr("opacity", "1")
-                ;
             }
         }
     }

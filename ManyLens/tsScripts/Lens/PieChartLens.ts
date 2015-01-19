@@ -1,8 +1,10 @@
-﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
+﻿///<reference path = "./BaseSingleLens.ts" />
 module ManyLens{
     export module Lens{
 
         export class PieChartLens extends BaseSingleLens {
+
+            public static Type: string = "PieChartLens";
 
             private _innerRadius: number = this._lc_radius - 20;
             private _outterRadius: number = this._lc_radius - 0;
@@ -15,16 +17,16 @@ module ManyLens{
             protected _color: D3.Scale.OrdinalScale = d3.scale.category20();
 
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, "PieChartLens",manyLens);
+                super(element, PieChartLens.Type,manyLens);
 
             }
 
-            public render(color: string): void {
-                super.render(color);
+            public Render(color: string): void {
+                super.Render(color);
 
             }
 
-            protected extractData(): Array<any> {
+            protected ExtractData(): Array<any> {
                 var data: Array<any>;
 
                 data = d3.range(6).map(function (d) {
@@ -34,8 +36,8 @@ module ManyLens{
                 return data;
             }
 
-            public showLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null);
+            public DisplayLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
+                var p = super.DisplayLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
@@ -52,11 +54,6 @@ module ManyLens{
                         return this._color(i);
                     })
                     .attr("d", this._arc)
-                ;
-
-                lensG
-                    .transition().duration(p.duration)
-                    .attr("opacity", "1")
                 ;
             }
         }

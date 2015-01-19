@@ -1,4 +1,4 @@
-﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
+﻿///<reference path = "./BaseSingleLens.ts" />
 module ManyLens {
 
     export module Lens {
@@ -8,6 +8,8 @@ module ManyLens {
             value: number;
         }
         export class WordCloudLens extends BaseSingleLens {
+
+            public static Type: string = "WordCloudLens";
 
             private _font_size: D3.Scale.SqrtScale = d3.scale.sqrt();
             private _cloud: D3.Layout.CloudLayout = d3.layout.cloud();
@@ -20,19 +22,19 @@ module ManyLens {
             //private _cloud_rotate: number = 0;
 
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, "WordCloudLens",manyLens);
+                super(element, WordCloudLens.Type,manyLens);
                
                 this._cloud_text_color = d3.scale.category20c();
 
             }
 
-            public render(color = "red"): void {
-                super.render(color);
+            public Render(color = "red"): void {
+                super.Render(color);
 
             }
 
             // data shape {text: size:}
-            protected extractData(): Array<cloudData> {
+            protected ExtractData(): Array<cloudData> {
                 var data: Array<cloudData>
                 data = [
                     { text: "Samsung", value: 90 },
@@ -93,15 +95,10 @@ module ManyLens {
                 return data;
             }
 
-            public showLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null);
+            public DisplayLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
+                var p = super.DisplayLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
-
-                lensG
-                    .transition().duration(p.duration)
-                    .attr("opacity", "1")
-                ;
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(data)
@@ -111,13 +108,13 @@ module ManyLens {
                     .fontWeight(this._cloud_font_weight)
                     .fontSize((d) => { return this._font_size(d.value); })
                     .on("end", (words, bounds) => {
-                        this.drawCloud(words, bounds);
+                        this.DrawCloud(words, bounds);
                     })
                 ;
                 this._cloud.start();
             }
 
-            private drawCloud(words: any[], bounds: any[]) {
+            private DrawCloud(words: any[], bounds: any[]) {
                 var w = this._cloud_w;
                 var h = this._cloud_h;
                 var container = this._element;

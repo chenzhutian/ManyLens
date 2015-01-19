@@ -1,4 +1,7 @@
-﻿///<reference path = "../tsScripts/D3ChartObject.ts" />
+﻿///<reference path = "../D3ChartObject.ts" />
+///<reference path = "../Lens/LensList.ts" />
+
+
 
 module ManyLens {
     export module Pane {
@@ -17,7 +20,7 @@ module ManyLens {
 
             private _manyLens: ManyLens.ManyLens;
 
-            private _lens_count: number = 6;
+            private _lens_count: number = 5;
             private _pane_color: D3.Scale.OrdinalScale = d3.scale.category20();
             private _pang_g: PaneG;
 
@@ -34,7 +37,7 @@ module ManyLens {
                         return d;
                     })
                     .on("drag", () => {
-                        this.dragFunc();
+                        this.DragFunc();
                     });
 
                 var pane_icon_r: number = 10;
@@ -52,13 +55,13 @@ module ManyLens {
 
             }
 
-            public render(): void {
+            public Render(): void {
 
 
-                this.openPane();
+                this.OpenPane();
             }
 
-            private openPane() {
+            private OpenPane() {
                 var container = this._element;
 
                 var pane_g = this._pang_g.svg_g.data([this._pang_g])
@@ -113,12 +116,8 @@ module ManyLens {
                                 len = new Lens.LocationLens(this._element, this._manyLens);
                                 break;
                             }
-                            case 5: {
-                                len = new Lens.BoundleLens(this._element, this._manyLens);
-                                break;
-                            }
                         }
-                        len.render(this._pane_color(i));
+                        len.Render(this._pane_color(i));
 
                         d3.event.stopPropagation();
                     })
@@ -126,11 +125,11 @@ module ManyLens {
 
             }
 
-            private closePane(msg: string) {
+            private ClosePane(msg: string) {
 
             }
 
-            private dragFunc() {
+            private DragFunc() {
                 var pane_rect_width = this._pang_g.rect_width;
                 var pane_rect_height = this._pang_g.rect_height;
                 this._pang_g.svg_g

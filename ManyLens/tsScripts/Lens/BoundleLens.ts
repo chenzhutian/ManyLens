@@ -1,15 +1,21 @@
-﻿///<reference path = "../tsScripts/BaseSingleLens.ts" />
+﻿///<reference path = "./BaseCompositeLens.ts" />
 module ManyLens {
     export module Lens {
-        export class BoundleLens extends BaseSingleLens {
+        export class BoundleLens extends BaseCompositeLens {
+
+            public static Type: string = "BoundleLens";
+
             private _innerRadius: number = this._lc_radius - 0;
             private _cluster: D3.Layout.ClusterLayout = d3.layout.cluster();
             private _boundle: D3.Layout.BundleLayout = d3.layout.bundle();
             private _line: D3.Svg.LineRadial = d3.svg.line.radial();
 
+            constructor(element: D3.Selection,
+                firstLens: BaseSingleLens,
+                secondLens: BaseSingleLens,
+                manyLens: ManyLens.ManyLens) {
+                super(element, BoundleLens.Type, firstLens, secondLens, manyLens);
 
-            constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, "BoundleLens",manyLens);
                 this._cluster.size([360, this._innerRadius])
                     .sort(null)
                     .value(function (d) { return d.size; })
@@ -21,14 +27,13 @@ module ManyLens {
                     .angle(function (d) { return d.x / 180 * Math.PI; })
                 ;
 
-
             }
 
-            public render(color: string): void {
-                super.render(color);
+            public Render(color: string): void {
+                super.Render(color);
             }
 
-            protected extractData(): Array<any> {
+            protected ExtractData(): Array<any> {
                 var data: Array<any> = [
 
                     { "name": "flare.util.palette.ShapePalette", "size": 2059, "imports": ["flare.util.palette.Palette", "flare.util.Shapes"] },
@@ -88,12 +93,8 @@ module ManyLens {
                 return data;
             }
 
-            public testExtractData(): Array<any> {
-                return this.extractData();
-            }
-
-            public showLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
-                var p = super.showLens(null);
+            public DisplayLens(data: Array<any>): any {
+                var p = super.DisplayLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
@@ -122,11 +123,6 @@ module ManyLens {
                     .attr("text-anchor", function (d) { return d.x < 180 ? "start" : "end"; })
                     .attr("transform", function (d) { return d.x < 180 ? null : "rotate(180)"; })
                     .text(function (d) { return d.key; })
-                ;
-
-                lensG
-                    .transition().duration(p.duration)
-                    .attr("opacity", "1")
                 ;
 
                 function packageHierarchy(classes) {

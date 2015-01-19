@@ -34,22 +34,23 @@
     <TypeScriptCompile Include="Scripts\typings\d3\d3.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\d3\plugins\d3.superformula.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\signalr\signalr.d.ts" />
-    <TypeScriptCompile Include="tsScripts\BarChartLens.ts" />
-    <TypeScriptCompile Include="tsScripts\BaseCompositeLens.ts" />
-    <TypeScriptCompile Include="tsScripts\BaseD3Lens.ts" />
-    <TypeScriptCompile Include="tsScripts\BoundleLens.ts" />
-    <TypeScriptCompile Include="tsScripts\ClassicLensPane.ts" />
+    <TypeScriptCompile Include="tsScripts\LensAssemblyFactory.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\BarChartLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\BaseCompositeLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\BaseD3Lens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\BoundleLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\LensList.ts" />
+    <TypeScriptCompile Include="tsScripts\Pane\ClassicLensPane.ts" />
     <TypeScriptCompile Include="tsScripts\D3ChartObject.ts" />
-    <TypeScriptCompile Include="tsScripts\Cruve.ts" />
-    <TypeScriptCompile Include="tsScripts\HistoryTree.ts" />
-    <TypeScriptCompile Include="tsScripts\BlossomLensPane.ts" />
-    <TypeScriptCompile Include="tsScripts\LocationLens.ts" />
+    <TypeScriptCompile Include="tsScripts\TweetsCurve\Cruve.ts" />
+    <TypeScriptCompile Include="tsScripts\LensHistory\HistoryTree.ts" />
+    <TypeScriptCompile Include="tsScripts\Pane\BlossomLensPane.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\LocationLens.ts" />
     <TypeScriptCompile Include="tsScripts\ManyLens.ts" />
-    <TypeScriptCompile Include="tsScripts\NetworkLens.ts" />
-    <TypeScriptCompile Include="tsScripts\PieChartLens.ts" />
-    <TypeScriptCompile Include="tsScripts\BaseSingleLens.ts" />
-    <TypeScriptCompile Include="tsScripts\SOMMap.ts" />
-    <TypeScriptCompile Include="tsScripts\WordCloudLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\NetworkLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\PieChartLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\BaseSingleLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\WordCloudLens.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
@@ -67,6 +68,7 @@
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

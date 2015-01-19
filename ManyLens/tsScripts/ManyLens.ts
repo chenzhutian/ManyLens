@@ -1,4 +1,8 @@
-﻿module ManyLens {
+﻿///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
+///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
+///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
+
+module ManyLens {
     export class ManyLens {
 
         private _curveView_id: string = "cruveView";
@@ -49,7 +53,7 @@
         constructor() {
             this._curveView = d3.select("#"+this._curveView_id);
             this._curve = new TweetsCurve.Curve(this._curveView);
-            this._curve.render([10, 10]);
+            this._curve.Render([10, 10]);
 
             this._mapView = d3.select("#"+this._mapView_id);
             this._mapSvg = d3.select("#"+this._mapSvg_id);
@@ -62,7 +66,7 @@
             this._historyTrees.addTree();
 
 
-            this._lensPane.render();
+            this._lensPane.Render();
 
         }
     }
