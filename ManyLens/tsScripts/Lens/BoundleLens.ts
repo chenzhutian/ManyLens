@@ -31,8 +31,7 @@ module ManyLens {
 
             public Render(color: string): void {
                 super.Render(color);
-                this._base_component.HideLens();
-                this._sub_component.HideLens();
+
             }
 
             protected ExtractData(): Array<any> {

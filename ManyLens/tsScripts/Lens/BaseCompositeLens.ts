@@ -61,6 +61,9 @@ module ManyLens {
             public Render(color:string): void {
                 super.Render(color);
 
+                this._base_component.HostLens = this;
+                this._sub_component.HostLens = this;
+
             }
 
             protected ExtractData(): Array<any> {
@@ -72,6 +75,8 @@ module ManyLens {
             } {
                 var duration = super.DisplayLens();
 
+                this._base_component.HideLens();
+                this._sub_component.HideLens();
 
                 return {
                     lcx:this._lc_cx,
@@ -86,6 +91,7 @@ module ManyLens {
                 super.LensCircleDragFunc();
 
                 this.ReDrawLinkLine();
+                console.log("drag composite lens");
             }
 
             protected LensCircleZoomFunc(): void {
@@ -96,22 +102,27 @@ module ManyLens {
 
             private ReDrawLinkLine(): void {
 
-                for (var i = 0, len = this._select_circle.length; i < len - 1; ++i) {
+                for (var i = 0, len = this._select_circle.length; i < len; ++i) {
                     var sc = this._select_circle[i];
                     var theta = Math.atan((this._lc_cy - sc._sc_cy) / (this._lc_cx - sc._sc_cx));
                     var cosTheta = this._lc_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
                     var sinTheta = this._lc_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
 
                     sc._line
-                        .attr("x1", sc._sc_cx + sc._sc_cx * sc._sc_scale * cosTheta)
-                        .attr("y1", sc._sc_cy + sc._sc_cy * sc._sc_scale * sinTheta)
+                        .attr("x1", sc._sc_cx + sc._sc_radius * sc._sc_scale * cosTheta)
+                        .attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta)
                         .attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta)
                         .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
+                    console.log("redraw composite link:" + i);
                 }
 
             }
 
+            public RemoveComponentLens(lens: BaseSingleLens) {
+                this._lens.indexOf(lens);
+                //TODO #1
 
+            }
 
         }
     } 

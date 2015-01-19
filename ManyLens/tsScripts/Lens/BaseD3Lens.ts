@@ -22,6 +22,9 @@ module ManyLens {
             protected _lc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _lc_drag: D3.Behavior.Drag = d3.behavior.drag();
 
+            protected _is_component_lens: boolean = false;
+            protected _host_lens: BaseCompositeLens;
+
             public get ID(): string {
                 return this._id;
             }
@@ -45,6 +48,21 @@ module ManyLens {
             }
             public get IsCompositeLens(): boolean {
                 return this._is_composite_lens;
+            }
+            public get IsComponentLens(): boolean {
+                return this._is_component_lens;
+            }
+            public get HostLens(): BaseCompositeLens {
+                return this._host_lens;
+            }
+            public set HostLens(hostLens: BaseCompositeLens) {
+                if (hostLens) {
+                    this._host_lens = hostLens;
+                    this._is_component_lens = true;
+                } else {
+                    this._host_lens = null;
+                    this._is_component_lens = false;
+                }
             }
 
             constructor(element: D3.Selection, type: string,manyLens:ManyLens) {
@@ -227,6 +245,16 @@ module ManyLens {
 
             public ShowLens() {
                 this._lens_circle_G.style("visibility", "visible");
+            }
+
+            public DetachHostLens(): BaseCompositeLens {
+                if (this.IsComponentLens) {
+                    var hostLens: BaseCompositeLens = this._host_lens;
+                    this.HostLens = null;
+                    return hostLens;
+                } else {
+                    return null;
+                }
             }
         }
 

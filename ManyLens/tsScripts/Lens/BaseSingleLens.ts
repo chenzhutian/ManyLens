@@ -38,6 +38,7 @@ module ManyLens {
                 return this._sc_radius;
             }
 
+
             constructor(element: D3.Selection, type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
                 this._is_composite_lens = false;
@@ -165,19 +166,25 @@ module ManyLens {
                 if (!this._has_put_down) return;
                 if (d3.event.sourceEvent.button != 0) return;
 
-                console.log("drag");
                 this._sc_lc_svg.select("g.lens-circle-g").remove();
                 this._sc_lc_svg.select("line")
-                    .attr("x1", 0)
-                    .attr("x2", 0)
-                    .attr("y1", 0)
-                    .attr("y2", 0);
+                    .attr("x1", d3.event.x)
+                    .attr("x2", d3.event.x)
+                    .attr("y1", d3.event.y)
+                    .attr("y2", d3.event.y);
 
                 this._select_circle
                     .attr("cx", (d) => { return d.x = Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x)); })
                     .attr("cy", (d) => { return d.y = Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y)); })
                 ;
                 this._has_showed_lens = false;
+
+                var hostLens: BaseCompositeLens = this.DetachHostLens()
+                if (hostLens) {
+                    console.log(hostLens.RemoveComponentLens(this));
+                    //TODO #1
+                }
+
             }
 
             protected SelectCircleDragendFunc(selectCircle): void {
