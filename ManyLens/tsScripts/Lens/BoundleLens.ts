@@ -31,9 +31,13 @@ module ManyLens {
 
             public Render(color: string): void {
                 super.Render(color);
+                this._base_component.HideLens();
+                this._sub_component.HideLens();
             }
 
             protected ExtractData(): Array<any> {
+                
+
                 var data: Array<any> = [
 
                     { "name": "flare.util.palette.ShapePalette", "size": 2059, "imports": ["flare.util.palette.Palette", "flare.util.Shapes"] },
@@ -93,8 +97,10 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(data: Array<any>): any {
-                var p = super.DisplayLens(null);
+            public DisplayLens(any = null): any {
+                super.DisplayLens();
+                var data = this.ExtractData();
+
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 

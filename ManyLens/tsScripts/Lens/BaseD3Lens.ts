@@ -174,24 +174,27 @@ module ManyLens {
                 }
 
                 for (var i = 0; i < eles.length; i++) {
-                    eles[i].style("visibility", "visible");
+                    eles[i].style("visibility", "");
                 }
 
                 if (res.length == 2) {
                     var lensA_id: string = d3.select(res[0].parentNode).attr("id");
                     var lensB_id: string = d3.select(res[1].parentNode).attr("id");
-                    var lensC = LensAssemblyFactory.Combine(
+                    var lensC:BaseCompositeLens = LensAssemblyFactory.CombineLens(
                         this._element,
                         this._manyLens.GetLens(lensA_id),
                         this._manyLens.GetLens(lensB_id),
                         this._manyLens
                         );
 
-                    if (lensC.IsSuccess) {
-                        console.log("Base Lens add lens");
+                    if (lensC) {
+                        lensC.Render("black");
+                        lensC.DisplayLens();
+
+
                     }
                 }
-
+                console.log("Dragend");
                 return res;
             }
 

@@ -4,16 +4,19 @@ module ManyLens {
 
     export class LensAssemblyFactory {
 
-        public static Combine(element: D3.Selection,
+        public static CombineLens(element: D3.Selection,
             firstLens: Lens.BaseD3Lens,
             secondLens: Lens.BaseD3Lens,
             manyLens:ManyLens): Lens.BaseCompositeLens {
             var t = [firstLens.Type, secondLens.Type].sort().join("_");
             switch (t) {
                 case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
-                    console.log("here");
+                    return new Lens.BoundleLens(element,
+                        <Lens.BaseSingleLens>firstLens,
+                        <Lens.BaseSingleLens>secondLens,
+                        manyLens);
                 }
-                    break;
+                default: return null;
             }
 
             return;

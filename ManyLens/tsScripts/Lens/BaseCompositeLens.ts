@@ -21,11 +21,6 @@ module ManyLens {
             protected _sub_component: BaseD3Lens;
 
             protected _lens: Array<BaseD3Lens>;
-            protected _success: boolean = false;
-
-            public get IsSuccess(): boolean {
-                return this._success;
-            }
 
             constructor(element: D3.Selection,
                 type:string,
@@ -37,6 +32,9 @@ module ManyLens {
                 this._is_composite_lens = true;
                 this._lc_cx = firstLens.LensCX;
                 this._lc_cy = firstLens.LensCY;
+
+                this._base_component = firstLens;
+                this._sub_component = secondLens;
 
                 this._select_circle = new Array<selectCircle>();
                 this._lens = new Array<BaseD3Lens>();
@@ -65,23 +63,24 @@ module ManyLens {
 
             }
 
+            protected ExtractData(): Array<any> {
+                throw new Error('This method is abstract');
+            }
+
             public DisplayLens(any = null): {
                 lcx: number; lcy: number; duration: number
             } {
-                super.DisplayLens();
+                var duration = super.DisplayLens();
+
 
                 return {
                     lcx:this._lc_cx,
                     lcy: this._lc_cy,
-                    duration:300
+                    duration: duration
                 };
             }
 
-            protected ExtractData(): Array<any> {
-                var data: Array<any> = new Array<any>();
 
-                return data;
-            }
 
             protected LensCircleDragFunc(): void {
                 super.LensCircleDragFunc();

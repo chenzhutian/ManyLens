@@ -284,16 +284,18 @@ var ManyLens;
                     ele = d3.select(document.elementFromPoint(x, y));
                 }
                 for (var i = 0; i < eles.length; i++) {
-                    eles[i].style("visibility", "visible");
+                    eles[i].style("visibility", "");
                 }
                 if (res.length == 2) {
                     var lensA_id = d3.select(res[0].parentNode).attr("id");
                     var lensB_id = d3.select(res[1].parentNode).attr("id");
-                    var lensC = ManyLens.LensAssemblyFactory.Combine(this._element, this._manyLens.GetLens(lensA_id), this._manyLens.GetLens(lensB_id), this._manyLens);
-                    if (lensC.IsSuccess) {
-                        console.log("Base Lens add lens");
+                    var lensC = ManyLens.LensAssemblyFactory.CombineLens(this._element, this._manyLens.GetLens(lensA_id), this._manyLens.GetLens(lensB_id), this._manyLens);
+                    if (lensC) {
+                        lensC.Render("black");
+                        lensC.DisplayLens();
                     }
                 }
+                console.log("Dragend");
                 return res;
             };
             BaseD3Lens.prototype.LensCircleZoomFunc = function () {
@@ -342,6 +344,7 @@ var ManyLens;
                 this._has_showed_lens = false;
                 this._sc_zoom = d3.behavior.zoom();
                 this._sc_drag = d3.behavior.drag();
+                this._sc_drag_event_flag = false;
                 this._sc_lc_default_dist = 100;
                 this._is_composite_lens = false;
                 this._sc_radius = 10;
@@ -392,10 +395,14 @@ var ManyLens;
                 this._sc_drag.origin(function (d) {
                     return d;
                 }).on("dragstart", function () {
-                    //if (!this._has_put_down) return;
-                    //if (d3.event.sourceEvent.button != 0) return;
+                    _this._sc_drag_event_flag = false;
                 }).on("drag", function () {
-                    _this.SelectCircleDragFunc();
+                    if (_this._sc_drag_event_flag) {
+                        _this.SelectCircleDragFunc();
+                    }
+                    else {
+                        _this._sc_drag_event_flag = true;
+                    }
                 }).on("dragend", function (d) {
                     _this.SelectCircleDragendFunc(d);
                 });
@@ -418,6 +425,9 @@ var ManyLens;
                     var p = d3.mouse(container[0][0]);
                     selectCircle.attr("cx", p[0]).attr("cy", p[1]);
                 }
+            };
+            BaseSingleLens.prototype.ExtractData = function () {
+                throw new Error('This method is abstract');
             };
             BaseSingleLens.prototype.DisplayLens = function (any) {
                 var _this = this;
@@ -445,6 +455,7 @@ var ManyLens;
                     return;
                 if (d3.event.sourceEvent.button != 0)
                     return;
+                console.log("drag");
                 this._sc_lc_svg.select("g.lens-circle-g").remove();
                 this._sc_lc_svg.select("line").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", 0);
                 this._select_circle.attr("cx", function (d) {
@@ -467,8 +478,8 @@ var ManyLens;
                 this._lc_cx = this._sc_cx + (this._sc_radius * this._sc_scale + this._sc_lc_default_dist + this._lc_radius) * cosTheta;
                 this._lc_cy = this._sc_cy + (this._sc_radius * this._sc_scale + this._sc_lc_default_dist + this._lc_radius) * sinTheta;
                 //传递数据给Lens显示
-                var data = this.ExtractData();
                 if (!this._has_showed_lens) {
+                    var data = this.ExtractData();
                     this.DisplayLens(data);
                     this._has_showed_lens = true;
                 }
@@ -538,10 +549,8 @@ var ManyLens;
                 });
                 return data;
             };
-            BarChartLens.prototype.DisplayLens = function (data, lc_cx, lc_cy) {
+            BarChartLens.prototype.DisplayLens = function (data) {
                 var _this = this;
-                if (lc_cx === void 0) { lc_cx = null; }
-                if (lc_cy === void 0) { lc_cy = null; }
                 var p = _super.prototype.DisplayLens.call(this, null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
@@ -574,10 +583,11 @@ var ManyLens;
             __extends(BaseCompositeLens, _super);
             function BaseCompositeLens(element, type, firstLens, secondLens, manyLens) {
                 _super.call(this, element, type, manyLens);
-                this._success = false;
                 this._is_composite_lens = true;
                 this._lc_cx = firstLens.LensCX;
                 this._lc_cy = firstLens.LensCY;
+                this._base_component = firstLens;
+                this._sub_component = secondLens;
                 this._select_circle = new Array();
                 this._lens = new Array();
                 this._lens.push(firstLens);
@@ -597,28 +607,20 @@ var ManyLens;
                     _sc_scale: secondLens.SelectCircleScale
                 });
             }
-            Object.defineProperty(BaseCompositeLens.prototype, "IsSuccess", {
-                get: function () {
-                    return this._success;
-                },
-                enumerable: true,
-                configurable: true
-            });
             BaseCompositeLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
             };
+            BaseCompositeLens.prototype.ExtractData = function () {
+                throw new Error('This method is abstract');
+            };
             BaseCompositeLens.prototype.DisplayLens = function (any) {
                 if (any === void 0) { any = null; }
-                _super.prototype.DisplayLens.call(this);
+                var duration = _super.prototype.DisplayLens.call(this);
                 return {
                     lcx: this._lc_cx,
                     lcy: this._lc_cy,
-                    duration: 300
+                    duration: duration
                 };
-            };
-            BaseCompositeLens.prototype.ExtractData = function () {
-                var data = new Array();
-                return data;
             };
             BaseCompositeLens.prototype.LensCircleDragFunc = function () {
                 _super.prototype.LensCircleDragFunc.call(this);
@@ -667,6 +669,8 @@ var ManyLens;
             }
             BoundleLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
+                this._base_component.HideLens();
+                this._sub_component.HideLens();
             };
             BoundleLens.prototype.ExtractData = function () {
                 var data = [
@@ -724,8 +728,10 @@ var ManyLens;
                 ];
                 return data;
             };
-            BoundleLens.prototype.DisplayLens = function (data) {
-                var p = _super.prototype.DisplayLens.call(this, null);
+            BoundleLens.prototype.DisplayLens = function (any) {
+                if (any === void 0) { any = null; }
+                _super.prototype.DisplayLens.call(this);
+                var data = this.ExtractData();
                 var container = this._element;
                 var lensG = this._lens_circle_G;
                 var nodes = this._cluster.nodes(packageHierarchy(data)), links = packageImports(nodes);
@@ -1078,6 +1084,10 @@ var ManyLens;
 ///<reference path = "../Lens/LocationLens.ts" />
 ///<reference path = "../Lens/NetworkLens.ts"  />
 ///<reference path = "../Lens/PieChartLens.ts" />
+/*------------ CompositeLens Lens -------------*/
+///<reference path = "../Lens/WordCloudLens.ts"/>
+(function () {
+})();
 ///<reference path = "../D3ChartObject.ts" />
 ///<reference path = "../Lens/LensList.ts" />
 var ManyLens;
@@ -1230,6 +1240,8 @@ var ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;
 })(ManyLens || (ManyLens = {}));
+///<reference path = "../Scripts/typings/d3/d3.d.ts" />
+///<reference path = "../tsScripts/ManyLens.ts" />
 "use strict";
 var manyLens;
 document.addEventListener('DOMContentLoaded', function () {
@@ -1241,14 +1253,15 @@ var ManyLens;
     var LensAssemblyFactory = (function () {
         function LensAssemblyFactory() {
         }
-        LensAssemblyFactory.Combine = function (element, firstLens, secondLens, manyLens) {
+        LensAssemblyFactory.CombineLens = function (element, firstLens, secondLens, manyLens) {
             var t = [firstLens.Type, secondLens.Type].sort().join("_");
             switch (t) {
                 case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
-                        console.log("here");
+                        return new ManyLens.Lens.BoundleLens(element, firstLens, secondLens, manyLens);
                     }
-                    break;
+                default:
+                    return null;
             }
             return;
         };
@@ -1256,7 +1269,7 @@ var ManyLens;
     })();
     ManyLens.LensAssemblyFactory = LensAssemblyFactory;
 })(ManyLens || (ManyLens = {}));
-///<reference path = "../D3ChartObject.ts" />
+///<reference path = "../Lens/LensList.ts" />
 var ManyLens;
 (function (ManyLens) {
     var Pane;

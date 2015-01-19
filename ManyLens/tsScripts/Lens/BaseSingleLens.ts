@@ -19,6 +19,7 @@ module ManyLens {
             protected _sc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _sc_drag: D3.Behavior.Drag = d3.behavior.drag();
 
+            protected _sc_drag_event_flag: boolean = false;
             protected _sc_lc_default_dist = 100;
 
             public get LinkLine(): D3.Selection {
@@ -58,11 +59,14 @@ module ManyLens {
                 this._sc_drag
                     .origin(function (d) { return d; })
                     .on("dragstart", () => {
-                        //if (!this._has_put_down) return;
-                        //if (d3.event.sourceEvent.button != 0) return;
+                        this._sc_drag_event_flag = false;
                     })
                     .on("drag", () => {
-                        this.SelectCircleDragFunc();
+                        if (this._sc_drag_event_flag) {
+                            this.SelectCircleDragFunc();
+                        } else {
+                            this._sc_drag_event_flag = true;
+                        }
                     })
                     .on("dragend", (d) => {
                         this.SelectCircleDragendFunc(d);
@@ -114,9 +118,10 @@ module ManyLens {
                     ;
                 }
 
+            }
 
-
-
+            protected ExtractData(): any {
+                throw new Error('This method is abstract');
             }
 
             public DisplayLens(any = null): {
@@ -160,8 +165,13 @@ module ManyLens {
                 if (!this._has_put_down) return;
                 if (d3.event.sourceEvent.button != 0) return;
 
+                console.log("drag");
                 this._sc_lc_svg.select("g.lens-circle-g").remove();
-                this._sc_lc_svg.select("line").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", 0);
+                this._sc_lc_svg.select("line")
+                    .attr("x1", 0)
+                    .attr("x2", 0)
+                    .attr("y1", 0)
+                    .attr("y2", 0);
 
                 this._select_circle
                     .attr("cx", (d) => { return d.x = Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x)); })
@@ -192,8 +202,8 @@ module ManyLens {
                             + this._lc_radius) * sinTheta;
 
                 //传递数据给Lens显示
-                var data = this.ExtractData();
                 if (!this._has_showed_lens) {
+                    var data = this.ExtractData();
                     this.DisplayLens(data);
 
                     this._has_showed_lens = true;

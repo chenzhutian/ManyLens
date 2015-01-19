@@ -30,7 +30,8 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(data: Array<number>, lc_cx = null, lc_cy = null): any {
+            public DisplayLens(data: Array<number>): any {
+
                 var p = super.DisplayLens(null);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
