@@ -23,8 +23,7 @@ module ManyLens {
                         firstLens = secondLens;
                         secondLens = tempLens;
                     }
-                    (<Lens.BoundleLens>firstLens).AddComponentLens(secondLens);
-                    return (<Lens.BoundleLens>firstLens);
+                    return (<Lens.BoundleLens>firstLens).AddComponentLens(secondLens);
                 }
                 case Lens.BoundleLens.Type + "_" + Lens.NetworkLens.Type: {
                     if (firstLens.Type != Lens.BoundleLens.Type) {
@@ -32,12 +31,10 @@ module ManyLens {
                         firstLens = secondLens;
                         secondLens = tempLens;
                     }
-                    (<Lens.BoundleLens>firstLens).AddComponentLens(secondLens);
-                    return (<Lens.BoundleLens>firstLens);
+                    return (<Lens.BoundleLens>firstLens).AddComponentLens(secondLens);
                 }
                 case Lens.BoundleLens.Type + "_" + Lens.BoundleLens.Type: {
-                    (<Lens.BoundleLens>firstLens).AddComponentLens(secondLens);
-                    return (<Lens.BoundleLens>firstLens);
+                    return (<Lens.BoundleLens>firstLens).AddComponentLens(secondLens);
                 }
                 default: return null;
             }
@@ -50,10 +47,10 @@ module ManyLens {
             var t = [hostLens.Type, componentLens.Type].sort().join("_");
             switch (t) {
                 case Lens.BoundleLens.Type + "_" + Lens.WordCloudLens.Type: {
-                    return new Lens.NetworkLens(element, manyLens);
+                    return hostLens.RemoveComponentLens(componentLens);
                 }
                 case Lens.BoundleLens.Type + "_" + Lens.NetworkLens.Type: {
-                    return new Lens.WordCloudLens(element, manyLens);
+                    return hostLens.RemoveComponentLens(componentLens);
                 }
                 default: return null;
             }

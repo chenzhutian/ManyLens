@@ -25,29 +25,8 @@ module ManyLens {
         private _lens: Map<string, Lens.BaseD3Lens> = new Map<string, Lens.BaseD3Lens>();
         private _lens_count: number = 0;
 
-        public AddLens(lens: Lens.BaseD3Lens): void {
-            this._lens.set("lens_"+this._lens_count, lens);
-            this._lens_count++;
-            console.log("add Node");
-            this._historyTrees.addNode({
-                color: lens.LensTypeColor,
-                lensType: lens.Type,
-                tree_id: 0
-            });
-
-        }
         public get LensCount(): number {
             return this._lens_count;
-        }
-        public GetLens(id: string): Lens.BaseD3Lens {
-            return this._lens.get(id);
-        }
-
-        //TODO need to implementation
-        public RemoveLens(lens: Lens.BaseD3Lens): Lens.BaseD3Lens {
-            var lens: Lens.BaseD3Lens;
-
-            return lens;
         }
 
         constructor() {
@@ -68,6 +47,43 @@ module ManyLens {
 
             this._lensPane.Render();
 
+        }
+
+        public GetLens(id: string): Lens.BaseD3Lens {
+            return this._lens.get(id);
+        }
+
+        public AddLens(lens: Lens.BaseD3Lens): void {
+            this._lens.set("lens_" + this._lens_count, lens);
+            this._lens_count++;
+            console.log("add Node");
+            this._historyTrees.addNode({
+                color: lens.LensTypeColor,
+                lensType: lens.Type,
+                tree_id: 0
+            });
+
+        }
+
+        //TODO need to implementation
+        public RemoveLens(lens: Lens.BaseD3Lens): Lens.BaseD3Lens {
+            var lens: Lens.BaseD3Lens;
+
+            return lens;
+        }
+
+        public DetachCompositeLens(element: D3.Selection,
+            hostLens:Lens.BaseCompositeLens,
+            componentLens: Lens.BaseSingleLens): void {
+            var lensC: Lens.BaseD3Lens = LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
+            if (lensC.IsCompositeLens) {
+                lensC.Render("black");
+                lensC.DisplayLens();
+            } else {
+                this._lens.delete(hostLens.ID);
+                lensC.ShowLens();
+            }
+            
         }
     }
 } 

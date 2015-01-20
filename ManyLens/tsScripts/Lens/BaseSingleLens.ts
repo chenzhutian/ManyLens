@@ -173,15 +173,18 @@ module ManyLens {
                     .attr("y2", d3.event.y);
 
                 this._select_circle
-                    .attr("cx", (d) => { return d.x = Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x)); })
-                    .attr("cy", (d) => { return d.y = Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y)); })
+                    .attr("cx", (d) => {
+                        return d.x = Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
+                    })
+                    .attr("cy", (d) => {
+                        return d.y = Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
+                    })
                 ;
                 this._has_showed_lens = false;
 
                 var hostLens: BaseCompositeLens = this.DetachHostLens()
                 if (hostLens) {
-                    console.log(hostLens.RemoveComponentLens(this));
-                    //TODO #1
+                    this._manyLens.DetachCompositeLens(this._element, hostLens, this);
                 }
 
             }

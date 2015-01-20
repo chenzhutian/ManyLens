@@ -37,8 +37,26 @@ module ManyLens {
             public get LensCX(): number {
                 return this._lc_cx;
             }
+            public set LensCX(cx: number) {
+                this._lc_cx = cx;
+            }
             public get LensCY(): number {
                 return this._lc_cy;
+            }
+            public set LensCY(cy: number) {
+                this._lc_cy = cy;
+            }
+            public get LensScale(): number {
+                return this._lc_scale;
+            }
+            public set LensScale(scale: number) {
+                this._lc_scale = scale;
+            }
+            public get LensRadius(): number {
+                return this._lc_radius;
+            }
+            public set LensRadius(radius: number) {
+                this._lc_radius = radius;
             }
             public get LensGroup(): D3.Selection {
                 return this._lens_circle_G;
@@ -239,16 +257,26 @@ module ManyLens {
             }
 
             public HideLens() {
-                this._lens_circle_G.style("visibility", "hidden");
+                this._lens_circle_G
+                    .attr("opacity", "1")
+                    .transition()
+                    .duration(500)  //this is hard code, should be optimize
+                    .attr("opacity", "1e-6")
+                    .style("visibility", "hidden");
             }
 
             public ShowLens() {
-                this._lens_circle_G.style("visibility", "visible");
+                this._lens_circle_G
+                    .attr("opacity", "1e-6")
+                    .attr("transform", () => {
+                        return "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")";
+                    })
+                    .transition()
+                    .duration(500)  //this is hard code, should be optimize
+                    .attr("opacity","1")
+                    .style("visibility", "visible");
             }
 
-            public RemoveLens() {
-                this._lens_circle_G.remove();
-            }
         }
 
     }

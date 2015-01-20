@@ -28,6 +28,9 @@ module ManyLens {
             public get SelectCircle(): Array<selectCircle> {
                 return this._select_circle;
             }
+            public get ComponentNum(): number {
+                return this._lens.length;
+            }
 
             constructor(element: D3.Selection,
                 type:string,
@@ -70,13 +73,15 @@ module ManyLens {
                     super.Render(color);
                 }
 
-                this._base_component.RemoveLens();
-                this._sub_component.RemoveLens();
-
+                this._base_component.HideLens();
                 this._base_component.HostLens = this;
-                this._sub_component.HostLens = this;
+                
 
-
+                if (this._sub_component) {
+                    this._sub_component.HideLens();
+                    this._sub_component.HostLens = this;
+                    
+                }
             }
 
             protected ExtractData(): Array<any> {
@@ -111,7 +116,7 @@ module ManyLens {
                 this.ReDrawLinkLine();
             }
 
-            public AddComponentLens(lens: BaseD3Lens) {
+            public AddComponentLens(lens: BaseD3Lens):BaseCompositeLens {
 
                 this._sub_component = lens;
                 if (lens.IsCompositeLens) {
@@ -119,26 +124,32 @@ module ManyLens {
                 } else {
                     this.AddSingleLens(<Lens.BaseSingleLens>lens);
                 }
-
+                return this;
             }
 
-            public RemoveComponentLens(lens: BaseSingleLens) {
-                if (-1 != this._lens.indexOf(lens)) {
-                    //var lensC = LensAssemblyFactory.DetachLens(
-                    //        this._element,
-                    //        this,
-                    //        lens,
-                    //        this._manyLens
-                    //    );
-                    //if (lensC) {
-
-                    //    lensC.DisplayLens();
-                    //}
-
-                    console.log("Detach!");
-                }
+            public RemoveComponentLens(lens: BaseSingleLens): BaseD3Lens {
                 //TODO #1
+                var index: number = this._lens.indexOf(lens);
+                if (-1 != index) {
+                    this._lens.splice(index, 1);
+                    this._select_circle.splice(index, 1);
+                    if (this.ComponentNum == 1) {
+                        this.RemoveWholeSVG();
 
+                        var lastLens = this._lens[0];
+                        lastLens.LensCX = this.LensCX;
+                        lastLens.LensCY = this.LensCY;
+                        lastLens.LensRadius = this.LensRadius;
+                        lastLens.LensScale = this.LensScale;
+
+                        return this._lens[0];
+
+                    } else if (this.ComponentNum < 1) {
+                        throw new Error('The number of component of this lens is less than 2!!');
+                    }
+                }
+
+                return this;
             }
 
             private ReDrawLinkLine(): void {
@@ -180,6 +191,13 @@ module ManyLens {
                 });
             }
 
+            private RemoveWholeSVG() {
+                this._sc_lc_svg
+                    .transition()
+                    .duration(500)  //this is hard code, should be optimize
+                    .attr("opacity","1e-6")
+                    .remove();
+            }
         }
     } 
 }
