@@ -11,7 +11,7 @@ module ManyLens {
             protected _manyLens: ManyLens.ManyLens;
             protected _is_composite_lens: boolean = null;
 
-            protected _sc_lc_svg: D3.Selection;
+            protected _sc_lc_svg: D3.Selection = null;
 
             protected _lens_circle_G: D3.Selection;
             protected _lens_circle: D3.Selection;
@@ -84,6 +84,7 @@ module ManyLens {
             }
 
             public DisplayLens(any = null): any {
+                console.log("DisplayLens");
                 var duration: number = 300;
 
                 this._lc_zoom
@@ -191,7 +192,7 @@ module ManyLens {
                     ele = d3.select(document.elementFromPoint(x, y));
                 }
 
-                for (var i = 0; i < eles.length; i++) {
+                for (var i = 0, len = eles.length; i < len; ++i) {
                     eles[i].style("visibility", "");
                 }
 
@@ -209,10 +210,8 @@ module ManyLens {
                         lensC.Render("black");
                         lensC.DisplayLens();
 
-
                     }
                 }
-                console.log("Dragend");
                 return res;
             }
 
@@ -247,14 +246,8 @@ module ManyLens {
                 this._lens_circle_G.style("visibility", "visible");
             }
 
-            public DetachHostLens(): BaseCompositeLens {
-                if (this.IsComponentLens) {
-                    var hostLens: BaseCompositeLens = this._host_lens;
-                    this.HostLens = null;
-                    return hostLens;
-                } else {
-                    return null;
-                }
+            public RemoveLens() {
+                this._lens_circle_G.remove();
             }
         }
 

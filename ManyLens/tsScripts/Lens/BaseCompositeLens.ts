@@ -16,11 +16,18 @@ module ManyLens {
             public static Type: string = "BaseCompositeLens";
 
             protected _select_circle: Array<selectCircle>;
+            protected _lens: Array<BaseSingleLens>;
 
             protected _base_component: BaseD3Lens;
             protected _sub_component: BaseD3Lens;
 
-            protected _lens: Array<BaseD3Lens>;
+            public get Lens(): Array<BaseSingleLens> {
+                //这里我感觉有问题，是直接返回本体还是返回复本好
+                return this._lens;
+            }
+            public get SelectCircle(): Array<selectCircle> {
+                return this._select_circle;
+            }
 
             constructor(element: D3.Selection,
                 type:string,
@@ -37,7 +44,7 @@ module ManyLens {
                 this._sub_component = secondLens;
 
                 this._select_circle = new Array<selectCircle>();
-                this._lens = new Array<BaseD3Lens>();
+                this._lens = new Array<BaseSingleLens>();
 
                 this._lens.push(firstLens);
                 this._select_circle.push({
@@ -58,11 +65,17 @@ module ManyLens {
 
             }
 
-            public Render(color:string): void {
-                super.Render(color);
+            public Render(color: string): void {
+                if (!this._sc_lc_svg) {
+                    super.Render(color);
+                }
+
+                this._base_component.RemoveLens();
+                this._sub_component.RemoveLens();
 
                 this._base_component.HostLens = this;
                 this._sub_component.HostLens = this;
+
 
             }
 
@@ -73,10 +86,11 @@ module ManyLens {
             public DisplayLens(any = null): {
                 lcx: number; lcy: number; duration: number
             } {
+                
                 var duration = super.DisplayLens();
 
-                this._base_component.HideLens();
-                this._sub_component.HideLens();
+                this._base_component = this;
+                this._sub_component = null;
 
                 return {
                     lcx:this._lc_cx,
@@ -85,19 +99,46 @@ module ManyLens {
                 };
             }
 
-
-
             protected LensCircleDragFunc(): void {
                 super.LensCircleDragFunc();
 
                 this.ReDrawLinkLine();
-                console.log("drag composite lens");
             }
 
             protected LensCircleZoomFunc(): void {
                 super.LensCircleZoomFunc();
 
                 this.ReDrawLinkLine();
+            }
+
+            public AddComponentLens(lens: BaseD3Lens) {
+
+                this._sub_component = lens;
+                if (lens.IsCompositeLens) {
+                    this.AddCompositeLens(<Lens.BaseCompositeLens>lens);
+                } else {
+                    this.AddSingleLens(<Lens.BaseSingleLens>lens);
+                }
+
+            }
+
+            public RemoveComponentLens(lens: BaseSingleLens) {
+                if (-1 != this._lens.indexOf(lens)) {
+                    //var lensC = LensAssemblyFactory.DetachLens(
+                    //        this._element,
+                    //        this,
+                    //        lens,
+                    //        this._manyLens
+                    //    );
+                    //if (lensC) {
+
+                    //    lensC.DisplayLens();
+                    //}
+
+                    console.log("Detach!");
+                }
+                //TODO #1
+
             }
 
             private ReDrawLinkLine(): void {
@@ -118,10 +159,25 @@ module ManyLens {
 
             }
 
-            public RemoveComponentLens(lens: BaseSingleLens) {
-                this._lens.indexOf(lens);
-                //TODO #1
+            private AddCompositeLens(componentLens: BaseCompositeLens): void {
+                if (componentLens.SelectCircle.length != componentLens.Lens.length)
+                    throw new Error('The length of sc is different from length of lens');
 
+                for (var i = 0, len = componentLens.Lens.length; i < len; ++i) {
+                    this._lens.push(componentLens.Lens[i]);
+                    this._select_circle.push(componentLens.SelectCircle[i]);
+                }
+            }
+
+            private AddSingleLens(lens: BaseSingleLens):void {
+                this._lens.push(lens);
+                this._select_circle.push({
+                    _line: lens.LinkLine,
+                    _sc_cx: lens.SelectCircleCX,
+                    _sc_cy: lens.SelectCircleCY,
+                    _sc_radius: lens.SelectCircleRadius,
+                    _sc_scale: lens.SelectCircleScale
+                });
             }
 
         }

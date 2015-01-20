@@ -38,7 +38,6 @@ module ManyLens {
                 return this._sc_radius;
             }
 
-
             constructor(element: D3.Selection, type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
                 this._is_composite_lens = false;
@@ -257,6 +256,7 @@ module ManyLens {
                 this.ReDrawLinkLine();
 
             }
+
             protected LensCircleZoomFunc(): void {
                 super.LensCircleZoomFunc();
 
@@ -274,6 +274,16 @@ module ManyLens {
                     .attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta)
                     .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
                 ;
+            }
+
+            public DetachHostLens(): BaseCompositeLens {
+                if (this.IsComponentLens) {
+                    var hostLens: BaseCompositeLens = this._host_lens;
+                    this.HostLens = null;
+                    return hostLens;
+                } else {
+                    return null;
+                }
             }
         }
     }
