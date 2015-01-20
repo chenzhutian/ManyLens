@@ -3,7 +3,7 @@ module ManyLens {
     export module Lens {
         export class cBoundleLens extends BaseCompositeLens {
 
-            public static Type: string = "BoundleLens";
+            public static Type: string = "cBoundleLens";
 
             private _innerRadius: number = this._lc_radius - 0;
             private _cluster: D3.Layout.ClusterLayout = d3.layout.cluster();
