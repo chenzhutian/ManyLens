@@ -68,7 +68,7 @@ module ManyLens {
         //TODO need to implementation
         public RemoveLens(lens: Lens.BaseD3Lens): Lens.BaseD3Lens {
             var lens: Lens.BaseD3Lens;
-
+            this._lens.delete(lens.ID);
             return lens;
         }
 
@@ -80,8 +80,8 @@ module ManyLens {
                 lensC.Render("black");
                 lensC.DisplayLens();
             } else {
-                this._lens.delete(hostLens.ID);
-                lensC.ShowLens();
+                this.RemoveLens(hostLens);
+                lensC.DisplayLens();
             }
             
         }

@@ -32,14 +32,14 @@ module ManyLens {
 
             public DisplayLens(data: Array<number>): any {
 
-                var p = super.DisplayLens(null);
+                var p = super.DisplayLens(data);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
-
+                
 
                 var x = d3.scale.linear()
                     .range([0, this._bar_chart_width])
-                    .domain([0, data.length]);
+                    .domain([0, this._data.length]);
 
                 this._x_axis_gen
                     .scale(x)
@@ -58,13 +58,13 @@ module ManyLens {
                 ;
 
 
-                this._bar_width = (this._bar_chart_width - 20) / data.length;
+                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
                 var barHeight = d3.scale.linear()
                     .range([10, this._bar_chart_height])
-                    .domain(d3.extent(data));
+                    .domain(d3.extent(this._data));
 
                 var bar = lensG.selectAll(".bar")
-                    .data(data)
+                    .data(this._data)
                     .enter().append("g")
                     .attr("transform", (d, i) => {
                         return "translate(" + [10 + i * this._bar_width - this._bar_chart_width / 2, this._bar_chart_height / 2 - barHeight(d)] + ")";

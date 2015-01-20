@@ -95,15 +95,6 @@ module ManyLens {
                     .append("g")
                     .attr("class", "lens")
                 ;
-            }
-
-            protected ExtractData(any = null): any {
-                throw new Error('This method is abstract');
-            }
-
-            public DisplayLens(any = null): any {
-                console.log("DisplayLens");
-                var duration: number = 300;
 
                 this._lc_zoom
                     .scaleExtent([1, 2])
@@ -124,6 +115,14 @@ module ManyLens {
                         this.LensCircleDragendFunc();
                     })
                 ;
+            }
+
+            protected ExtractData(any = null): any {
+                throw new Error('This method is abstract');
+            }
+
+            public DisplayLens(any = null): any {
+                var duration: number = 300;
 
                 this._lens_circle_G = this._sc_lc_svg.append("g")
                     .data([{ x: this._lc_cx, y: this._lc_cy }])
@@ -256,27 +255,35 @@ module ManyLens {
 
             }
 
-            public HideLens() {
+            //public HideLens() {
+            //    this._lens_circle_G
+            //        .attr("opacity", "1")
+            //        .transition()
+            //        .duration(500)  //this is hard code, should be optimize
+            //        .attr("opacity", "1e-6")
+            //        .style("visibility", "hidden");
+            //}
+
+            //public ShowLens() {
+            //    this._lens_circle_G
+            //        .attr("opacity", "1e-6")
+            //        .attr("transform", () => {
+            //            return "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")";
+            //        })
+            //        .transition()
+            //        .duration(500)  //this is hard code, should be optimize
+            //        .attr("opacity","1")
+            //        .style("visibility", "visible");
+            //}
+
+            public RemoveLens() {
                 this._lens_circle_G
                     .attr("opacity", "1")
                     .transition()
                     .duration(500)  //this is hard code, should be optimize
                     .attr("opacity", "1e-6")
-                    .style("visibility", "hidden");
+                    .remove();
             }
-
-            public ShowLens() {
-                this._lens_circle_G
-                    .attr("opacity", "1e-6")
-                    .attr("transform", () => {
-                        return "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")";
-                    })
-                    .transition()
-                    .duration(500)  //this is hard code, should be optimize
-                    .attr("opacity","1")
-                    .style("visibility", "visible");
-            }
-
         }
 
     }

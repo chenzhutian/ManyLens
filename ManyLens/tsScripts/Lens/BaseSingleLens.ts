@@ -103,6 +103,10 @@ module ManyLens {
                     })
                     .on("contextmenu", () => {
                         this._sc_lc_svg.remove();
+                        var hostLens: BaseCompositeLens = this.DetachHostLens()
+                        if (hostLens) {
+                            this._manyLens.DetachCompositeLens(this._element, hostLens, this);
+                        }
                         d3.event.preventDefault();
                     })
                     .call(this._sc_zoom)
@@ -124,34 +128,38 @@ module ManyLens {
                 throw new Error('This method is abstract');
             }
 
-            public DisplayLens(any = null): {
+            public DisplayLens(data:any): {
                 lcx: number; lcy: number; duration: number
             } {
                 
                 var duration: number = super.DisplayLens();
+                this._data = data || this._data;
 
-                var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
-                var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+                //if is new area with new data, then show the link line 
+                if (data) {
+                    var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
+                    var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+                    var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
 
-                var cx = this._sc_cx + (this._sc_radius * cosTheta * this._sc_scale);
-                var cy = this._sc_cy + (this._sc_radius * sinTheta * this._sc_scale);
+                    var cx = this._sc_cx + (this._sc_radius * cosTheta * this._sc_scale);
+                    var cy = this._sc_cy + (this._sc_radius * sinTheta * this._sc_scale);
 
-                this._sc_lc_svg.select("line")
-                    .attr("x1", cx)
-                    .attr("y1", cy)
-                    .attr("x2", cx)
-                    .attr("y2", cy)
-                    .attr("stoke-width", 2)
-                    .attr("stroke", "red")
-                    .transition().duration(duration)
-                    .attr("x2", () => {
-                        return cx + (this._sc_lc_default_dist * cosTheta);
-                    })
-                    .attr("y2", () => {
-                        return cy + (this._sc_lc_default_dist * sinTheta);
-                    })
-                ;
+                    this._sc_lc_svg.select("line")
+                        .attr("x1", cx)
+                        .attr("y1", cy)
+                        .attr("x2", cx)
+                        .attr("y2", cy)
+                        .attr("stoke-width", 2)
+                        .attr("stroke", "red")
+                        .transition().duration(duration)
+                        .attr("x2", () => {
+                            return this._lc_cx;//cx + (this._sc_lc_default_dist * cosTheta);
+                        })
+                        .attr("y2", () => {
+                            return this._lc_cy;//cy + (this._sc_lc_default_dist * sinTheta);
+                        })
+                    ;
+                } 
 
                 return {
                     lcx: this._lc_cx,
@@ -193,27 +201,27 @@ module ManyLens {
                 if (!this._has_put_down) return;
                 if (d3.event.sourceEvent.button != 0) return;
 
-                this._sc_cx = selectCircle.x;
-                this._sc_cy = selectCircle.y;
-
-                var theta = Math.random() * Math.PI;
-                var cosTheta = Math.cos(theta);
-                var sinTheta = Math.sin(theta);
-
-                this._lc_cx = this._sc_cx
-                            + (this._sc_radius * this._sc_scale
-                            + this._sc_lc_default_dist
-                            + this._lc_radius) * cosTheta;
-
-                this._lc_cy = this._sc_cy
-                            + (this._sc_radius * this._sc_scale
-                            + this._sc_lc_default_dist
-                            + this._lc_radius) * sinTheta;
-
                 //传递数据给Lens显示
                 if (!this._has_showed_lens) {
-                    var data = this.ExtractData();
-                    this.DisplayLens(data);
+                    this._sc_cx = selectCircle.x;
+                    this._sc_cy = selectCircle.y;
+
+                    var theta = Math.random() * Math.PI;
+                    var cosTheta = Math.cos(theta);
+                    var sinTheta = Math.sin(theta);
+
+                    this._lc_cx = this._sc_cx
+                    + (this._sc_radius * this._sc_scale
+                    + this._sc_lc_default_dist
+                    + this._lc_radius) * cosTheta;
+
+                    this._lc_cy = this._sc_cy
+                    + (this._sc_radius * this._sc_scale
+                    + this._sc_lc_default_dist
+                    + this._lc_radius) * sinTheta;
+
+                    this._data = this.ExtractData();
+                    this.DisplayLens(this._data);
 
                     this._has_showed_lens = true;
                 }
@@ -286,6 +294,14 @@ module ManyLens {
                     return hostLens;
                 } else {
                     return null;
+                }
+            }
+
+            public ChangeHostTo(hostLens: BaseCompositeLens):void {
+                if (this.IsComponentLens) {
+                    this.HostLens = hostLens;
+                } else {
+                    return;
                 }
             }
         }

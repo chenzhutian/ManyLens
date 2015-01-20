@@ -1,7 +1,7 @@
 ﻿///<reference path = "./BaseCompositeLens.ts" />
 module ManyLens {
     export module Lens {
-        export class BoundleLens extends BaseCompositeLens {
+        export class cBoundleLens extends BaseCompositeLens {
 
             public static Type: string = "BoundleLens";
 
@@ -14,7 +14,7 @@ module ManyLens {
                 firstLens: BaseSingleLens,
                 secondLens: BaseSingleLens,
                 manyLens: ManyLens.ManyLens) {
-                super(element, BoundleLens.Type, firstLens, secondLens, manyLens);
+                super(element, cBoundleLens.Type, firstLens, secondLens, manyLens);
 
                 this._cluster.size([360, this._innerRadius])
                     .sort(null)

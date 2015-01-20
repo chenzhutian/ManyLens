@@ -60,8 +60,8 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(data: D3.Layout.GraphNode, lc_cx = null, lc_cy = null): any {
-                var p = super.DisplayLens(null);
+            public DisplayLens(data: D3.Layout.GraphNode): any {
+                var p = super.DisplayLens(data);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
@@ -77,7 +77,7 @@ module ManyLens {
                         return (a.parent == b.parent ? 1 : 2) / a.depth;
                     });
 
-                var nodes = this._tree.nodes(data),
+                var nodes = this._tree.nodes(this._data),
                     links = this._tree.links(nodes);
 
                 var link = lensG.selectAll("path")

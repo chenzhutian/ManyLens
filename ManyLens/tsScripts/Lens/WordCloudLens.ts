@@ -95,13 +95,13 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(data: Array<any>, lc_cx = null, lc_cy = null): any {
-                var p = super.DisplayLens(null);
+            public DisplayLens(data: Array<any>): any {
+                var p = super.DisplayLens(data);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(data)
+                    .words(this._data)
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)

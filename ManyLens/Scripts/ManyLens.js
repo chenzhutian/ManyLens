@@ -262,18 +262,9 @@ var ManyLens;
                 configurable: true
             });
             BaseD3Lens.prototype.Render = function (color) {
+                var _this = this;
                 this._lens_type_color = color;
                 this._sc_lc_svg = this._element.append("g").attr("class", "lens");
-            };
-            BaseD3Lens.prototype.ExtractData = function (any) {
-                if (any === void 0) { any = null; }
-                throw new Error('This method is abstract');
-            };
-            BaseD3Lens.prototype.DisplayLens = function (any) {
-                var _this = this;
-                if (any === void 0) { any = null; }
-                console.log("DisplayLens");
-                var duration = 300;
                 this._lc_zoom.scaleExtent([1, 2]).on("zoom", function () {
                     _this.LensCircleZoomFunc();
                 });
@@ -286,6 +277,15 @@ var ManyLens;
                 }).on("dragend", function () {
                     _this.LensCircleDragendFunc();
                 });
+            };
+            BaseD3Lens.prototype.ExtractData = function (any) {
+                if (any === void 0) { any = null; }
+                throw new Error('This method is abstract');
+            };
+            BaseD3Lens.prototype.DisplayLens = function (any) {
+                var _this = this;
+                if (any === void 0) { any = null; }
+                var duration = 300;
                 this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("id", "lens_" + this._manyLens.LensCount).attr("class", "lens-circle-g " + this._type).attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")").attr("opacity", "1e-6").on("contextmenu", function () {
                     //d3.event.preventDefault();
                 }).on("mousedown", function () {
@@ -367,14 +367,27 @@ var ManyLens;
                     return transform;
                 });
             };
-            BaseD3Lens.prototype.HideLens = function () {
-                this._lens_circle_G.attr("opacity", "1").transition().duration(500).attr("opacity", "1e-6").style("visibility", "hidden");
-            };
-            BaseD3Lens.prototype.ShowLens = function () {
-                var _this = this;
-                this._lens_circle_G.attr("opacity", "1e-6").attr("transform", function () {
-                    return "translate(" + [_this._lc_cx, _this._lc_cy] + ")scale(" + _this._lc_scale + ")";
-                }).transition().duration(500).attr("opacity", "1").style("visibility", "visible");
+            //public HideLens() {
+            //    this._lens_circle_G
+            //        .attr("opacity", "1")
+            //        .transition()
+            //        .duration(500)  //this is hard code, should be optimize
+            //        .attr("opacity", "1e-6")
+            //        .style("visibility", "hidden");
+            //}
+            //public ShowLens() {
+            //    this._lens_circle_G
+            //        .attr("opacity", "1e-6")
+            //        .attr("transform", () => {
+            //            return "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")";
+            //        })
+            //        .transition()
+            //        .duration(500)  //this is hard code, should be optimize
+            //        .attr("opacity","1")
+            //        .style("visibility", "visible");
+            //}
+            BaseD3Lens.prototype.RemoveLens = function () {
+                this._lens_circle_G.attr("opacity", "1").transition().duration(500).attr("opacity", "1e-6").remove();
             };
             BaseD3Lens.Type = "BaseD3Lens";
             return BaseD3Lens;
@@ -473,6 +486,10 @@ var ManyLens;
                     }
                 }).on("contextmenu", function () {
                     _this._sc_lc_svg.remove();
+                    var hostLens = _this.DetachHostLens();
+                    if (hostLens) {
+                        _this._manyLens.DetachCompositeLens(_this._element, hostLens, _this);
+                    }
                     d3.event.preventDefault();
                 }).call(this._sc_zoom).call(this._sc_drag);
                 container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
@@ -484,20 +501,23 @@ var ManyLens;
             BaseSingleLens.prototype.ExtractData = function () {
                 throw new Error('This method is abstract');
             };
-            BaseSingleLens.prototype.DisplayLens = function (any) {
+            BaseSingleLens.prototype.DisplayLens = function (data) {
                 var _this = this;
-                if (any === void 0) { any = null; }
                 var duration = _super.prototype.DisplayLens.call(this);
-                var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
-                var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-                var cx = this._sc_cx + (this._sc_radius * cosTheta * this._sc_scale);
-                var cy = this._sc_cy + (this._sc_radius * sinTheta * this._sc_scale);
-                this._sc_lc_svg.select("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
-                    return cx + (_this._sc_lc_default_dist * cosTheta);
-                }).attr("y2", function () {
-                    return cy + (_this._sc_lc_default_dist * sinTheta);
-                });
+                this._data = data || this._data;
+                //if is new area with new data, then show the link line 
+                if (data) {
+                    var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
+                    var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+                    var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+                    var cx = this._sc_cx + (this._sc_radius * cosTheta * this._sc_scale);
+                    var cy = this._sc_cy + (this._sc_radius * sinTheta * this._sc_scale);
+                    this._sc_lc_svg.select("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(duration).attr("x2", function () {
+                        return _this._lc_cx; //cx + (this._sc_lc_default_dist * cosTheta);
+                    }).attr("y2", function () {
+                        return _this._lc_cy; //cy + (this._sc_lc_default_dist * sinTheta);
+                    });
+                }
                 return {
                     lcx: this._lc_cx,
                     lcy: this._lc_cy,
@@ -528,17 +548,17 @@ var ManyLens;
                     return;
                 if (d3.event.sourceEvent.button != 0)
                     return;
-                this._sc_cx = selectCircle.x;
-                this._sc_cy = selectCircle.y;
-                var theta = Math.random() * Math.PI;
-                var cosTheta = Math.cos(theta);
-                var sinTheta = Math.sin(theta);
-                this._lc_cx = this._sc_cx + (this._sc_radius * this._sc_scale + this._sc_lc_default_dist + this._lc_radius) * cosTheta;
-                this._lc_cy = this._sc_cy + (this._sc_radius * this._sc_scale + this._sc_lc_default_dist + this._lc_radius) * sinTheta;
                 //传递数据给Lens显示
                 if (!this._has_showed_lens) {
-                    var data = this.ExtractData();
-                    this.DisplayLens(data);
+                    this._sc_cx = selectCircle.x;
+                    this._sc_cy = selectCircle.y;
+                    var theta = Math.random() * Math.PI;
+                    var cosTheta = Math.cos(theta);
+                    var sinTheta = Math.sin(theta);
+                    this._lc_cx = this._sc_cx + (this._sc_radius * this._sc_scale + this._sc_lc_default_dist + this._lc_radius) * cosTheta;
+                    this._lc_cy = this._sc_cy + (this._sc_radius * this._sc_scale + this._sc_lc_default_dist + this._lc_radius) * sinTheta;
+                    this._data = this.ExtractData();
+                    this.DisplayLens(this._data);
                     this._has_showed_lens = true;
                 }
                 //z-index的问题先不解决
@@ -588,6 +608,14 @@ var ManyLens;
                     return null;
                 }
             };
+            BaseSingleLens.prototype.ChangeHostTo = function (hostLens) {
+                if (this.IsComponentLens) {
+                    this.HostLens = hostLens;
+                }
+                else {
+                    return;
+                }
+            };
             BaseSingleLens.Type = "BaseSingleLens";
             return BaseSingleLens;
         })(Lens.BaseD3Lens);
@@ -619,17 +647,17 @@ var ManyLens;
             };
             BarChartLens.prototype.DisplayLens = function (data) {
                 var _this = this;
-                var p = _super.prototype.DisplayLens.call(this, null);
+                var p = _super.prototype.DisplayLens.call(this, data);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
-                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, data.length]);
+                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data.length]);
                 this._x_axis_gen.scale(x).ticks(0).orient("bottom");
                 this._x_axis = lensG.append("g").attr("class", "x-axis").attr("transform", function () {
                     return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
                 }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
-                this._bar_width = (this._bar_chart_width - 20) / data.length;
-                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(data));
-                var bar = lensG.selectAll(".bar").data(data).enter().append("g").attr("transform", function (d, i) {
+                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
+                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
+                var bar = lensG.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
                     return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
                 });
                 bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
@@ -640,469 +668,6 @@ var ManyLens;
             return BarChartLens;
         })(Lens.BaseSingleLens);
         Lens.BarChartLens = BarChartLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./BaseD3Lens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var BaseCompositeLens = (function (_super) {
-            __extends(BaseCompositeLens, _super);
-            function BaseCompositeLens(element, type, firstLens, secondLens, manyLens) {
-                _super.call(this, element, type, manyLens);
-                this._is_composite_lens = true;
-                this._lc_cx = firstLens.LensCX;
-                this._lc_cy = firstLens.LensCY;
-                this._base_component = firstLens;
-                this._sub_component = secondLens;
-                this._select_circle = new Array();
-                this._lens = new Array();
-                this._lens.push(firstLens);
-                this._select_circle.push({
-                    _line: firstLens.LinkLine,
-                    _sc_cx: firstLens.SelectCircleCX,
-                    _sc_cy: firstLens.SelectCircleCY,
-                    _sc_radius: firstLens.SelectCircleRadius,
-                    _sc_scale: firstLens.SelectCircleScale
-                });
-                this._lens.push(secondLens);
-                this._select_circle.push({
-                    _line: secondLens.LinkLine,
-                    _sc_cx: secondLens.SelectCircleCX,
-                    _sc_cy: secondLens.SelectCircleCY,
-                    _sc_radius: secondLens.SelectCircleRadius,
-                    _sc_scale: secondLens.SelectCircleScale
-                });
-            }
-            Object.defineProperty(BaseCompositeLens.prototype, "Lens", {
-                get: function () {
-                    //这里我感觉有问题，是直接返回本体还是返回复本好
-                    return this._lens;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(BaseCompositeLens.prototype, "SelectCircle", {
-                get: function () {
-                    return this._select_circle;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(BaseCompositeLens.prototype, "ComponentNum", {
-                get: function () {
-                    return this._lens.length;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            BaseCompositeLens.prototype.Render = function (color) {
-                if (!this._sc_lc_svg) {
-                    _super.prototype.Render.call(this, color);
-                }
-                this._base_component.HideLens();
-                this._base_component.HostLens = this;
-                if (this._sub_component) {
-                    this._sub_component.HideLens();
-                    this._sub_component.HostLens = this;
-                }
-            };
-            BaseCompositeLens.prototype.ExtractData = function () {
-                throw new Error('This method is abstract');
-            };
-            BaseCompositeLens.prototype.DisplayLens = function (any) {
-                if (any === void 0) { any = null; }
-                var duration = _super.prototype.DisplayLens.call(this);
-                this._base_component = this;
-                this._sub_component = null;
-                return {
-                    lcx: this._lc_cx,
-                    lcy: this._lc_cy,
-                    duration: duration
-                };
-            };
-            BaseCompositeLens.prototype.LensCircleDragFunc = function () {
-                _super.prototype.LensCircleDragFunc.call(this);
-                this.ReDrawLinkLine();
-            };
-            BaseCompositeLens.prototype.LensCircleZoomFunc = function () {
-                _super.prototype.LensCircleZoomFunc.call(this);
-                this.ReDrawLinkLine();
-            };
-            BaseCompositeLens.prototype.AddComponentLens = function (lens) {
-                this._sub_component = lens;
-                if (lens.IsCompositeLens) {
-                    this.AddCompositeLens(lens);
-                }
-                else {
-                    this.AddSingleLens(lens);
-                }
-                return this;
-            };
-            BaseCompositeLens.prototype.RemoveComponentLens = function (lens) {
-                //TODO #1
-                var index = this._lens.indexOf(lens);
-                if (-1 != index) {
-                    this._lens.splice(index, 1);
-                    this._select_circle.splice(index, 1);
-                    if (this.ComponentNum == 1) {
-                        this.RemoveWholeSVG();
-                        var lastLens = this._lens[0];
-                        lastLens.LensCX = this.LensCX;
-                        lastLens.LensCY = this.LensCY;
-                        lastLens.LensRadius = this.LensRadius;
-                        lastLens.LensScale = this.LensScale;
-                        return this._lens[0];
-                    }
-                    else if (this.ComponentNum < 1) {
-                        throw new Error('The number of component of this lens is less than 2!!');
-                    }
-                }
-                return this;
-            };
-            BaseCompositeLens.prototype.ReDrawLinkLine = function () {
-                for (var i = 0, len = this._select_circle.length; i < len; ++i) {
-                    var sc = this._select_circle[i];
-                    var theta = Math.atan((this._lc_cy - sc._sc_cy) / (this._lc_cx - sc._sc_cx));
-                    var cosTheta = this._lc_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                    var sinTheta = this._lc_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
-                    sc._line.attr("x1", sc._sc_cx + sc._sc_radius * sc._sc_scale * cosTheta).attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta);
-                    console.log("redraw composite link:" + i);
-                }
-            };
-            BaseCompositeLens.prototype.AddCompositeLens = function (componentLens) {
-                if (componentLens.SelectCircle.length != componentLens.Lens.length)
-                    throw new Error('The length of sc is different from length of lens');
-                for (var i = 0, len = componentLens.Lens.length; i < len; ++i) {
-                    this._lens.push(componentLens.Lens[i]);
-                    this._select_circle.push(componentLens.SelectCircle[i]);
-                }
-            };
-            BaseCompositeLens.prototype.AddSingleLens = function (lens) {
-                this._lens.push(lens);
-                this._select_circle.push({
-                    _line: lens.LinkLine,
-                    _sc_cx: lens.SelectCircleCX,
-                    _sc_cy: lens.SelectCircleCY,
-                    _sc_radius: lens.SelectCircleRadius,
-                    _sc_scale: lens.SelectCircleScale
-                });
-            };
-            BaseCompositeLens.prototype.RemoveWholeSVG = function () {
-                this._sc_lc_svg.transition().duration(500).attr("opacity", "1e-6").remove();
-            };
-            BaseCompositeLens.Type = "BaseCompositeLens";
-            return BaseCompositeLens;
-        })(Lens.BaseD3Lens);
-        Lens.BaseCompositeLens = BaseCompositeLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./BaseCompositeLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var BoundleLens = (function (_super) {
-            __extends(BoundleLens, _super);
-            function BoundleLens(element, firstLens, secondLens, manyLens) {
-                _super.call(this, element, BoundleLens.Type, firstLens, secondLens, manyLens);
-                this._innerRadius = this._lc_radius - 0;
-                this._cluster = d3.layout.cluster();
-                this._boundle = d3.layout.bundle();
-                this._line = d3.svg.line.radial();
-                this._cluster.size([360, this._innerRadius]).sort(null).value(function (d) {
-                    return d.size;
-                });
-                this._line.interpolate("bundle").tension(.85).radius(function (d) {
-                    return d.y;
-                }).angle(function (d) {
-                    return d.x / 180 * Math.PI;
-                });
-            }
-            BoundleLens.prototype.Render = function (color) {
-                _super.prototype.Render.call(this, color);
-            };
-            BoundleLens.prototype.ExtractData = function () {
-                var data = [
-                    { "name": "flare.util.palette.ShapePalette", "size": 2059, "imports": ["flare.util.palette.Palette", "flare.util.Shapes"] },
-                    { "name": "flare.util.palette.SizePalette", "size": 2291, "imports": ["flare.util.palette.Palette"] },
-                    { "name": "flare.util.Property", "size": 5559, "imports": ["flare.util.IPredicate", "flare.util.IValueProxy", "flare.util.IEvaluable"] },
-                    { "name": "flare.util.Shapes", "size": 19118, "imports": ["flare.util.Arrays"] },
-                    { "name": "flare.util.Sort", "size": 6887, "imports": ["flare.util.Arrays", "flare.util.Property"] },
-                    { "name": "flare.util.Stats", "size": 6557, "imports": ["flare.util.Arrays", "flare.util.Property"] },
-                    { "name": "flare.util.Strings", "size": 22026, "imports": ["flare.util.Dates", "flare.util.Property"] },
-                    { "name": "flare.vis.axis.Axes", "size": 1302, "imports": ["flare.animate.Transitioner", "flare.vis.Visualization"] },
-                    { "name": "flare.vis.axis.Axis", "size": 24593, "imports": ["flare.animate.Transitioner", "flare.scale.LinearScale", "flare.util.Arrays", "flare.scale.ScaleType", "flare.util.Strings", "flare.display.TextSprite", "flare.scale.Scale", "flare.util.Stats", "flare.scale.IScaleMap", "flare.vis.axis.AxisLabel", "flare.vis.axis.AxisGridLine"] },
-                    { "name": "flare.vis.axis.AxisGridLine", "size": 652, "imports": ["flare.vis.axis.Axis", "flare.display.LineSprite"] },
-                    { "name": "flare.vis.axis.AxisLabel", "size": 636, "imports": ["flare.vis.axis.Axis", "flare.display.TextSprite"] },
-                    { "name": "flare.vis.axis.CartesianAxes", "size": 6703, "imports": ["flare.animate.Transitioner", "flare.display.RectSprite", "flare.vis.axis.Axis", "flare.display.TextSprite", "flare.vis.axis.Axes", "flare.vis.Visualization", "flare.vis.axis.AxisGridLine"] },
-                    { "name": "flare.vis.controls.AnchorControl", "size": 2138, "imports": ["flare.vis.controls.Control", "flare.vis.Visualization", "flare.vis.operator.layout.Layout"] },
-                    { "name": "flare.vis.controls.ClickControl", "size": 3824, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
-                    { "name": "flare.vis.controls.Control", "size": 1353, "imports": ["flare.vis.controls.IControl", "flare.util.Filter"] },
-                    { "name": "flare.vis.controls.ControlList", "size": 4665, "imports": ["flare.vis.controls.IControl", "flare.util.Arrays", "flare.vis.Visualization", "flare.vis.controls.Control"] },
-                    { "name": "flare.vis.controls.DragControl", "size": 2649, "imports": ["flare.vis.controls.Control", "flare.vis.data.DataSprite"] },
-                    { "name": "flare.vis.controls.ExpandControl", "size": 2832, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.vis.controls.Control", "flare.vis.Visualization"] },
-                    { "name": "flare.vis.controls.HoverControl", "size": 4896, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
-                    { "name": "flare.vis.controls.IControl", "size": 763, "imports": ["flare.vis.controls.Control"] },
-                    { "name": "flare.vis.controls.PanZoomControl", "size": 5222, "imports": ["flare.util.Displays", "flare.vis.controls.Control"] },
-                    { "name": "flare.vis.controls.SelectionControl", "size": 7862, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
-                    { "name": "flare.vis.controls.TooltipControl", "size": 8435, "imports": ["flare.animate.Tween", "flare.display.TextSprite", "flare.vis.controls.Control", "flare.vis.events.TooltipEvent"] },
-                    { "name": "flare.vis.data.Data", "size": 20544, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.data.DataSprite", "flare.vis.data.Tree", "flare.vis.events.DataEvent", "flare.data.DataSet", "flare.vis.data.TreeBuilder", "flare.vis.data.DataList", "flare.data.DataSchema", "flare.util.Sort", "flare.data.DataField", "flare.util.Property"] },
-                    { "name": "flare.vis.data.DataList", "size": 19788, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.util.math.DenseMatrix", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.events.DataEvent", "flare.util.Stats", "flare.util.math.IMatrix", "flare.util.Sort", "flare.util.Filter", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.data.DataSprite", "size": 10349, "imports": ["flare.util.Colors", "flare.vis.data.Data", "flare.display.DirtySprite", "flare.vis.data.render.IRenderer", "flare.vis.data.render.ShapeRenderer"] },
-                    { "name": "flare.vis.data.EdgeSprite", "size": 3301, "imports": ["flare.vis.data.render.EdgeRenderer", "flare.vis.data.DataSprite", "flare.vis.data.NodeSprite", "flare.vis.data.render.ArrowType", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.data.NodeSprite", "size": 19382, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.data.Tree", "flare.util.Sort", "flare.util.Filter", "flare.util.IEvaluable", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.data.render.ArrowType", "size": 698, "imports": [] },
-                    { "name": "flare.vis.data.render.EdgeRenderer", "size": 5569, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.DataSprite", "flare.vis.data.render.IRenderer", "flare.util.Shapes", "flare.util.Geometry", "flare.vis.data.render.ArrowType"] },
-                    { "name": "flare.vis.data.render.IRenderer", "size": 353, "imports": ["flare.vis.data.DataSprite"] },
-                    { "name": "flare.vis.data.render.ShapeRenderer", "size": 2247, "imports": ["flare.util.Shapes", "flare.vis.data.render.IRenderer", "flare.vis.data.DataSprite"] },
-                    { "name": "flare.vis.data.ScaleBinding", "size": 11275, "imports": ["flare.scale.TimeScale", "flare.scale.ScaleType", "flare.scale.LinearScale", "flare.scale.LogScale", "flare.scale.OrdinalScale", "flare.scale.RootScale", "flare.scale.Scale", "flare.scale.QuantileScale", "flare.util.Stats", "flare.scale.QuantitativeScale", "flare.vis.events.DataEvent", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.data.Tree", "size": 7147, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.events.DataEvent", "flare.vis.data.NodeSprite", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.data.TreeBuilder", "size": 9930, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.Tree", "flare.util.heap.HeapNode", "flare.util.heap.FibonacciHeap", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.events.DataEvent", "size": 2313, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.DataList", "flare.vis.data.DataSprite"] },
-                    { "name": "flare.vis.events.SelectionEvent", "size": 1880, "imports": ["flare.vis.events.DataEvent"] },
-                    { "name": "flare.vis.operator.layout.IndentedTreeLayout", "size": 3174, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.operator.layout.Layout", "flare.vis.data.EdgeSprite"] },
-                    { "name": "flare.vis.operator.layout.Layout", "size": 7881, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.vis.data.DataList", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.Visualization", "flare.vis.axis.CartesianAxes", "flare.vis.axis.Axes", "flare.animate.TransitionEvent", "flare.vis.operator.Operator"] },
-                    { "name": "flare.vis.operator.layout.NodeLinkTreeLayout", "size": 12870, "imports": ["flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.util.Orientation", "flare.vis.operator.layout.Layout"] },
-                    { "name": "flare.vis.operator.layout.PieLayout", "size": 2728, "imports": ["flare.vis.data.DataList", "flare.vis.data.DataSprite", "flare.util.Shapes", "flare.util.Property", "flare.vis.operator.layout.Layout", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.operator.layout.RadialTreeLayout", "size": 12348, "imports": ["flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.operator.layout.Layout"] },
-                    { "name": "flare.vis.operator.layout.RandomLayout", "size": 870, "imports": ["flare.vis.operator.layout.Layout", "flare.vis.data.DataSprite", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.operator.layout.StackedAreaLayout", "size": 9121, "imports": ["flare.scale.TimeScale", "flare.scale.LinearScale", "flare.util.Arrays", "flare.scale.OrdinalScale", "flare.vis.data.NodeSprite", "flare.scale.Scale", "flare.vis.axis.CartesianAxes", "flare.util.Stats", "flare.util.Orientation", "flare.scale.QuantitativeScale", "flare.util.Maths", "flare.vis.operator.layout.Layout"] },
-                    { "name": "flare.vis.operator.layout.TreeMapLayout", "size": 9191, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Property", "flare.vis.operator.layout.Layout"] },
-                    { "name": "flare.vis.operator.Operator", "size": 2490, "imports": ["flare.animate.Transitioner", "flare.vis.operator.IOperator", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.Visualization"] },
-                    { "name": "flare.vis.operator.OperatorList", "size": 5248, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.operator.IOperator", "flare.vis.Visualization", "flare.vis.operator.Operator"] },
-                    { "name": "flare.vis.operator.OperatorSequence", "size": 4190, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.operator.IOperator", "flare.vis.operator.OperatorList", "flare.animate.FunctionSequence", "flare.vis.operator.Operator"] },
-                    { "name": "flare.vis.operator.OperatorSwitch", "size": 2581, "imports": ["flare.animate.Transitioner", "flare.vis.operator.OperatorList", "flare.vis.operator.IOperator", "flare.vis.operator.Operator"] },
-                    { "name": "flare.vis.operator.SortOperator", "size": 2023, "imports": ["flare.vis.operator.Operator", "flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.data.Data"] },
-                    { "name": "flare.vis.Visualization", "size": 16540, "imports": ["flare.animate.Transitioner", "flare.vis.operator.IOperator", "flare.animate.Scheduler", "flare.vis.events.VisualizationEvent", "flare.vis.data.Tree", "flare.vis.events.DataEvent", "flare.vis.axis.Axes", "flare.vis.axis.CartesianAxes", "flare.util.Displays", "flare.vis.operator.OperatorList", "flare.vis.controls.ControlList", "flare.animate.ISchedulable", "flare.vis.data.Data"] }
-                ];
-                return data;
-            };
-            BoundleLens.prototype.DisplayLens = function (any) {
-                if (any === void 0) { any = null; }
-                _super.prototype.DisplayLens.call(this);
-                var data = this.ExtractData();
-                var container = this._element;
-                var lensG = this._lens_circle_G;
-                var nodes = this._cluster.nodes(packageHierarchy(data)), links = packageImports(nodes);
-                lensG.selectAll(".link").data(this._boundle(links)).enter().append("path").attr("class", "link").attr("d", this._line).attr("stroke", "steelblue").attr("stroke-opacity", ".4").attr("fill", "none");
-                lensG.selectAll(".node").data(nodes.filter(function (n) {
-                    return !n.children;
-                })).enter().append("g").attr("class", "node").attr("transform", function (d) {
-                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
-                }).attr("font", '11px "Helvetica Neue", Helvetica, Arial, sans-serif').append("text").attr("dx", function (d) {
-                    return d.x < 180 ? 8 : -8;
-                }).attr("dy", ".31em").attr("text-anchor", function (d) {
-                    return d.x < 180 ? "start" : "end";
-                }).attr("transform", function (d) {
-                    return d.x < 180 ? null : "rotate(180)";
-                }).text(function (d) {
-                    return d.key;
-                });
-                function packageHierarchy(classes) {
-                    var map = {};
-                    function find(name, data) {
-                        var node = map[name], i;
-                        if (!node) {
-                            node = map[name] = data || { name: name, children: [] };
-                            if (name.length) {
-                                node.parent = find(name.substring(0, i = name.lastIndexOf(".")), null);
-                                node.parent.children.push(node);
-                                node.key = name.substring(i + 1);
-                            }
-                        }
-                        return node;
-                    }
-                    classes.forEach(function (d) {
-                        find(d.name, d);
-                    });
-                    return map[""];
-                }
-                // Return a list of imports for the given array of nodes.
-                function packageImports(nodes) {
-                    var map = {}, imports = [];
-                    // Compute a map from name to node.
-                    nodes.forEach(function (d) {
-                        map[d.name] = d;
-                    });
-                    // For each import, construct a link from the source to target node.
-                    nodes.forEach(function (d) {
-                        if (d.imports)
-                            d.imports.forEach(function (i) {
-                                var t = map[i];
-                                if (t) {
-                                    imports.push({ source: map[d.name], target: t });
-                                }
-                            });
-                    });
-                    return imports;
-                }
-            };
-            BoundleLens.Type = "BoundleLens";
-            return BoundleLens;
-        })(Lens.BaseCompositeLens);
-        Lens.BoundleLens = BoundleLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./BaseSingleLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var LocationLens = (function (_super) {
-            __extends(LocationLens, _super);
-            function LocationLens(element, manyLens) {
-                _super.call(this, element, LocationLens.Type, manyLens);
-                this._map_width = this._lc_radius * Math.SQRT2;
-                this._map_height = this._map_width;
-                this._map_path = "./img/chinamap.svg";
-            }
-            LocationLens.prototype.Render = function (color) {
-                _super.prototype.Render.call(this, color);
-            };
-            LocationLens.prototype.ExtractData = function () {
-                var data;
-                return data;
-            };
-            LocationLens.prototype.DisplayLens = function (data, lc_cx, lc_cy) {
-                if (lc_cx === void 0) { lc_cx = null; }
-                if (lc_cy === void 0) { lc_cy = null; }
-                var p = _super.prototype.DisplayLens.call(this, null);
-                var container = this._element;
-                var lensG = this._lens_circle_G;
-                //TODO
-                lensG.append("image").attr("xlink:href", this._map_path).attr("x", -this._map_width / 2).attr("y", -this._map_height / 2).attr("width", this._map_width).attr("height", this._map_height);
-            };
-            LocationLens.Type = "LocationLens";
-            return LocationLens;
-        })(Lens.BaseSingleLens);
-        Lens.LocationLens = LocationLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./BaseSingleLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var NetworkLens = (function (_super) {
-            __extends(NetworkLens, _super);
-            function NetworkLens(element, manyLens) {
-                _super.call(this, element, NetworkLens.Type, manyLens);
-                this._theta = 360;
-                this._tree = d3.layout.tree();
-            }
-            NetworkLens.prototype.Render = function (color) {
-                _super.prototype.Render.call(this, color);
-            };
-            NetworkLens.prototype.ExtractData = function () {
-                var data;
-                data = {
-                    "name": "flare",
-                    "children": [
-                        {
-                            "name": "analytics",
-                            "children": [
-                                {
-                                    "name": "cluster",
-                                    "children": [
-                                        { "name": "AgglomerativeCluster", "size": 3938 },
-                                        { "name": "CommunityStructure", "size": 3812 },
-                                        { "name": "HierarchicalCluster", "size": 6714 },
-                                        { "name": "MergeEdge", "size": 743 }
-                                    ]
-                                },
-                                {
-                                    "name": "graph",
-                                    "children": [
-                                        { "name": "BetweennessCentrality", "size": 3534 },
-                                        { "name": "LinkDistance", "size": 5731 },
-                                        { "name": "MaxFlowMinCut", "size": 7840 },
-                                        { "name": "ShortestPaths", "size": 5914 },
-                                        { "name": "SpanningTree", "size": 3416 }
-                                    ]
-                                },
-                                {
-                                    "name": "optimization",
-                                    "children": [
-                                        { "name": "AspectRatioBanker", "size": 7074 }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                };
-                return data;
-            };
-            NetworkLens.prototype.DisplayLens = function (data, lc_cx, lc_cy) {
-                if (lc_cx === void 0) { lc_cx = null; }
-                if (lc_cy === void 0) { lc_cy = null; }
-                var p = _super.prototype.DisplayLens.call(this, null);
-                var container = this._element;
-                var lensG = this._lens_circle_G;
-                var nodeRadius = 4.5;
-                var diagonal = d3.svg.diagonal.radial().projection(function (d) {
-                    return [d.y, d.x / 180 * Math.PI];
-                });
-                this._tree.size([this._theta, this._lc_radius - nodeRadius]).separation(function (a, b) {
-                    return (a.parent == b.parent ? 1 : 2) / a.depth;
-                });
-                var nodes = this._tree.nodes(data), links = this._tree.links(nodes);
-                var link = lensG.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
-                var node = lensG.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
-                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
-                });
-                node.append("circle").attr("r", nodeRadius).attr("stroke", "steelblue").attr("fill", "#fff").attr("stroke-width", 1.5);
-            };
-            NetworkLens.Type = "NetworkLens";
-            return NetworkLens;
-        })(Lens.BaseSingleLens);
-        Lens.NetworkLens = NetworkLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./BaseSingleLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var PieChartLens = (function (_super) {
-            __extends(PieChartLens, _super);
-            function PieChartLens(element, manyLens) {
-                _super.call(this, element, PieChartLens.Type, manyLens);
-                this._innerRadius = this._lc_radius - 20;
-                this._outterRadius = this._lc_radius - 0;
-                this._pie = d3.layout.pie();
-                this._arc = d3.svg.arc().innerRadius(this._innerRadius).outerRadius(this._outterRadius);
-                this._color = d3.scale.category20();
-            }
-            PieChartLens.prototype.Render = function (color) {
-                _super.prototype.Render.call(this, color);
-            };
-            PieChartLens.prototype.ExtractData = function () {
-                var data;
-                data = d3.range(6).map(function (d) {
-                    return Math.random() * 70;
-                });
-                return data;
-            };
-            PieChartLens.prototype.DisplayLens = function (data, lc_cx, lc_cy) {
-                var _this = this;
-                if (lc_cx === void 0) { lc_cx = null; }
-                if (lc_cy === void 0) { lc_cy = null; }
-                var p = _super.prototype.DisplayLens.call(this, null);
-                var container = this._element;
-                var lensG = this._lens_circle_G;
-                this._pie.value(function (d) {
-                    return d;
-                }).sort(null);
-                lensG.selectAll("path").data(this._pie(data)).enter().append("path").attr("fill", function (d, i) {
-                    return _this._color(i);
-                }).attr("d", this._arc);
-            };
-            PieChartLens.Type = "PieChartLens";
-            return PieChartLens;
-        })(Lens.BaseSingleLens);
-        Lens.PieChartLens = PieChartLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "./BaseSingleLens.ts" />
@@ -1185,14 +750,12 @@ var ManyLens;
                 }));
                 return data;
             };
-            WordCloudLens.prototype.DisplayLens = function (data, lc_cx, lc_cy) {
+            WordCloudLens.prototype.DisplayLens = function (data) {
                 var _this = this;
-                if (lc_cx === void 0) { lc_cx = null; }
-                if (lc_cy === void 0) { lc_cy = null; }
-                var p = _super.prototype.DisplayLens.call(this, null);
+                var p = _super.prototype.DisplayLens.call(this, data);
                 var container = this._element;
                 var lensG = this._lens_circle_G;
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                     return _this._font_size(d.value);
                 }).on("end", function (words, bounds) {
                     _this.DrawCloud(words, bounds);
@@ -1229,14 +792,482 @@ var ManyLens;
         Lens.WordCloudLens = WordCloudLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseSingleLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var LocationLens = (function (_super) {
+            __extends(LocationLens, _super);
+            function LocationLens(element, manyLens) {
+                _super.call(this, element, LocationLens.Type, manyLens);
+                this._map_width = this._lc_radius * Math.SQRT2;
+                this._map_height = this._map_width;
+                this._map_path = "./img/chinamap.svg";
+            }
+            LocationLens.prototype.Render = function (color) {
+                _super.prototype.Render.call(this, color);
+            };
+            LocationLens.prototype.ExtractData = function () {
+                var data;
+                return data;
+            };
+            LocationLens.prototype.DisplayLens = function (data) {
+                var p = _super.prototype.DisplayLens.call(this, data);
+                var container = this._element;
+                var lensG = this._lens_circle_G;
+                //TODO
+                lensG.append("image").attr("xlink:href", this._map_path).attr("x", -this._map_width / 2).attr("y", -this._map_height / 2).attr("width", this._map_width).attr("height", this._map_height);
+            };
+            LocationLens.Type = "LocationLens";
+            return LocationLens;
+        })(Lens.BaseSingleLens);
+        Lens.LocationLens = LocationLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseSingleLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var NetworkLens = (function (_super) {
+            __extends(NetworkLens, _super);
+            function NetworkLens(element, manyLens) {
+                _super.call(this, element, NetworkLens.Type, manyLens);
+                this._theta = 360;
+                this._tree = d3.layout.tree();
+            }
+            NetworkLens.prototype.Render = function (color) {
+                _super.prototype.Render.call(this, color);
+            };
+            NetworkLens.prototype.ExtractData = function () {
+                var data;
+                data = {
+                    "name": "flare",
+                    "children": [
+                        {
+                            "name": "analytics",
+                            "children": [
+                                {
+                                    "name": "cluster",
+                                    "children": [
+                                        { "name": "AgglomerativeCluster", "size": 3938 },
+                                        { "name": "CommunityStructure", "size": 3812 },
+                                        { "name": "HierarchicalCluster", "size": 6714 },
+                                        { "name": "MergeEdge", "size": 743 }
+                                    ]
+                                },
+                                {
+                                    "name": "graph",
+                                    "children": [
+                                        { "name": "BetweennessCentrality", "size": 3534 },
+                                        { "name": "LinkDistance", "size": 5731 },
+                                        { "name": "MaxFlowMinCut", "size": 7840 },
+                                        { "name": "ShortestPaths", "size": 5914 },
+                                        { "name": "SpanningTree", "size": 3416 }
+                                    ]
+                                },
+                                {
+                                    "name": "optimization",
+                                    "children": [
+                                        { "name": "AspectRatioBanker", "size": 7074 }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                };
+                return data;
+            };
+            NetworkLens.prototype.DisplayLens = function (data) {
+                var p = _super.prototype.DisplayLens.call(this, data);
+                var container = this._element;
+                var lensG = this._lens_circle_G;
+                var nodeRadius = 4.5;
+                var diagonal = d3.svg.diagonal.radial().projection(function (d) {
+                    return [d.y, d.x / 180 * Math.PI];
+                });
+                this._tree.size([this._theta, this._lc_radius - nodeRadius]).separation(function (a, b) {
+                    return (a.parent == b.parent ? 1 : 2) / a.depth;
+                });
+                var nodes = this._tree.nodes(this._data), links = this._tree.links(nodes);
+                var link = lensG.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
+                var node = lensG.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
+                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
+                });
+                node.append("circle").attr("r", nodeRadius).attr("stroke", "steelblue").attr("fill", "#fff").attr("stroke-width", 1.5);
+            };
+            NetworkLens.Type = "NetworkLens";
+            return NetworkLens;
+        })(Lens.BaseSingleLens);
+        Lens.NetworkLens = NetworkLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseSingleLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var PieChartLens = (function (_super) {
+            __extends(PieChartLens, _super);
+            function PieChartLens(element, manyLens) {
+                _super.call(this, element, PieChartLens.Type, manyLens);
+                this._innerRadius = this._lc_radius - 20;
+                this._outterRadius = this._lc_radius - 0;
+                this._pie = d3.layout.pie();
+                this._arc = d3.svg.arc().innerRadius(this._innerRadius).outerRadius(this._outterRadius);
+                this._color = d3.scale.category20();
+            }
+            PieChartLens.prototype.Render = function (color) {
+                _super.prototype.Render.call(this, color);
+            };
+            PieChartLens.prototype.ExtractData = function () {
+                var data;
+                data = d3.range(6).map(function (d) {
+                    return Math.random() * 70;
+                });
+                return data;
+            };
+            PieChartLens.prototype.DisplayLens = function (data) {
+                var _this = this;
+                var p = _super.prototype.DisplayLens.call(this, data);
+                var container = this._element;
+                var lensG = this._lens_circle_G;
+                this._pie.value(function (d) {
+                    return d;
+                }).sort(null);
+                lensG.selectAll("path").data(this._pie(this._data)).enter().append("path").attr("fill", function (d, i) {
+                    return _this._color(i);
+                }).attr("d", this._arc);
+            };
+            PieChartLens.Type = "PieChartLens";
+            return PieChartLens;
+        })(Lens.BaseSingleLens);
+        Lens.PieChartLens = PieChartLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseD3Lens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var BaseCompositeLens = (function (_super) {
+            __extends(BaseCompositeLens, _super);
+            function BaseCompositeLens(element, type, firstLens, secondLens, manyLens) {
+                _super.call(this, element, type, manyLens);
+                this._new_lens_count = 1;
+                this._is_composite_lens = true;
+                this._lc_cx = firstLens.LensCX;
+                this._lc_cy = firstLens.LensCY;
+                this._base_component = firstLens;
+                this._sub_component = secondLens;
+                this._select_circle = new Array();
+                this._lens = new Array();
+                this._lens.push(firstLens);
+                this._select_circle.push({
+                    _line: firstLens.LinkLine,
+                    _sc_cx: firstLens.SelectCircleCX,
+                    _sc_cy: firstLens.SelectCircleCY,
+                    _sc_radius: firstLens.SelectCircleRadius,
+                    _sc_scale: firstLens.SelectCircleScale
+                });
+                this._lens.push(secondLens);
+                this._select_circle.push({
+                    _line: secondLens.LinkLine,
+                    _sc_cx: secondLens.SelectCircleCX,
+                    _sc_cy: secondLens.SelectCircleCY,
+                    _sc_radius: secondLens.SelectCircleRadius,
+                    _sc_scale: secondLens.SelectCircleScale
+                });
+            }
+            Object.defineProperty(BaseCompositeLens.prototype, "Lens", {
+                get: function () {
+                    //这里我感觉有问题，是直接返回本体还是返回复本好
+                    return this._lens;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(BaseCompositeLens.prototype, "SelectCircle", {
+                get: function () {
+                    return this._select_circle;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(BaseCompositeLens.prototype, "ComponentNum", {
+                get: function () {
+                    return this._lens.length;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            BaseCompositeLens.prototype.Render = function (color) {
+                if (!this._sc_lc_svg) {
+                    _super.prototype.Render.call(this, color);
+                }
+                this._base_component.RemoveLens();
+                this._base_component.HostLens = this;
+                if (this._sub_component) {
+                    this._sub_component.RemoveLens();
+                    this._sub_component.HostLens = this;
+                }
+                //Update base component and sub component
+                this._base_component = this;
+                this._sub_component = null;
+            };
+            BaseCompositeLens.prototype.ExtractData = function () {
+                throw new Error('This method is abstract');
+            };
+            BaseCompositeLens.prototype.DisplayLens = function (any) {
+                if (any === void 0) { any = null; }
+                var duration = _super.prototype.DisplayLens.call(this);
+                this.ReDrawLinkLine(this._new_lens_count);
+                return {
+                    lcx: this._lc_cx,
+                    lcy: this._lc_cy,
+                    duration: duration
+                };
+            };
+            BaseCompositeLens.prototype.LensCircleDragFunc = function () {
+                _super.prototype.LensCircleDragFunc.call(this);
+                this.ReDrawLinkLine();
+            };
+            BaseCompositeLens.prototype.LensCircleZoomFunc = function () {
+                _super.prototype.LensCircleZoomFunc.call(this);
+                this.ReDrawLinkLine();
+            };
+            BaseCompositeLens.prototype.AddComponentLens = function (lens) {
+                this._sub_component = lens;
+                if (lens.IsCompositeLens) {
+                    this.AddCompositeLens(lens);
+                }
+                else {
+                    this.AddSingleLens(lens);
+                }
+                return this;
+            };
+            BaseCompositeLens.prototype.RemoveComponentLens = function (lens) {
+                //TODO #1
+                var index = this._lens.indexOf(lens);
+                if (-1 != index) {
+                    this._lens.splice(index, 1);
+                    this._select_circle.splice(index, 1);
+                    if (this.ComponentNum == 1) {
+                        this.RemoveWholeSVG();
+                        var lastLens = this._lens[0];
+                        lastLens.LensCX = this.LensCX;
+                        lastLens.LensCY = this.LensCY;
+                        lastLens.LensRadius = this.LensRadius;
+                        lastLens.LensScale = this.LensScale;
+                        lastLens.DetachHostLens();
+                        return this._lens[0];
+                    }
+                    else if (this.ComponentNum < 1) {
+                        throw new Error('The number of component of this lens is less than 2!!');
+                    }
+                }
+                return this;
+            };
+            BaseCompositeLens.prototype.ReDrawLinkLine = function (newLensCount) {
+                if (newLensCount === void 0) { newLensCount = 0; }
+                var i = newLensCount == 0 ? 0 : this._select_circle.length - newLensCount;
+                for (var len = this._select_circle.length; i < len; ++i) {
+                    var sc = this._select_circle[i];
+                    var theta = Math.atan((this._lc_cy - sc._sc_cy) / (this._lc_cx - sc._sc_cx));
+                    var cosTheta = this._lc_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+                    var sinTheta = this._lc_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+                    sc._line.attr("x1", sc._sc_cx + sc._sc_radius * sc._sc_scale * cosTheta).attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta);
+                    console.log("redraw composite link:" + i);
+                }
+            };
+            BaseCompositeLens.prototype.AddCompositeLens = function (componentLens) {
+                if (componentLens.SelectCircle.length != componentLens.Lens.length)
+                    throw new Error('The length of sc is different from length of lens');
+                for (var i = 0, len = componentLens.Lens.length; i < len; ++i) {
+                    this._lens.push(componentLens.Lens[i]);
+                    this._select_circle.push(componentLens.SelectCircle[i]);
+                    componentLens.Lens[i].ChangeHostTo(this);
+                }
+                componentLens.RemoveWholeSVG();
+                this._manyLens.RemoveLens(componentLens);
+                this._new_lens_count = componentLens.Lens.length;
+            };
+            BaseCompositeLens.prototype.AddSingleLens = function (lens) {
+                this._lens.push(lens);
+                this._select_circle.push({
+                    _line: lens.LinkLine,
+                    _sc_cx: lens.SelectCircleCX,
+                    _sc_cy: lens.SelectCircleCY,
+                    _sc_radius: lens.SelectCircleRadius,
+                    _sc_scale: lens.SelectCircleScale
+                });
+                this._new_lens_count = 1;
+            };
+            BaseCompositeLens.prototype.RemoveWholeSVG = function () {
+                this._sc_lc_svg.transition().duration(500).attr("opacity", "1e-6").remove();
+            };
+            BaseCompositeLens.Type = "BaseCompositeLens";
+            return BaseCompositeLens;
+        })(Lens.BaseD3Lens);
+        Lens.BaseCompositeLens = BaseCompositeLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseCompositeLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var cBoundleLens = (function (_super) {
+            __extends(cBoundleLens, _super);
+            function cBoundleLens(element, firstLens, secondLens, manyLens) {
+                _super.call(this, element, cBoundleLens.Type, firstLens, secondLens, manyLens);
+                this._innerRadius = this._lc_radius - 0;
+                this._cluster = d3.layout.cluster();
+                this._boundle = d3.layout.bundle();
+                this._line = d3.svg.line.radial();
+                this._cluster.size([360, this._innerRadius]).sort(null).value(function (d) {
+                    return d.size;
+                });
+                this._line.interpolate("bundle").tension(.85).radius(function (d) {
+                    return d.y;
+                }).angle(function (d) {
+                    return d.x / 180 * Math.PI;
+                });
+            }
+            cBoundleLens.prototype.Render = function (color) {
+                _super.prototype.Render.call(this, color);
+            };
+            cBoundleLens.prototype.ExtractData = function () {
+                var data = [
+                    { "name": "flare.util.palette.ShapePalette", "size": 2059, "imports": ["flare.util.palette.Palette", "flare.util.Shapes"] },
+                    { "name": "flare.util.palette.SizePalette", "size": 2291, "imports": ["flare.util.palette.Palette"] },
+                    { "name": "flare.util.Property", "size": 5559, "imports": ["flare.util.IPredicate", "flare.util.IValueProxy", "flare.util.IEvaluable"] },
+                    { "name": "flare.util.Shapes", "size": 19118, "imports": ["flare.util.Arrays"] },
+                    { "name": "flare.util.Sort", "size": 6887, "imports": ["flare.util.Arrays", "flare.util.Property"] },
+                    { "name": "flare.util.Stats", "size": 6557, "imports": ["flare.util.Arrays", "flare.util.Property"] },
+                    { "name": "flare.util.Strings", "size": 22026, "imports": ["flare.util.Dates", "flare.util.Property"] },
+                    { "name": "flare.vis.axis.Axes", "size": 1302, "imports": ["flare.animate.Transitioner", "flare.vis.Visualization"] },
+                    { "name": "flare.vis.axis.Axis", "size": 24593, "imports": ["flare.animate.Transitioner", "flare.scale.LinearScale", "flare.util.Arrays", "flare.scale.ScaleType", "flare.util.Strings", "flare.display.TextSprite", "flare.scale.Scale", "flare.util.Stats", "flare.scale.IScaleMap", "flare.vis.axis.AxisLabel", "flare.vis.axis.AxisGridLine"] },
+                    { "name": "flare.vis.axis.AxisGridLine", "size": 652, "imports": ["flare.vis.axis.Axis", "flare.display.LineSprite"] },
+                    { "name": "flare.vis.axis.AxisLabel", "size": 636, "imports": ["flare.vis.axis.Axis", "flare.display.TextSprite"] },
+                    { "name": "flare.vis.axis.CartesianAxes", "size": 6703, "imports": ["flare.animate.Transitioner", "flare.display.RectSprite", "flare.vis.axis.Axis", "flare.display.TextSprite", "flare.vis.axis.Axes", "flare.vis.Visualization", "flare.vis.axis.AxisGridLine"] },
+                    { "name": "flare.vis.controls.AnchorControl", "size": 2138, "imports": ["flare.vis.controls.Control", "flare.vis.Visualization", "flare.vis.operator.layout.Layout"] },
+                    { "name": "flare.vis.controls.ClickControl", "size": 3824, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
+                    { "name": "flare.vis.controls.Control", "size": 1353, "imports": ["flare.vis.controls.IControl", "flare.util.Filter"] },
+                    { "name": "flare.vis.controls.ControlList", "size": 4665, "imports": ["flare.vis.controls.IControl", "flare.util.Arrays", "flare.vis.Visualization", "flare.vis.controls.Control"] },
+                    { "name": "flare.vis.controls.DragControl", "size": 2649, "imports": ["flare.vis.controls.Control", "flare.vis.data.DataSprite"] },
+                    { "name": "flare.vis.controls.ExpandControl", "size": 2832, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.vis.controls.Control", "flare.vis.Visualization"] },
+                    { "name": "flare.vis.controls.HoverControl", "size": 4896, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
+                    { "name": "flare.vis.controls.IControl", "size": 763, "imports": ["flare.vis.controls.Control"] },
+                    { "name": "flare.vis.controls.PanZoomControl", "size": 5222, "imports": ["flare.util.Displays", "flare.vis.controls.Control"] },
+                    { "name": "flare.vis.controls.SelectionControl", "size": 7862, "imports": ["flare.vis.events.SelectionEvent", "flare.vis.controls.Control"] },
+                    { "name": "flare.vis.controls.TooltipControl", "size": 8435, "imports": ["flare.animate.Tween", "flare.display.TextSprite", "flare.vis.controls.Control", "flare.vis.events.TooltipEvent"] },
+                    { "name": "flare.vis.data.Data", "size": 20544, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.data.DataSprite", "flare.vis.data.Tree", "flare.vis.events.DataEvent", "flare.data.DataSet", "flare.vis.data.TreeBuilder", "flare.vis.data.DataList", "flare.data.DataSchema", "flare.util.Sort", "flare.data.DataField", "flare.util.Property"] },
+                    { "name": "flare.vis.data.DataList", "size": 19788, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.util.math.DenseMatrix", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.events.DataEvent", "flare.util.Stats", "flare.util.math.IMatrix", "flare.util.Sort", "flare.util.Filter", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.data.DataSprite", "size": 10349, "imports": ["flare.util.Colors", "flare.vis.data.Data", "flare.display.DirtySprite", "flare.vis.data.render.IRenderer", "flare.vis.data.render.ShapeRenderer"] },
+                    { "name": "flare.vis.data.EdgeSprite", "size": 3301, "imports": ["flare.vis.data.render.EdgeRenderer", "flare.vis.data.DataSprite", "flare.vis.data.NodeSprite", "flare.vis.data.render.ArrowType", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.data.NodeSprite", "size": 19382, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.data.Tree", "flare.util.Sort", "flare.util.Filter", "flare.util.IEvaluable", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.data.render.ArrowType", "size": 698, "imports": [] },
+                    { "name": "flare.vis.data.render.EdgeRenderer", "size": 5569, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.DataSprite", "flare.vis.data.render.IRenderer", "flare.util.Shapes", "flare.util.Geometry", "flare.vis.data.render.ArrowType"] },
+                    { "name": "flare.vis.data.render.IRenderer", "size": 353, "imports": ["flare.vis.data.DataSprite"] },
+                    { "name": "flare.vis.data.render.ShapeRenderer", "size": 2247, "imports": ["flare.util.Shapes", "flare.vis.data.render.IRenderer", "flare.vis.data.DataSprite"] },
+                    { "name": "flare.vis.data.ScaleBinding", "size": 11275, "imports": ["flare.scale.TimeScale", "flare.scale.ScaleType", "flare.scale.LinearScale", "flare.scale.LogScale", "flare.scale.OrdinalScale", "flare.scale.RootScale", "flare.scale.Scale", "flare.scale.QuantileScale", "flare.util.Stats", "flare.scale.QuantitativeScale", "flare.vis.events.DataEvent", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.data.Tree", "size": 7147, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.events.DataEvent", "flare.vis.data.NodeSprite", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.data.TreeBuilder", "size": 9930, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.Tree", "flare.util.heap.HeapNode", "flare.util.heap.FibonacciHeap", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.events.DataEvent", "size": 2313, "imports": ["flare.vis.data.EdgeSprite", "flare.vis.data.NodeSprite", "flare.vis.data.DataList", "flare.vis.data.DataSprite"] },
+                    { "name": "flare.vis.events.SelectionEvent", "size": 1880, "imports": ["flare.vis.events.DataEvent"] },
+                    { "name": "flare.vis.operator.layout.IndentedTreeLayout", "size": 3174, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.operator.layout.Layout", "flare.vis.data.EdgeSprite"] },
+                    { "name": "flare.vis.operator.layout.Layout", "size": 7881, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.vis.data.DataList", "flare.vis.data.DataSprite", "flare.vis.data.EdgeSprite", "flare.vis.Visualization", "flare.vis.axis.CartesianAxes", "flare.vis.axis.Axes", "flare.animate.TransitionEvent", "flare.vis.operator.Operator"] },
+                    { "name": "flare.vis.operator.layout.NodeLinkTreeLayout", "size": 12870, "imports": ["flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.util.Orientation", "flare.vis.operator.layout.Layout"] },
+                    { "name": "flare.vis.operator.layout.PieLayout", "size": 2728, "imports": ["flare.vis.data.DataList", "flare.vis.data.DataSprite", "flare.util.Shapes", "flare.util.Property", "flare.vis.operator.layout.Layout", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.operator.layout.RadialTreeLayout", "size": 12348, "imports": ["flare.vis.data.NodeSprite", "flare.util.Arrays", "flare.vis.operator.layout.Layout"] },
+                    { "name": "flare.vis.operator.layout.RandomLayout", "size": 870, "imports": ["flare.vis.operator.layout.Layout", "flare.vis.data.DataSprite", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.operator.layout.StackedAreaLayout", "size": 9121, "imports": ["flare.scale.TimeScale", "flare.scale.LinearScale", "flare.util.Arrays", "flare.scale.OrdinalScale", "flare.vis.data.NodeSprite", "flare.scale.Scale", "flare.vis.axis.CartesianAxes", "flare.util.Stats", "flare.util.Orientation", "flare.scale.QuantitativeScale", "flare.util.Maths", "flare.vis.operator.layout.Layout"] },
+                    { "name": "flare.vis.operator.layout.TreeMapLayout", "size": 9191, "imports": ["flare.animate.Transitioner", "flare.vis.data.NodeSprite", "flare.util.Property", "flare.vis.operator.layout.Layout"] },
+                    { "name": "flare.vis.operator.Operator", "size": 2490, "imports": ["flare.animate.Transitioner", "flare.vis.operator.IOperator", "flare.util.Property", "flare.util.IEvaluable", "flare.vis.Visualization"] },
+                    { "name": "flare.vis.operator.OperatorList", "size": 5248, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.operator.IOperator", "flare.vis.Visualization", "flare.vis.operator.Operator"] },
+                    { "name": "flare.vis.operator.OperatorSequence", "size": 4190, "imports": ["flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.operator.IOperator", "flare.vis.operator.OperatorList", "flare.animate.FunctionSequence", "flare.vis.operator.Operator"] },
+                    { "name": "flare.vis.operator.OperatorSwitch", "size": 2581, "imports": ["flare.animate.Transitioner", "flare.vis.operator.OperatorList", "flare.vis.operator.IOperator", "flare.vis.operator.Operator"] },
+                    { "name": "flare.vis.operator.SortOperator", "size": 2023, "imports": ["flare.vis.operator.Operator", "flare.animate.Transitioner", "flare.util.Arrays", "flare.vis.data.Data"] },
+                    { "name": "flare.vis.Visualization", "size": 16540, "imports": ["flare.animate.Transitioner", "flare.vis.operator.IOperator", "flare.animate.Scheduler", "flare.vis.events.VisualizationEvent", "flare.vis.data.Tree", "flare.vis.events.DataEvent", "flare.vis.axis.Axes", "flare.vis.axis.CartesianAxes", "flare.util.Displays", "flare.vis.operator.OperatorList", "flare.vis.controls.ControlList", "flare.animate.ISchedulable", "flare.vis.data.Data"] }
+                ];
+                return data;
+            };
+            cBoundleLens.prototype.DisplayLens = function (any) {
+                if (any === void 0) { any = null; }
+                _super.prototype.DisplayLens.call(this);
+                var data = this.ExtractData();
+                var container = this._element;
+                var lensG = this._lens_circle_G;
+                var nodes = this._cluster.nodes(packageHierarchy(data)), links = packageImports(nodes);
+                lensG.selectAll(".link").data(this._boundle(links)).enter().append("path").attr("class", "link").attr("d", this._line).attr("stroke", "steelblue").attr("stroke-opacity", ".4").attr("fill", "none");
+                lensG.selectAll(".node").data(nodes.filter(function (n) {
+                    return !n.children;
+                })).enter().append("g").attr("class", "node").attr("transform", function (d) {
+                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
+                }).attr("font", '11px "Helvetica Neue", Helvetica, Arial, sans-serif').append("text").attr("dx", function (d) {
+                    return d.x < 180 ? 8 : -8;
+                }).attr("dy", ".31em").attr("text-anchor", function (d) {
+                    return d.x < 180 ? "start" : "end";
+                }).attr("transform", function (d) {
+                    return d.x < 180 ? null : "rotate(180)";
+                }).text(function (d) {
+                    return d.key;
+                });
+                function packageHierarchy(classes) {
+                    var map = {};
+                    function find(name, data) {
+                        var node = map[name], i;
+                        if (!node) {
+                            node = map[name] = data || { name: name, children: [] };
+                            if (name.length) {
+                                node.parent = find(name.substring(0, i = name.lastIndexOf(".")), null);
+                                node.parent.children.push(node);
+                                node.key = name.substring(i + 1);
+                            }
+                        }
+                        return node;
+                    }
+                    classes.forEach(function (d) {
+                        find(d.name, d);
+                    });
+                    return map[""];
+                }
+                // Return a list of imports for the given array of nodes.
+                function packageImports(nodes) {
+                    var map = {}, imports = [];
+                    // Compute a map from name to node.
+                    nodes.forEach(function (d) {
+                        map[d.name] = d;
+                    });
+                    // For each import, construct a link from the source to target node.
+                    nodes.forEach(function (d) {
+                        if (d.imports)
+                            d.imports.forEach(function (i) {
+                                var t = map[i];
+                                if (t) {
+                                    imports.push({ source: map[d.name], target: t });
+                                }
+                            });
+                    });
+                    return imports;
+                }
+            };
+            cBoundleLens.Type = "BoundleLens";
+            return cBoundleLens;
+        })(Lens.BaseCompositeLens);
+        Lens.cBoundleLens = cBoundleLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
 /*--------------- Single Lens  ----------------*/
 ///<reference path = "../Lens/BarChartLens.ts" />
-///<reference path = "../Lens/BoundleLens.ts"  />
+///<reference path = "../Lens/WordCloudLens.ts"/>
 ///<reference path = "../Lens/LocationLens.ts" />
 ///<reference path = "../Lens/NetworkLens.ts"  />
 ///<reference path = "../Lens/PieChartLens.ts" />
 /*------------ CompositeLens Lens -------------*/
-///<reference path = "../Lens/WordCloudLens.ts"/>
+///<reference path = "../Lens/cBoundleLens.ts" />
 (function () {
 })();
 ///<reference path = "../D3ChartObject.ts" />
@@ -1385,6 +1416,7 @@ var ManyLens;
         //TODO need to implementation
         ManyLens.prototype.RemoveLens = function (lens) {
             var lens;
+            this._lens.delete(lens.ID);
             return lens;
         };
         ManyLens.prototype.DetachCompositeLens = function (element, hostLens, componentLens) {
@@ -1394,8 +1426,8 @@ var ManyLens;
                 lensC.DisplayLens();
             }
             else {
-                this._lens.delete(hostLens.ID);
-                lensC.ShowLens();
+                this.RemoveLens(hostLens);
+                lensC.DisplayLens();
             }
         };
         return ManyLens;
@@ -1420,27 +1452,27 @@ var ManyLens;
             switch (t) {
                 case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
-                        return new ManyLens.Lens.BoundleLens(element, firstLens, secondLens, manyLens);
+                        return new ManyLens.Lens.cBoundleLens(element, firstLens, secondLens, manyLens);
                     }
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
-                        if (firstLens.Type != ManyLens.Lens.BoundleLens.Type) {
+                        if (firstLens.Type != ManyLens.Lens.cBoundleLens.Type) {
                             var tempLens = firstLens;
                             firstLens = secondLens;
                             secondLens = tempLens;
                         }
                         return firstLens.AddComponentLens(secondLens);
                     }
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
-                        if (firstLens.Type != ManyLens.Lens.BoundleLens.Type) {
+                        if (firstLens.Type != ManyLens.Lens.cBoundleLens.Type) {
                             var tempLens = firstLens;
                             firstLens = secondLens;
                             secondLens = tempLens;
                         }
                         return firstLens.AddComponentLens(secondLens);
                     }
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.BoundleLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.cBoundleLens.Type:
                     {
                         return firstLens.AddComponentLens(secondLens);
                     }
@@ -1451,11 +1483,11 @@ var ManyLens;
         LensAssemblyFactory.DetachLens = function (element, hostLens, componentLens, manyLens) {
             var t = [hostLens.Type, componentLens.Type].sort().join("_");
             switch (t) {
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
                         return hostLens.RemoveComponentLens(componentLens);
                     }
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
                         return hostLens.RemoveComponentLens(componentLens);
                     }

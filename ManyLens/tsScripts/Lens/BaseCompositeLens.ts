@@ -21,6 +21,8 @@ module ManyLens {
             protected _base_component: BaseD3Lens;
             protected _sub_component: BaseD3Lens;
 
+            protected _new_lens_count: number = 1;
+
             public get Lens(): Array<BaseSingleLens> {
                 //这里我感觉有问题，是直接返回本体还是返回复本好
                 return this._lens;
@@ -73,15 +75,19 @@ module ManyLens {
                     super.Render(color);
                 }
 
-                this._base_component.HideLens();
+                this._base_component.RemoveLens();
                 this._base_component.HostLens = this;
                 
 
                 if (this._sub_component) {
-                    this._sub_component.HideLens();
+                    this._sub_component.RemoveLens();
                     this._sub_component.HostLens = this;
                     
                 }
+
+                //Update base component and sub component
+                this._base_component = this;
+                this._sub_component = null;
             }
 
             protected ExtractData(): Array<any> {
@@ -94,9 +100,8 @@ module ManyLens {
                 
                 var duration = super.DisplayLens();
 
-                this._base_component = this;
-                this._sub_component = null;
 
+                this.ReDrawLinkLine(this._new_lens_count);
                 return {
                     lcx:this._lc_cx,
                     lcy: this._lc_cy,
@@ -121,6 +126,7 @@ module ManyLens {
                 this._sub_component = lens;
                 if (lens.IsCompositeLens) {
                     this.AddCompositeLens(<Lens.BaseCompositeLens>lens);
+
                 } else {
                     this.AddSingleLens(<Lens.BaseSingleLens>lens);
                 }
@@ -141,6 +147,7 @@ module ManyLens {
                         lastLens.LensCY = this.LensCY;
                         lastLens.LensRadius = this.LensRadius;
                         lastLens.LensScale = this.LensScale;
+                        lastLens.DetachHostLens();
 
                         return this._lens[0];
 
@@ -152,9 +159,9 @@ module ManyLens {
                 return this;
             }
 
-            private ReDrawLinkLine(): void {
-
-                for (var i = 0, len = this._select_circle.length; i < len; ++i) {
+            private ReDrawLinkLine(newLensCount:number = 0): void {
+                var i = newLensCount == 0 ? 0 : this._select_circle.length - newLensCount;
+                for (var len = this._select_circle.length; i < len; ++i) {
                     var sc = this._select_circle[i];
                     var theta = Math.atan((this._lc_cy - sc._sc_cy) / (this._lc_cx - sc._sc_cx));
                     var cosTheta = this._lc_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
@@ -167,7 +174,6 @@ module ManyLens {
                         .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
                     console.log("redraw composite link:" + i);
                 }
-
             }
 
             private AddCompositeLens(componentLens: BaseCompositeLens): void {
@@ -177,7 +183,12 @@ module ManyLens {
                 for (var i = 0, len = componentLens.Lens.length; i < len; ++i) {
                     this._lens.push(componentLens.Lens[i]);
                     this._select_circle.push(componentLens.SelectCircle[i]);
+                    componentLens.Lens[i].ChangeHostTo(this);
                 }
+
+                componentLens.RemoveWholeSVG();
+                this._manyLens.RemoveLens(componentLens);
+                this._new_lens_count = componentLens.Lens.length;
             }
 
             private AddSingleLens(lens: BaseSingleLens):void {
@@ -189,6 +200,7 @@ module ManyLens {
                     _sc_radius: lens.SelectCircleRadius,
                     _sc_scale: lens.SelectCircleScale
                 });
+                this._new_lens_count = 1;
             }
 
             private RemoveWholeSVG() {
