@@ -98,12 +98,9 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(any): any {
+            public DisplayLens():void {
                 super.DisplayLens();
                 var data = this.ExtractData();
-
-                var container = this._element;
-                var lensG = this._lens_circle_G;
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(data)
@@ -122,7 +119,6 @@ module ManyLens {
             private DrawCloud(words: any[], bounds: any[]) {
                 var w = this._cloud_w;
                 var h = this._cloud_h;
-                var container = this._element;
 
                 //Maybe need to scale, but I haven't implemented it now
                 var scale = bounds ? Math.min(

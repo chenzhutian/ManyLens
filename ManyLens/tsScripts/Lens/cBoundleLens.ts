@@ -96,7 +96,7 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(any = null): any {
+            public DisplayLens(): void {
                 super.DisplayLens();
                 var data = this.ExtractData();
 

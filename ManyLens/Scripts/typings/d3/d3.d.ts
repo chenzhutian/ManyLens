@@ -1120,6 +1120,11 @@ declare module D3 {
             cloud(): CloudLayout;
         }
 
+        //The definistion by myself -czt
+        interface cloudData {
+            text: string;
+            value: number;
+        }
 
         //The definistion by myself -czt
         export interface CloudLayout {
@@ -1137,11 +1142,11 @@ declare module D3 {
                 (interval: (d: any, i: number) => number): CloudLayout;
             }
             words: {
-                (): string[];
-                (word: string[]): CloudLayout;
-                (word: () => string[]): CloudLayout;
-                (word: (d: any) => string[]): CloudLayout;
-                (word: (d: any, i: number) => string[]): CloudLayout;
+                (): cloudData[];
+                (word: cloudData[]): CloudLayout;
+                (word: () => cloudData[]): CloudLayout;
+                (word: (d: any) => cloudData[]): CloudLayout;
+                (word: (d: any, i: number) => cloudData[]): CloudLayout;
             }
             size: {
                 (): [number, number];

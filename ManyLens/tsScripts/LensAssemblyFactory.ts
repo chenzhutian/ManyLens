@@ -15,38 +15,58 @@ module ManyLens {
                 .join("_");
             console.log(Lens.cBoundleLens.Type);
             switch (t) {
+
+                /*--------------------------------cBoundle Lens------------------------------*/
+                //single + single = composite
                 case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
                     return new Lens.cBoundleLens(element,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens,
                         manyLens);
                 }
-                case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: {
-                    if (firstLens.Type != Lens.cBoundleLens.Type) {
-                        var tempLens = firstLens;
-                        firstLens = secondLens;
-                        secondLens = tempLens;
-                    }
-                    return (<Lens.cBoundleLens>firstLens).AddComponentLens(secondLens);
-                }
+                //composite + single||composite = composite
+                case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: 
                 case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
                     if (firstLens.Type != Lens.cBoundleLens.Type) {
                         var tempLens = firstLens;
                         firstLens = secondLens;
                         secondLens = tempLens;
                     }
-                    return (<Lens.cBoundleLens>firstLens).AddComponentLens(secondLens);
                 }
                 case Lens.cBoundleLens.Type + "_" + Lens.cBoundleLens.Type: {
                     return (<Lens.cBoundleLens>firstLens).AddComponentLens(secondLens);
                 }
 
+
+                /*-----------------------------cChord Diagram Lens--------------------------*/
+                //single + single = composite
+                case Lens.NetworkLens.Type + "_" + Lens.PieChartLens.Type: {
+                    return new Lens.cChordDiagramLens(element,
+                        <Lens.BaseSingleLens>firstLens,
+                        <Lens.BaseSingleLens>secondLens,
+                        manyLens);
+                }
+                //composite + single||composite = composite
+                case Lens.cChordDiagramLens.Type + "_" + Lens.PieChartLens.Type: 
+                case Lens.cChordDiagramLens.Type + "_" + Lens.NetworkLens.Type: {
+                    if (firstLens.Type != Lens.cChordDiagramLens.Type) {
+                        var tempLens = firstLens;
+                        firstLens = secondLens;
+                        secondLens = tempLens;
+                    }
+                }
+                case Lens.cChordDiagramLens.Type + "_" + Lens.cChordDiagramLens.Type: {
+                    return (<Lens.cChordDiagramLens>firstLens).AddComponentLens(secondLens);
+                }
+                
+                /*----------------------------Single Lens Self Increment---------------------*/
                 case Lens.WordCloudLens.Type + "_" + Lens.WordCloudLens.Type: {
                     return new Lens.cWordCloudLens(element,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens,
                         manyLens);
                 }
+
                 default: {
                     console.log(t);
                     return null;
@@ -64,12 +84,17 @@ module ManyLens {
                 })
                 .join("_");
             switch (t) {
+
+                /*--------------------------------cBoundle Lens------------------------------*/
                 case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: {
                     return hostLens.RemoveComponentLens(componentLens);
                 }
                 case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
                     return hostLens.RemoveComponentLens(componentLens);
                 }
+
+
+
                 default: return null;
             }
         }

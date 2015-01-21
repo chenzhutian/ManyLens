@@ -9,15 +9,29 @@ module ManyLens{
             private _innerRadius: number = this._lc_radius - 20;
             private _outterRadius: number = this._lc_radius - 0;
             private _pie: D3.Layout.PieLayout = d3.layout.pie();
-            private _arc: D3.Svg.Arc = d3.svg.arc()
-                .innerRadius(this._innerRadius)
-                .outerRadius(this._outterRadius)
-            //    .startAngle(0)
-            ;
-            protected _color: D3.Scale.OrdinalScale = d3.scale.category20();
+            private _arc: D3.Svg.Arc = d3.svg.arc();
+
+            private _color: D3.Scale.OrdinalScale = d3.scale.category20();
+
+            public get Color(): D3.Scale.OrdinalScale {
+                return this._color;
+            }
 
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
                 super(element, PieChartLens.Type,manyLens);
+                this._arc
+                    .innerRadius(this._innerRadius)
+                    .outerRadius(this._outterRadius)
+                //    .startAngle(0)
+                ;
+
+                this._pie
+                    .value((d) => {
+                        return d;
+                    })
+                    .sort(null)
+                    .padAngle(.02)
+                ;
 
             }
 
@@ -41,11 +55,7 @@ module ManyLens{
                 var container = this._element;
                 var lensG = this._lens_circle_G;
 
-                this._pie.value((d) => {
-                    return d;
-                })
-                    .sort(null)
-                ;
+
 
                 lensG.selectAll("path")
                     .data(this._pie(this._data))

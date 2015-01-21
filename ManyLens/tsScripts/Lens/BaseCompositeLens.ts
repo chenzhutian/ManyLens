@@ -94,19 +94,11 @@ module ManyLens {
                 throw new Error('This method is abstract');
             }
 
-            public DisplayLens(any = null): {
-                lcx: number; lcy: number; duration: number
-            } {
-                
-                var duration = super.DisplayLens();
+            public DisplayLens():void {
+                super.DisplayLens();
 
 
                 this.ReDrawLinkLine(this._new_lens_count);
-                return {
-                    lcx:this._lc_cx,
-                    lcy: this._lc_cy,
-                    duration: duration
-                };
             }
 
             protected LensCircleDragFunc(): void {
@@ -172,7 +164,7 @@ module ManyLens {
                         .attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta)
                         .attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta)
                         .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
-                    console.log("redraw composite link:" + i);
+                    //console.log("redraw composite link:" + i);
                 }
             }
 
@@ -201,12 +193,16 @@ module ManyLens {
                     _sc_scale: lens.SelectCircleScale
                 });
                 this._new_lens_count = 1;
+
+
             }
 
             private RemoveWholeSVG() {
+                
                 this._sc_lc_svg
+                    .style("point-event","none")
                     .transition()
-                    .duration(500)  //this is hard code, should be optimize
+                    .duration(200)  //this is hard code, should be optimize
                     .attr("opacity","1e-6")
                     .remove();
             }
