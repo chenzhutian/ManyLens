@@ -965,7 +965,7 @@ declare module D3 {
                 */
                 (elements: EventTarget[]): Transition;
             }
-            each: (type?: string, eachFunction?: (data: any, index: number) => any) => Transition;
+            each: (type?:string, eachFunction?: (data: any, index: number) => any) => Transition;
             transition: () => Transition;
             ease: (value: string, ...arrs: any[]) => Transition;
             attrTween(name: string, tween: (d: any, i: number, a: any) => BaseInterpolate): Transition;
@@ -1259,6 +1259,11 @@ declare module D3 {
             _children?: GraphNode[];
             parent?: GraphNode;
             depth?: number;
+
+            // for cPieChart
+            sum?: number;
+            key?: string;
+            fill?: any;
         }
 
         export interface GraphLink {

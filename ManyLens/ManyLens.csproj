@@ -21,7 +21,6 @@
     <Content Include="img\chinamap.svg" />
     <Content Include="img\usmap.svg" />
     <Content Include="ManyLens.html" />
-    <Content Include="Scripts\d3.js" />
     <Content Include="Scripts\d3.layout.cloud.js" />
     <Content Include="Scripts\d3\d3.js" />
     <Content Include="Scripts\d3\d3.min.js" />
@@ -41,6 +40,7 @@
     <TypeScriptCompile Include="tsScripts\Lens\BaseD3Lens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cBoundleLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cChordDiagramLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\cPieChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cWordCloudLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\LensList.ts" />
     <TypeScriptCompile Include="tsScripts\Pane\ClassicLensPane.ts" />

@@ -4,51 +4,68 @@ var ManyLens;
         function LensAssemblyFactory() {
         }
         LensAssemblyFactory.CombineLens = function (element, firstLens, secondLens, manyLens) {
-            var t = [firstLens.Type, secondLens.Type].sort().join("_");
+            var t = [firstLens.Type, secondLens.Type].sort(function (a, b) {
+                return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+            }).join("_");
+            console.log(ManyLens.Lens.cBoundleLens.Type);
             switch (t) {
                 case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
-                        return new ManyLens.Lens.BoundleLens(element, firstLens, secondLens, manyLens);
+                        return new ManyLens.Lens.cBoundleLens(element, firstLens, secondLens, manyLens);
                     }
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
-                        if (firstLens.Type != ManyLens.Lens.BoundleLens.Type) {
+                        if (firstLens.Type != ManyLens.Lens.cBoundleLens.Type) {
                             var tempLens = firstLens;
                             firstLens = secondLens;
                             secondLens = tempLens;
                         }
-                        firstLens.AddComponentLens(secondLens);
-                        return firstLens;
                     }
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.cBoundleLens.Type:
                     {
-                        if (firstLens.Type != ManyLens.Lens.BoundleLens.Type) {
+                        return firstLens.AddComponentLens(secondLens);
+                    }
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
+                    {
+                        return new ManyLens.Lens.cChordDiagramLens(element, firstLens, secondLens, manyLens);
+                    }
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                    {
+                        if (firstLens.Type != ManyLens.Lens.cChordDiagramLens.Type) {
                             var tempLens = firstLens;
                             firstLens = secondLens;
                             secondLens = tempLens;
                         }
-                        firstLens.AddComponentLens(secondLens);
-                        return firstLens;
                     }
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.BoundleLens.Type:
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
                     {
-                        firstLens.AddComponentLens(secondLens);
-                        return firstLens;
+                        return firstLens.AddComponentLens(secondLens);
+                    }
+                case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                    {
+                        return new ManyLens.Lens.cWordCloudLens(element, firstLens, secondLens, manyLens);
                     }
                 default:
-                    return null;
+                    {
+                        console.log(t);
+                        return null;
+                    }
             }
         };
         LensAssemblyFactory.DetachLens = function (element, hostLens, componentLens, manyLens) {
-            var t = [hostLens.Type, componentLens.Type].sort().join("_");
+            var t = [hostLens.Type, componentLens.Type].sort(function (a, b) {
+                return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+            }).join("_");
             switch (t) {
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
-                        return new ManyLens.Lens.NetworkLens(element, manyLens);
+                        return hostLens.RemoveComponentLens(componentLens);
                     }
-                case ManyLens.Lens.BoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
-                        return new ManyLens.Lens.WordCloudLens(element, manyLens);
+                        return hostLens.RemoveComponentLens(componentLens);
                     }
                 default:
                     return null;

@@ -67,6 +67,13 @@ module ManyLens {
                         manyLens);
                 }
 
+                case Lens.PieChartLens.Type + "_" + Lens.PieChartLens.Type: {
+                    return new Lens.cPieChartLens(element,
+                        <Lens.BaseSingleLens>firstLens,
+                        <Lens.BaseSingleLens>secondLens,
+                        manyLens);
+                }
+
                 default: {
                     console.log(t);
                     return null;

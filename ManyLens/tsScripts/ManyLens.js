@@ -20,16 +20,6 @@ var ManyLens;
             this._historyTrees.addTree();
             this._lensPane.Render();
         }
-        ManyLens.prototype.AddLens = function (lens) {
-            this._lens.set("lens_" + this._lens_count, lens);
-            this._lens_count++;
-            console.log("add Node");
-            this._historyTrees.addNode({
-                color: lens.LensTypeColor,
-                lensType: lens.Type,
-                tree_id: 0
-            });
-        };
         Object.defineProperty(ManyLens.prototype, "LensCount", {
             get: function () {
                 return this._lens_count;
@@ -40,9 +30,31 @@ var ManyLens;
         ManyLens.prototype.GetLens = function (id) {
             return this._lens.get(id);
         };
+        ManyLens.prototype.AddLens = function (lens) {
+            this._lens.set("lens_" + this._lens_count, lens);
+            this._lens_count++;
+            console.log("add Node");
+            this._historyTrees.addNode({
+                color: lens.LensTypeColor,
+                lensType: lens.Type,
+                tree_id: 0
+            });
+        };
         ManyLens.prototype.RemoveLens = function (lens) {
             var lens;
+            this._lens.delete(lens.ID);
             return lens;
+        };
+        ManyLens.prototype.DetachCompositeLens = function (element, hostLens, componentLens) {
+            var lensC = _ManyLens.LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
+            if (lensC.IsCompositeLens) {
+                lensC.Render("black");
+                lensC.DisplayLens();
+            }
+            else {
+                this.RemoveLens(hostLens);
+                lensC.DisplayLens();
+            }
         };
         return ManyLens;
     })();
