@@ -2,10 +2,6 @@
 module ManyLens {
     export module Lens {
 
-        interface cloudData {
-            text: string;
-            value: number;
-        }
 
         export class cWordCloudLens extends BaseCompositeLens {
 
@@ -13,6 +9,7 @@ module ManyLens {
 
             private _font_size: D3.Scale.SqrtScale = d3.scale.sqrt();
             private _cloud: D3.Layout.CloudLayout = d3.layout.cloud();
+      
             private _cloud_w: number = this._lc_radius * 2;//Math.sqrt(2);
             private _cloud_h: number = this._cloud_w;
             private _cloud_padding: number = 1;
@@ -37,8 +34,8 @@ module ManyLens {
             }
 
             // data shape {text: size:}
-            protected ExtractData(): Array<cloudData> {
-                var data: Array<cloudData>
+            protected ExtractData(): Array<D3.Layout.ICloudData> {
+                var data: Array<D3.Layout.ICloudData>
                 data = [
                     { text: "Samsung", value: 90 },
                     { text: "Apple", value: 50 },

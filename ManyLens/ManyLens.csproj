@@ -29,6 +29,7 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\typings\d3.cloud.layout\d3.cloud.layout.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\jquery\jquery.d.ts" />
     <TypeScriptCompile Include="tsScripts\app.ts" />
     <TypeScriptCompile Include="Scripts\typings\d3\d3.d.ts" />

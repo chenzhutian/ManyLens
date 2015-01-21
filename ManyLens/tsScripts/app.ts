@@ -1,4 +1,4 @@
-﻿///<reference path = "../Scripts/typings/d3/d3.d.ts" />
+﻿
 ///<reference path = "../tsScripts/ManyLens.ts" />
 "use strict";
 

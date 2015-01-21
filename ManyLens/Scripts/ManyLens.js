@@ -1,3 +1,5 @@
+///<reference path = "../Scripts/typings/d3/d3.d.ts" />
+///<reference path = "../Scripts/typings/d3.cloud.layout/d3.cloud.layout.d.ts" />
 var ManyLens;
 (function (ManyLens) {
     var D3ChartObject = (function () {
@@ -286,7 +288,7 @@ var ManyLens;
                 var _this = this;
                 if (any === void 0) { any = null; }
                 var duration = 300;
-                this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("id", "lens_" + this._manyLens.LensCount).attr("class", "lens-circle-g " + this._type).attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")").attr("opacity", "1e-6").style("point-event", "none").on("contextmenu", function () {
+                this._lens_circle_G = this._sc_lc_svg.append("g").data([{ x: this._lc_cx, y: this._lc_cy }]).attr("id", "lens_" + this._manyLens.LensCount).attr("class", "lens-circle-g " + this._type).attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")").attr("opacity", "1e-6").style("pointer-events", "none").on("contextmenu", function () {
                     //d3.event.preventDefault();
                 }).on("mousedown", function () {
                     console.log("mousedown " + _this._type);
@@ -305,7 +307,7 @@ var ManyLens;
                 //Add this lens to the app class
                 this._manyLens.AddLens(this);
                 this._lens_circle_G.transition().duration(duration).attr("opacity", "1").each("end", function () {
-                    console.log("end");
+                    d3.select(this).style("pointer-events", "");
                 });
                 ;
                 return duration;
@@ -390,7 +392,7 @@ var ManyLens;
             //        .style("visibility", "visible");
             //}
             BaseD3Lens.prototype.RemoveLens = function () {
-                this._lens_circle_G.attr("opacity", "1").style("point-event", "none").transition().duration(200).attr("opacity", "1e-6").remove();
+                this._lens_circle_G.attr("opacity", "1").style("pointer-events", "none").transition().duration(200).attr("opacity", "1e-6").remove();
             };
             BaseD3Lens.Type = "BaseD3Lens";
             return BaseD3Lens;
@@ -923,7 +925,7 @@ var ManyLens;
                 this._arc.innerRadius(this._innerRadius).outerRadius(this._outterRadius);
                 this._pie.value(function (d) {
                     return d;
-                }).sort(null).padAngle(.02);
+                }).sort(null);
             }
             Object.defineProperty(PieChartLens.prototype, "Color", {
                 get: function () {
@@ -1109,7 +1111,7 @@ var ManyLens;
                 this._new_lens_count = 1;
             };
             BaseCompositeLens.prototype.RemoveWholeSVG = function () {
-                this._sc_lc_svg.style("point-event", "none").transition().duration(200).attr("opacity", "1e-6").remove();
+                this._sc_lc_svg.style("pointer-events", "none").transition().duration(200).attr("opacity", "1e-6").remove();
             };
             BaseCompositeLens.Type = "BaseCompositeLens";
             return BaseCompositeLens;
@@ -1437,7 +1439,6 @@ var ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;
 })(ManyLens || (ManyLens = {}));
-///<reference path = "../Scripts/typings/d3/d3.d.ts" />
 ///<reference path = "../tsScripts/ManyLens.ts" />
 "use strict";
 var manyLens;

@@ -3,10 +3,6 @@ module ManyLens {
 
     export module Lens {
 
-        interface cloudData {
-            text: string;
-            value: number;
-        }
         export class WordCloudLens extends BaseSingleLens {
 
             public static Type: string = "WordCloudLens";
@@ -34,8 +30,8 @@ module ManyLens {
             }
 
             // data shape {text: size:}
-            protected ExtractData(): Array<cloudData> {
-                var data: Array<cloudData>
+            protected ExtractData(): Array<D3.Layout.ICloudData> {
+                var data: Array<D3.Layout.ICloudData>
                 data = [
                     { text: "Samsung", value: 90 },
                     { text: "Apple", value: 50 },

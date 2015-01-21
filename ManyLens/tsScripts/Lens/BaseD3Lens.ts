@@ -130,7 +130,7 @@ module ManyLens {
                     .attr("class", "lens-circle-g " + this._type)
                     .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")")
                     .attr("opacity", "1e-6")
-                    .style("point-event", "none")
+                    .style("pointer-events", "none")
                     .on("contextmenu", () => {
                         //d3.event.preventDefault();
                     })
@@ -172,7 +172,7 @@ module ManyLens {
 
                     .attr("opacity", "1")
                     .each("end", function () {
-                        console.log("end");
+                        d3.select(this).style("pointer-events", "");
                     });
                 ;
 
@@ -284,7 +284,7 @@ module ManyLens {
             public RemoveLens() {
                 this._lens_circle_G
                     .attr("opacity", "1")
-                    .style("point-event", "none")
+                    .style("pointer-events", "none")
                     .transition()
                     .duration(200)  //this is hard code, should be optimize
                     .attr("opacity", "1e-6")

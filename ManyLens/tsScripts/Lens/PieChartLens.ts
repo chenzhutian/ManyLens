@@ -30,7 +30,7 @@ module ManyLens{
                         return d;
                     })
                     .sort(null)
-                    .padAngle(.02)
+                   // .padAngle(.02)
                 ;
 
             }

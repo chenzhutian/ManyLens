@@ -200,7 +200,7 @@ module ManyLens {
             private RemoveWholeSVG() {
                 
                 this._sc_lc_svg
-                    .style("point-event","none")
+                    .style("pointer-events", "none")
                     .transition()
                     .duration(200)  //this is hard code, should be optimize
                     .attr("opacity","1e-6")
