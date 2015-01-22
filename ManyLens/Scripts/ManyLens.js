@@ -1772,7 +1772,7 @@ var ManyLens;
                     if (document.documentElement['__transition__'])
                         return;
                     // Rescale outside angles to match the new layout.
-                    var enterArc, exitArc, outsideAngle = d3.scale.linear().domain([0, 2 * Math.PI]);
+                    var enterArc, exitArc, outsideAngle = d3.scale.linear().domain([0, 2 * Math.PI]).range([p.x, p.x + p.dx]);
                     function insideArc(d) {
                         return p.key > d.key ? { depth: d.depth - 1, x: 0, dx: 0 } : p.key < d.key ? { depth: d.depth - 1, x: 2 * Math.PI, dx: 0 } : { depth: 0, x: 0, dx: 2 * Math.PI };
                     }
@@ -1787,14 +1787,14 @@ var ManyLens;
                     // When zooming in, arcs enter from the outside and exit to the inside.
                     // Entering outside arcs start from the old layout.
                     if (root === p)
-                        enterArc = outsideArc, exitArc = insideArc, outsideAngle.range([p.x, p.x + p.dx]);
-                    path = path.data(partition.nodes(root).slice(1), function (d) {
-                        return d.key;
-                    });
+                        enterArc = outsideArc, exitArc = insideArc;
                     // When zooming out, arcs enter from the inside and exit to the outside.
                     // Exiting outside arcs transition to the new layout.
                     if (root !== p)
-                        enterArc = insideArc, exitArc = outsideArc, outsideAngle.range([p.x, p.x + p.dx]);
+                        enterArc = insideArc, exitArc = outsideArc;
+                    path = path.data(partition.nodes(root).slice(1), function (d) {
+                        return d.key;
+                    });
                     d3.transition().duration(d3.event.altKey ? 7500 : 750).each(function () {
                         path.exit().transition().style("fill-opacity", function (d) {
                             return +(d.depth === 1 + ((root === p) ? 1 : 0));
@@ -1838,6 +1838,7 @@ var ManyLens;
                     return { depth: d.depth, x: d.x, dx: d.dx };
                 }
             };
+            //TODO need to refine this lens
             cPieChartLens.Type = "cPieChartLens";
             return cPieChartLens;
         })(Lens.BaseCompositeLens);
