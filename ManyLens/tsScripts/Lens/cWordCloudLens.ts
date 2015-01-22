@@ -22,7 +22,7 @@ module ManyLens {
                 firstLens: BaseSingleLens,
                 secondLens: BaseSingleLens,
                 manyLens: ManyLens.ManyLens) {
-                super(element, cBoundleLens.Type, firstLens, secondLens, manyLens);
+                super(element, cWordCloudLens.Type, firstLens, secondLens, manyLens);
 
                 this._cloud_text_color = d3.scale.category20c();
 

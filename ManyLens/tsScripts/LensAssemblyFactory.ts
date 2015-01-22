@@ -66,9 +66,9 @@ module ManyLens {
                         <Lens.BaseSingleLens>secondLens,
                         manyLens);
                 }
-
+                    //just for test now
                 case Lens.PieChartLens.Type + "_" + Lens.PieChartLens.Type: {
-                    return new Lens.cPieChartLens(element,
+                    return new Lens.cPackingCircleLens(element,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens,
                         manyLens);

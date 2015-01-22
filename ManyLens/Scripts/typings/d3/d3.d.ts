@@ -388,6 +388,12 @@ declare module D3 {
         * Interpolate two values
         */
         interpolate: Transition.BaseInterpolate;
+
+        /*
+        * Interpolate two views a and b of a two-dimensional plane
+        * add by CZT
+        */
+        interpolateZoom: Transition.BaseInterpolate;
         /*
         * Interpolate two numbers
         */
