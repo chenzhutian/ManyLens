@@ -104,6 +104,7 @@ module ManyLens {
             protected LensCircleDragFunc(): void {
                 super.LensCircleDragFunc();
 
+                console.log("drag composite lens");
                 this.ReDrawLinkLine();
             }
 
@@ -164,7 +165,7 @@ module ManyLens {
                         .attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta)
                         .attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta)
                         .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
-                    //console.log("redraw composite link:" + i);
+                   // console.log("redraw composite link:" + i);
                 }
             }
 

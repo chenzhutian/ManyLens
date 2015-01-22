@@ -2,6 +2,8 @@
     export module Lens {
         export class cPieChartLens extends BaseCompositeLens {
 
+            public static Type: string = "cPieChartLens";
+
             private _color: D3.Scale.OrdinalScale = d3.scale.category10();
             private _luminance: D3.Scale.SqrtScale = d3.scale.sqrt();
             private _partition: D3.Layout.PartitionLayout = d3.layout.partition();
@@ -11,7 +13,7 @@
                 firstLens: BaseSingleLens,
                 secondLens: BaseSingleLens,
                 manyLens: ManyLens.ManyLens) {
-                super(element, cBoundleLens.Type, firstLens, secondLens, manyLens);
+                super(element, cPieChartLens.Type, firstLens, secondLens, manyLens);
 
                 this._luminance
                     .domain([0, 1e6])
@@ -221,12 +223,13 @@
 
                 // Now redefine the value function to use the previously-computed sum.
                 this._partition
-                    .children(function (d, depth) { console.log(d); return depth < 2 ? d._children : null; })
-                   // .value(function (d) { console.log(d);return d['sum']; })
+                    .children(function (d, depth) { return depth < 2 ? d._children : null; })
+                     .value(function (d) { return d.value; })
                 ;
 
                 var center = svg.append("circle")
                     .attr("r", this._lc_radius / 3)
+                    .style("fill", "#fff")
                     .on("click", zoomOut)
                 ;
 
@@ -234,12 +237,12 @@
                     .text("zoom out");
 
                 var path = svg.selectAll("path")
-                    .data(this._partition.nodes(data).slice(1))
+                        .data(this._partition.nodes(data).slice(1))
                     .enter().append("path")
-                    .attr("d", this._arc)
-                    .style("fill", function (d) { return d.fill; })
-                    .each(function (d) { this._current = updateArc(d); })
-                    .on("click", zoomIn)
+                        .attr("d", this._arc)
+                        .style("fill", function (d) { return d.fill; })
+                        .each(function (d) { this._current = updateArc(d); })
+                        .on("click", zoomIn)
                 ;
 
                 function zoomIn(p) {
@@ -255,7 +258,7 @@
 
                 // Zoom to the specified new root.
                 function zoom(root, p) {
-                    // if (document.documentElement.__transition__) return;
+                    if (document.documentElement['__transition__']) return;
 
                     // Rescale outside angles to match the new layout.
                     var enterArc,
@@ -291,15 +294,17 @@
 
                     d3.transition()
                         .duration(d3.event.altKey ? 7500 : 750)
-                        .each(function (d, i) {
+                        .each(function () {
                             (<D3.UpdateSelection>path).exit().transition()
-                                .style("fill-opacity", function (d) { return d.depth === 1 + ((root === p) ? 1 : 0); })
+                                .style("fill-opacity", function (d) {
+                                    return +(d.depth === 1 + ((root === p) ? 1 : 0));
+                                })
                                 .attrTween("d", function (d) { return arcTween.call(this, exitArc(d)); })
                                 .remove();
 
                             (<D3.UpdateSelection>path).enter().append("path")
                                 .style("fill-opacity", function (d) {
-                                    return d.depth === 2 - ((root === p) ? 1 : 0);
+                                    return +(d.depth === (2 - ((root === p) ? 1 : 0)));
                                 })
                                 .style("fill", function (d) { return d.fill; })
                                 .on("click", zoomIn)

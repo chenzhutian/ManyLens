@@ -206,12 +206,20 @@ module ManyLens {
                 var eles = [];
                 var x = d3.event.sourceEvent.x,
                     y = d3.event.sourceEvent.y;
+
+                var p = d3.mouse(this._element.node());
+                if (p[0] < 0 || p[0] >parseFloat(this._element.style("width")) || p[1] < 0 || p[1] >parseFloat(this._element.style("height")))
+                    return;
+
                 var ele = d3.select(document.elementFromPoint(x, y));
                 while (ele && ele.attr("id") != "mapSvg") {
                     if (ele.attr("class") == "lens-circle") res.push(ele[0][0]);
                     eles.push(ele);
                     ele.style("visibility", "hidden");
                     ele = d3.select(document.elementFromPoint(x, y));
+                    if (eles.length > 10) {
+                        throw new Error("what the fuck");
+                    }
                 }
 
                 for (var i = 0, len = eles.length; i < len; ++i) {
