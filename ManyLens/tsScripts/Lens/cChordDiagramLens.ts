@@ -10,10 +10,10 @@
             private _fill: D3.Scale.OrdinalScale;
 
             constructor(element: D3.Selection,
+                manyLens: ManyLens.ManyLens,
                 firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens,
-                manyLens: ManyLens.ManyLens) {
-                super(element, cChordDiagramLens.Type, firstLens, secondLens, manyLens);
+                secondLens: BaseSingleLens) {
+                super(element, cChordDiagramLens.Type, manyLens, firstLens, secondLens);
 
                 this._chord
                     .padding(.05)

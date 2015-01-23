@@ -12,10 +12,10 @@
             private _arc: D3.Svg.Arc = d3.svg.arc();
 
             constructor(element: D3.Selection,
+                manyLens: ManyLens.ManyLens,
                 firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens,
-                manyLens: ManyLens.ManyLens) {
-                super(element, cPieChartLens.Type, firstLens, secondLens, manyLens);
+                secondLens: BaseSingleLens) {
+                super(element, cPieChartLens.Type, manyLens,firstLens, secondLens );
 
                 this._luminance
                     .domain([0, 1e6])

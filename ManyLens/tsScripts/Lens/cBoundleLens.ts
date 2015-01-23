@@ -11,10 +11,10 @@ module ManyLens {
             private _line: D3.Svg.LineRadial = d3.svg.line.radial();
 
             constructor(element: D3.Selection,
+                manyLens: ManyLens.ManyLens,
                 firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens,
-                manyLens: ManyLens.ManyLens) {
-                super(element, cBoundleLens.Type, firstLens, secondLens, manyLens);
+                secondLens: BaseSingleLens) {
+                super(element, cBoundleLens.Type, manyLens,firstLens, secondLens);
 
                 this._cluster.size([360, this._innerRadius])
                     .sort(null)

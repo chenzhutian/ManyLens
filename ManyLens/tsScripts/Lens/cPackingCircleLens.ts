@@ -9,10 +9,10 @@
             private _diameter: number = this._lc_radius * 2;
 
             constructor(element: D3.Selection,
+                manyLens: ManyLens.ManyLens,
                 firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens,
-                manyLens: ManyLens.ManyLens) {
-                super(element, cPackingCircleLens.Type, firstLens, secondLens, manyLens);
+                secondLens: BaseSingleLens) {
+                super(element, cPackingCircleLens.Type, manyLens,firstLens, secondLens);
 
                 this._color
                     .domain([-1, 5])

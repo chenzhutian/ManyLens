@@ -13,16 +13,16 @@ module ManyLens {
                     return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
                 })
                 .join("_");
-            console.log(Lens.cBoundleLens.Type);
+
             switch (t) {
 
                 /*--------------------------------cBoundle Lens------------------------------*/
                 //single + single = composite
                 case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
                     return new Lens.cBoundleLens(element,
+                        manyLens,
                         <Lens.BaseSingleLens>firstLens,
-                        <Lens.BaseSingleLens>secondLens,
-                        manyLens);
+                        <Lens.BaseSingleLens>secondLens);
                 }
                 //composite + single||composite = composite
                 case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: 
@@ -42,9 +42,9 @@ module ManyLens {
                 //single + single = composite
                 case Lens.NetworkLens.Type + "_" + Lens.PieChartLens.Type: {
                     return new Lens.cChordDiagramLens(element,
+                        manyLens,
                         <Lens.BaseSingleLens>firstLens,
-                        <Lens.BaseSingleLens>secondLens,
-                        manyLens);
+                        <Lens.BaseSingleLens>secondLens);
                 }
                 //composite + single||composite = composite
                 case Lens.cChordDiagramLens.Type + "_" + Lens.PieChartLens.Type: 
@@ -62,16 +62,16 @@ module ManyLens {
                 /*----------------------------Single Lens Self Increment---------------------*/
                 case Lens.WordCloudLens.Type + "_" + Lens.WordCloudLens.Type: {
                     return new Lens.cWordCloudLens(element,
+                        manyLens,
                         <Lens.BaseSingleLens>firstLens,
-                        <Lens.BaseSingleLens>secondLens,
-                        manyLens);
+                        <Lens.BaseSingleLens>secondLens);
                 }
                     //just for test now
                 case Lens.PieChartLens.Type + "_" + Lens.PieChartLens.Type: {
                     return new Lens.cPackingCircleLens(element,
+                        manyLens,
                         <Lens.BaseSingleLens>firstLens,
-                        <Lens.BaseSingleLens>secondLens,
-                        manyLens);
+                        <Lens.BaseSingleLens>secondLens);
                 }
 
                 default: {
@@ -85,25 +85,36 @@ module ManyLens {
             hostLens: Lens.BaseCompositeLens,
             componentLens: Lens.BaseSingleLens,
             manyLens: ManyLens): Lens.BaseD3Lens {
-            var t = [hostLens.Type, componentLens.Type]
-                .sort(function (a, b) {
-                    return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
-                })
-                .join("_");
-            switch (t) {
+            var res = hostLens.RemoveComponentLens(componentLens);
+            if (res.Type) {
+                //res is a singel lens;
+                return res;
+            } else {
+                //res is a map<string,number>
+                console.log(res);
 
-                /*--------------------------------cBoundle Lens------------------------------*/
-                case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: {
-                    return hostLens.RemoveComponentLens(componentLens);
-                }
-                case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
-                    return hostLens.RemoveComponentLens(componentLens);
-                }
-
-
-
-                default: return null;
+                //TODO write the detach law here
             }
+
+            //var t = [hostLens.Type, componentLens.Type]
+            //    .sort(function (a, b) {
+            //        return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+            //    })
+            //    .join("_");
+            //switch (t) {
+
+            //    /*--------------------------------cBoundle Lens------------------------------*/
+            //    case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: {
+            //        return hostLens.RemoveComponentLens(componentLens);
+            //    }
+            //    case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
+            //        return hostLens.RemoveComponentLens(componentLens);
+            //    }
+
+
+
+            //    default: return null;
+            //}
         }
     }
 }
