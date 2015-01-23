@@ -804,6 +804,7 @@ var ManyLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "./BaseSingleLens.ts" />
+///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />
 var ManyLens;
 (function (ManyLens) {
     var Lens;
@@ -815,20 +816,57 @@ var ManyLens;
                 this._map_width = this._lc_radius * Math.SQRT2;
                 this._map_height = this._map_width;
                 this._map_path = "./img/chinamap.svg";
+                this._projection = d3.geo.albersUsa();
+                this._path = d3.geo.path();
+                this._projection.scale(250).translate([0, 0]);
+                this._path.projection(this._projection);
             }
             LocationLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
             };
             LocationLens.prototype.ExtractData = function () {
-                var data;
-                return data;
             };
             LocationLens.prototype.DisplayLens = function (data) {
-                var p = _super.prototype.DisplayLens.call(this, data);
-                var container = this._element;
-                var lensG = this._lens_circle_G;
-                //TODO
-                lensG.append("image").attr("xlink:href", this._map_path).attr("x", -this._map_width / 2).attr("y", -this._map_height / 2).attr("width", this._map_width).attr("height", this._map_height);
+                var _this = this;
+                d3.json("../testData/us.json", function (error, data) {
+                    _super.prototype.DisplayLens.call(_this, data);
+                    var path = _this._path;
+                    var width = _this._map_width;
+                    var height = _this._map_height;
+                    var g = _this._lens_circle_G.append("g");
+                    var centered;
+                    //lensG.append("image")
+                    //    .attr("xlink:href", this._map_path)
+                    //    .attr("x", -this._map_width / 2)
+                    //    .attr("y", -this._map_height / 2)
+                    //    .attr("width", this._map_width)
+                    //    .attr("height", this._map_height)
+                    //;
+                    g.append("g").attr("id", "states").selectAll("path").data(topojson.feature(data, data.objects.states).features).enter().append("path").attr("d", _this._path).on("click", clicked);
+                    g.append("path").datum(topojson.mesh(data, data.objects.states, function (a, b) {
+                        return a !== b;
+                    })).attr("id", "state-borders").attr("d", _this._path);
+                    function clicked(d) {
+                        var x, y, k;
+                        if (d && centered !== d) {
+                            var centroid = path.centroid(d);
+                            x = centroid[0];
+                            y = centroid[1];
+                            k = 4;
+                            centered = d;
+                        }
+                        else {
+                            x = 0;
+                            y = 0;
+                            k = 1;
+                            centered = null;
+                        }
+                        g.selectAll("path").classed("active", centered && function (d) {
+                            return d === centered;
+                        });
+                        g.transition().duration(750).attr("transform", "translate(" + 0 + "," + 0 + ")scale(" + k + ")translate(" + -x + "," + -y + ")").style("stroke-width", 1.5 / k + "px");
+                    }
+                });
             };
             LocationLens.Type = "LocationLens";
             return LocationLens;
@@ -1418,7 +1456,6 @@ var ManyLens;
         ManyLens.prototype.AddLens = function (lens) {
             this._lens.set("lens_" + this._lens_count, lens);
             this._lens_count++;
-            console.log("add Node");
             this._historyTrees.addNode({
                 color: lens.LensTypeColor,
                 lensType: lens.Type,
