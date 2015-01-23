@@ -47,6 +47,10 @@ var ManyLens;
                     {
                         return new ManyLens.Lens.cWordCloudLens(element, firstLens, secondLens, manyLens);
                     }
+                case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
+                    {
+                        return new ManyLens.Lens.cPackingCircleLens(element, firstLens, secondLens, manyLens);
+                    }
                 default:
                     {
                         console.log(t);

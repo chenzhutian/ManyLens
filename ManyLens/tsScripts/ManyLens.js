@@ -33,7 +33,6 @@ var ManyLens;
         ManyLens.prototype.AddLens = function (lens) {
             this._lens.set("lens_" + this._lens_count, lens);
             this._lens_count++;
-            console.log("add Node");
             this._historyTrees.addNode({
                 color: lens.LensTypeColor,
                 lensType: lens.Type,
