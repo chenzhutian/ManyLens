@@ -1544,7 +1544,7 @@ var ManyLens;
         var cPackingCircleLens = (function (_super) {
             __extends(cPackingCircleLens, _super);
             function cPackingCircleLens(element, firstLens, secondLens, manyLens) {
-                _super.call(this, element, Lens.cBoundleLens.Type, firstLens, secondLens, manyLens);
+                _super.call(this, element, cPackingCircleLens.Type, firstLens, secondLens, manyLens);
                 this._color = d3.scale.linear();
                 this._pack = d3.layout.pack();
                 this._diameter = this._lc_radius * 2;
@@ -1947,27 +1947,47 @@ var ManyLens;
                 var data = this.ExtractData();
                 var diameter = this._diameter;
                 var focus = data, nodes = this._pack.nodes(data), view;
-                var circle = this._lens_circle_G.selectAll("circle").data(nodes).enter().append("circle").attr("class", function (d) {
+                console.log(nodes[0]);
+                var circle = this._lens_circle_G.selectAll(".node").data(nodes).enter().append("circle").attr("class", function (d, i) {
+                    if (d.name == "flare") {
+                        console.log("flare");
+                        console.log(d.parent);
+                    }
+                    if (i == 0) {
+                        console.log(d);
+                        console.log(d.parent);
+                    }
+                    console.log(i);
                     return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
                 }).style("fill", function (d) {
                     return d.children ? _this._color(d.depth) : null;
                 }).on("click", function (d) {
-                    if (focus !== d)
-                        zoom(d), d3.event.stopPropagation();
+                    if (focus !== d) {
+                        zoom(d);
+                    }
+                    else {
+                        console.log(d);
+                        console.log(focus);
+                        console.log("no zoom");
+                    }
+                    d3.event.stopPropagation();
                 });
-                var text = this._lens_circle_G.selectAll("text").data(nodes).enter().append("text").attr("class", "label").style("fill-opacity", function (d) {
-                    return d.parent === data ? 1 : 0;
-                }).style("display", function (d) {
-                    return d.parent === data ? null : "none";
-                }).text(function (d) {
-                    return d.name;
-                });
-                var node = this._lens_circle_G.selectAll("circle,text");
-                d3.select("body").style("background", this._color(-1)).on("click", function () {
-                    zoom(data);
-                });
+                //var text = this._lens_circle_G.selectAll("text")
+                //    .data(nodes)
+                //    .enter().append("text")
+                //    .attr("class", "label")
+                //    .style("fill-opacity", function (d) { return d.parent === data ? 1 : 0; })
+                //    .style("display", function (d) { return d.parent === data ? null : "none"; })
+                //    .text(function (d) { return d.name; });
+                var node = this._lens_circle_G.selectAll(".node,text");
+                //d3.select("body")
+                //    .style("background", this._color(-1))
+                //    .on("click", function () {
+                //        zoom(data);
+                //    });
                 zoomTo([data.x, data.y, data.r * 2]);
                 function zoom(d) {
+                    console.log("zoom to circle");
                     var focus0 = focus;
                     focus = d;
                     var transition = d3.transition().duration(d3.event.altKey ? 7500 : 750).tween("zoom", function (d) {
@@ -1976,17 +1996,11 @@ var ManyLens;
                             zoomTo(i(t));
                         };
                     });
-                    transition.selectAll("text").filter(function (d) {
-                        return d.parent === focus || this.style.display === "inline";
-                    }).style("fill-opacity", function (d) {
-                        return d.parent === focus ? 1 : 0;
-                    }).each("start", function (d) {
-                        if (d.parent === focus)
-                            this.style.display = "inline";
-                    }).each("end", function (d) {
-                        if (d.parent !== focus)
-                            this.style.display = "none";
-                    });
+                    //transition.selectAll("text")
+                    //    .filter(function (d) { return d.parent === focus || this.style.display === "inline"; })
+                    //    .style("fill-opacity", function (d) { return d.parent === focus ? 1 : 0; })
+                    //    .each("start", function (d) { if (d.parent === focus) this.style.display = "inline"; })
+                    //    .each("end", function (d) { if (d.parent !== focus) this.style.display = "none"; });
                 }
                 function zoomTo(v) {
                     var k = diameter / v[2];

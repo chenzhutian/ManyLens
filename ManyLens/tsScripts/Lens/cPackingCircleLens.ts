@@ -12,7 +12,7 @@
                 firstLens: BaseSingleLens,
                 secondLens: BaseSingleLens,
                 manyLens: ManyLens.ManyLens) {
-                super(element, cBoundleLens.Type, firstLens, secondLens, manyLens);
+                super(element, cPackingCircleLens.Type, firstLens, secondLens, manyLens);
 
                 this._color
                     .domain([-1, 5])
@@ -428,49 +428,77 @@
                 var focus = data,
                     nodes = this._pack.nodes(data),
                     view;
-
-                var circle = this._lens_circle_G.selectAll("circle")
+                console.log(nodes[0]);
+                var circle = this._lens_circle_G.selectAll(".node")
                     .data(nodes)
                     .enter().append("circle")
-                    .attr("class", function (d) { return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root"; })
+                    .attr("class", function (d,i) {
+                        if (d.name == "flare") {
+                            console.log("flare");
+                            console.log(d.parent);
+                        }
+                        if (i == 0) {
+                            console.log(d);
+                            console.log(d.parent);
+                        }
+                        console.log(i);
+                        return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
+                    })
                     .style("fill",  (d)=> { return d.children ? this._color(d.depth) : null; })
-                    .on("click", function (d) { if (focus !== d) zoom(d), d3.event.stopPropagation(); });
+                    .on("click", function (d) {
+                        if (focus !== d) {
+                            zoom(d);
+                        }
+                        else {
+                            console.log(d);
+                            console.log(focus);
+                            console.log("no zoom");
+                        }
+                        d3.event.stopPropagation();
+                    });
 
-                var text = this._lens_circle_G.selectAll("text")
-                    .data(nodes)
-                    .enter().append("text")
-                    .attr("class", "label")
-                    .style("fill-opacity", function (d) { return d.parent === data ? 1 : 0; })
-                    .style("display", function (d) { return d.parent === data ? null : "none"; })
-                    .text(function (d) { return d.name; });
+                //var text = this._lens_circle_G.selectAll("text")
+                //    .data(nodes)
+                //    .enter().append("text")
+                //    .attr("class", "label")
+                //    .style("fill-opacity", function (d) { return d.parent === data ? 1 : 0; })
+                //    .style("display", function (d) { return d.parent === data ? null : "none"; })
+                //    .text(function (d) { return d.name; });
 
-                var node = this._lens_circle_G.selectAll("circle,text");
+                var node = this._lens_circle_G.selectAll(".node,text");
 
-                d3.select("body")
-                    .style("background", this._color(-1))
-                    .on("click", function () { zoom(data); });
+                //d3.select("body")
+                //    .style("background", this._color(-1))
+                //    .on("click", function () {
+                //        zoom(data);
+                //    });
 
                 zoomTo([data.x, data.y, data.r * 2]);
 
                 function zoom(d) {
-                    var focus0 = focus; focus = d;
+                    console.log("zoom to circle");
+                    var focus0 = focus;
+                    focus = d;
 
                     var transition = d3.transition()
                         .duration(d3.event.altKey ? 7500 : 750)
                         .tween("zoom", function (d) {
                             var i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2]);
-                            return function (t) { zoomTo(i(t)); };
+                            return function (t) {
+                                zoomTo(i(t));
+                            };
                         });
 
-                    transition.selectAll("text")
-                        .filter(function (d) { return d.parent === focus || this.style.display === "inline"; })
-                        .style("fill-opacity", function (d) { return d.parent === focus ? 1 : 0; })
-                        .each("start", function (d) { if (d.parent === focus) this.style.display = "inline"; })
-                        .each("end", function (d) { if (d.parent !== focus) this.style.display = "none"; });
+                    //transition.selectAll("text")
+                    //    .filter(function (d) { return d.parent === focus || this.style.display === "inline"; })
+                    //    .style("fill-opacity", function (d) { return d.parent === focus ? 1 : 0; })
+                    //    .each("start", function (d) { if (d.parent === focus) this.style.display = "inline"; })
+                    //    .each("end", function (d) { if (d.parent !== focus) this.style.display = "none"; });
                 }
 
                 function zoomTo(v) {
-                    var k = diameter  / v[2]; view = v;
+                    var k = diameter / v[2];
+                    view = v;
                     node.attr("transform", function (d) { return "translate(" + (d.x - v[0]) * k + "," + (d.y - v[1]) * k + ")"; });
                     circle.attr("r", function (d) { return d.r * k; });
                 }
