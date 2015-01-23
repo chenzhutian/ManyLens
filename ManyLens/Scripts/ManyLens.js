@@ -1036,6 +1036,9 @@ var ManyLens;
                     _sc_radius: secondLens.SelectCircleRadius,
                     _sc_scale: secondLens.SelectCircleScale
                 });
+                this._components = new Map();
+                this._components.set(firstLens.Type, 1);
+                this._components.set(secondLens.Type, 1);
             }
             Object.defineProperty(BaseCompositeLens.prototype, "Lens", {
                 get: function () {

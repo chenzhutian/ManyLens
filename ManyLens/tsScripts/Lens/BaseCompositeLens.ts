@@ -17,11 +17,14 @@ module ManyLens {
 
             protected _select_circle: Array<selectCircle>;
             protected _lens: Array<BaseSingleLens>;
+            protected _components: Map<string,number>;
 
             protected _base_component: BaseD3Lens;
             protected _sub_component: BaseD3Lens;
 
             protected _new_lens_count: number = 1;
+
+
 
             public get Lens(): Array<BaseSingleLens> {
                 //这里我感觉有问题，是直接返回本体还是返回复本好
@@ -67,6 +70,10 @@ module ManyLens {
                     _sc_radius: secondLens.SelectCircleRadius,
                     _sc_scale: secondLens.SelectCircleScale
                 });
+
+                this._components = new Map<string,number>();
+                this._components.set(firstLens.Type, 1);
+                this._components.set(secondLens.Type, 1);
 
             }
 
