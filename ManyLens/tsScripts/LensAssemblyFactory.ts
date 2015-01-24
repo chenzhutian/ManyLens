@@ -3,7 +3,7 @@
 module ManyLens {
 
     export class LensAssemblyFactory {
-
+        //TODO add more laws here
         public static CombineLens(element: D3.Selection,
             firstLens: Lens.BaseD3Lens,
             secondLens: Lens.BaseD3Lens,
@@ -85,15 +85,24 @@ module ManyLens {
             hostLens: Lens.BaseCompositeLens,
             componentLens: Lens.BaseSingleLens,
             manyLens: ManyLens): Lens.BaseD3Lens {
-            var res = hostLens.RemoveComponentLens(componentLens);
-            if (res.Type) {
-                //res is a singel lens;
-                return res;
-            } else {
-                //res is a map<string,number>
-                console.log(res);
+            var res:Lens.BaseD3Lens = hostLens.RemoveComponentLens(componentLens);
 
-                //TODO write the detach law here
+            if (res.IsCompositeLens && (<Lens.BaseCompositeLens>res).NeedtoReshape) {
+                var componentsKind: string[] = [];
+                var cLens: Lens.BaseCompositeLens = (<Lens.BaseCompositeLens>res);
+                cLens.ComponentsKind.forEach((value,key) => {
+                    componentsKind.push(key);
+                });
+                var t: string = componentsKind.join("_");
+
+                switch (t) {
+                    case Lens.WordCloudLens.Type: {
+                        return new Lens.cWordCloudLens(element, manyLens, cLens);
+                    }
+                    
+                }
+            } else {
+                return res;
             }
 
             //var t = [hostLens.Type, componentLens.Type]

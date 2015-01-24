@@ -77,6 +77,8 @@ module ManyLens {
             componentLens: Lens.BaseSingleLens): void {
             var lensC: Lens.BaseD3Lens = LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
             if (lensC.IsCompositeLens) {
+                if ((<Lens.BaseCompositeLens>lensC).NeedtoReshape)
+                    this._lens.set(hostLens.ID, lensC);
                 lensC.Render("black");
                 lensC.DisplayLens();
             } else {

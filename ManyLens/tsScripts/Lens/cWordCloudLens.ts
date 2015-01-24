@@ -18,10 +18,9 @@ module ManyLens {
             private _cloud_text_color: D3.Scale.OrdinalScale;
             //private _cloud_rotate: number = 0;
 
-            constructor(element: D3.Selection,
-                manyLens: ManyLens.ManyLens,
-                firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens) {
+            constructor(element: D3.Selection,  manyLens: ManyLens, firstLens: BaseCompositeLens);
+            constructor(element: D3.Selection,  manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
+            constructor(element: D3.Selection,  manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, cWordCloudLens.Type, manyLens,firstLens, secondLens);
 
                 this._cloud_text_color = d3.scale.category20c();

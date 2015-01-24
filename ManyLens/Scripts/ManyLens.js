@@ -1013,9 +1013,10 @@ var ManyLens;
             function BaseCompositeLens(element, type, manyLens, firstLens, secondLens) {
                 _super.call(this, element, type, manyLens);
                 this._new_lens_count = 1;
+                this._need_to_reshape = false;
                 this._is_composite_lens = true;
                 this._select_circle = new Array();
-                this._components = new Map();
+                this._components_kind = new Map();
                 this._lens = new Array();
                 this._base_component = firstLens;
                 this._lc_cx = firstLens.LensCX;
@@ -1039,20 +1040,20 @@ var ManyLens;
                         _sc_radius: secondLens.SelectCircleRadius,
                         _sc_scale: secondLens.SelectCircleScale
                     });
-                    this._components.set(firstLens.Type, 1);
-                    this._components.set(secondLens.Type, 1);
+                    this._components_kind.set(firstLens.Type, 1);
+                    this._components_kind.set(secondLens.Type, 1);
                 }
                 else {
                     var firstLens1 = firstLens;
                     for (var i = 0, len = firstLens1.Lens.length; i < len; ++i) {
                         this._lens.push(firstLens1.Lens[i]);
                         this._select_circle.push(firstLens1.SelectCircle[i]);
-                        if (this._components.has(firstLens1.Lens[i].Type)) {
-                            var num = this._components.get(firstLens1.Lens[i].Type) + 1;
-                            this._components.set(firstLens1.Lens[i].Type, num);
+                        if (this._components_kind.has(firstLens1.Lens[i].Type)) {
+                            var num = this._components_kind.get(firstLens1.Lens[i].Type) + 1;
+                            this._components_kind.set(firstLens1.Lens[i].Type, num);
                         }
                         else {
-                            this._components.set(firstLens1.Lens[i].Type, 1);
+                            this._components_kind.set(firstLens1.Lens[i].Type, 1);
                         }
                         firstLens1.Lens[i].ChangeHostTo(this);
                     }
@@ -1076,6 +1077,20 @@ var ManyLens;
             Object.defineProperty(BaseCompositeLens.prototype, "ComponentNum", {
                 get: function () {
                     return this._lens.length;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(BaseCompositeLens.prototype, "ComponentsKind", {
+                get: function () {
+                    return this._components_kind;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(BaseCompositeLens.prototype, "NeedtoReshape", {
+                get: function () {
+                    return this._need_to_reshape;
                 },
                 enumerable: true,
                 configurable: true
@@ -1120,17 +1135,12 @@ var ManyLens;
                 return this;
             };
             BaseCompositeLens.prototype.RemoveComponentLens = function (lens) {
-                //TODO #1
                 var index = this._lens.indexOf(lens);
                 if (-1 != index) {
                     this._lens.splice(index, 1);
                     this._select_circle.splice(index, 1);
-                    var num = this._components.get(lens.Type) - 1;
-                    if (num > 0)
-                        this._components.set(lens.Type, num);
-                    else
-                        this._components.delete(lens.Type);
                     if (this.ComponentNum == 1) {
+                        //if there is only one component left, we can just return this one
                         this.RemoveWholeSVG();
                         var lastLens = this._lens[0];
                         lastLens.LensCX = this.LensCX;
@@ -1143,8 +1153,23 @@ var ManyLens;
                     else if (this.ComponentNum < 1) {
                         throw new Error('The number of component of this lens is less than 2!!');
                     }
+                    else {
+                        var num = this._components_kind.get(lens.Type) - 1;
+                        if (num > 0) {
+                            this._components_kind.set(lens.Type, num);
+                            return this;
+                        }
+                        else if (num == 0) {
+                            this.RemoveWholeSVG();
+                            this._components_kind.delete(lens.Type);
+                            this._need_to_reshape = true;
+                            return this;
+                        }
+                        else {
+                            throw new Error("The number of this kind of component is less than 0!!");
+                        }
+                    }
                 }
-                return this._components;
             };
             BaseCompositeLens.prototype.ReDrawLinkLine = function (newLensCount) {
                 if (newLensCount === void 0) { newLensCount = 0; }
@@ -1163,12 +1188,12 @@ var ManyLens;
                 for (var i = 0, len = componentLens.Lens.length; i < len; ++i) {
                     this._lens.push(componentLens.Lens[i]);
                     this._select_circle.push(componentLens.SelectCircle[i]);
-                    if (this._components.has(componentLens.Lens[i].Type)) {
-                        var num = this._components.get(componentLens.Lens[i].Type) + 1;
-                        this._components.set(componentLens.Lens[i].Type, num);
+                    if (this._components_kind.has(componentLens.Lens[i].Type)) {
+                        var num = this._components_kind.get(componentLens.Lens[i].Type) + 1;
+                        this._components_kind.set(componentLens.Lens[i].Type, num);
                     }
                     else {
-                        this._components.set(componentLens.Lens[i].Type, 1);
+                        this._components_kind.set(componentLens.Lens[i].Type, 1);
                     }
                     componentLens.Lens[i].ChangeHostTo(this);
                 }
@@ -1185,12 +1210,12 @@ var ManyLens;
                     _sc_radius: lens.SelectCircleRadius,
                     _sc_scale: lens.SelectCircleScale
                 });
-                if (this._components.has(lens.Type)) {
-                    var num = this._components.get(lens.Type) + 1;
-                    this._components.set(lens.Type, num);
+                if (this._components_kind.has(lens.Type)) {
+                    var num = this._components_kind.get(lens.Type) + 1;
+                    this._components_kind.set(lens.Type, num);
                 }
                 else {
-                    this._components.set(lens.Type, 1);
+                    this._components_kind.set(lens.Type, 1);
                 }
                 this._new_lens_count = 1;
             };
@@ -1510,6 +1535,8 @@ var ManyLens;
         ManyLens.prototype.DetachCompositeLens = function (element, hostLens, componentLens) {
             var lensC = _ManyLens.LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
             if (lensC.IsCompositeLens) {
+                if (lensC.NeedtoReshape)
+                    this._lens.set(hostLens.ID, lensC);
                 lensC.Render("black");
                 lensC.DisplayLens();
             }
@@ -2410,7 +2437,6 @@ var ManyLens;
     (function (Lens) {
         var cWordCloudLens = (function (_super) {
             __extends(cWordCloudLens, _super);
-            //private _cloud_rotate: number = 0;
             function cWordCloudLens(element, manyLens, firstLens, secondLens) {
                 _super.call(this, element, cWordCloudLens.Type, manyLens, firstLens, secondLens);
                 this._font_size = d3.scale.sqrt();
@@ -2529,6 +2555,7 @@ var ManyLens;
     var LensAssemblyFactory = (function () {
         function LensAssemblyFactory() {
         }
+        //TODO add more laws here
         LensAssemblyFactory.CombineLens = function (element, firstLens, secondLens, manyLens) {
             var t = [firstLens.Type, secondLens.Type].sort(function (a, b) {
                 return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
@@ -2585,13 +2612,22 @@ var ManyLens;
         };
         LensAssemblyFactory.DetachLens = function (element, hostLens, componentLens, manyLens) {
             var res = hostLens.RemoveComponentLens(componentLens);
-            if (res.Type) {
-                //res is a singel lens;
-                return res;
+            if (res.IsCompositeLens && res.NeedtoReshape) {
+                var componentsKind = [];
+                var cLens = res;
+                cLens.ComponentsKind.forEach(function (value, key) {
+                    componentsKind.push(key);
+                });
+                var t = componentsKind.join("_");
+                switch (t) {
+                    case ManyLens.Lens.WordCloudLens.Type:
+                        {
+                            return new ManyLens.Lens.cWordCloudLens(element, manyLens, cLens);
+                        }
+                }
             }
             else {
-                //res is a map<string,number>
-                console.log(res);
+                return res;
             }
             //var t = [hostLens.Type, componentLens.Type]
             //    .sort(function (a, b) {

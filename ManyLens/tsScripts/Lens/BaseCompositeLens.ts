@@ -17,12 +17,14 @@ module ManyLens {
 
             protected _select_circle: Array<selectCircle>;
             protected _lens: Array<BaseSingleLens>;
-            protected _components: Map<string, number>;
+            protected _components_kind: Map<string, number>;
 
             protected _base_component: BaseD3Lens;
             protected _sub_component: BaseD3Lens;
 
             protected _new_lens_count: number = 1;
+
+            protected _need_to_reshape: boolean = false;
 
             public get Lens(): Array<BaseSingleLens> {
                 //这里我感觉有问题，是直接返回本体还是返回复本好
@@ -34,15 +36,19 @@ module ManyLens {
             public get ComponentNum(): number {
                 return this._lens.length;
             }
+            public get ComponentsKind(): Map<string, number> {
+                return this._components_kind;
+            }
+            public get NeedtoReshape(): boolean {
+                return this._need_to_reshape;
+            }
 
-            constructor(element: D3.Selection, type: string, manyLens: ManyLens, firstLens: BaseCompositeLens);
-            constructor(element: D3.Selection, type: string, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
             constructor(element: D3.Selection, type: string, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, type, manyLens);
                 this._is_composite_lens = true;
 
                 this._select_circle = new Array<selectCircle>();
-                this._components = new Map<string, number>();
+                this._components_kind = new Map<string, number>();
                 this._lens = new Array<BaseSingleLens>();
 
                 this._base_component = firstLens;
@@ -73,18 +79,18 @@ module ManyLens {
                     });
 
                     
-                    this._components.set(firstLens.Type, 1);
-                    this._components.set(secondLens.Type, 1);
+                    this._components_kind.set(firstLens.Type, 1);
+                    this._components_kind.set(secondLens.Type, 1);
                 } else {
                     var firstLens1: BaseCompositeLens = (<BaseCompositeLens>firstLens);
                     for (var i = 0, len = firstLens1.Lens.length; i < len; ++i) {
                         this._lens.push(firstLens1.Lens[i]);
                         this._select_circle.push(firstLens1.SelectCircle[i]);
-                        if (this._components.has(firstLens1.Lens[i].Type)) {
-                            var num: number = this._components.get(firstLens1.Lens[i].Type) + 1;
-                            this._components.set(firstLens1.Lens[i].Type, num);
+                        if (this._components_kind.has(firstLens1.Lens[i].Type)) {
+                            var num: number = this._components_kind.get(firstLens1.Lens[i].Type) + 1;
+                            this._components_kind.set(firstLens1.Lens[i].Type, num);
                         } else {
-                            this._components.set(firstLens1.Lens[i].Type, 1);
+                            this._components_kind.set(firstLens1.Lens[i].Type, 1);
                         }
                         firstLens1.Lens[i].ChangeHostTo(this);
                     }
@@ -146,20 +152,14 @@ module ManyLens {
                 return this;
             }
 
-            public RemoveComponentLens(lens: BaseSingleLens):any {
-                //TODO #1
+            public RemoveComponentLens(lens: BaseSingleLens):BaseD3Lens {
                 var index: number = this._lens.indexOf(lens);
                 if (-1 != index) {
                     this._lens.splice(index, 1);
                     this._select_circle.splice(index, 1);
-                    var num: number = this._components.get(lens.Type) - 1;
-
-                    if (num > 0)
-                        this._components.set(lens.Type, num);
-                    else
-                        this._components.delete(lens.Type);
 
                     if (this.ComponentNum == 1) {
+                        //if there is only one component left, we can just return this one
                         this.RemoveWholeSVG();
 
                         var lastLens = this._lens[0];
@@ -173,10 +173,24 @@ module ManyLens {
 
                     } else if (this.ComponentNum < 1) {
                         throw new Error('The number of component of this lens is less than 2!!');
+                    } else {
+
+                        var num: number = this._components_kind.get(lens.Type) - 1;
+                        if (num > 0) {
+                            this._components_kind.set(lens.Type, num);
+
+                            return this;
+                        } else if (num == 0) {
+                            this.RemoveWholeSVG();
+                            this._components_kind.delete(lens.Type);
+                            this._need_to_reshape = true;
+
+                            return this;
+                        } else {
+                            throw new Error("The number of this kind of component is less than 0!!");
+                        }
                     }
                 }
-
-                return this._components;
             }
 
             private ReDrawLinkLine(newLensCount: number = 0): void {
@@ -203,11 +217,11 @@ module ManyLens {
                 for (var i = 0, len = componentLens.Lens.length; i < len; ++i) {
                     this._lens.push(componentLens.Lens[i]);
                     this._select_circle.push(componentLens.SelectCircle[i]);
-                    if (this._components.has(componentLens.Lens[i].Type)) {
-                        var num: number = this._components.get(componentLens.Lens[i].Type) + 1;
-                        this._components.set(componentLens.Lens[i].Type, num);
+                    if (this._components_kind.has(componentLens.Lens[i].Type)) {
+                        var num: number = this._components_kind.get(componentLens.Lens[i].Type) + 1;
+                        this._components_kind.set(componentLens.Lens[i].Type, num);
                     } else {
-                        this._components.set(componentLens.Lens[i].Type, 1);
+                        this._components_kind.set(componentLens.Lens[i].Type, 1);
                     }
                     componentLens.Lens[i].ChangeHostTo(this);
                 }
@@ -227,11 +241,11 @@ module ManyLens {
                     _sc_scale: lens.SelectCircleScale
                 });
 
-                if (this._components.has(lens.Type)) {
-                    var num: number = this._components.get(lens.Type) + 1;
-                    this._components.set(lens.Type, num);
+                if (this._components_kind.has(lens.Type)) {
+                    var num: number = this._components_kind.get(lens.Type) + 1;
+                    this._components_kind.set(lens.Type, num);
                 } else {
-                    this._components.set(lens.Type, 1);
+                    this._components_kind.set(lens.Type, 1);
                 }
                 this._new_lens_count = 1;
             }
