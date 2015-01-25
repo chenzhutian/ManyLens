@@ -688,7 +688,6 @@ var ManyLens;
     (function (Lens) {
         var WordCloudLens = (function (_super) {
             __extends(WordCloudLens, _super);
-            //private _cloud_rotate: number = 0;
             function WordCloudLens(element, manyLens) {
                 _super.call(this, element, WordCloudLens.Type, manyLens);
                 this._font_size = d3.scale.sqrt();
@@ -700,6 +699,14 @@ var ManyLens;
                 this._cloud_font_weight = "normal";
                 this._cloud_text_color = d3.scale.category20c();
             }
+            Object.defineProperty(WordCloudLens.prototype, "Color", {
+                //private _cloud_rotate: number = 0;
+                get: function () {
+                    return this._cloud_text_color;
+                },
+                enumerable: true,
+                configurable: true
+            });
             WordCloudLens.prototype.Render = function (color) {
                 if (color === void 0) { color = "red"; }
                 _super.prototype.Render.call(this, color);
@@ -1368,187 +1375,6 @@ var ManyLens;
         Lens.cBoundleLens = cBoundleLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
-/*--------------- Single Lens  ----------------*/
-///<reference path = "../Lens/BarChartLens.ts" />
-///<reference path = "../Lens/WordCloudLens.ts"/>
-///<reference path = "../Lens/LocationLens.ts" />
-///<reference path = "../Lens/NetworkLens.ts"  />
-///<reference path = "../Lens/PieChartLens.ts" />
-/*------------ CompositeLens Lens -------------*/
-///<reference path = "../Lens/cBoundleLens.ts" />
-(function () {
-})();
-///<reference path = "../D3ChartObject.ts" />
-///<reference path = "../Lens/LensList.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Pane;
-    (function (Pane) {
-        var ClassicLensPane = (function (_super) {
-            __extends(ClassicLensPane, _super);
-            function ClassicLensPane(element, manyLens) {
-                var _this = this;
-                _super.call(this, element);
-                this._lens_count = 5;
-                this._pane_color = d3.scale.category20();
-                //private _history_trees: LensHistory.HistoryTrees;
-                this._drag = d3.behavior.drag();
-                this._manyLens = manyLens;
-                this._drag.origin(function (d) {
-                    return d;
-                }).on("drag", function () {
-                    _this.DragFunc();
-                });
-                var pane_icon_r = 10;
-                var pane_icon_padding = 10;
-                this._pang_g = {
-                    svg_g: this._element.append("g"),
-                    x: 10,
-                    y: 10,
-                    rect_height: (this._lens_count * pane_icon_r * 2) + (this._lens_count + 1) * pane_icon_padding,
-                    rect_width: 2 * (pane_icon_r + pane_icon_padding),
-                    lens_icon_r: pane_icon_r,
-                    lens_icon_padding: pane_icon_padding,
-                    lens_count: this._lens_count
-                };
-            }
-            ClassicLensPane.prototype.Render = function () {
-                this.OpenPane();
-            };
-            ClassicLensPane.prototype.OpenPane = function () {
-                var _this = this;
-                var container = this._element;
-                var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("class", "lensPane").attr("transform", "translate(" + [10, 10] + ")").call(this._drag);
-                pane_g.append("rect").attr("x", 0).attr("y", 0).attr("width", this._pang_g.rect_width).attr("height", this._pang_g.rect_height).attr("fill", "#fff7bc").attr("stroke", "pink").attr("stroke-width", 2);
-                pane_g.selectAll("circle").data(d3.range(this._lens_count)).enter().append("circle").attr("class", "pane-Lens-Circle").attr("r", this._pang_g.lens_icon_r).attr("cx", this._pang_g.rect_width / 2).attr("cy", function (d, i) {
-                    return _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding + i * (2 * _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding);
-                }).attr("fill", function (d, i) {
-                    return _this._pane_color(i);
-                }).on("mousedown", function () {
-                    d3.event.stopPropagation();
-                }).on("click", function (d, i) {
-                    var len;
-                    switch (i) {
-                        case 0:
-                            {
-                                len = new ManyLens.Lens.NetworkLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 1:
-                            {
-                                len = new ManyLens.Lens.WordCloudLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 2:
-                            {
-                                len = new ManyLens.Lens.BarChartLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 3:
-                            {
-                                len = new ManyLens.Lens.PieChartLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 4:
-                            {
-                                len = new ManyLens.Lens.LocationLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                    }
-                    len.Render(_this._pane_color(i));
-                    d3.event.stopPropagation();
-                });
-            };
-            ClassicLensPane.prototype.ClosePane = function (msg) {
-            };
-            ClassicLensPane.prototype.DragFunc = function () {
-                var pane_rect_width = this._pang_g.rect_width;
-                var pane_rect_height = this._pang_g.rect_height;
-                this._pang_g.svg_g.attr("transform", "translate(" + [
-                    this._pang_g.x = Math.max(0, Math.min(parseFloat(this._element.style("width")) - pane_rect_width, d3.event.x)),
-                    this._pang_g.y = Math.max(0, Math.min(parseFloat(this._element.style("height")) - pane_rect_height, d3.event.y))
-                ] + ")");
-            };
-            return ClassicLensPane;
-        })(ManyLens.D3ChartObject);
-        Pane.ClassicLensPane = ClassicLensPane;
-    })(Pane = ManyLens.Pane || (ManyLens.Pane = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
-///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
-///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
-var ManyLens;
-(function (_ManyLens) {
-    var ManyLens = (function () {
-        function ManyLens() {
-            this._curveView_id = "cruveView";
-            this._mapView_id = "mapView";
-            this._mapSvg_id = "mapSvg";
-            this._historyView_id = "historyView";
-            this._historySvg_id = "historySvg";
-            //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
-            this._lens = new Map();
-            this._lens_count = 0;
-            this._curveView = d3.select("#" + this._curveView_id);
-            this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView);
-            this._curve.Render([10, 10]);
-            this._mapView = d3.select("#" + this._mapView_id);
-            this._mapSvg = d3.select("#" + this._mapSvg_id);
-            this._lensPane = new _ManyLens.Pane.ClassicLensPane(this._mapSvg, this);
-            this._historySvg = d3.select("#" + this._historySvg_id);
-            this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg);
-            //Add a new tree here, actually the tree should not be add here
-            this._historyTrees.addTree();
-            this._lensPane.Render();
-        }
-        Object.defineProperty(ManyLens.prototype, "LensCount", {
-            get: function () {
-                return this._lens_count;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        ManyLens.prototype.GetLens = function (id) {
-            return this._lens.get(id);
-        };
-        ManyLens.prototype.AddLens = function (lens) {
-            this._lens.set("lens_" + this._lens_count, lens);
-            this._lens_count++;
-            this._historyTrees.addNode({
-                color: lens.LensTypeColor,
-                lensType: lens.Type,
-                tree_id: 0
-            });
-        };
-        //TODO need to implementation
-        ManyLens.prototype.RemoveLens = function (lens) {
-            var lens;
-            this._lens.delete(lens.ID);
-            return lens;
-        };
-        ManyLens.prototype.DetachCompositeLens = function (element, hostLens, componentLens) {
-            var lensC = _ManyLens.LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
-            if (lensC.IsCompositeLens) {
-                if (lensC.NeedtoReshape)
-                    this._lens.set(hostLens.ID, lensC);
-                lensC.Render("black");
-                lensC.DisplayLens();
-            }
-            else {
-                this.RemoveLens(hostLens);
-                lensC.DisplayLens();
-            }
-        };
-        return ManyLens;
-    })();
-    _ManyLens.ManyLens = ManyLens;
-})(ManyLens || (ManyLens = {}));
-///<reference path = "../tsScripts/ManyLens.ts" />
-"use strict";
-var manyLens;
-document.addEventListener('DOMContentLoaded', function () {
-    manyLens = new ManyLens.ManyLens();
-});
 var ManyLens;
 (function (ManyLens) {
     var Lens;
@@ -1565,12 +1391,12 @@ var ManyLens;
                 //    .domain(d3.range(4))
                 //    .range(["#000000", "#FFDD89", "#957244", "#F26223"])
                 //;
-                if (firstLens.Type == "PieChartLens") {
-                    this._fill = firstLens.Color;
-                }
-                else if (secondLens.Type == "PieChartLens") {
-                    this._fill = secondLens.Color;
-                }
+                //if (firstLens.Type == "WordCloudLens") {
+                //    this._fill = (<WordCloudLens>firstLens).Color;
+                //} else if (secondLens.Type == "WordCloudLens") {
+                //    this._fill = (<WordCloudLens>secondLens).Color;
+                //}
+                this._fill = d3.scale.category10();
             }
             cChordDiagramLens.prototype.Render = function (color) {
                 if (color === void 0) { color = "green"; }
@@ -1632,6 +1458,85 @@ var ManyLens;
             return cChordDiagramLens;
         })(Lens.BaseCompositeLens);
         Lens.cChordDiagramLens = cChordDiagramLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseCompositeLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var cNetworkLens = (function (_super) {
+            __extends(cNetworkLens, _super);
+            function cNetworkLens(element, manyLens, firstLens, secondLens) {
+                _super.call(this, element, cNetworkLens.Type, manyLens, firstLens, secondLens);
+                this._theta = 360;
+                this._tree = d3.layout.tree();
+            }
+            cNetworkLens.prototype.Render = function (color) {
+                if (color === void 0) { color = "red"; }
+                _super.prototype.Render.call(this, color);
+            };
+            cNetworkLens.prototype.ExtractData = function () {
+                var data;
+                data = {
+                    "name": "flare",
+                    "children": [
+                        {
+                            "name": "analytics",
+                            "children": [
+                                {
+                                    "name": "cluster",
+                                    "children": [
+                                        { "name": "AgglomerativeCluster", "size": 3938 },
+                                        { "name": "CommunityStructure", "size": 3812 },
+                                        { "name": "HierarchicalCluster", "size": 6714 },
+                                        { "name": "MergeEdge", "size": 743 }
+                                    ]
+                                },
+                                {
+                                    "name": "graph",
+                                    "children": [
+                                        { "name": "BetweennessCentrality", "size": 3534 },
+                                        { "name": "LinkDistance", "size": 5731 },
+                                        { "name": "MaxFlowMinCut", "size": 7840 },
+                                        { "name": "ShortestPaths", "size": 5914 },
+                                        { "name": "SpanningTree", "size": 3416 }
+                                    ]
+                                },
+                                {
+                                    "name": "optimization",
+                                    "children": [
+                                        { "name": "AspectRatioBanker", "size": 7074 }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                };
+                return data;
+            };
+            cNetworkLens.prototype.DisplayLens = function () {
+                _super.prototype.DisplayLens.call(this);
+                var data = this.ExtractData();
+                var lensG = this._lens_circle_G;
+                var nodeRadius = 4.5;
+                var diagonal = d3.svg.diagonal.radial().projection(function (d) {
+                    return [d.y, d.x / 180 * Math.PI];
+                });
+                this._tree.size([this._theta, this._lc_radius - nodeRadius]).separation(function (a, b) {
+                    return (a.parent == b.parent ? 1 : 2) / a.depth;
+                });
+                var nodes = this._tree.nodes(data), links = this._tree.links(nodes);
+                var link = lensG.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
+                var node = lensG.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
+                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
+                });
+                node.append("circle").attr("r", nodeRadius).attr("stroke", "steelblue").attr("fill", "#fff").attr("stroke-width", 1.5);
+            };
+            cNetworkLens.Type = "cNetworkLens";
+            return cNetworkLens;
+        })(Lens.BaseCompositeLens);
+        Lens.cNetworkLens = cNetworkLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 var ManyLens;
@@ -2044,28 +1949,13 @@ var ManyLens;
                 var data = this.ExtractData();
                 var diameter = this._diameter;
                 var focus = data, nodes = this._pack.nodes(data), view;
-                console.log(nodes[0]);
                 var circle = this._lens_circle_G.selectAll(".node").data(nodes).enter().append("circle").attr("class", function (d, i) {
-                    if (d.name == "flare") {
-                        console.log("flare");
-                        console.log(d.parent);
-                    }
-                    if (i == 0) {
-                        console.log(d);
-                        console.log(d.parent);
-                    }
-                    console.log(i);
                     return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
                 }).style("fill", function (d) {
                     return d.children ? _this._color(d.depth) : null;
                 }).on("click", function (d) {
                     if (focus !== d) {
                         zoom(d);
-                    }
-                    else {
-                        console.log(d);
-                        console.log(focus);
-                        console.log("no zoom");
                     }
                     d3.event.stopPropagation();
                 });
@@ -2551,6 +2441,192 @@ var ManyLens;
         Lens.cWordCloudLens = cWordCloudLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
+/*--------------- Single Lens  ----------------*/
+///<reference path = "../Lens/BarChartLens.ts" />
+///<reference path = "../Lens/WordCloudLens.ts"/>
+///<reference path = "../Lens/LocationLens.ts" />
+///<reference path = "../Lens/NetworkLens.ts"  />
+///<reference path = "../Lens/PieChartLens.ts" />
+/*------------ CompositeLens Lens -------------*/
+///<reference path = "../Lens/cBoundleLens.ts" />
+///<reference path = "../Lens/cChordDiagramLens.ts" />
+///<reference path = "../Lens/cNetworkLens.ts" />
+///<reference path = "../Lens/cPackingCircleLens.ts" />
+///<reference path = "../Lens/cSunBrustLens.ts" />
+///<reference path = "../Lens/cWordCloudLens.ts" />
+(function () {
+})();
+///<reference path = "../D3ChartObject.ts" />
+///<reference path = "../Lens/LensList.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Pane;
+    (function (Pane) {
+        var ClassicLensPane = (function (_super) {
+            __extends(ClassicLensPane, _super);
+            function ClassicLensPane(element, manyLens) {
+                var _this = this;
+                _super.call(this, element);
+                this._lens_count = 5;
+                this._pane_color = d3.scale.category20();
+                //private _history_trees: LensHistory.HistoryTrees;
+                this._drag = d3.behavior.drag();
+                this._manyLens = manyLens;
+                this._drag.origin(function (d) {
+                    return d;
+                }).on("drag", function () {
+                    _this.DragFunc();
+                });
+                var pane_icon_r = 10;
+                var pane_icon_padding = 10;
+                this._pang_g = {
+                    svg_g: this._element.append("g"),
+                    x: 10,
+                    y: 10,
+                    rect_height: (this._lens_count * pane_icon_r * 2) + (this._lens_count + 1) * pane_icon_padding,
+                    rect_width: 2 * (pane_icon_r + pane_icon_padding),
+                    lens_icon_r: pane_icon_r,
+                    lens_icon_padding: pane_icon_padding,
+                    lens_count: this._lens_count
+                };
+            }
+            ClassicLensPane.prototype.Render = function () {
+                this.OpenPane();
+            };
+            ClassicLensPane.prototype.OpenPane = function () {
+                var _this = this;
+                var container = this._element;
+                var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("class", "lensPane").attr("transform", "translate(" + [10, 10] + ")").call(this._drag);
+                pane_g.append("rect").attr("x", 0).attr("y", 0).attr("width", this._pang_g.rect_width).attr("height", this._pang_g.rect_height).attr("fill", "#fff7bc").attr("stroke", "pink").attr("stroke-width", 2);
+                pane_g.selectAll("circle").data(d3.range(this._lens_count)).enter().append("circle").attr("class", "pane-Lens-Circle").attr("r", this._pang_g.lens_icon_r).attr("cx", this._pang_g.rect_width / 2).attr("cy", function (d, i) {
+                    return _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding + i * (2 * _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding);
+                }).attr("fill", function (d, i) {
+                    return _this._pane_color(i);
+                }).on("mousedown", function () {
+                    d3.event.stopPropagation();
+                }).on("click", function (d, i) {
+                    var len;
+                    switch (i) {
+                        case 0:
+                            {
+                                len = new ManyLens.Lens.NetworkLens(_this._element, _this._manyLens);
+                                break;
+                            }
+                        case 1:
+                            {
+                                len = new ManyLens.Lens.WordCloudLens(_this._element, _this._manyLens);
+                                break;
+                            }
+                        case 2:
+                            {
+                                len = new ManyLens.Lens.BarChartLens(_this._element, _this._manyLens);
+                                break;
+                            }
+                        case 3:
+                            {
+                                len = new ManyLens.Lens.PieChartLens(_this._element, _this._manyLens);
+                                break;
+                            }
+                        case 4:
+                            {
+                                len = new ManyLens.Lens.LocationLens(_this._element, _this._manyLens);
+                                break;
+                            }
+                    }
+                    len.Render(_this._pane_color(i));
+                    d3.event.stopPropagation();
+                });
+            };
+            ClassicLensPane.prototype.ClosePane = function (msg) {
+            };
+            ClassicLensPane.prototype.DragFunc = function () {
+                var pane_rect_width = this._pang_g.rect_width;
+                var pane_rect_height = this._pang_g.rect_height;
+                this._pang_g.svg_g.attr("transform", "translate(" + [
+                    this._pang_g.x = Math.max(0, Math.min(parseFloat(this._element.style("width")) - pane_rect_width, d3.event.x)),
+                    this._pang_g.y = Math.max(0, Math.min(parseFloat(this._element.style("height")) - pane_rect_height, d3.event.y))
+                ] + ")");
+            };
+            return ClassicLensPane;
+        })(ManyLens.D3ChartObject);
+        Pane.ClassicLensPane = ClassicLensPane;
+    })(Pane = ManyLens.Pane || (ManyLens.Pane = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
+///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
+///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
+var ManyLens;
+(function (_ManyLens) {
+    var ManyLens = (function () {
+        function ManyLens() {
+            this._curveView_id = "cruveView";
+            this._mapView_id = "mapView";
+            this._mapSvg_id = "mapSvg";
+            this._historyView_id = "historyView";
+            this._historySvg_id = "historySvg";
+            //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
+            this._lens = new Map();
+            this._lens_count = 0;
+            this._curveView = d3.select("#" + this._curveView_id);
+            this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView);
+            this._curve.Render([10, 10]);
+            this._mapView = d3.select("#" + this._mapView_id);
+            this._mapSvg = d3.select("#" + this._mapSvg_id);
+            this._lensPane = new _ManyLens.Pane.ClassicLensPane(this._mapSvg, this);
+            this._historySvg = d3.select("#" + this._historySvg_id);
+            this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg);
+            //Add a new tree here, actually the tree should not be add here
+            this._historyTrees.addTree();
+            this._lensPane.Render();
+        }
+        Object.defineProperty(ManyLens.prototype, "LensCount", {
+            get: function () {
+                return this._lens_count;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        ManyLens.prototype.GetLens = function (id) {
+            return this._lens.get(id);
+        };
+        ManyLens.prototype.AddLens = function (lens) {
+            this._lens.set("lens_" + this._lens_count, lens);
+            this._lens_count++;
+            this._historyTrees.addNode({
+                color: lens.LensTypeColor,
+                lensType: lens.Type,
+                tree_id: 0
+            });
+        };
+        //TODO need to implementation
+        ManyLens.prototype.RemoveLens = function (lens) {
+            var lens;
+            this._lens.delete(lens.ID);
+            return lens;
+        };
+        ManyLens.prototype.DetachCompositeLens = function (element, hostLens, componentLens) {
+            var lensC = _ManyLens.LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
+            if (lensC.IsCompositeLens) {
+                if (lensC.NeedtoReshape)
+                    this._lens.set(hostLens.ID, lensC);
+                lensC.Render("black");
+                lensC.DisplayLens();
+            }
+            else {
+                this.RemoveLens(hostLens);
+                lensC.DisplayLens();
+            }
+        };
+        return ManyLens;
+    })();
+    _ManyLens.ManyLens = ManyLens;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/ManyLens.ts" />
+"use strict";
+var manyLens;
+document.addEventListener('DOMContentLoaded', function () {
+    manyLens = new ManyLens.ManyLens();
+});
 ///<reference path = "./Lens/LensList.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -2562,7 +2638,6 @@ var ManyLens;
             var t = [firstLens.Type, secondLens.Type].join("_");
             switch (t) {
                 case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
-                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
                         return new ManyLens.Lens.cBoundleLens(element, manyLens, firstLens, secondLens);
                     }
@@ -2578,6 +2653,25 @@ var ManyLens;
                         }
                     }
                 case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.cBoundleLens.Type:
+                    {
+                        return firstLens.AddComponentLens(secondLens);
+                    }
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                    {
+                        return new ManyLens.Lens.cChordDiagramLens(element, manyLens, firstLens, secondLens);
+                    }
+                case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                    {
+                        if (firstLens.Type != ManyLens.Lens.cBoundleLens.Type) {
+                            var tempLens = firstLens;
+                            firstLens = secondLens;
+                            secondLens = tempLens;
+                        }
+                    }
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
                     {
                         return firstLens.AddComponentLens(secondLens);
                     }
@@ -2598,31 +2692,34 @@ var ManyLens;
                 case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                 case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.cSunBrustLens.Type:
                     {
-                        console.log(firstLens, secondLens);
                         return firstLens.AddComponentLens(secondLens);
                     }
                 case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                     {
-                        return new ManyLens.Lens.cChordDiagramLens(element, manyLens, firstLens, secondLens);
+                        return new ManyLens.Lens.cPackingCircleLens(element, manyLens, firstLens, secondLens);
                     }
-                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
-                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
+                case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.cPackingCircleLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cPackingCircleLens.Type:
                     {
-                        if (firstLens.Type != ManyLens.Lens.cChordDiagramLens.Type) {
+                        if (firstLens.Type != ManyLens.Lens.cPackingCircleLens.Type) {
                             var tempLens = firstLens;
                             firstLens = secondLens;
                             secondLens = tempLens;
                         }
                     }
-                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
-                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
-                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
+                case ManyLens.Lens.cPackingCircleLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
+                case ManyLens.Lens.cPackingCircleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                case ManyLens.Lens.cPackingCircleLens.Type + "_" + ManyLens.Lens.cPackingCircleLens.Type:
                     {
                         return firstLens.AddComponentLens(secondLens);
                     }
                 case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
                         return new ManyLens.Lens.cWordCloudLens(element, manyLens, firstLens, secondLens);
+                    }
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                    {
+                        return new ManyLens.Lens.cNetworkLens(element, manyLens, firstLens, secondLens);
                     }
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                     {
@@ -2648,6 +2745,10 @@ var ManyLens;
                     case ManyLens.Lens.WordCloudLens.Type:
                         {
                             return new ManyLens.Lens.cWordCloudLens(element, manyLens, cLens);
+                        }
+                    case ManyLens.Lens.NetworkLens.Type:
+                        {
+                            return new ManyLens.Lens.cNetworkLens(element, manyLens, cLens);
                         }
                 }
             }

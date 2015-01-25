@@ -17,6 +17,10 @@ module ManyLens {
             private _cloud_text_color: D3.Scale.OrdinalScale;
             //private _cloud_rotate: number = 0;
 
+            public get Color(): D3.Scale.OrdinalScale {
+                return this._cloud_text_color;
+            }
+
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
                 super(element, WordCloudLens.Type,manyLens);
                
@@ -28,6 +32,8 @@ module ManyLens {
                 super.Render(color);
 
             }
+
+          
 
             // data shape {text: size:}
             protected ExtractData(): Array<D3.Layout.ICloudData> {

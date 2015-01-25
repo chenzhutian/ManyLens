@@ -428,31 +428,17 @@
                 var focus = data,
                     nodes = this._pack.nodes(data),
                     view;
-                console.log(nodes[0]);
+ 
                 var circle = this._lens_circle_G.selectAll(".node")
                     .data(nodes)
                     .enter().append("circle")
                     .attr("class", function (d,i) {
-                        if (d.name == "flare") {
-                            console.log("flare");
-                            console.log(d.parent);
-                        }
-                        if (i == 0) {
-                            console.log(d);
-                            console.log(d.parent);
-                        }
-                        console.log(i);
                         return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
                     })
                     .style("fill",  (d)=> { return d.children ? this._color(d.depth) : null; })
                     .on("click", function (d) {
                         if (focus !== d) {
                             zoom(d);
-                        }
-                        else {
-                            console.log(d);
-                            console.log(focus);
-                            console.log("no zoom");
                         }
                         d3.event.stopPropagation();
                     });

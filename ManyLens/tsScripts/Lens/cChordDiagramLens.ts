@@ -25,11 +25,12 @@
                 //    .range(["#000000", "#FFDD89", "#957244", "#F26223"])
                 //;
 
-                if (firstLens.Type == "PieChartLens") {
-                    this._fill = (<PieChartLens>firstLens).Color;
-                } else if (secondLens.Type == "PieChartLens") {
-                    this._fill = (<PieChartLens>secondLens).Color;
-                }
+                //if (firstLens.Type == "WordCloudLens") {
+                //    this._fill = (<WordCloudLens>firstLens).Color;
+                //} else if (secondLens.Type == "WordCloudLens") {
+                //    this._fill = (<WordCloudLens>secondLens).Color;
+                //}
+                this._fill = d3.scale.category10();
 
             }
 

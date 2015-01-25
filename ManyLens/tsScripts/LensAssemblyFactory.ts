@@ -18,8 +18,7 @@ module ManyLens {
 
                 /*--------------------------------cBoundle Lens------------------------------*/
                 //single + single = composite
-                case Lens.WordCloudLens.Type + "_" + Lens.NetworkLens.Type:
-                case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
+                case Lens.WordCloudLens.Type + "_" + Lens.NetworkLens.Type: {
                     return new Lens.cBoundleLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
@@ -41,13 +40,36 @@ module ManyLens {
                     return (<Lens.cBoundleLens>firstLens).AddComponentLens(secondLens);
                 }
 
+                
+                /*--------------------------------cChord Digram Lens------------------------------*/
+                case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
+                    return new Lens.cChordDiagramLens(element,
+                        manyLens,
+                        <Lens.BaseSingleLens>firstLens,
+                        <Lens.BaseSingleLens>secondLens);
+                }
+                //composite + single||composite = composite
+                case Lens.WordCloudLens.Type + "_" + Lens.cChordDiagramLens.Type:
+                case Lens.NetworkLens.Type + "_" + Lens.cChordDiagramLens.Type:
+                case Lens.cChordDiagramLens.Type + "_" + Lens.WordCloudLens.Type:
+                case Lens.cChordDiagramLens.Type + "_" + Lens.NetworkLens.Type: {
+                    if (firstLens.Type != Lens.cBoundleLens.Type) {
+                        var tempLens = firstLens;
+                        firstLens = secondLens;
+                        secondLens = tempLens;
+                    }
+                }
+                case Lens.cChordDiagramLens.Type + "_" + Lens.cChordDiagramLens.Type: {
+                    return (<Lens.cBoundleLens>firstLens).AddComponentLens(secondLens);
+                }
+
                 /*-----------------------------cPicChart Diagram Lens--------------------------*/
                     //single + single = composite
                 case Lens.PieChartLens.Type + "_" + Lens.NetworkLens.Type: {
                     return new Lens.cSunBrustLens(element,
-                        manyLens,
-                        <Lens.BaseSingleLens>firstLens,
-                        <Lens.BaseSingleLens>secondLens);
+                                                manyLens,
+                                                <Lens.BaseSingleLens>firstLens,
+                                                <Lens.BaseSingleLens>secondLens);
                 }
                 //composite + single||composite = composite
                 case Lens.NetworkLens.Type + "_" + Lens.cSunBrustLens.Type: 
@@ -61,33 +83,33 @@ module ManyLens {
                 case Lens.cSunBrustLens.Type + "_" + Lens.PieChartLens.Type:
                 case Lens.cSunBrustLens.Type + "_" + Lens.NetworkLens.Type: 
                 case Lens.cSunBrustLens.Type + "_" + Lens.cSunBrustLens.Type: {
-                    console.log(firstLens, secondLens);
                     return (<Lens.cSunBrustLens>firstLens).AddComponentLens(secondLens);
                 }
 
-                /*-----------------------------cChord Diagram Lens--------------------------*/
+                /*-----------------------------cPackingCircle Diagram Lens--------------------------*/
                 //single + single = composite
                 case Lens.NetworkLens.Type + "_" + Lens.PieChartLens.Type: {
-                    return new Lens.cChordDiagramLens(element,
+                    return new Lens.cPackingCircleLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);
                 }
                 //composite + single||composite = composite
-                case Lens.NetworkLens.Type + "_" + Lens.cChordDiagramLens.Type: 
-                case Lens.NetworkLens.Type + "_" + Lens.cChordDiagramLens.Type: {
-                    if (firstLens.Type != Lens.cChordDiagramLens.Type) {
+                case Lens.PieChartLens.Type + "_" + Lens.cPackingCircleLens.Type: 
+                case Lens.NetworkLens.Type + "_" + Lens.cPackingCircleLens.Type: {
+                    if (firstLens.Type != Lens.cPackingCircleLens.Type) {
                         var tempLens = firstLens;
                         firstLens = secondLens;
                         secondLens = tempLens;
                     }
                 }
-                case Lens.cChordDiagramLens.Type + "_" + Lens.PieChartLens.Type: 
-                case Lens.cChordDiagramLens.Type + "_" + Lens.NetworkLens.Type: 
-                case Lens.cChordDiagramLens.Type + "_" + Lens.cChordDiagramLens.Type: {
-                    return (<Lens.cChordDiagramLens>firstLens).AddComponentLens(secondLens);
+                case Lens.cPackingCircleLens.Type + "_" + Lens.PieChartLens.Type: 
+                case Lens.cPackingCircleLens.Type + "_" + Lens.NetworkLens.Type: 
+                case Lens.cPackingCircleLens.Type + "_" + Lens.cPackingCircleLens.Type: {
+                    return (<Lens.cPackingCircleLens>firstLens).AddComponentLens(secondLens);
                 }
                 
+
                 /*----------------------------Single Lens Self Increment---------------------*/
                 case Lens.WordCloudLens.Type + "_" + Lens.WordCloudLens.Type: {
                     return new Lens.cWordCloudLens(element,
@@ -95,6 +117,13 @@ module ManyLens {
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);
                 }
+                case Lens.NetworkLens.Type + "_" + Lens.NetworkLens.Type: {
+                    return new Lens.cNetworkLens(element,
+                        manyLens,
+                        <Lens.BaseSingleLens>firstLens,
+                        <Lens.BaseSingleLens>secondLens);
+                }
+
                     //just for test now
                 case Lens.PieChartLens.Type + "_" + Lens.PieChartLens.Type: {
                     return new Lens.cPackingCircleLens(element,
@@ -127,6 +156,9 @@ module ManyLens {
                 switch (t) {
                     case Lens.WordCloudLens.Type: {
                         return new Lens.cWordCloudLens(element, manyLens, cLens);
+                    }
+                    case Lens.NetworkLens.Type: {
+                        return new Lens.cNetworkLens(element, manyLens, cLens);
                     }
                     
                 }
