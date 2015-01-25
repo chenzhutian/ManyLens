@@ -231,15 +231,13 @@ module ManyLens {
                     var lensB_id: string = d3.select(res[1].parentNode).attr("id");
                     var lensC:BaseCompositeLens = LensAssemblyFactory.CombineLens(
                         this._element,
+                        this._manyLens,
                         this._manyLens.GetLens(lensA_id),
-                        this._manyLens.GetLens(lensB_id),
-                        this._manyLens
-                        );
+                        this._manyLens.GetLens(lensB_id));
 
                     if (lensC) {
                         lensC.Render("black");
                         lensC.DisplayLens();
-
                     }
                 }
                 return res;

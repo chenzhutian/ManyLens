@@ -47,6 +47,8 @@ var ManyLens;
         ManyLens.prototype.DetachCompositeLens = function (element, hostLens, componentLens) {
             var lensC = _ManyLens.LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
             if (lensC.IsCompositeLens) {
+                if (lensC.NeedtoReshape)
+                    this._lens.set(hostLens.ID, lensC);
                 lensC.Render("black");
                 lensC.DisplayLens();
             }

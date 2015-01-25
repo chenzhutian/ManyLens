@@ -1,6 +1,6 @@
 ﻿module ManyLens {
     export module Lens {
-        export class cPieChartLens extends BaseCompositeLens {
+        export class cSunBrustLens extends BaseCompositeLens {
 
             //TODO need to refine this lens
 
@@ -15,7 +15,7 @@
                 manyLens: ManyLens.ManyLens,
                 firstLens: BaseSingleLens,
                 secondLens: BaseSingleLens) {
-                super(element, cPieChartLens.Type, manyLens,firstLens, secondLens );
+                super(element, cSunBrustLens.Type, manyLens,firstLens, secondLens );
 
                 this._luminance
                     .domain([0, 1e6])
@@ -205,15 +205,19 @@
 
             public DisplayLens(): void {
                 super.DisplayLens();
+                console.log("Display sunbrust");
                 var data = this.ExtractData();
                 var svg = this._lens_circle_G;
                 var partition = this._partition;
                 var hue = this._color;
                 var luminance = this._luminance;
                 var arc = this._arc;
+                console.log(data);
+
 
                 this._partition
                     .value(function (d) { return d.size; })
+                    .children(function (d) { return d.children;})
                     .nodes(data)
                     .forEach(function (d) {
                         d._children = d.children;
@@ -222,11 +226,12 @@
                         d['fill'] = fill(d);
                     })
                 ;
+                console.log(data);
 
                 // Now redefine the value function to use the previously-computed sum.
                 this._partition
                     .children(function (d, depth) { return depth < 2 ? d._children : null; })
-                     .value(function (d) { return d.value; })
+                    .value(function (d) { return d.value; })
                 ;
 
                 var center = svg.append("circle")
@@ -238,6 +243,8 @@
                 center.append("title")
                     .text("zoom out");
 
+                console.log(data);
+                console.log(this._partition.nodes(data).slice(1));
                 var path = svg.selectAll("path")
                         .data(this._partition.nodes(data).slice(1))
                     .enter().append("path")
@@ -246,6 +253,7 @@
                         .each(function (d) { this._current = updateArc(d); })
                         .on("click", zoomIn)
                 ;
+                console.log("where is it?");
 
                 function zoomIn(p) {
                     if (p.depth > 1) p = p.parent;

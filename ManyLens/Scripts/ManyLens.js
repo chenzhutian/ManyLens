@@ -353,7 +353,7 @@ var ManyLens;
                 if (res.length == 2) {
                     var lensA_id = d3.select(res[0].parentNode).attr("id");
                     var lensB_id = d3.select(res[1].parentNode).attr("id");
-                    var lensC = ManyLens.LensAssemblyFactory.CombineLens(this._element, this._manyLens.GetLens(lensA_id), this._manyLens.GetLens(lensB_id), this._manyLens);
+                    var lensC = ManyLens.LensAssemblyFactory.CombineLens(this._element, this._manyLens, this._manyLens.GetLens(lensA_id), this._manyLens.GetLens(lensB_id));
                     if (lensC) {
                         lensC.Render("black");
                         lensC.DisplayLens();
@@ -835,13 +835,6 @@ var ManyLens;
                     var height = _this._map_height;
                     var g = _this._lens_circle_G.append("g");
                     var centered;
-                    //lensG.append("image")
-                    //    .attr("xlink:href", this._map_path)
-                    //    .attr("x", -this._map_width / 2)
-                    //    .attr("y", -this._map_height / 2)
-                    //    .attr("width", this._map_width)
-                    //    .attr("height", this._map_height)
-                    //;
                     g.append("g").attr("id", "states").selectAll("path").data(topojson.feature(data, data.objects.states).features).enter().append("path").attr("d", _this._path).on("click", clicked);
                     g.append("path").datum(topojson.mesh(data, data.objects.states, function (a, b) {
                         return a !== b;
@@ -1181,6 +1174,7 @@ var ManyLens;
                     var sinTheta = this._lc_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
                     sc._line.attr("x1", sc._sc_cx + sc._sc_radius * sc._sc_scale * cosTheta).attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta).attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta).attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta);
                 }
+                this._new_lens_count = 0;
             };
             BaseCompositeLens.prototype.AddCompositeLens = function (componentLens) {
                 if (componentLens.SelectCircle.length != componentLens.Lens.length)
@@ -2126,11 +2120,11 @@ var ManyLens;
 (function (ManyLens) {
     var Lens;
     (function (Lens) {
-        var cPieChartLens = (function (_super) {
-            __extends(cPieChartLens, _super);
-            function cPieChartLens(element, manyLens, firstLens, secondLens) {
+        var cSunBrustLens = (function (_super) {
+            __extends(cSunBrustLens, _super);
+            function cSunBrustLens(element, manyLens, firstLens, secondLens) {
                 var _this = this;
-                _super.call(this, element, cPieChartLens.Type, manyLens, firstLens, secondLens);
+                _super.call(this, element, cSunBrustLens.Type, manyLens, firstLens, secondLens);
                 this._color = d3.scale.category10();
                 this._luminance = d3.scale.sqrt();
                 this._partition = d3.layout.partition();
@@ -2149,10 +2143,10 @@ var ManyLens;
                     return _this._lc_radius / 3 * (d.depth + 1) - 1;
                 });
             }
-            cPieChartLens.prototype.Render = function () {
+            cSunBrustLens.prototype.Render = function () {
                 _super.prototype.Render.call(this, "yellow");
             };
-            cPieChartLens.prototype.ExtractData = function () {
+            cSunBrustLens.prototype.ExtractData = function () {
                 var data = {
                     "name": "flare",
                     "children": [
@@ -2311,22 +2305,27 @@ var ManyLens;
                 };
                 return data;
             };
-            cPieChartLens.prototype.DisplayLens = function () {
+            cSunBrustLens.prototype.DisplayLens = function () {
                 _super.prototype.DisplayLens.call(this);
+                console.log("Display sunbrust");
                 var data = this.ExtractData();
                 var svg = this._lens_circle_G;
                 var partition = this._partition;
                 var hue = this._color;
                 var luminance = this._luminance;
                 var arc = this._arc;
+                console.log(data);
                 this._partition.value(function (d) {
                     return d.size;
+                }).children(function (d) {
+                    return d.children;
                 }).nodes(data).forEach(function (d) {
                     d._children = d.children;
                     //d['sum'] = d.value;
                     d['key'] = key(d);
                     d['fill'] = fill(d);
                 });
+                console.log(data);
                 // Now redefine the value function to use the previously-computed sum.
                 this._partition.children(function (d, depth) {
                     return depth < 2 ? d._children : null;
@@ -2335,11 +2334,14 @@ var ManyLens;
                 });
                 var center = svg.append("circle").attr("r", this._lc_radius / 3).style("fill", "#fff").on("click", zoomOut);
                 center.append("title").text("zoom out");
+                console.log(data);
+                console.log(this._partition.nodes(data).slice(1));
                 var path = svg.selectAll("path").data(this._partition.nodes(data).slice(1)).enter().append("path").attr("d", this._arc).style("fill", function (d) {
                     return d.fill;
                 }).each(function (d) {
                     this._current = updateArc(d);
                 }).on("click", zoomIn);
+                console.log("where is it?");
                 function zoomIn(p) {
                     if (p.depth > 1)
                         p = p.parent;
@@ -2424,10 +2426,10 @@ var ManyLens;
                 }
             };
             //TODO need to refine this lens
-            cPieChartLens.Type = "cPieChartLens";
-            return cPieChartLens;
+            cSunBrustLens.Type = "cPieChartLens";
+            return cSunBrustLens;
         })(Lens.BaseCompositeLens);
-        Lens.cPieChartLens = cPieChartLens;
+        Lens.cSunBrustLens = cSunBrustLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "./BaseCompositeLens.ts" />
@@ -2556,15 +2558,16 @@ var ManyLens;
         function LensAssemblyFactory() {
         }
         //TODO add more laws here
-        LensAssemblyFactory.CombineLens = function (element, firstLens, secondLens, manyLens) {
-            var t = [firstLens.Type, secondLens.Type].sort(function (a, b) {
-                return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
-            }).join("_");
+        LensAssemblyFactory.CombineLens = function (element, manyLens, firstLens, secondLens) {
+            var t = [firstLens.Type, secondLens.Type].join("_");
             switch (t) {
+                case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                 case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
                         return new ManyLens.Lens.cBoundleLens(element, manyLens, firstLens, secondLens);
                     }
+                case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.cBoundleLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cBoundleLens.Type:
                 case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                 case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
@@ -2578,12 +2581,32 @@ var ManyLens;
                     {
                         return firstLens.AddComponentLens(secondLens);
                     }
+                case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                    {
+                        return new ManyLens.Lens.cSunBrustLens(element, manyLens, firstLens, secondLens);
+                    }
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cSunBrustLens.Type:
+                case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.cSunBrustLens.Type:
+                    {
+                        if (firstLens.Type != ManyLens.Lens.cSunBrustLens.Type) {
+                            var tempLens = firstLens;
+                            firstLens = secondLens;
+                            secondLens = tempLens;
+                        }
+                    }
+                case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
+                case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.cSunBrustLens.Type:
+                    {
+                        console.log(firstLens, secondLens);
+                        return firstLens.AddComponentLens(secondLens);
+                    }
                 case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                     {
                         return new ManyLens.Lens.cChordDiagramLens(element, manyLens, firstLens, secondLens);
                     }
-                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
-                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
                     {
                         if (firstLens.Type != ManyLens.Lens.cChordDiagramLens.Type) {
                             var tempLens = firstLens;
@@ -2591,6 +2614,8 @@ var ManyLens;
                             secondLens = tempLens;
                         }
                     }
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                 case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
                     {
                         return firstLens.AddComponentLens(secondLens);

@@ -196,6 +196,7 @@ module ManyLens {
             private ReDrawLinkLine(newLensCount: number = 0): void {
                 var i = newLensCount == 0 ? 0 : this._select_circle.length - newLensCount;
                 for (var len = this._select_circle.length; i < len; ++i) {
+
                     var sc = this._select_circle[i];
                     var theta = Math.atan((this._lc_cy - sc._sc_cy) / (this._lc_cx - sc._sc_cx));
                     var cosTheta = this._lc_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
@@ -208,6 +209,7 @@ module ManyLens {
                         .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
                     // console.log("redraw composite link:" + i);
                 }
+                this._new_lens_count = 0;
             }
 
             private AddCompositeLens(componentLens: BaseCompositeLens): void {

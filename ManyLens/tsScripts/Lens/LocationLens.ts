@@ -43,14 +43,6 @@ module ManyLens {
                     var g = this._lens_circle_G.append("g");
                     var centered;
 
-                    //lensG.append("image")
-                    //    .attr("xlink:href", this._map_path)
-                    //    .attr("x", -this._map_width / 2)
-                    //    .attr("y", -this._map_height / 2)
-                    //    .attr("width", this._map_width)
-                    //    .attr("height", this._map_height)
-                    //;
-
                     g.append("g")
                         .attr("id", "states")
                         .selectAll("path")
