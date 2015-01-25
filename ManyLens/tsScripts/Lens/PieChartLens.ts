@@ -53,11 +53,8 @@ module ManyLens{
             public DisplayLens(data: Array<any>): any {
                 var p = super.DisplayLens(data);
                 var container = this._element;
-                var lensG = this._lens_circle_G;
 
-
-
-                lensG.selectAll("path")
+                this._lens_circle_G.selectAll("path")
                     .data(this._pie(this._data))
                     .enter().append("path")
                     .attr("fill", (d, i) => {

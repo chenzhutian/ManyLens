@@ -928,7 +928,7 @@ declare module D3 {
                 (name: string): string;
                 (name: string, value: any): Transition;
                 (name: string, valueFunction: (data: any, index: number) => any): Transition;
-                (attrValueMap : any): Transition;
+                (attrValueMap: any): Transition;
             };
             style: {
                 (name: string): string;
@@ -971,7 +971,10 @@ declare module D3 {
                 */
                 (elements: EventTarget[]): Transition;
             }
-            each: (type :any, eachFunction?: (data: any, index: number) => any) => Transition;
+            each: {
+                (type: (data: any, index: number) => any): Transition;
+                (type: string, eachFunction?: (data: any, index: number) => any) : Transition;
+            }
             transition: () => Transition;
             ease: (value: string, ...arrs: any[]) => Transition;
             attrTween(name: string, tween: (d: any, i: number, a: any) => BaseInterpolate): Transition;

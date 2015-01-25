@@ -2,20 +2,19 @@
 ///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />
 module ManyLens {
     export module Lens{
-        export class LocationLens extends BaseSingleLens {
+        export class MapLens extends BaseSingleLens {
 
-            public static Type: string = "LocationLens";
+            public static Type: string = "MapLens";
 
             private _map_width: number = this._lc_radius * Math.SQRT2;
             private _map_height: number = this._map_width;
-            private _map_path: string = "./img/chinamap.svg";
 
             private _projection: D3.Geo.Projection = d3.geo.albersUsa();
             private _path: D3.Geo.Path = d3.geo.path();
 
 
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, LocationLens.Type, manyLens);
+                super(element, MapLens.Type, manyLens);
 
                 this._projection
                     .scale(250)

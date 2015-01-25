@@ -44,6 +44,7 @@
     <TypeScriptCompile Include="tsScripts\Lens\cChordDiagramLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cNetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cPackingCircleLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\cPieChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cSunBrustLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cWordCloudLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\LensList.ts" />
@@ -52,7 +53,7 @@
     <TypeScriptCompile Include="tsScripts\TweetsCurve\Cruve.ts" />
     <TypeScriptCompile Include="tsScripts\LensHistory\HistoryTree.ts" />
     <TypeScriptCompile Include="tsScripts\Pane\BlossomLensPane.ts" />
-    <TypeScriptCompile Include="tsScripts\Lens\LocationLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\MapLens.ts" />
     <TypeScriptCompile Include="tsScripts\ManyLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\NetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\PieChartLens.ts" />

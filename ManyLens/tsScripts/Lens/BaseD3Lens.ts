@@ -82,6 +82,9 @@ module ManyLens {
                     this._is_component_lens = false;
                 }
             }
+            public get Data(): any {
+                return this._data;
+            }
 
             constructor(element: D3.Selection, type: string,manyLens:ManyLens) {
                 super(element);
@@ -135,6 +138,7 @@ module ManyLens {
                         //d3.event.preventDefault();
                     })
                     .on("mousedown", () => {
+
                         console.log("mousedown " + this._type);
                     })
                     .on("mouseup", () => {
@@ -189,7 +193,6 @@ module ManyLens {
             }
 
             protected LensCircleDragFunc(): void {
-
                 var transform = this._lens_circle_G.attr("transform");
                 this._lens_circle_G.attr("transform", (d) => {
                     this._lc_cx = d.x = Math.max(this._lc_radius, Math.min(parseFloat(this._element.style("width")) - this._lc_radius, d3.event.x));

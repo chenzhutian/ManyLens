@@ -4,7 +4,7 @@
 
             //TODO need to refine this lens
 
-            public static Type: string = "cPieChartLens";
+            public static Type: string = "cSunBrustLens";
 
             private _color: D3.Scale.OrdinalScale = d3.scale.category10();
             private _luminance: D3.Scale.SqrtScale = d3.scale.sqrt();
@@ -205,7 +205,7 @@
 
             public DisplayLens(): void {
                 super.DisplayLens();
-                console.log("Display sunbrust");
+
                 var data = this.ExtractData();
                 var svg = this._lens_circle_G;
                 var partition = this._partition;
@@ -226,7 +226,6 @@
                         d['fill'] = fill(d);
                     })
                 ;
-                console.log(data);
 
                 // Now redefine the value function to use the previously-computed sum.
                 this._partition
@@ -243,8 +242,6 @@
                 center.append("title")
                     .text("zoom out");
 
-                console.log(data);
-                console.log(this._partition.nodes(data).slice(1));
                 var path = svg.selectAll("path")
                         .data(this._partition.nodes(data).slice(1))
                     .enter().append("path")

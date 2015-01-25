@@ -113,7 +113,7 @@ module ManyLens {
                                 break;
                             }
                             case 4: {
-                                len = new Lens.LocationLens(this._element, this._manyLens);
+                                len = new Lens.MapLens(this._element, this._manyLens);
                                 break;
                             }
                         }

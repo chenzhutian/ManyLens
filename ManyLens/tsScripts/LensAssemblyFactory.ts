@@ -126,7 +126,7 @@ module ManyLens {
 
                     //just for test now
                 case Lens.PieChartLens.Type + "_" + Lens.PieChartLens.Type: {
-                    return new Lens.cPackingCircleLens(element,
+                    return new Lens.cPieChartLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);
@@ -165,26 +165,6 @@ module ManyLens {
             } else {
                 return res;
             }
-
-            //var t = [hostLens.Type, componentLens.Type]
-            //    .sort(function (a, b) {
-            //        return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
-            //    })
-            //    .join("_");
-            //switch (t) {
-
-            //    /*--------------------------------cBoundle Lens------------------------------*/
-            //    case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: {
-            //        return hostLens.RemoveComponentLens(componentLens);
-            //    }
-            //    case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
-            //        return hostLens.RemoveComponentLens(componentLens);
-            //    }
-
-
-
-            //    default: return null;
-            //}
         }
     }
 }

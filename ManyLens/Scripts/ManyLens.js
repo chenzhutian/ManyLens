@@ -263,6 +263,13 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
+            Object.defineProperty(BaseD3Lens.prototype, "Data", {
+                get: function () {
+                    return this._data;
+                },
+                enumerable: true,
+                configurable: true
+            });
             BaseD3Lens.prototype.Render = function (color) {
                 var _this = this;
                 this._lens_type_color = color;
@@ -816,24 +823,23 @@ var ManyLens;
 (function (ManyLens) {
     var Lens;
     (function (Lens) {
-        var LocationLens = (function (_super) {
-            __extends(LocationLens, _super);
-            function LocationLens(element, manyLens) {
-                _super.call(this, element, LocationLens.Type, manyLens);
+        var MapLens = (function (_super) {
+            __extends(MapLens, _super);
+            function MapLens(element, manyLens) {
+                _super.call(this, element, MapLens.Type, manyLens);
                 this._map_width = this._lc_radius * Math.SQRT2;
                 this._map_height = this._map_width;
-                this._map_path = "./img/chinamap.svg";
                 this._projection = d3.geo.albersUsa();
                 this._path = d3.geo.path();
                 this._projection.scale(250).translate([0, 0]);
                 this._path.projection(this._projection);
             }
-            LocationLens.prototype.Render = function (color) {
+            MapLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
             };
-            LocationLens.prototype.ExtractData = function () {
+            MapLens.prototype.ExtractData = function () {
             };
-            LocationLens.prototype.DisplayLens = function (data) {
+            MapLens.prototype.DisplayLens = function (data) {
                 var _this = this;
                 d3.json("../testData/us.json", function (error, data) {
                     _super.prototype.DisplayLens.call(_this, data);
@@ -868,10 +874,10 @@ var ManyLens;
                     }
                 });
             };
-            LocationLens.Type = "LocationLens";
-            return LocationLens;
+            MapLens.Type = "MapLens";
+            return MapLens;
         })(Lens.BaseSingleLens);
-        Lens.LocationLens = LocationLens;
+        Lens.MapLens = MapLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "./BaseSingleLens.ts" />
@@ -992,8 +998,7 @@ var ManyLens;
                 var _this = this;
                 var p = _super.prototype.DisplayLens.call(this, data);
                 var container = this._element;
-                var lensG = this._lens_circle_G;
-                lensG.selectAll("path").data(this._pie(this._data)).enter().append("path").attr("fill", function (d, i) {
+                this._lens_circle_G.selectAll("path").data(this._pie(this._data)).enter().append("path").attr("fill", function (d, i) {
                     return _this._color(i);
                 }).attr("d", this._arc);
             };
@@ -2197,7 +2202,6 @@ var ManyLens;
             };
             cSunBrustLens.prototype.DisplayLens = function () {
                 _super.prototype.DisplayLens.call(this);
-                console.log("Display sunbrust");
                 var data = this.ExtractData();
                 var svg = this._lens_circle_G;
                 var partition = this._partition;
@@ -2215,7 +2219,6 @@ var ManyLens;
                     d['key'] = key(d);
                     d['fill'] = fill(d);
                 });
-                console.log(data);
                 // Now redefine the value function to use the previously-computed sum.
                 this._partition.children(function (d, depth) {
                     return depth < 2 ? d._children : null;
@@ -2224,8 +2227,6 @@ var ManyLens;
                 });
                 var center = svg.append("circle").attr("r", this._lc_radius / 3).style("fill", "#fff").on("click", zoomOut);
                 center.append("title").text("zoom out");
-                console.log(data);
-                console.log(this._partition.nodes(data).slice(1));
                 var path = svg.selectAll("path").data(this._partition.nodes(data).slice(1)).enter().append("path").attr("d", this._arc).style("fill", function (d) {
                     return d.fill;
                 }).each(function (d) {
@@ -2316,7 +2317,7 @@ var ManyLens;
                 }
             };
             //TODO need to refine this lens
-            cSunBrustLens.Type = "cPieChartLens";
+            cSunBrustLens.Type = "cSunBrustLens";
             return cSunBrustLens;
         })(Lens.BaseCompositeLens);
         Lens.cSunBrustLens = cSunBrustLens;
@@ -2444,7 +2445,7 @@ var ManyLens;
 /*--------------- Single Lens  ----------------*/
 ///<reference path = "../Lens/BarChartLens.ts" />
 ///<reference path = "../Lens/WordCloudLens.ts"/>
-///<reference path = "../Lens/LocationLens.ts" />
+///<reference path = "../Lens/MapLens.ts" />
 ///<reference path = "../Lens/NetworkLens.ts"  />
 ///<reference path = "../Lens/PieChartLens.ts" />
 /*------------ CompositeLens Lens -------------*/
@@ -2529,7 +2530,7 @@ var ManyLens;
                             }
                         case 4:
                             {
-                                len = new ManyLens.Lens.LocationLens(_this._element, _this._manyLens);
+                                len = new ManyLens.Lens.MapLens(_this._element, _this._manyLens);
                                 break;
                             }
                     }
@@ -2627,6 +2628,62 @@ var manyLens;
 document.addEventListener('DOMContentLoaded', function () {
     manyLens = new ManyLens.ManyLens();
 });
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var cPieChartLens = (function (_super) {
+            __extends(cPieChartLens, _super);
+            function cPieChartLens(element, manyLens, firstLens, secondLens) {
+                _super.call(this, element, cPieChartLens.Type, manyLens, firstLens, secondLens);
+                this._color = d3.scale.category20();
+                this._partition = d3.layout.partition();
+                this._arc = d3.svg.arc();
+                this._arc.startAngle(function (d) {
+                    return d.x;
+                }).endAngle(function (d) {
+                    return d.x + d.dx;
+                }).innerRadius(function (d) {
+                    return Math.sqrt(d.y);
+                }).outerRadius(function (d) {
+                    return Math.sqrt(d.y + d.dy);
+                });
+                this._partition.sort(null).size([2 * Math.PI, this._lc_radius * this._lc_radius]);
+            }
+            cPieChartLens.prototype.Render = function (color) {
+                if (color === void 0) { color = "pupple"; }
+                _super.prototype.Render.call(this, color);
+            };
+            cPieChartLens.prototype.ExtractData = function () {
+                var data;
+                data = d3.range(6).map(function (d) {
+                    var value = Math.random() * 70;
+                    return {
+                        value: value,
+                        children: [{
+                            value: value * Math.random()
+                        }]
+                    };
+                });
+                data = { children: data };
+                return data;
+            };
+            cPieChartLens.prototype.DisplayLens = function () {
+                var _this = this;
+                _super.prototype.DisplayLens.call(this);
+                var data = this.ExtractData();
+                var path = this._lens_circle_G.selectAll("path").data(this._partition.nodes(data)).enter().append("path").attr("display", function (d) {
+                    return d.depth ? null : "none";
+                }).attr("d", this._arc).style("stroke", "#fff").style("fill", function (d, i) {
+                    return _this._color(i);
+                }).style("fill-rule", "evenodd");
+            };
+            cPieChartLens.Type = "cPieChartLens";
+            return cPieChartLens;
+        })(Lens.BaseCompositeLens);
+        Lens.cPieChartLens = cPieChartLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
 ///<reference path = "./Lens/LensList.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -2723,7 +2780,7 @@ var ManyLens;
                     }
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                     {
-                        return new ManyLens.Lens.cPackingCircleLens(element, manyLens, firstLens, secondLens);
+                        return new ManyLens.Lens.cPieChartLens(element, manyLens, firstLens, secondLens);
                     }
                 default:
                     {
@@ -2755,21 +2812,6 @@ var ManyLens;
             else {
                 return res;
             }
-            //var t = [hostLens.Type, componentLens.Type]
-            //    .sort(function (a, b) {
-            //        return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
-            //    })
-            //    .join("_");
-            //switch (t) {
-            //    /*--------------------------------cBoundle Lens------------------------------*/
-            //    case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: {
-            //        return hostLens.RemoveComponentLens(componentLens);
-            //    }
-            //    case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
-            //        return hostLens.RemoveComponentLens(componentLens);
-            //    }
-            //    default: return null;
-            //}
         };
         return LensAssemblyFactory;
     })();
@@ -2836,7 +2878,7 @@ var ManyLens;
                             }
                         case 1:
                             {
-                                len = new ManyLens.Lens.LocationLens(_this._element, _this._manyLens);
+                                len = new ManyLens.Lens.MapLens(_this._element, _this._manyLens);
                                 break;
                             }
                         case 2:
