@@ -1037,6 +1037,8 @@ var ManyLens;
                         _sc_radius: firstLens0.SelectCircleRadius,
                         _sc_scale: firstLens0.SelectCircleScale
                     });
+                    this._data = firstLens0.Data;
+                    this._components_kind.set(firstLens.Type, 1);
                     this._lens.push(secondLens);
                     this._select_circle.push({
                         _line: secondLens.LinkLine,
@@ -1045,7 +1047,7 @@ var ManyLens;
                         _sc_radius: secondLens.SelectCircleRadius,
                         _sc_scale: secondLens.SelectCircleScale
                     });
-                    this._components_kind.set(firstLens.Type, 1);
+                    this._sub_data = secondLens.Data;
                     this._components_kind.set(secondLens.Type, 1);
                 }
                 else {
@@ -1062,6 +1064,7 @@ var ManyLens;
                         }
                         firstLens1.Lens[i].ChangeHostTo(this);
                     }
+                    this._sub_data = firstLens1.Data;
                 }
             }
             Object.defineProperty(BaseCompositeLens.prototype, "Lens", {
@@ -1137,9 +1140,11 @@ var ManyLens;
                 else {
                     this.AddSingleLens(lens);
                 }
+                this._sub_data = lens.Data;
                 return this;
             };
             BaseCompositeLens.prototype.RemoveComponentLens = function (lens) {
+                //TODO remove related data here;
                 var index = this._lens.indexOf(lens);
                 if (-1 != index) {
                     this._lens.splice(index, 1);
@@ -2635,48 +2640,49 @@ var ManyLens;
         var cPieChartLens = (function (_super) {
             __extends(cPieChartLens, _super);
             function cPieChartLens(element, manyLens, firstLens, secondLens) {
+                var _this = this;
                 _super.call(this, element, cPieChartLens.Type, manyLens, firstLens, secondLens);
                 this._color = d3.scale.category20();
-                this._partition = d3.layout.partition();
+                this._pie = d3.layout.pie();
                 this._arc = d3.svg.arc();
-                this._arc.startAngle(function (d) {
-                    return d.x;
-                }).endAngle(function (d) {
-                    return d.x + d.dx;
-                }).innerRadius(function (d) {
-                    return Math.sqrt(d.y);
+                this._pie.value(function (d) {
+                    return d.host;
+                }).sort(null);
+                this._arc.innerRadius(function (d) {
+                    return _this._lc_radius - 20;
                 }).outerRadius(function (d) {
-                    return Math.sqrt(d.y + d.dy);
+                    return _this._lc_radius;
                 });
-                this._partition.sort(null).size([2 * Math.PI, this._lc_radius * this._lc_radius]);
             }
             cPieChartLens.prototype.Render = function (color) {
                 if (color === void 0) { color = "pupple"; }
                 _super.prototype.Render.call(this, color);
             };
             cPieChartLens.prototype.ExtractData = function () {
+                var _this = this;
                 var data;
-                data = d3.range(6).map(function (d) {
-                    var value = Math.random() * 70;
+                data = d3.range(6).map(function (d, i) {
                     return {
-                        value: value,
-                        children: [{
-                            value: value * Math.random()
-                        }]
+                        host: _this._data[i],
+                        sub: Math.random() * _this._data[i]
                     };
                 });
-                data = { children: data };
                 return data;
             };
             cPieChartLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
                 var data = this.ExtractData();
-                var path = this._lens_circle_G.selectAll("path").data(this._partition.nodes(data)).enter().append("path").attr("display", function (d) {
-                    return d.depth ? null : "none";
-                }).attr("d", this._arc).style("stroke", "#fff").style("fill", function (d, i) {
+                this._lens_circle_G.selectAll(".innerPie").data(this._pie(data)).enter().append("path").attr("d", this._arc).style("fill", function (d, i) {
                     return _this._color(i);
                 }).style("fill-rule", "evenodd");
+                console.log(this._pie(data));
+                this._arc.innerRadius(this._lc_radius - 40).outerRadius(this._lc_radius - 20).endAngle(function (d, i) {
+                    return d.startAngle + (d.endAngle - d.startAngle) * (d.data.sub / d.value);
+                });
+                this._lens_circle_G.selectAll(".outerPie").data(this._pie(data)).enter().append("path").attr("fill", function (d, i) {
+                    return _this._color(i);
+                }).attr("d", this._arc);
             };
             cPieChartLens.Type = "cPieChartLens";
             return cPieChartLens;

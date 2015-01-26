@@ -21,9 +21,9 @@ module ManyLens {
 
             protected _base_component: BaseD3Lens;
             protected _sub_component: BaseD3Lens;
+            protected _sub_data: any;
 
             protected _new_lens_count: number = 1;
-
             protected _need_to_reshape: boolean = false;
 
             public get Lens(): Array<BaseSingleLens> {
@@ -69,6 +69,9 @@ module ManyLens {
                         _sc_radius: firstLens0.SelectCircleRadius,
                         _sc_scale: firstLens0.SelectCircleScale
                     })
+                    this._data = firstLens0.Data;
+                    this._components_kind.set(firstLens.Type, 1);
+
                     this._lens.push(secondLens);
                     this._select_circle.push({
                         _line: secondLens.LinkLine,
@@ -77,10 +80,9 @@ module ManyLens {
                         _sc_radius: secondLens.SelectCircleRadius,
                         _sc_scale: secondLens.SelectCircleScale
                     });
-
-                    
-                    this._components_kind.set(firstLens.Type, 1);
+                    this._sub_data = secondLens.Data;                      
                     this._components_kind.set(secondLens.Type, 1);
+
                 } else {
                     var firstLens1: BaseCompositeLens = (<BaseCompositeLens>firstLens);
                     for (var i = 0, len = firstLens1.Lens.length; i < len; ++i) {
@@ -94,6 +96,7 @@ module ManyLens {
                         }
                         firstLens1.Lens[i].ChangeHostTo(this);
                     }
+                    this._sub_data = firstLens1.Data;
                 }
             }
 
@@ -149,10 +152,12 @@ module ManyLens {
                 } else {
                     this.AddSingleLens(<Lens.BaseSingleLens>lens);
                 }
+                this._sub_data = lens.Data;
                 return this;
             }
 
-            public RemoveComponentLens(lens: BaseSingleLens):BaseD3Lens {
+            public RemoveComponentLens(lens: BaseSingleLens): BaseD3Lens {
+                //TODO remove related data here;
                 var index: number = this._lens.indexOf(lens);
                 if (-1 != index) {
                     this._lens.splice(index, 1);
