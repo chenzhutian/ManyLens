@@ -14,7 +14,8 @@
 
                 this._force
                     .size([0, 0])
-                    .linkDistance(this._lens_circle_radius)
+                    .linkDistance(this._lens_circle_radius/2)
+                    .charge(-100)
                 ;
 
                 this._location_x_scale
@@ -104,8 +105,8 @@
 
             public DisplayLens(data: any): any {
                 super.DisplayLens(data);
-                var nodes = data.nodes,
-                    links = data.links
+                var nodes = this._data.nodes,
+                    links = this._data.links
                 ;
 
                 this._location_x_scale
@@ -121,24 +122,26 @@
                     d.y = this._location_y_scale(d.y);
                 });
 
-                var animationStep: number = 100;
+                var animationStep: number = 50;
 
                 this._force
                     .nodes(nodes)
                     .links(links)
                 ;
 
+                console.log(links);
+
                 var link = this._lens_circle_svg
                     .selectAll(".link")
                     .data(links)
                     .enter().append("line")
                     .attr("class", "link")
-                    .attr('x1', function (d) { return nodes[d.source].x; })
-                    .attr('y1', function (d) { return nodes[d.source].y; })
-                    .attr('x2', function (d) { return nodes[d.target].x; })
-                    .attr('y2', function (d) { return nodes[d.target].y; })
+                    //.attr('x1', function (d) { return nodes[d.source].x; })
+                    //.attr('y1', function (d) { return nodes[d.source].y; })
+                    //.attr('x2', function (d) { return nodes[d.target].x; })
+                    //.attr('y2', function (d) { return nodes[d.target].y; })
                     .style("stroke", "#777")
-                    .style("stroke-width", "2px")
+                    .style("stroke-width", "1px")
                 ;
 
                 var node = this._lens_circle_svg

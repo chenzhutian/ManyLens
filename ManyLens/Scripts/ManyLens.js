@@ -762,7 +762,7 @@ var ManyLens;
                 this._force = d3.layout.force();
                 this._location_x_scale = d3.scale.linear();
                 this._location_y_scale = d3.scale.linear();
-                this._force.size([0, 0]).linkDistance(this._lens_circle_radius);
+                this._force.size([0, 0]).linkDistance(this._lens_circle_radius / 2).charge(-100);
                 this._location_x_scale.range([-this._lens_circle_radius, this._lens_circle_radius]);
                 this._location_y_scale.range([-this._lens_circle_radius, this._lens_circle_radius]);
             }
@@ -779,7 +779,7 @@ var ManyLens;
             NetworkLens.prototype.DisplayLens = function (data) {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this, data);
-                var nodes = data.nodes, links = data.links;
+                var nodes = this._data.nodes, links = this._data.links;
                 this._location_x_scale.domain(d3.extent(nodes, function (d) {
                     return d['x'];
                 }));
@@ -789,17 +789,10 @@ var ManyLens;
                 nodes.forEach(function (d) {
                     d.x = _this._location_x_scale(d.x), d.y = _this._location_y_scale(d.y);
                 });
-                var animationStep = 100;
+                var animationStep = 50;
                 this._force.nodes(nodes).links(links);
-                var link = this._lens_circle_svg.selectAll(".link").data(links).enter().append("line").attr("class", "link").attr('x1', function (d) {
-                    return nodes[d.source].x;
-                }).attr('y1', function (d) {
-                    return nodes[d.source].y;
-                }).attr('x2', function (d) {
-                    return nodes[d.target].x;
-                }).attr('y2', function (d) {
-                    return nodes[d.target].y;
-                }).style("stroke", "#777").style("stroke-width", "2px");
+                console.log(links);
+                var link = this._lens_circle_svg.selectAll(".link").data(links).enter().append("line").attr("class", "link").style("stroke", "#777").style("stroke-width", "1px");
                 var node = this._lens_circle_svg.selectAll(".node").data(nodes).enter().append("circle").attr("class", "node").attr("r", 4).attr('cx', function (d) {
                     return d.x;
                 }).attr('cy', function (d) {
@@ -2787,14 +2780,14 @@ var ManyLens;
         LensAssemblyFactory.CombineLens = function (element, manyLens, firstLens, secondLens) {
             var t = [firstLens.Type, secondLens.Type].join("_");
             switch (t) {
-                case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.TreeNetworkLens.Type:
+                case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
                         return new ManyLens.Lens.cBoundleLens(element, manyLens, firstLens, secondLens);
                     }
                 case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.cBoundleLens.Type:
-                case ManyLens.Lens.TreeNetworkLens.Type + "_" + ManyLens.Lens.cBoundleLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cBoundleLens.Type:
                 case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
-                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.TreeNetworkLens.Type:
+                case ManyLens.Lens.cBoundleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
                         if (firstLens.Type != ManyLens.Lens.cBoundleLens.Type) {
                             var tempLens = firstLens;
@@ -2806,14 +2799,14 @@ var ManyLens;
                     {
                         return firstLens.AddComponentLens(secondLens);
                     }
-                case ManyLens.Lens.TreeNetworkLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
                         return new ManyLens.Lens.cChordDiagramLens(element, manyLens, firstLens, secondLens);
                     }
                 case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
-                case ManyLens.Lens.TreeNetworkLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cChordDiagramLens.Type:
                 case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
-                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.TreeNetworkLens.Type:
+                case ManyLens.Lens.cChordDiagramLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
                         if (firstLens.Type != ManyLens.Lens.cBoundleLens.Type) {
                             var tempLens = firstLens;
@@ -2825,11 +2818,11 @@ var ManyLens;
                     {
                         return firstLens.AddComponentLens(secondLens);
                     }
-                case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.TreeNetworkLens.Type:
+                case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
                         return new ManyLens.Lens.cSunBrustLens(element, manyLens, firstLens, secondLens);
                     }
-                case ManyLens.Lens.TreeNetworkLens.Type + "_" + ManyLens.Lens.cSunBrustLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cSunBrustLens.Type:
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.cSunBrustLens.Type:
                     {
                         if (firstLens.Type != ManyLens.Lens.cSunBrustLens.Type) {
@@ -2839,17 +2832,17 @@ var ManyLens;
                         }
                     }
                 case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
-                case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.TreeNetworkLens.Type:
+                case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                 case ManyLens.Lens.cSunBrustLens.Type + "_" + ManyLens.Lens.cSunBrustLens.Type:
                     {
                         return firstLens.AddComponentLens(secondLens);
                     }
-                case ManyLens.Lens.TreeNetworkLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                     {
                         return new ManyLens.Lens.cPackingCircleLens(element, manyLens, firstLens, secondLens);
                     }
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.cPackingCircleLens.Type:
-                case ManyLens.Lens.TreeNetworkLens.Type + "_" + ManyLens.Lens.cPackingCircleLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.cPackingCircleLens.Type:
                     {
                         if (firstLens.Type != ManyLens.Lens.cPackingCircleLens.Type) {
                             var tempLens = firstLens;
@@ -2858,7 +2851,7 @@ var ManyLens;
                         }
                     }
                 case ManyLens.Lens.cPackingCircleLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
-                case ManyLens.Lens.cPackingCircleLens.Type + "_" + ManyLens.Lens.TreeNetworkLens.Type:
+                case ManyLens.Lens.cPackingCircleLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                 case ManyLens.Lens.cPackingCircleLens.Type + "_" + ManyLens.Lens.cPackingCircleLens.Type:
                     {
                         return firstLens.AddComponentLens(secondLens);
@@ -2867,7 +2860,7 @@ var ManyLens;
                     {
                         return new ManyLens.Lens.cWordCloudLens(element, manyLens, firstLens, secondLens);
                     }
-                case ManyLens.Lens.TreeNetworkLens.Type + "_" + ManyLens.Lens.TreeNetworkLens.Type:
+                case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                     {
                         return new ManyLens.Lens.cTreeNetworkLens(element, manyLens, firstLens, secondLens);
                     }
@@ -2896,7 +2889,7 @@ var ManyLens;
                         {
                             return new ManyLens.Lens.cWordCloudLens(element, manyLens, cLens);
                         }
-                    case ManyLens.Lens.TreeNetworkLens.Type:
+                    case ManyLens.Lens.NetworkLens.Type:
                         {
                             return new ManyLens.Lens.cTreeNetworkLens(element, manyLens, cLens);
                         }

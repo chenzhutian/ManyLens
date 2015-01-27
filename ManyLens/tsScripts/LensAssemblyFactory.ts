@@ -18,7 +18,7 @@ module ManyLens {
 
                 /*--------------------------------cBoundle Lens------------------------------*/
                 //single + single = composite
-                case Lens.WordCloudLens.Type + "_" + Lens.TreeNetworkLens.Type: {
+                case Lens.WordCloudLens.Type + "_" + Lens.NetworkLens.Type: {
                     return new Lens.cBoundleLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
@@ -27,9 +27,9 @@ module ManyLens {
                  
                 //composite + single||composite = composite
                 case Lens.WordCloudLens.Type + "_" + Lens.cBoundleLens.Type:
-                case Lens.TreeNetworkLens.Type + "_" + Lens.cBoundleLens.Type:
+                case Lens.NetworkLens.Type + "_" + Lens.cBoundleLens.Type:
                 case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type: 
-                case Lens.cBoundleLens.Type + "_" + Lens.TreeNetworkLens.Type: {
+                case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
                     if (firstLens.Type != Lens.cBoundleLens.Type) {
                         var tempLens = firstLens;
                         firstLens = secondLens;
@@ -42,7 +42,7 @@ module ManyLens {
 
                 
                 /*--------------------------------cChord Digram Lens------------------------------*/
-                case Lens.TreeNetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
+                case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
                     return new Lens.cChordDiagramLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
@@ -50,9 +50,9 @@ module ManyLens {
                 }
                 //composite + single||composite = composite
                 case Lens.WordCloudLens.Type + "_" + Lens.cChordDiagramLens.Type:
-                case Lens.TreeNetworkLens.Type + "_" + Lens.cChordDiagramLens.Type:
+                case Lens.NetworkLens.Type + "_" + Lens.cChordDiagramLens.Type:
                 case Lens.cChordDiagramLens.Type + "_" + Lens.WordCloudLens.Type:
-                case Lens.cChordDiagramLens.Type + "_" + Lens.TreeNetworkLens.Type: {
+                case Lens.cChordDiagramLens.Type + "_" + Lens.NetworkLens.Type: {
                     if (firstLens.Type != Lens.cBoundleLens.Type) {
                         var tempLens = firstLens;
                         firstLens = secondLens;
@@ -65,14 +65,14 @@ module ManyLens {
 
                 /*-----------------------------cPicChart Diagram Lens--------------------------*/
                     //single + single = composite
-                case Lens.PieChartLens.Type + "_" + Lens.TreeNetworkLens.Type: {
+                case Lens.PieChartLens.Type + "_" + Lens.NetworkLens.Type: {
                     return new Lens.cSunBrustLens(element,
                                                 manyLens,
                                                 <Lens.BaseSingleLens>firstLens,
                                                 <Lens.BaseSingleLens>secondLens);
                 }
                 //composite + single||composite = composite
-                case Lens.TreeNetworkLens.Type + "_" + Lens.cSunBrustLens.Type: 
+                case Lens.NetworkLens.Type + "_" + Lens.cSunBrustLens.Type: 
                 case Lens.PieChartLens.Type + "_" + Lens.cSunBrustLens.Type: {
                     if (firstLens.Type != Lens.cSunBrustLens.Type) {
                         var tempLens = firstLens;
@@ -81,14 +81,14 @@ module ManyLens {
                     }
                 }
                 case Lens.cSunBrustLens.Type + "_" + Lens.PieChartLens.Type:
-                case Lens.cSunBrustLens.Type + "_" + Lens.TreeNetworkLens.Type: 
+                case Lens.cSunBrustLens.Type + "_" + Lens.NetworkLens.Type: 
                 case Lens.cSunBrustLens.Type + "_" + Lens.cSunBrustLens.Type: {
                     return (<Lens.cSunBrustLens>firstLens).AddComponentLens(secondLens);
                 }
 
                 /*-----------------------------cPackingCircle Diagram Lens--------------------------*/
                 //single + single = composite
-                case Lens.TreeNetworkLens.Type + "_" + Lens.PieChartLens.Type: {
+                case Lens.NetworkLens.Type + "_" + Lens.PieChartLens.Type: {
                     return new Lens.cPackingCircleLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
@@ -96,7 +96,7 @@ module ManyLens {
                 }
                 //composite + single||composite = composite
                 case Lens.PieChartLens.Type + "_" + Lens.cPackingCircleLens.Type: 
-                case Lens.TreeNetworkLens.Type + "_" + Lens.cPackingCircleLens.Type: {
+                case Lens.NetworkLens.Type + "_" + Lens.cPackingCircleLens.Type: {
                     if (firstLens.Type != Lens.cPackingCircleLens.Type) {
                         var tempLens = firstLens;
                         firstLens = secondLens;
@@ -104,7 +104,7 @@ module ManyLens {
                     }
                 }
                 case Lens.cPackingCircleLens.Type + "_" + Lens.PieChartLens.Type: 
-                case Lens.cPackingCircleLens.Type + "_" + Lens.TreeNetworkLens.Type: 
+                case Lens.cPackingCircleLens.Type + "_" + Lens.NetworkLens.Type: 
                 case Lens.cPackingCircleLens.Type + "_" + Lens.cPackingCircleLens.Type: {
                     return (<Lens.cPackingCircleLens>firstLens).AddComponentLens(secondLens);
                 }
@@ -117,7 +117,7 @@ module ManyLens {
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);
                 }
-                case Lens.TreeNetworkLens.Type + "_" + Lens.TreeNetworkLens.Type: {
+                case Lens.NetworkLens.Type + "_" + Lens.NetworkLens.Type: {
                     return new Lens.cTreeNetworkLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
@@ -157,7 +157,7 @@ module ManyLens {
                     case Lens.WordCloudLens.Type: {
                         return new Lens.cWordCloudLens(element, manyLens, cLens);
                     }
-                    case Lens.TreeNetworkLens.Type: {
+                    case Lens.NetworkLens.Type: {
                         return new Lens.cTreeNetworkLens(element, manyLens, cLens);
                     }
                     
