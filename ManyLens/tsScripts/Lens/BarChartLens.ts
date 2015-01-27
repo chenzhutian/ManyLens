@@ -9,7 +9,7 @@ module ManyLens {
             private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _x_axis: D3.Selection;
             private _bar_width: number;
-            private _bar_chart_width: number = this._lc_radius * Math.SQRT2;
+            private _bar_chart_width: number = this._lens_circle_radius * Math.SQRT2;
             private _bar_chart_height: number = this._bar_chart_width;
 
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
@@ -34,7 +34,7 @@ module ManyLens {
 
                 var p = super.DisplayLens(data);
                 var container = this._element;
-                var lensG = this._lens_circle_G;
+                var lensG = this._lens_circle_svg;
                 
 
                 var x = d3.scale.linear()

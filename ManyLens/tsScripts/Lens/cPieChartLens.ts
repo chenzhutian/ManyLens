@@ -9,28 +9,35 @@
             private _pie: D3.Layout.PieLayout = d3.layout.pie();
             private _arc: D3.Svg.Arc = d3.svg.arc();
 
-            constructor(element: D3.Selection,
-                manyLens: ManyLens.ManyLens,
-                firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens) {
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, cPieChartLens.Type, manyLens, firstLens, secondLens);
 
                 this._pie
                     .value((d) => {
                         return d.host;
                     })
+                    .startAngle((d, i) => {
+                        console.log(d, i);
+                        return 0;
+                    })
+                    .padAngle((d,i) => {
+                        console.log(d, i);
+                        return 0;
+                    })
                     .sort(null)
                 ;
 
                 this._arc
                     .innerRadius((d) => {
-                        return this._lc_radius - 20;
+                        return this._lens_circle_radius - 20;
                     })
                     .outerRadius((d) => {
-                        return this._lc_radius;
+                        return this._lens_circle_radius;
                     })
                 ;
-
+                
                 
             }
 
@@ -56,7 +63,7 @@
                 super.DisplayLens();
                 var data = this.ExtractData();
 
-                this._lens_circle_G.selectAll(".innerPie")
+                this._lens_circle_svg.selectAll(".innerPie")
                     .data(this._pie(data))
                     .enter().append("path")
                     .attr("d", this._arc)
@@ -64,15 +71,13 @@
                     .style("fill-rule", "evenodd")
                 ;
 
-                console.log(this._pie(data));
-
-                this._arc.innerRadius(this._lc_radius-40)
-                    .outerRadius(this._lc_radius -20)
+                this._arc.innerRadius(this._lens_circle_radius-40)
+                    .outerRadius(this._lens_circle_radius -20)
                     .endAngle(function (d, i) {
                         return d.startAngle + (d.endAngle - d.startAngle) * (d.data.sub / d.value);
                     });
 
-                this._lens_circle_G.selectAll(".outerPie")
+                this._lens_circle_svg.selectAll(".outerPie")
                     .data(this._pie(data))
                     .enter().append("path")
                     .attr("fill", (d, i)=>{ return this._color(i); })

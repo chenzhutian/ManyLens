@@ -92,7 +92,7 @@ var ManyLens;
                     }
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                     {
-                        return new ManyLens.Lens.cPackingCircleLens(element, manyLens, firstLens, secondLens);
+                        return new ManyLens.Lens.cPieChartLens(element, manyLens, firstLens, secondLens);
                     }
                 default:
                     {

@@ -42,12 +42,13 @@
     <TypeScriptCompile Include="tsScripts\Lens\BaseD3Lens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cBoundleLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cChordDiagramLens.ts" />
-    <TypeScriptCompile Include="tsScripts\Lens\cNetworkLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\cTreeNetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cPackingCircleLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cPieChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cSunBrustLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cWordCloudLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\LensList.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\NetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\Pane\ClassicLensPane.ts" />
     <TypeScriptCompile Include="tsScripts\D3ChartObject.ts" />
     <TypeScriptCompile Include="tsScripts\TweetsCurve\Cruve.ts" />
@@ -55,7 +56,7 @@
     <TypeScriptCompile Include="tsScripts\Pane\BlossomLensPane.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\MapLens.ts" />
     <TypeScriptCompile Include="tsScripts\ManyLens.ts" />
-    <TypeScriptCompile Include="tsScripts\Lens\NetworkLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\TreeNetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\PieChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\BaseSingleLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\WordCloudLens.ts" />

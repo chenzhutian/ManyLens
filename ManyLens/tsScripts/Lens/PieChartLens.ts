@@ -6,8 +6,8 @@ module ManyLens{
 
             public static Type: string = "PieChartLens";
 
-            private _innerRadius: number = this._lc_radius - 20;
-            private _outterRadius: number = this._lc_radius - 0;
+            private _innerRadius: number = this._lens_circle_radius - 20;
+            private _outterRadius: number = this._lens_circle_radius - 0;
             private _pie: D3.Layout.PieLayout = d3.layout.pie();
             private _arc: D3.Svg.Arc = d3.svg.arc();
 
@@ -17,7 +17,7 @@ module ManyLens{
                 return this._color;
             }
 
-            constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
+            constructor(element: D3.Selection, manyLens: ManyLens) {
                 super(element, PieChartLens.Type,manyLens);
                 this._arc
                     .innerRadius(this._innerRadius)
@@ -54,7 +54,7 @@ module ManyLens{
                 var p = super.DisplayLens(data);
                 var container = this._element;
 
-                this._lens_circle_G.selectAll("path")
+                this._lens_circle_svg.selectAll("path")
                     .data(this._pie(this._data))
                     .enter().append("path")
                     .attr("fill", (d, i) => {

@@ -9,20 +9,20 @@ module ManyLens {
             protected _type: string;
             protected _lens_type_color: string;
             protected _manyLens: ManyLens.ManyLens;
-            protected _is_composite_lens: boolean = null;
 
             protected _sc_lc_svg: D3.Selection = null;
 
-            protected _lens_circle_G: D3.Selection;
+            protected _lens_circle_svg: D3.Selection;
             protected _lens_circle: D3.Selection;
-            protected _lc_radius: number = 100;
-            protected _lc_cx: number;
-            protected _lc_cy: number;
-            protected _lc_scale: number = 1;
-            protected _lc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
-            protected _lc_drag: D3.Behavior.Drag = d3.behavior.drag();
+            protected _lens_circle_radius: number = 100;
+            protected _lens_circle_cx: number;
+            protected _lens_circle_cy: number;
+            protected _lens_circle_scale: number = 1;
+            protected _lens_circle_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
+            protected _lens_circle_drag: D3.Behavior.Drag = d3.behavior.drag();
 
             protected _is_component_lens: boolean = false;
+            protected _is_composite_lens: boolean = null;
             protected _host_lens: BaseCompositeLens;
 
             public get ID(): string {
@@ -35,34 +35,34 @@ module ManyLens {
                 return this._lens_type_color;
             }
             public get LensCX(): number {
-                return this._lc_cx;
+                return this._lens_circle_cx;
             }
             public set LensCX(cx: number) {
-                this._lc_cx = cx;
+                this._lens_circle_cx = cx;
             }
             public get LensCY(): number {
-                return this._lc_cy;
+                return this._lens_circle_cy;
             }
             public set LensCY(cy: number) {
-                this._lc_cy = cy;
+                this._lens_circle_cy = cy;
             }
             public get LensScale(): number {
-                return this._lc_scale;
+                return this._lens_circle_scale;
             }
             public set LensScale(scale: number) {
-                this._lc_scale = scale;
+                this._lens_circle_scale = scale;
             }
             public get LensRadius(): number {
-                return this._lc_radius;
+                return this._lens_circle_radius;
             }
             public set LensRadius(radius: number) {
-                this._lc_radius = radius;
+                this._lens_circle_radius = radius;
             }
             public get LensGroup(): D3.Selection {
-                return this._lens_circle_G;
+                return this._lens_circle_svg;
             }
             public set LensGroup(lensG: D3.Selection) {
-                this._lens_circle_G = lensG;
+                this._lens_circle_svg = lensG;
             }
             public get IsCompositeLens(): boolean {
                 return this._is_composite_lens;
@@ -99,14 +99,14 @@ module ManyLens {
                     .attr("class", "lens")
                 ;
 
-                this._lc_zoom
+                this._lens_circle_zoom
                     .scaleExtent([1, 2])
                     .on("zoom", () => {
                         this.LensCircleZoomFunc();
                     })
                 ;
 
-                this._lc_drag
+                this._lens_circle_drag
                     .origin(function (d) { return d; })
                     .on("dragstart", () => {
                         this.LensCircleDragstartFunc();
@@ -127,11 +127,11 @@ module ManyLens {
             public DisplayLens(any = null): any {
                 var duration: number = 300;
 
-                this._lens_circle_G = this._sc_lc_svg.append("g")
-                    .data([{ x: this._lc_cx, y: this._lc_cy }])
+                this._lens_circle_svg = this._sc_lc_svg.append("g")
+                    .data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }])
                     .attr("id","lens_"+this._manyLens.LensCount)
                     .attr("class", "lens-circle-g " + this._type)
-                    .attr("transform", "translate(" + [this._lc_cx, this._lc_cy] + ")scale(" + this._lc_scale + ")")
+                    .attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")")
                     .attr("opacity", "1e-6")
                     .style("pointer-events", "none")
                     .on("contextmenu", () => {
@@ -147,15 +147,15 @@ module ManyLens {
                     .on("click", () => {
                         console.log("click " + this._type)
                     })
-                    .call(this._lc_zoom)
-                    .call(this._lc_drag)
+                    .call(this._lens_circle_zoom)
+                    .call(this._lens_circle_drag)
                 ;
 
-                this._lens_circle = this._lens_circle_G.append("circle")
+                this._lens_circle = this._lens_circle_svg.append("circle")
                     .attr("class", "lens-circle")
                     .attr("cx", 0)
                     .attr("cy", 0)
-                    .attr("r", this._lc_radius)
+                    .attr("r", this._lens_circle_radius)
                     .attr("fill", "#fff")
                     .attr("stroke", "black")
                     .attr("stroke-width", 1)
@@ -171,7 +171,7 @@ module ManyLens {
                 //Add this lens to the app class
                 this._manyLens.AddLens(this);
 
-                this._lens_circle_G
+                this._lens_circle_svg
                     .transition().duration(duration)
 
                     .attr("opacity", "1")
@@ -193,10 +193,10 @@ module ManyLens {
             }
 
             protected LensCircleDragFunc(): void {
-                var transform = this._lens_circle_G.attr("transform");
-                this._lens_circle_G.attr("transform", (d) => {
-                    this._lc_cx = d.x = Math.max(this._lc_radius, Math.min(parseFloat(this._element.style("width")) - this._lc_radius, d3.event.x));
-                    this._lc_cy = d.y = Math.max(this._lc_radius, Math.min(parseFloat(this._element.style("height")) - this._lc_radius, d3.event.y));
+                var transform = this._lens_circle_svg.attr("transform");
+                this._lens_circle_svg.attr("transform", (d) => {
+                    this._lens_circle_cx = d.x = Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("width")) - this._lens_circle_radius, d3.event.x));
+                    this._lens_circle_cy = d.y = Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("height")) - this._lens_circle_radius, d3.event.y));
                     transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
                     return transform;
                 });
@@ -251,15 +251,15 @@ module ManyLens {
                     return;
                 }
 
-                if (d3.event.scale == this._lc_scale) {
+                if (d3.event.scale == this._lens_circle_scale) {
                     return;
                 }
-                if (d3.event.scale == this._lc_scale) {
+                if (d3.event.scale == this._lens_circle_scale) {
                     return;
                 }
-                var scale = this._lc_scale = d3.event.scale;
+                var scale = this._lens_circle_scale = d3.event.scale;
 
-                this._lens_circle_G
+                this._lens_circle_svg
                     .attr("transform", function () {
                         var transform = d3.select(this).attr("transform");
                         transform = transform.replace(/(scale\()\d+\.?\d*(\))/, "$1" + scale + "$2");
@@ -291,7 +291,7 @@ module ManyLens {
             //}
 
             public RemoveLens() {
-                this._lens_circle_G
+                this._lens_circle_svg
                     .attr("opacity", "1")
                     .style("pointer-events", "none")
                     .transition()

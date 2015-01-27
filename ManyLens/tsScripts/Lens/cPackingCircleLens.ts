@@ -6,12 +6,11 @@
 
             private _color: D3.Scale.LinearScale = d3.scale.linear();
             private _pack: D3.Layout.PackLayout = d3.layout.pack();
-            private _diameter: number = this._lc_radius * 2;
+            private _diameter: number = this._lens_circle_radius * 2;
 
-            constructor(element: D3.Selection,
-                manyLens: ManyLens.ManyLens,
-                firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens) {
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, cPackingCircleLens.Type, manyLens,firstLens, secondLens);
 
                 this._color
@@ -429,7 +428,7 @@
                     nodes = this._pack.nodes(data),
                     view;
  
-                var circle = this._lens_circle_G.selectAll(".node")
+                var circle = this._lens_circle_svg.selectAll(".node")
                     .data(nodes)
                     .enter().append("circle")
                     .attr("class", function (d,i) {
@@ -451,7 +450,7 @@
                 //    .style("display", function (d) { return d.parent === data ? null : "none"; })
                 //    .text(function (d) { return d.name; });
 
-                var node = this._lens_circle_G.selectAll(".node,text");
+                var node = this._lens_circle_svg.selectAll(".node,text");
 
                 //d3.select("body")
                 //    .style("background", this._color(-1))

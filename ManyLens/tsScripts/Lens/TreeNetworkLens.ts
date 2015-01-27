@@ -1,31 +1,24 @@
-﻿///<reference path = "./BaseCompositeLens.ts" />
+﻿///<reference path = "./BaseSingleLens.ts" />
 module ManyLens {
     export module Lens {
-        export class cNetworkLens extends BaseCompositeLens {
 
-            public static Type: string = "cNetworkLens";
+        export class TreeNetworkLens extends BaseSingleLens {
+
+            public static Type: string = "TreeNetworkLens";
 
             private _theta: number = 360;
             private _tree: D3.Layout.TreeLayout = d3.layout.tree();
 
-            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
-            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
-            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
-                super(element, cNetworkLens.Type, manyLens, firstLens, secondLens);
-
-
-
+            constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
+                super(element, TreeNetworkLens.Type,manyLens);
             }
 
-            public Render(color = "red"): void {
+            public Render(color: string): void {
                 super.Render(color);
-
             }
 
-            protected ExtractData(): any {
-                var data: D3.Layout.GraphNode;
-
-                data = {
+            protected ExtractData(): D3.Layout.GraphNode {
+                var data: D3.Layout.GraphNode = {
                     "name": "flare",
                     "children": [
                         {
@@ -65,22 +58,22 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(): void {
-                super.DisplayLens();
-                var data = this.ExtractData();
-                var lensG = this._lens_circle_G;
+            public DisplayLens(data: D3.Layout.GraphNode): any {
+                var p = super.DisplayLens(data);
+                var container = this._element;
+                var lensG = this._lens_circle_svg;
 
                 var nodeRadius = 4.5;
                 var diagonal = d3.svg.diagonal.radial()
                     .projection(function (d) { return [d.y, d.x / 180 * Math.PI]; });
 
                 this._tree
-                    .size([this._theta, this._lc_radius - nodeRadius])
+                    .size([this._theta, this._lens_circle_radius - nodeRadius])
                     .separation(function (a, b) {
                         return (a.parent == b.parent ? 1 : 2) / a.depth;
                     });
 
-                var nodes = this._tree.nodes(data),
+                var nodes = this._tree.nodes(this._data),
                     links = this._tree.links(nodes);
 
                 var link = lensG.selectAll("path")
@@ -103,14 +96,13 @@ module ManyLens {
 
                 node.append("circle")
                     .attr("r", nodeRadius)
-                    .attr("stroke", "steelblue")
-                    .attr("fill", "#fff")
-                    .attr("stroke-width", 1.5)
+                    .style("stroke", "steelblue")
+                    .style("fill", "#fff")
+                    .style("stroke-width", 1.5)
                 ;
 
             }
 
-
         }
     }
-} 
+}

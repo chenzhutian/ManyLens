@@ -53,8 +53,8 @@ module ManyLens {
 
                 this._base_component = firstLens;
 
-                this._lc_cx = firstLens.LensCX;
-                this._lc_cy = firstLens.LensCY;
+                this._lens_circle_cx = firstLens.LensCX;
+                this._lens_circle_cy = firstLens.LensCY;
 
                 if (secondLens) {
                     var firstLens0: BaseSingleLens = (<BaseSingleLens>firstLens);
@@ -203,15 +203,15 @@ module ManyLens {
                 for (var len = this._select_circle.length; i < len; ++i) {
 
                     var sc = this._select_circle[i];
-                    var theta = Math.atan((this._lc_cy - sc._sc_cy) / (this._lc_cx - sc._sc_cx));
-                    var cosTheta = this._lc_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                    var sinTheta = this._lc_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+                    var theta = Math.atan((this._lens_circle_cy - sc._sc_cy) / (this._lens_circle_cx - sc._sc_cx));
+                    var cosTheta = this._lens_circle_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+                    var sinTheta = this._lens_circle_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
 
                     sc._line
                         .attr("x1", sc._sc_cx + sc._sc_radius * sc._sc_scale * cosTheta)
                         .attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta)
-                        .attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta)
-                        .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
+                        .attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta)
+                        .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
                     // console.log("redraw composite link:" + i);
                 }
                 this._new_lens_count = 0;

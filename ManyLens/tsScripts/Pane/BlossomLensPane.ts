@@ -83,7 +83,7 @@ module ManyLens {
                                 break;
                             }
                             case 2: {
-                                len = new Lens.NetworkLens(this._element, this._manyLens);
+                                len = new Lens.TreeNetworkLens(this._element, this._manyLens);
                                 break;
                             }
                             case 3: {

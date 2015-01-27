@@ -5,19 +5,17 @@ module ManyLens {
 
             public static Type: string = "BaseSingleLens";
 
-            protected _sc_radius: number = 0;
-            protected _sc_cx: number = 0;
-            protected _sc_cy: number = 0;
-            protected _sc_scale: number = 1;
+            protected _select_circle_svg: D3.Selection;
+            protected _select_circle: D3.Selection;
+            protected _select_circle_radius: number = 0;
+            protected _select_circle_cx: number = 0;
+            protected _select_circle_cy: number = 0;
+            protected _select_circle_scale: number = 1;
+            protected _select_circle_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
+            protected _select_circle_drag: D3.Behavior.Drag = d3.behavior.drag();
 
             protected _has_put_down: boolean = false;
             protected _has_showed_lens: boolean = false;
-
-            protected _select_circle_G: D3.Selection;
-            protected _select_circle: D3.Selection;
-
-            protected _sc_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
-            protected _sc_drag: D3.Behavior.Drag = d3.behavior.drag();
 
             protected _sc_drag_event_flag: boolean = false;
             protected _sc_lc_default_dist = 100;
@@ -26,22 +24,22 @@ module ManyLens {
                 return this._sc_lc_svg.select("line");
             }
             public get SelectCircleCX(): number {
-                return this._sc_cx;
+                return this._select_circle_cx;
             }
             public get SelectCircleCY(): number {
-                return this._sc_cy;
+                return this._select_circle_cy;
             }
             public get SelectCircleScale(): number {
-                return this._sc_scale;
+                return this._select_circle_scale;
             }
             public get SelectCircleRadius(): number {
-                return this._sc_radius;
+                return this._select_circle_radius;
             }
 
             constructor(element: D3.Selection, type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
                 this._is_composite_lens = false;
-                this._sc_radius = 10;
+                this._select_circle_radius = 10;
             }
 
             public Render(color: string): void {
@@ -49,14 +47,14 @@ module ManyLens {
                 var container = this._element;
                 var hasShow = false;
 
-                this._sc_zoom
+                this._select_circle_zoom
                     .scaleExtent([1, 4])
                     .on("zoom", () => {
                         this.SelectCircleZoomFunc();
                     })
                 ;
 
-                this._sc_drag
+                this._select_circle_drag
                     .origin(function (d) { return d; })
                     .on("dragstart", () => {
                         this._sc_drag_event_flag = false;
@@ -78,17 +76,17 @@ module ManyLens {
                     .attr("stroke", "red")
                 ;
 
-                this._select_circle_G = this._sc_lc_svg.append("g")
+                this._select_circle_svg = this._sc_lc_svg.append("g")
                     .attr("class", "select-circle")
                 ;
 
                 var selectCircle = this._select_circle =
-                    this._select_circle_G.append("circle")
-                        .data([{ x: this._sc_cx, y: this._sc_cy }])
+                    this._select_circle_svg.append("circle")
+                        .data([{ x: this._select_circle_cx, y: this._select_circle_cy }])
                 ;
 
                 selectCircle
-                    .attr("r", this._sc_radius)
+                    .attr("r", this._select_circle_radius)
                     .attr("fill", color)
                     .attr("fill-opacity", 0.7)
                     .attr("stroke", "black")
@@ -96,8 +94,8 @@ module ManyLens {
                     .on("mouseup", (d) => {
                         if (!this._has_put_down) {
                             this._has_put_down = true;
-                            d.x = this._sc_cx = parseFloat(selectCircle.attr("cx"));
-                            d.y = this._sc_cy = parseFloat(selectCircle.attr("cy"));
+                            d.x = this._select_circle_cx = parseFloat(selectCircle.attr("cx"));
+                            d.y = this._select_circle_cy = parseFloat(selectCircle.attr("cy"));
                             container.on("mousemove", null);
                         }
                     })
@@ -109,8 +107,8 @@ module ManyLens {
                         }
                         d3.event.preventDefault();
                     })
-                    .call(this._sc_zoom)
-                    .call(this._sc_drag)
+                    .call(this._select_circle_zoom)
+                    .call(this._select_circle_drag)
                 ;
 
                 container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
@@ -137,12 +135,12 @@ module ManyLens {
 
                 //if is new area with new data, then show the link line 
                 if (data) {
-                    var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
-                    var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                    var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+                    var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
+                    var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
+                    var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
 
-                    var cx = this._sc_cx + (this._sc_radius * cosTheta * this._sc_scale);
-                    var cy = this._sc_cy + (this._sc_radius * sinTheta * this._sc_scale);
+                    var cx = this._select_circle_cx + (this._select_circle_radius * cosTheta * this._select_circle_scale);
+                    var cy = this._select_circle_cy + (this._select_circle_radius * sinTheta * this._select_circle_scale);
 
                     this._sc_lc_svg.select("line")
                         .attr("x1", cx)
@@ -153,17 +151,17 @@ module ManyLens {
                         .attr("stroke", "red")
                         .transition().duration(duration)
                         .attr("x2", () => {
-                            return this._lc_cx;//cx + (this._sc_lc_default_dist * cosTheta);
+                            return this._lens_circle_cx;//cx + (this._sc_lc_default_dist * cosTheta);
                         })
                         .attr("y2", () => {
-                            return this._lc_cy;//cy + (this._sc_lc_default_dist * sinTheta);
+                            return this._lens_circle_cy;//cy + (this._sc_lc_default_dist * sinTheta);
                         })
                     ;
                 } 
 
                 return {
-                    lcx: this._lc_cx,
-                    lcy: this._lc_cy,
+                    lcx: this._lens_circle_cx,
+                    lcy: this._lens_circle_cy,
                     duration: duration
                 }
 
@@ -203,22 +201,22 @@ module ManyLens {
 
                 //传递数据给Lens显示
                 if (!this._has_showed_lens) {
-                    this._sc_cx = selectCircle.x;
-                    this._sc_cy = selectCircle.y;
+                    this._select_circle_cx = selectCircle.x;
+                    this._select_circle_cy = selectCircle.y;
 
                     var theta = Math.random() * Math.PI;
                     var cosTheta = Math.cos(theta);
                     var sinTheta = Math.sin(theta);
 
-                    this._lc_cx = this._sc_cx
-                    + (this._sc_radius * this._sc_scale
+                    this._lens_circle_cx = this._select_circle_cx
+                    + (this._select_circle_radius * this._select_circle_scale
                     + this._sc_lc_default_dist
-                    + this._lc_radius) * cosTheta;
+                    + this._lens_circle_radius) * cosTheta;
 
-                    this._lc_cy = this._sc_cy
-                    + (this._sc_radius * this._sc_scale
+                    this._lens_circle_cy = this._select_circle_cy
+                    + (this._select_circle_radius * this._select_circle_scale
                     + this._sc_lc_default_dist
-                    + this._lc_radius) * sinTheta;
+                    + this._lens_circle_radius) * sinTheta;
 
                     this._data = this.ExtractData();
                     this.DisplayLens(this._data);
@@ -239,25 +237,25 @@ module ManyLens {
                     return;
                 }
 
-                if (d3.event.scale == this._sc_scale) {
+                if (d3.event.scale == this._select_circle_scale) {
                     return;
                 }
-                if (d3.event.scale == this._sc_scale) {
+                if (d3.event.scale == this._select_circle_scale) {
                     return;
                 }
 
-                this._sc_scale = d3.event.scale;
-                var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
-                var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+                this._select_circle_scale = d3.event.scale;
+                var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
+                var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
+                var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
 
                 this._select_circle
-                    .attr("r", this._sc_radius * this._sc_scale)
+                    .attr("r", this._select_circle_radius * this._select_circle_scale)
                 ;
 
                 this._sc_lc_svg.select("line")
-                    .attr("x1", this._sc_cx + this._sc_radius * d3.event.scale * cosTheta)
-                    .attr("y1", this._sc_cy + this._sc_radius * d3.event.scale * sinTheta)
+                    .attr("x1", this._select_circle_cx + this._select_circle_radius * d3.event.scale * cosTheta)
+                    .attr("y1", this._select_circle_cy + this._select_circle_radius * d3.event.scale * sinTheta)
                 ;
             }
 
@@ -275,15 +273,15 @@ module ManyLens {
             }
 
             private ReDrawLinkLine(): void {
-                var theta = Math.atan((this._lc_cy - this._sc_cy) / (this._lc_cx - this._sc_cx));
-                var cosTheta = this._lc_cx > this._sc_cx ? Math.cos(theta) : -Math.cos(theta);
-                var sinTheta = this._lc_cx > this._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+                var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
+                var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
+                var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
 
                 this._sc_lc_svg.select("line")
-                    .attr("x1", this._sc_cx + this._sc_radius * this._sc_scale * cosTheta)
-                    .attr("y1", this._sc_cy + this._sc_radius * this._sc_scale * sinTheta)
-                    .attr("x2", this._lc_cx - this._lc_radius * this._lc_scale * cosTheta)
-                    .attr("y2", this._lc_cy - this._lc_radius * this._lc_scale * sinTheta)
+                    .attr("x1", this._select_circle_cx + this._select_circle_radius * this._select_circle_scale * cosTheta)
+                    .attr("y1", this._select_circle_cy + this._select_circle_radius * this._select_circle_scale * sinTheta)
+                    .attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta)
+                    .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
                 ;
             }
 

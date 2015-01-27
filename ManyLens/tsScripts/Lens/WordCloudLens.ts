@@ -9,7 +9,7 @@ module ManyLens {
 
             private _font_size: D3.Scale.SqrtScale = d3.scale.sqrt();
             private _cloud: D3.Layout.CloudLayout = d3.layout.cloud();
-            private _cloud_w: number = this._lc_radius * 2;//Math.sqrt(2);
+            private _cloud_w: number = this._lens_circle_radius * 2;//Math.sqrt(2);
             private _cloud_h: number = this._cloud_w;
             private _cloud_padding: number = 1;
             private _cloud_font: string = "Calibri"
@@ -100,7 +100,7 @@ module ManyLens {
             public DisplayLens(data: Array<any>): any {
                 var p = super.DisplayLens(data);
                 var container = this._element;
-                var lensG = this._lens_circle_G;
+                var lensG = this._lens_circle_svg;
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._data)
@@ -128,7 +128,7 @@ module ManyLens {
                     h / Math.abs(bounds[1].y - h / 2),
                     h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
 
-                var text = this._lens_circle_G.selectAll("text")
+                var text = this._lens_circle_svg.selectAll("text")
                     .data(words, function (d) { return d.text; })
                     .enter().append("text");
 

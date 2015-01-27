@@ -5,15 +5,14 @@ module ManyLens {
 
             public static Type: string = "cBoundleLens";
 
-            private _innerRadius: number = this._lc_radius - 0;
+            private _innerRadius: number = this._lens_circle_radius - 0;
             private _cluster: D3.Layout.ClusterLayout = d3.layout.cluster();
             private _boundle: D3.Layout.BundleLayout = d3.layout.bundle();
             private _line: D3.Svg.LineRadial = d3.svg.line.radial();
 
-            constructor(element: D3.Selection,
-                manyLens: ManyLens.ManyLens,
-                firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens) {
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, cBoundleLens.Type, manyLens,firstLens, secondLens);
 
                 this._cluster.size([360, this._innerRadius])
@@ -101,7 +100,7 @@ module ManyLens {
                 var data = this.ExtractData();
 
                 var container = this._element;
-                var lensG = this._lens_circle_G;
+                var lensG = this._lens_circle_svg;
 
                 var nodes = this._cluster.nodes(packageHierarchy(data)),
                     links = packageImports(nodes);

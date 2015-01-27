@@ -11,10 +11,9 @@
             private _partition: D3.Layout.PartitionLayout = d3.layout.partition();
             private _arc: D3.Svg.Arc = d3.svg.arc();
 
-            constructor(element: D3.Selection,
-                manyLens: ManyLens.ManyLens,
-                firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens) {
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, cSunBrustLens.Type, manyLens,firstLens, secondLens );
 
                 this._luminance
@@ -25,14 +24,14 @@
 
                 this._partition
                     .sort(function (a, b) { return d3.ascending(a.name, b.name); })
-                    .size([2 * Math.PI, this._lc_radius])
+                    .size([2 * Math.PI, this._lens_circle_radius])
                 ;
 
                 this._arc
                     .startAngle(function (d) { return d.x; })
                     .endAngle(function (d) { return d.x + d.dx - .01 / (d.depth + .5); })
-                    .innerRadius((d) => { return this._lc_radius / 3 * d.depth; })
-                    .outerRadius((d) => { return this._lc_radius / 3 * (d.depth + 1) - 1; })
+                    .innerRadius((d) => { return this._lens_circle_radius / 3 * d.depth; })
+                    .outerRadius((d) => { return this._lens_circle_radius / 3 * (d.depth + 1) - 1; })
                 ;
 
             }
@@ -207,7 +206,7 @@
                 super.DisplayLens();
 
                 var data = this.ExtractData();
-                var svg = this._lens_circle_G;
+                var svg = this._lens_circle_svg;
                 var partition = this._partition;
                 var hue = this._color;
                 var luminance = this._luminance;
@@ -234,7 +233,7 @@
                 ;
 
                 var center = svg.append("circle")
-                    .attr("r", this._lc_radius / 3)
+                    .attr("r", this._lens_circle_radius / 3)
                     .style("fill", "#fff")
                     .on("click", zoomOut)
                 ;

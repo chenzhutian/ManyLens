@@ -5,14 +5,13 @@
             public static Type: string = "cChordDiagramLens";
 
             private _chord: D3.Layout.ChordLayout = d3.layout.chord();
-            private _innerRadius: number = this._lc_radius * 1;
-            private _outterRadius: number = this._lc_radius * 1.1;
+            private _innerRadius: number = this._lens_circle_radius * 1;
+            private _outterRadius: number = this._lens_circle_radius * 1.1;
             private _fill: D3.Scale.OrdinalScale;
 
-            constructor(element: D3.Selection,
-                manyLens: ManyLens.ManyLens,
-                firstLens: BaseSingleLens,
-                secondLens: BaseSingleLens) {
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
+            constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, cChordDiagramLens.Type, manyLens, firstLens, secondLens);
 
                 this._chord
@@ -56,9 +55,9 @@
                 var data = this.ExtractData();
                 this._chord.matrix(data);
 
-                var svg = this._lens_circle_G;
+                var svg = this._lens_circle_svg;
                 
-                this._lens_circle_G.append("g").selectAll("path")
+                this._lens_circle_svg.append("g").selectAll("path")
                         .data(this._chord.groups)
                     .enter().append("path")
                         .style("fill", (d, i) => { return this._fill(i); })
@@ -68,7 +67,7 @@
                         .on("mouseout", fade(1))
                 ;
 
-                var ticks = this._lens_circle_G.append("g").selectAll("g")
+                var ticks = this._lens_circle_svg.append("g").selectAll("g")
                         .data(this._chord.groups)
                     .enter().append("g").selectAll("g")
                         .data(groupTicks)
@@ -95,7 +94,7 @@
                     .text(function (d) { return d.label; })
                 ;
 
-                this._lens_circle_G.append("g")
+                this._lens_circle_svg.append("g")
                     .attr("class", "chord")
                     .selectAll("path")
                     .data(this._chord.chords)

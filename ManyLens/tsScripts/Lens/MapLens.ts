@@ -6,7 +6,7 @@ module ManyLens {
 
             public static Type: string = "MapLens";
 
-            private _map_width: number = this._lc_radius * Math.SQRT2;
+            private _map_width: number = this._lens_circle_radius * Math.SQRT2;
             private _map_height: number = this._map_width;
 
             private _projection: D3.Geo.Projection = d3.geo.albersUsa();
@@ -39,7 +39,7 @@ module ManyLens {
                     var path = this._path;
                     var width = this._map_width;
                     var height = this._map_height;
-                    var g = this._lens_circle_G.append("g");
+                    var g = this._lens_circle_svg.append("g");
                     var centered;
 
                     g.append("g")
