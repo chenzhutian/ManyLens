@@ -266,6 +266,29 @@ module ManyLens {
 
             }
 
+            protected LensCircleDragendFunc(): boolean {
+                var res = super.LensCircleDragendFunc();
+
+                if (!res) {
+                    var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
+                    var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
+                    var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
+
+                    this._sc_lc_svg.select("line")
+                        .transition()
+                        .duration(this._combine_failure_rebound_duration)
+                        .ease('back-out')
+                        .attr("x1", this._select_circle_cx + this._select_circle_radius * this._select_circle_scale * cosTheta)
+                        .attr("y1", this._select_circle_cy + this._select_circle_radius * this._select_circle_scale * sinTheta)
+                        .attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta)
+                        .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
+                    ;
+                }
+
+                return res;
+
+            }
+
             protected LensCircleZoomFunc(): void {
                 super.LensCircleZoomFunc();
 

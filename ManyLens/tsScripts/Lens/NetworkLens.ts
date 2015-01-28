@@ -122,14 +122,10 @@
                     d.y = this._location_y_scale(d.y);
                 });
 
-                var animationStep: number = 50;
-
                 this._force
                     .nodes(nodes)
                     .links(links)
                 ;
-
-                console.log(links);
 
                 var link = this._lens_circle_svg
                     .selectAll(".link")
@@ -159,21 +155,15 @@
 
                 this._force.on("tick", ()=>{
                  
-                    node.transition().ease('linear').duration(animationStep)
+                    node
                         .attr('cx', function (d) { return d.x; })
                         .attr('cy', function (d) { return d.y; });
 
-                    link.transition().ease('linear').duration(animationStep)
+                    link
                         .attr('x1', function (d) { return d.source.x; })
                         .attr('y1', function (d) { return d.source.y; })
                         .attr('x2', function (d) { return d.target.x; })
                         .attr('y2', function (d) { return d.target.y; });
-
-                    this._force.stop();
-
-                    setTimeout( ()=> {
-                        this._force.start();
-                    }, animationStep);
 
                 });
 

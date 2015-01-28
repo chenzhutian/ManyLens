@@ -151,6 +151,7 @@ var ManyLens;
             __extends(BaseD3Lens, _super);
             function BaseD3Lens(element, type, manyLens) {
                 _super.call(this, element);
+                this._combine_failure_rebound_duration = 800;
                 this._sc_lc_svg = null;
                 this._lens_circle_radius = 100;
                 this._lens_circle_scale = 1;
@@ -325,6 +326,8 @@ var ManyLens;
                 tempGs[0].splice(index, 1);
                 tempGs[0].push(this._sc_lc_svg[0][0]);
                 tempGs.order();
+                this._lens_drag_start_cx = this._lens_circle_cx;
+                this._lens_drag_start_cy = this._lens_circle_cy;
             };
             BaseD3Lens.prototype.LensCircleDragFunc = function () {
                 var _this = this;
@@ -337,6 +340,7 @@ var ManyLens;
                 });
             };
             BaseD3Lens.prototype.LensCircleDragendFunc = function () {
+                var _this = this;
                 var res = [];
                 var eles = [];
                 var x = d3.event.sourceEvent.x, y = d3.event.sourceEvent.y;
@@ -364,9 +368,19 @@ var ManyLens;
                     if (lensC) {
                         lensC.Render("black");
                         lensC.DisplayLens();
+                        return true;
+                    }
+                    else {
+                        var transform = this._lens_circle_svg.attr("transform");
+                        this._lens_circle_svg.transition().ease('back-out').duration(this._combine_failure_rebound_duration).attr("transform", function (d) {
+                            _this._lens_circle_cx = d.x = _this._lens_drag_start_cx;
+                            _this._lens_circle_cy = d.y = _this._lens_drag_start_cy;
+                            transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
+                            return transform;
+                        });
                     }
                 }
-                return res;
+                return false;
             };
             BaseD3Lens.prototype.LensCircleZoomFunc = function () {
                 if (d3.event.sourceEvent.type != "wheel") {
@@ -606,6 +620,16 @@ var ManyLens;
                 _super.prototype.LensCircleDragFunc.call(this);
                 this.ReDrawLinkLine();
             };
+            BaseSingleLens.prototype.LensCircleDragendFunc = function () {
+                var res = _super.prototype.LensCircleDragendFunc.call(this);
+                if (!res) {
+                    var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
+                    var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
+                    var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
+                    this._sc_lc_svg.select("line").transition().duration(this._combine_failure_rebound_duration).ease('back-out').attr("x1", this._select_circle_cx + this._select_circle_radius * this._select_circle_scale * cosTheta).attr("y1", this._select_circle_cy + this._select_circle_radius * this._select_circle_scale * sinTheta).attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta).attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta);
+                }
+                return res;
+            };
             BaseSingleLens.prototype.LensCircleZoomFunc = function () {
                 _super.prototype.LensCircleZoomFunc.call(this);
                 this.ReDrawLinkLine();
@@ -789,9 +813,7 @@ var ManyLens;
                 nodes.forEach(function (d) {
                     d.x = _this._location_x_scale(d.x), d.y = _this._location_y_scale(d.y);
                 });
-                var animationStep = 50;
                 this._force.nodes(nodes).links(links);
-                console.log(links);
                 var link = this._lens_circle_svg.selectAll(".link").data(links).enter().append("line").attr("class", "link").style("stroke", "#777").style("stroke-width", "1px");
                 var node = this._lens_circle_svg.selectAll(".node").data(nodes).enter().append("circle").attr("class", "node").attr("r", 4).attr('cx', function (d) {
                     return d.x;
@@ -799,12 +821,12 @@ var ManyLens;
                     return d.y;
                 }).style("stroke", "steelblue").style("fill", "#fff").style("stroke-width", 1.5);
                 this._force.on("tick", function () {
-                    node.transition().ease('linear').duration(animationStep).attr('cx', function (d) {
+                    node.attr('cx', function (d) {
                         return d.x;
                     }).attr('cy', function (d) {
                         return d.y;
                     });
-                    link.transition().ease('linear').duration(animationStep).attr('x1', function (d) {
+                    link.attr('x1', function (d) {
                         return d.source.x;
                     }).attr('y1', function (d) {
                         return d.source.y;
@@ -813,10 +835,6 @@ var ManyLens;
                     }).attr('y2', function (d) {
                         return d.target.y;
                     });
-                    _this._force.stop();
-                    setTimeout(function () {
-                        _this._force.start();
-                    }, animationStep);
                 });
                 this._force.start();
             };
@@ -1201,6 +1219,19 @@ var ManyLens;
             BaseCompositeLens.prototype.LensCircleDragFunc = function () {
                 _super.prototype.LensCircleDragFunc.call(this);
                 this.ReDrawLinkLine();
+            };
+            BaseCompositeLens.prototype.LensCircleDragendFunc = function () {
+                var res = _super.prototype.LensCircleDragendFunc.call(this);
+                if (!res) {
+                    for (var i = 0, len = this._select_circle.length; i < len; ++i) {
+                        var sc = this._select_circle[i];
+                        var theta = Math.atan((this._lens_circle_cy - sc._sc_cy) / (this._lens_circle_cx - sc._sc_cx));
+                        var cosTheta = this._lens_circle_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+                        var sinTheta = this._lens_circle_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+                        sc._line.transition().duration(this._combine_failure_rebound_duration).ease('back-out').attr("x1", sc._sc_cx + sc._sc_radius * sc._sc_scale * cosTheta).attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta).attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta).attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta);
+                    }
+                }
+                return res;
             };
             BaseCompositeLens.prototype.LensCircleZoomFunc = function () {
                 _super.prototype.LensCircleZoomFunc.call(this);

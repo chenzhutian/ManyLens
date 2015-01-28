@@ -9,6 +9,7 @@ module ManyLens {
             protected _type: string;
             protected _lens_type_color: string;
             protected _manyLens: ManyLens.ManyLens;
+            protected _combine_failure_rebound_duration = 800;
 
             protected _sc_lc_svg: D3.Selection = null;
 
@@ -17,6 +18,8 @@ module ManyLens {
             protected _lens_circle_radius: number = 100;
             protected _lens_circle_cx: number;
             protected _lens_circle_cy: number;
+            protected _lens_drag_start_cx: number;
+            protected _lens_drag_start_cy: number;
             protected _lens_circle_scale: number = 1;
             protected _lens_circle_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _lens_circle_drag: D3.Behavior.Drag = d3.behavior.drag();
@@ -27,6 +30,7 @@ module ManyLens {
 
             public get ID(): string {
                 return this._id;
+                
             }
             public get Type(): string {
                 return this._type;
@@ -190,6 +194,8 @@ module ManyLens {
                 tempGs[0].push(this._sc_lc_svg[0][0]);
                 tempGs.order();
 
+                this._lens_drag_start_cx = this._lens_circle_cx;
+                this._lens_drag_start_cy = this._lens_circle_cy;
             }
 
             protected LensCircleDragFunc(): void {
@@ -204,7 +210,7 @@ module ManyLens {
 
             }
 
-            protected LensCircleDragendFunc(): Array<Element> {
+            protected LensCircleDragendFunc(): boolean {
                 var res = [];
                 var eles = [];
                 var x = d3.event.sourceEvent.x,
@@ -241,9 +247,25 @@ module ManyLens {
                     if (lensC) {
                         lensC.Render("black");
                         lensC.DisplayLens();
+
+                        return true;
+                    } else {
+
+                        var transform = this._lens_circle_svg.attr("transform");
+                        this._lens_circle_svg.transition()
+                            .ease('back-out')
+                            .duration(this._combine_failure_rebound_duration)
+                            .attr("transform", (d) => {
+                                this._lens_circle_cx = d.x = this._lens_drag_start_cx;
+                                this._lens_circle_cy = d.y = this._lens_drag_start_cy;
+                                transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
+                                return transform;
+                            })
+                        ;
+
                     }
                 }
-                return res;
+                return false;
             }
 
             protected LensCircleZoomFunc(): void {

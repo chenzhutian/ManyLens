@@ -137,6 +137,30 @@ module ManyLens {
                 this.ReDrawLinkLine();
             }
 
+            protected LensCircleDragendFunc(): boolean {
+                var res = super.LensCircleDragendFunc();
+
+                if (!res) {
+                    for (var i = 0, len = this._select_circle.length; i < len; ++i) {
+                        var sc = this._select_circle[i];
+                        var theta = Math.atan((this._lens_circle_cy - sc._sc_cy) / (this._lens_circle_cx - sc._sc_cx));
+                        var cosTheta = this._lens_circle_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
+                        var sinTheta = this._lens_circle_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
+
+                        sc._line
+                            .transition()
+                            .duration(this._combine_failure_rebound_duration)
+                            .ease('back-out')
+                            .attr("x1", sc._sc_cx + sc._sc_radius * sc._sc_scale * cosTheta)
+                            .attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta)
+                            .attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta)
+                            .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
+                    }
+                }
+
+                return res;
+            }
+
             protected LensCircleZoomFunc(): void {
                 super.LensCircleZoomFunc();
 
@@ -212,7 +236,7 @@ module ManyLens {
                         .attr("y1", sc._sc_cy + sc._sc_radius * sc._sc_scale * sinTheta)
                         .attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta)
                         .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
-                    // console.log("redraw composite link:" + i);
+
                 }
                 this._new_lens_count = 0;
             }
