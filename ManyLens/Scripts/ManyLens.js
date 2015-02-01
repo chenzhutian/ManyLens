@@ -689,17 +689,15 @@ var ManyLens;
             };
             BarChartLens.prototype.DisplayLens = function (data) {
                 var _this = this;
-                var p = _super.prototype.DisplayLens.call(this, data);
-                var container = this._element;
-                var lensG = this._lens_circle_svg;
+                _super.prototype.DisplayLens.call(this, data);
                 var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data.length]);
                 this._x_axis_gen.scale(x).ticks(0).orient("bottom");
-                this._x_axis = lensG.append("g").attr("class", "x-axis").attr("transform", function () {
+                this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
                     return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
                 }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
                 this._bar_width = (this._bar_chart_width - 20) / this._data.length;
                 var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
-                var bar = lensG.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
+                var bar = this._lens_circle_svg.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
                     return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
                 });
                 bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
@@ -946,9 +944,7 @@ var ManyLens;
                 return data;
             };
             TreeNetworkLens.prototype.DisplayLens = function (data) {
-                var p = _super.prototype.DisplayLens.call(this, data);
-                var container = this._element;
-                var lensG = this._lens_circle_svg;
+                _super.prototype.DisplayLens.call(this, data);
                 var nodeRadius = 4.5;
                 var diagonal = d3.svg.diagonal.radial().projection(function (d) {
                     return [d.y, d.x / 180 * Math.PI];
@@ -957,8 +953,8 @@ var ManyLens;
                     return (a.parent == b.parent ? 1 : 2) / a.depth;
                 });
                 var nodes = this._tree.nodes(this._data), links = this._tree.links(nodes);
-                var link = lensG.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
-                var node = lensG.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
+                var link = this._lens_circle_svg.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
+                var node = this._lens_circle_svg.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
                     return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
                 });
                 node.append("circle").attr("r", nodeRadius).style("stroke", "steelblue").style("fill", "#fff").style("stroke-width", 1.5);
@@ -1058,9 +1054,7 @@ var ManyLens;
             };
             WordCloudLens.prototype.DisplayLens = function (data) {
                 var _this = this;
-                var p = _super.prototype.DisplayLens.call(this, data);
-                var container = this._element;
-                var lensG = this._lens_circle_svg;
+                _super.prototype.DisplayLens.call(this, data);
                 this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                     return _this._font_size(d.value);
                 }).on("end", function (words, bounds) {
@@ -1072,7 +1066,6 @@ var ManyLens;
                 var _this = this;
                 var w = this._cloud_w;
                 var h = this._cloud_h;
-                var container = this._element;
                 //Maybe need to scale, but I haven't implemented it now
                 var scale = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
                 var text = this._lens_circle_svg.selectAll("text").data(words, function (d) {
@@ -1426,11 +1419,9 @@ var ManyLens;
             cBoundleLens.prototype.DisplayLens = function () {
                 _super.prototype.DisplayLens.call(this);
                 var data = this.ExtractData();
-                var container = this._element;
-                var lensG = this._lens_circle_svg;
                 var nodes = this._cluster.nodes(packageHierarchy(data)), links = packageImports(nodes);
-                lensG.selectAll(".link").data(this._boundle(links)).enter().append("path").attr("class", "link").attr("d", this._line).attr("stroke", "steelblue").attr("stroke-opacity", ".4").attr("fill", "none");
-                lensG.selectAll(".node").data(nodes.filter(function (n) {
+                this._lens_circle_svg.selectAll(".link").data(this._boundle(links)).enter().append("path").attr("class", "link").attr("d", this._line).attr("stroke", "steelblue").attr("stroke-opacity", ".4").attr("fill", "none");
+                this._lens_circle_svg.selectAll(".node").data(nodes.filter(function (n) {
                     return !n.children;
                 })).enter().append("g").attr("class", "node").attr("transform", function (d) {
                     return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
@@ -2299,7 +2290,6 @@ var ManyLens;
                 var hue = this._color;
                 var luminance = this._luminance;
                 var arc = this._arc;
-                console.log(data);
                 this._partition.value(function (d) {
                     return d.size;
                 }).children(function (d) {
@@ -2471,7 +2461,6 @@ var ManyLens;
             cTreeNetworkLens.prototype.DisplayLens = function () {
                 _super.prototype.DisplayLens.call(this);
                 var data = this.ExtractData();
-                var lensG = this._lens_circle_svg;
                 var nodeRadius = 4.5;
                 var diagonal = d3.svg.diagonal.radial().projection(function (d) {
                     return [d.y, d.x / 180 * Math.PI];
@@ -2480,8 +2469,8 @@ var ManyLens;
                     return (a.parent == b.parent ? 1 : 2) / a.depth;
                 });
                 var nodes = this._tree.nodes(data), links = this._tree.links(nodes);
-                var link = lensG.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
-                var node = lensG.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
+                var link = this._lens_circle_svg.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
+                var node = this._lens_circle_svg.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
                     return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
                 });
                 node.append("circle").attr("r", nodeRadius).attr("stroke", "steelblue").attr("fill", "#fff").attr("stroke-width", 1.5);

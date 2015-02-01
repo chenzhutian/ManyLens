@@ -211,8 +211,6 @@
                 var hue = this._color;
                 var luminance = this._luminance;
                 var arc = this._arc;
-                console.log(data);
-
 
                 this._partition
                     .value(function (d) { return d.size; })

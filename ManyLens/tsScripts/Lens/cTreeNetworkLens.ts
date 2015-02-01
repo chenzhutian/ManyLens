@@ -65,7 +65,6 @@ module ManyLens {
             public DisplayLens(): void {
                 super.DisplayLens();
                 var data = this.ExtractData();
-                var lensG = this._lens_circle_svg;
 
                 var nodeRadius = 4.5;
                 var diagonal = d3.svg.diagonal.radial()
@@ -80,7 +79,7 @@ module ManyLens {
                 var nodes = this._tree.nodes(data),
                     links = this._tree.links(nodes);
 
-                var link = lensG.selectAll("path")
+                var link = this._lens_circle_svg.selectAll("path")
                     .data(links)
                     .enter().append("path")
                     .attr("fill", "none")
@@ -89,7 +88,7 @@ module ManyLens {
                     .attr("d", diagonal)
                 ;
 
-                var node = lensG.selectAll(".node")
+                var node = this._lens_circle_svg.selectAll(".node")
                     .data(nodes)
                     .enter().append("g")
                     .attr("class", "node")

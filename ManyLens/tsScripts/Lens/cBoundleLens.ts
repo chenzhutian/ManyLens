@@ -99,13 +99,10 @@ module ManyLens {
                 super.DisplayLens();
                 var data = this.ExtractData();
 
-                var container = this._element;
-                var lensG = this._lens_circle_svg;
-
                 var nodes = this._cluster.nodes(packageHierarchy(data)),
                     links = packageImports(nodes);
 
-                lensG.selectAll(".link")
+                this._lens_circle_svg.selectAll(".link")
                     .data(this._boundle(links))
                     .enter().append("path")
                     .attr("class", "link")
@@ -115,7 +112,7 @@ module ManyLens {
                     .attr("fill", "none")
                 ;
 
-                lensG.selectAll(".node")
+                this._lens_circle_svg.selectAll(".node")
                     .data(nodes.filter(function (n) { return !n.children; }))
                     .enter().append("g")
                     .attr("class", "node")
