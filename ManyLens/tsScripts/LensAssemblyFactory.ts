@@ -43,7 +43,7 @@ module ManyLens {
                 
                 /*--------------------------------cChord Digram Lens------------------------------*/
                 case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
-                    return new Lens.cChordDiagramLens(element,
+                    return new Lens.cWordCloudNetworkLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);
@@ -60,7 +60,7 @@ module ManyLens {
                     }
                 }
                 case Lens.cChordDiagramLens.Type + "_" + Lens.cChordDiagramLens.Type: {
-                    return (<Lens.cBoundleLens>firstLens).AddComponentLens(secondLens);
+                    return (<Lens.cWordCloudNetworkLens>firstLens).AddComponentLens(secondLens);
                 }
 
                 /*-----------------------------cPicChart Diagram Lens--------------------------*/
@@ -112,7 +112,7 @@ module ManyLens {
 
                 /*----------------------------Single Lens Self Increment---------------------*/
                 case Lens.WordCloudLens.Type + "_" + Lens.WordCloudLens.Type: {
-                    return new Lens.cWordCloudLens(element,
+                    return new Lens.cWordCloudNetworkLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);

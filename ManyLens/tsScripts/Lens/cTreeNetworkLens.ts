@@ -8,12 +8,11 @@ module ManyLens {
             private _theta: number = 360;
             private _tree: D3.Layout.TreeLayout = d3.layout.tree();
 
+
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, cTreeNetworkLens.Type, manyLens, firstLens, secondLens);
-
-
 
             }
 

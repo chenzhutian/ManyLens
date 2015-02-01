@@ -40,8 +40,8 @@ module ManyLens {
                 var data: Array<D3.Layout.ICloudData>
                 data = [
                     { text: "Samsung", value: 90 },
-                    { text: "Apple", value: 50 },
-                    { text: "Lenovo", value: 50 },
+                    { text: "Apple", value: 90 },
+                    { text: "Lenovo", value: 90 },
                     { text: "LG", value: 60 },
                     { text: "Nokia", value: 30 },
                     { text: "Huawei", value: 40 },

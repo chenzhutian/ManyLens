@@ -51,8 +51,6 @@ module ManyLens{
             }
 
             public DisplayLens(data: Array<any>): any {
-                var p = super.DisplayLens(data);
-                var container = this._element;
 
                 this._lens_circle_svg.selectAll("path")
                     .data(this._pie(this._data))

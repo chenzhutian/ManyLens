@@ -13,7 +13,7 @@
             spiral = archimedeanSpiral,
             words = [],
             timeInterval = Infinity,
-            event = d3.dispatch("word", "end"),
+            event = d3.dispatch("word", "end","step"),
             timer = null,
             cloud = {};
 
@@ -47,14 +47,43 @@
                     d;
                 while (+new Date - start < timeInterval && ++i < n && timer) {
                     d = data[i];
-                    d.x = size[0]/2;//(size[0] * (Math.random() + .5)) >> 1;
-                    d.y = size[1]/2;//(size[1] * (Math.random() + .5)) >> 1;
+                    if (d.group) {
+                        d.x = size[0]/2 + Math.sin(Math.PI * (2 - parseInt(d.group)) * 2 / 3) * 60;
+                        d.y = size[1]/2 + Math.cos(Math.PI * (2 - parseInt(d.group)) * 2 / 3) * 60;
+
+                    } else {
+                        d.x = size[0] / 2;//(size[0] * (Math.random() + .5)) >> 1;
+                        d.y = size[1] / 2;//(size[1] * (Math.random() + .5)) >> 1;
+                    }
                     cloudSprite(d, data, i);
-                    if (d.hasText && place(board, d, bounds)) {
+                    if (d.hasText & place(board, d, bounds)) {
                         tags.push(d);
                         event.word(d);
-                        if (bounds) cloudBounds(bounds, d);
-                        else bounds = [{ x: d.x + d.x0, y: d.y + d.y0 }, { x: d.x + d.x1, y: d.y + d.y1 }];
+                        if (d.group) {
+
+                            if (!bounds)
+                                bounds = {};
+
+                            if (bounds[d.group]) {
+                                cloudBounds(bounds, d);
+                            } else {
+                                bounds[d.group] = [
+                                    { x: d.x + d.x0, y: d.y + d.y0 },
+                                    { x: d.x + d.x1, y: d.y + d.y1 }
+                                ];
+                            }
+                        }else{
+                            if (bounds) {
+                                cloudBounds(bounds, d);
+                            }
+                            else {
+                                bounds = [
+                                    { x: d.x + d.x0, y: d.y + d.y0 },
+                                    { x: d.x + d.x1, y: d.y + d.y1 }
+                                ];
+                            }
+                        }
+                       
                         // Temporary hack
                         d.x -= size[0] >> 1;
                         d.y -= size[1] >> 1;
@@ -68,9 +97,12 @@
         }
 
         function place(board, tag, bounds) {
-            var perimeter = [{ x: 0, y: 0 }, { x: size[0], y: size[1] }],
-                startX = tag.x,
-                startY = tag.y,
+            var perimeter = [
+                { x: 0, y: 0 },
+                { x: size[0], y: size[1] }
+            ],
+                startX = tag.x, 
+                startY = tag.y, 
                 maxDelta = Math.sqrt(size[0] * size[0] + size[1] * size[1]),
                 s = spiral(size),
                 dt = Math.random() < .5 ? 1 : -1,
@@ -80,6 +112,7 @@
                 dy;
 
             while (dxdy = s(t += dt)) {
+                
                 dx = ~~dxdy[0];
                 dy = ~~dxdy[1];
 
@@ -88,8 +121,13 @@
                 tag.x = startX + dx;
                 tag.y = startY + dy;
 
+                //This is for test
+                event.step({text:tag.text,x:tag.x,y:tag.y});
+
                 if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 ||
-                    tag.x + tag.x1 > size[0] || tag.y + tag.y1 > size[1]) continue;
+                    tag.x + tag.x1 > size[0] || tag.y + tag.y1 > size[1])
+                    continue;
+
                 // only check for collisions within current bounds.
                 if (!bounds || !cloudCollide(tag, board, size[0])) {
                     if (!bounds || collideRects(tag, bounds)) {
@@ -97,11 +135,12 @@
                             w = tag.width >> 5,
                             sw = size[0] >> 5,
                             lx = tag.x - (w << 4),
-                            sx = lx & 0x7f,
-                            msx = 32 - sx,
+                            sx = lx & 0x1f, //shift right, I think 0x1f is just a magic number -- by czt
+                            msx = 32 - sx,  // shift left -- by czt
                             h = tag.y1 - tag.y0,
                             x = (tag.y + tag.y0) * sw + (lx >> 5),
                             last;
+
                         for (var j = 0; j < h; j++) {
                             last = 0;
                             for (var i = 0; i <= w; i++) {
@@ -207,7 +246,7 @@
     }
 
     function cloudFontSize(d) {
-        return Math.sqrt(d.value);
+        return d.value;//Math.sqrt(d.value);
     }
 
     function cloudRotate() {
@@ -222,6 +261,7 @@
     // Load in batches for speed.
     function cloudSprite(d, data, di) {
         if (d.sprite) return;
+
         c.clearRect(0, 0, (cw << 5) / ratio, ch / ratio);
         var x = 0,
             y = 0,
@@ -244,19 +284,30 @@
                 w = (Math.max(Math.abs(wcr + hsr), Math.abs(wcr - hsr)) + 0x1f) >> 5 << 5;
                 h = ~~Math.max(Math.abs(wsr + hcr), Math.abs(wsr - hcr));
             } else {
+                //set the w to the nearest 2^k, and w >= 32 unless w == 0 -- by czt 
                 w = (w + 0x1f) >> 5 << 5;
             }
             if (h > maxh) maxh = h;
+
+            //It just change to next line -- by czt
             if (x + w >= (cw << 5)) {
-                x = 0;
-                y += maxh;
-                maxh = 0;
+                x = 0;               
+                y += maxh;           
+                maxh = 0;            
             }
-            if (y + h >= ch) break;
+            if (y + h >= ch)        
+                break;
+
             c.translate((x + (w >> 1)) / ratio, (y + (h >> 1)) / ratio);
-            if (d.rotate) c.rotate(d.rotate * cloudRadians);
+            
+            if (d.rotate)
+                c.rotate(d.rotate * cloudRadians);   
             c.fillText(d.text, 0, 0);
-            if (d.padding) c.lineWidth = 2 * d.padding, c.strokeText(d.text, 0, 0);
+
+            if (d.padding) {
+                c.lineWidth = 2 * d.padding;
+                c.strokeText(d.text, 0, 0);
+            }
             c.restore();
             d.width = w;
             d.height = h;
@@ -273,26 +324,34 @@
             sprite = [];
         while (--di >= 0) {
             d = data[di];
-            if (!d.hasText) continue;
+            if (!d.hasText)
+                continue;
             var w = d.width,
                 w32 = w >> 5,
                 h = d.y1 - d.y0;
             // Zero the buffer
-            for (var i = 0; i < h * w32; i++) sprite[i] = 0;
+            for (var i = 0; i < h * w32; i++)
+                sprite[i] = 0;
+
             x = d.xoff;
             if (x == null) return;
             y = d.yoff;
             var seen = 0,
                 seenRow = -1;
+
+            var firstSeen = false;  //change by czt, I think it's the right way to detecth the lower bound
             for (var j = 0; j < h; j++) {
+                seen = 0;  //change by czt, I think 'seen' need to reset to 0
                 for (var i = 0; i < w; i++) {
-                    var k = w32 * j + (i >> 5),
+                    var k = w32 * j + (i>> 5),
                         m = pixels[((y + j) * (cw << 5) + (x + i)) << 2] ? 1 << (31 - (i % 32)) : 0;
                     sprite[k] |= m;
                     seen |= m;
                 }
-                if (seen) seenRow = j;
-                else {
+                if (seen) {
+                    seenRow = j;
+                    firstSeen = true;
+                } else if (!firstSeen) { //change by czt, I think it's the right way to detecth the lower bound
                     d.y0++;
                     h--;
                     j--;
@@ -310,7 +369,7 @@
         var sprite = tag.sprite,
             w = tag.width >> 5,
             lx = tag.x - (w << 4),
-            sx = lx & 0x7f,
+            sx = lx & 0x1f,
             msx = 32 - sx,
             h = tag.y1 - tag.y0,
             x = (tag.y + tag.y0) * sw + (lx >> 5),
@@ -328,8 +387,14 @@
     }
 
     function cloudBounds(bounds, d) {
+        if (d.group) {
+            bounds = bounds[d.group];
+            console.log("group cloudBounds");
+        }
+
         var b0 = bounds[0],
             b1 = bounds[1];
+
         if (d.x + d.x0 < b0.x) b0.x = d.x + d.x0;
         if (d.y + d.y0 < b0.y) b0.y = d.y + d.y0;
         if (d.x + d.x1 > b1.x) b1.x = d.x + d.x1;
@@ -337,6 +402,12 @@
     }
 
     function collideRects(a, b) {
+        if (a.group) {
+            b = b[a.group];
+            if (!b)
+                return true;
+        }
+
         return a.x + a.x1 > b[0].x && a.x + a.x0 < b[1].x && a.y + a.y1 > b[0].y && a.y + a.y0 < b[1].y;
     }
 
@@ -383,21 +454,27 @@
         canvas = document.createElement("canvas");
         canvas.width = 1;
         canvas.height = 1;
-        ratio = Math.sqrt(canvas.getContext("2d").getImageData(0, 0, 1, 1).data.length >> 2);
+
+        //extract the pixel data of canvas (x,y,width,heigh)
+        var canvasData = canvas.getContext("2d").getImageData(0, 0, 1, 1).data;
+        ratio = Math.sqrt(canvasData.length >> 2);
         canvas.width = (cw << 5) / ratio;
         canvas.height = ch / ratio;
+
     } else {
         // Attempt to use node-canvas.
         canvas = new Canvas(cw << 5, ch);
     }
 
-    var c = canvas.getContext("2d"),
-        spirals = {
+    var c = canvas.getContext("2d");
+        c.fillStyle = c.strokeStyle = "red";
+        c.textAlign = "center";
+        c.textBaseline = "middle"; //change by czt, put the text in the middle of baseline
+
+    var spirals = {
             archimedean: archimedeanSpiral,
             rectangular: rectangularSpiral
-        };
-    c.fillStyle = c.strokeStyle = "red";
-    c.textAlign = "center";
+    };
 
     if (typeof module === "object" && module.exports) module.exports = cloud;
     else (d3.layout || (d3.layout = {})).cloud = cloud;

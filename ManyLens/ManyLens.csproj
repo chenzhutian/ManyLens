@@ -47,7 +47,9 @@
     <TypeScriptCompile Include="tsScripts\Lens\cPieChartLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cSunBrustLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cWordCloudLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\cWordCloudNetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\LensList.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\LinkCompositeLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\NetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\Pane\ClassicLensPane.ts" />
     <TypeScriptCompile Include="tsScripts\D3ChartObject.ts" />

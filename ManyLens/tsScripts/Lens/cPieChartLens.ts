@@ -71,8 +71,8 @@
                     .style("fill-rule", "evenodd")
                 ;
 
-                this._arc.innerRadius(this._lens_circle_radius-40)
-                    .outerRadius(this._lens_circle_radius -20)
+                this._arc.innerRadius(this._lens_circle_radius)
+                    .outerRadius(this._lens_circle_radius + 20)
                     .endAngle(function (d, i) {
                         return d.startAngle + (d.endAngle - d.startAngle) * (d.data.sub / d.value);
                     });
