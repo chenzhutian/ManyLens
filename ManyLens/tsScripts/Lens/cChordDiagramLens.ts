@@ -1,4 +1,5 @@
-﻿module ManyLens {
+﻿///<reference path = "./BaseCompositeLens.ts" />
+module ManyLens {
     export module Lens {
         export class cChordDiagramLens extends BaseCompositeLens{
 

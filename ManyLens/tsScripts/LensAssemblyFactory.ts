@@ -109,6 +109,28 @@ module ManyLens {
                     return (<Lens.cPackingCircleLens>firstLens).AddComponentLens(secondLens);
                 }
                 
+                /*-----------------------------cNetworkMap Diagram Lens--------------------------*/
+                //single + single = composite
+                case Lens.NetworkLens.Type + "_" + Lens.MapLens.Type: {
+                    return new Lens.cNetworkMapLens(element,
+                        manyLens,
+                        <Lens.BaseSingleLens>firstLens,
+                        <Lens.BaseSingleLens>secondLens);
+                }
+                //composite + single||composite = composite
+                case Lens.MapLens.Type + "_" + Lens.cNetworkMapLens.Type:
+                case Lens.NetworkLens.Type + "_" + Lens.cNetworkMapLens.Type: {
+                    if (firstLens.Type != Lens.cNetworkMapLens.Type) {
+                        var tempLens = firstLens;
+                        firstLens = secondLens;
+                        secondLens = tempLens;
+                    }
+                }
+                case Lens.cNetworkMapLens.Type + "_" + Lens.MapLens.Type:
+                case Lens.cNetworkMapLens.Type + "_" + Lens.NetworkLens.Type:
+                case Lens.cNetworkMapLens.Type + "_" + Lens.cNetworkMapLens.Type: {
+                    return (<Lens.cNetworkMapLens>firstLens).AddComponentLens(secondLens);
+                }
 
                 /*----------------------------Single Lens Self Increment---------------------*/
                 case Lens.WordCloudLens.Type + "_" + Lens.WordCloudLens.Type: {

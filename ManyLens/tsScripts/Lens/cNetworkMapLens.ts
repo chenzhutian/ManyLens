@@ -1,4 +1,5 @@
-﻿module ManyLens {
+﻿///<reference path = "./BaseCompositeLens.ts" />
+module ManyLens {
     export module Lens {
         export class cNetworkMapLens extends BaseCompositeLens {
 
@@ -29,91 +30,53 @@
 
             }
 
+
             // data shape {text: size:}
             protected ExtractData(): any {
-                
-                var graph = {
-                    "nodes": [{ "x": 208.992345, "y": 273.053211 },
-                        { "x": 595.98896, "y": 56.377057 },
-                        { "x": 319.568434, "y": 278.523637 },
-                        { "x": 214.494264, "y": 214.893585 },
-                        { "x": 482.664139, "y": 340.386773 },
-                        { "x": 84.078465, "y": 192.021902 },
-                        { "x": 196.952261, "y": 370.798667 },
-                        { "x": 107.358165, "y": 435.15643 },
-                        { "x": 401.168523, "y": 443.407779 },
-                        { "x": 508.368779, "y": 386.665811 },
-                        { "x": 355.93773, "y": 460.158711 },
-                        { "x": 283.630624, "y": 87.898162 },
-                        { "x": 194.771218, "y": 436.366028 },
-                        { "x": 477.520013, "y": 337.547331 },
-                        { "x": 572.98129, "y": 453.668459 },
-                        { "x": 106.717817, "y": 235.990363 },
-                        { "x": 265.064649, "y": 396.904945 },
-                        { "x": 452.719997, "y": 137.886092 }
-                    ],
-                    "links": [{ "target": 11, "source": 0 },
-                        { "target": 3, "source": 0 },
-                        { "target": 10, "source": 0 },
-                        { "target": 16, "source": 0 },
-                        { "target": 1, "source": 0 },
-                        { "target": 3, "source": 0 },
-                        { "target": 9, "source": 0 },
-                        { "target": 5, "source": 0 },
-                        { "target": 11, "source": 0 },
-                        { "target": 13, "source": 0 },
-                        { "target": 16, "source": 0 },
-                        { "target": 3, "source": 1 },
-                        { "target": 9, "source": 1 },
-                        { "target": 12, "source": 1 },
-                        { "target": 4, "source": 2 },
-                        { "target": 6, "source": 2 },
-                        { "target": 8, "source": 2 },
-                        { "target": 13, "source": 2 },
-                        { "target": 10, "source": 3 },
-                        { "target": 16, "source": 3 },
-                        { "target": 9, "source": 3 },
-                        { "target": 7, "source": 3 },
-                        { "target": 11, "source": 5 },
-                        { "target": 13, "source": 5 },
-                        { "target": 12, "source": 5 },
-                        { "target": 8, "source": 6 },
-                        { "target": 13, "source": 6 },
-                        { "target": 10, "source": 7 },
-                        { "target": 11, "source": 7 },
-                        { "target": 17, "source": 8 },
-                        { "target": 13, "source": 8 },
-                        { "target": 11, "source": 10 },
-                        { "target": 16, "source": 10 },
-                        { "target": 13, "source": 11 },
-                        { "target": 14, "source": 12 },
-                        { "target": 14, "source": 12 },
-                        { "target": 14, "source": 12 },
-                        { "target": 15, "source": 12 },
-                        { "target": 16, "source": 12 },
-                        { "target": 15, "source": 14 },
-                        { "target": 16, "source": 14 },
-                        { "target": 15, "source": 14 },
-                        { "target": 16, "source": 15 },
-                        { "target": 16, "source": 15 },
-                        { "target": 17, "source": 16 }
-                    ]
-                };
-                    
-                return graph;
+                var data = [
+                    [38.991621, -76.852587],
+                    [28.524963, -80.650813],
+                    [34.200463, -118.176008],
+                    [34.613714, -118.076790],
+                    [41.415891, -81.861774],
+                    [34.646554, -86.674368],
+                    [37.409574, -122.064292],
+                    [37.092123, -76.376230],
+                    [29.551508, -95.092256],
+                    [30.363692, -89.600036]
+                ];
+                var links = [];
+                for (var i = 0, len = data.length + 5; i < len; i++) {
+                    if (i >= data.length - 1) {
+                        var index = Math.ceil(Math.random() * (data.length - 1));
+                        var nextIndex = Math.ceil(Math.random() * (data.length - 1));
+                        links.push({
+                            type: "LineString",
+                            coordinates: [
+                                [data[index][1], data[index][0]],
+                                [data[nextIndex][1], data[nextIndex][0]]
+                            ]
+                        });
+                    }
+                    else {
+                        links.push({
+                            type: "LineString",
+                            coordinates: [
+                                [data[i][1], data[i][0]],
+                                [data[i + 1][1], data[i + 1][0]]
+                            ]
+                        });
+                    }
+                }
+
+                return links;
             }
 
             public DisplayLens(): void {
                 d3.json("../testData/us.json", (error, data) => {
                     super.DisplayLens();
                     var networkData = this.ExtractData();
-                    var path = this._path;
-                    var lensG = this._lens_circle_svg;
                     var centered;
-
-
-
-
 
                     this._lens_circle_svg.append("g")
                         .attr("id", "states")
@@ -121,40 +84,117 @@
                         .data(topojson.feature(data, data.objects.states).features)
                         .enter().append("path")
                         .attr("d", this._path)
-                        .on("click", clicked)
+                        .on("click", (d) => {
+                            var x, y, k;
+
+                            if (d && centered !== d) {
+                                var centroid = this._path.centroid(d);
+                                x = centroid[0];
+                                y = centroid[1];
+                                k = 4;
+                                centered = d;
+                            } else {
+                                x = 0;
+                                y = 0;
+                                k = 1;
+                                centered = null;
+                            }
+
+                            this._lens_circle_svg.selectAll("path")
+                                .classed("active", centered && function (d) { return d === centered; });
+
+                            this._lens_circle_svg.transition()
+                                .duration(750)
+                                .attr("transform", "translate(" + this._lens_circle_cx + "," + this._lens_circle_cy + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+                                .style("stroke-width", 1.5 / k + "px");
+                        })
                     ;
 
-                    this._lens_circle_svg.append("path")
-                        .datum(topojson.mesh(data, data.objects.states, function (a, b) { return a !== b; }))
+                    this._lens_circle_svg.append("g")
                         .attr("id", "state-borders")
+                        .append("path")
+                        .datum(topojson.mesh(data, data.objects.states, function (a, b) { return a !== b; }))
                         .attr("d", this._path);
 
-                    function clicked(d) {
-                        var x, y, k;
+                    var networkG = this._lens_circle_svg.append("g")
+                        .attr("id", "network");
 
-                        if (d && centered !== d) {
-                            var centroid = path.centroid(d);
-                            x = centroid[0];
-                            y = centroid[1];
-                            k = 4;
-                            centered = d;
-                        } else {
-                            x = 0;
-                            y = 0;
-                            k = 1;
-                            centered = null;
-                        }
+                    var pathArcs = networkG
+                        .selectAll(".cNetworkMapLensPath")
+                        .data(networkData)
+                    ;
 
-                        lensG.selectAll("path")
-                            .classed("active", centered && function (d) { return d === centered; });
+                    pathArcs.enter()
+                        .append("path")
+                        .attr("class", "cNetworkMapLensPath")
+                        .style({
+                            "fill": "none"
+                        })
+                    ;
 
-                        lensG.transition()
-                            .duration(750)
-                            .attr("transform", "translate(" + 0 + "," + 0 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
-                            .style("stroke-width", 1.5 / k + "px");
-                    }
+                    var networkNode = networkG
+                        .selectAll(".cNetworkMapLensNode")
+                        .data(networkData).enter()
+                        .append("circle")
+                        .attr("class", "cNetworkMapLensNode")
+                        .attr("cx", (d) => {
+                            return this._projection(d.coordinates[0])[0];
+                        })
+                        .attr("cy", (d) => {
+                            return this._projection(d.coordinates[0])[1];
+                        })
+                        .attr("r", 4)
+                        .style({
+                            "stroke": "steelblue",
+                            "fill": "#fff",
+                            "stroke-width": 1.5
+                        })
+                    ;
+
+                    var line = d3.svg.diagonal()
+                        .source((d) => {
+                            var t = this._projection(d.coordinates[0]);
+                            return {
+                                x: t[0],
+                                y: t[1]
+                            };
+                        })
+                        .target((d) => {
+                            var t = this._projection(d.coordinates[1]);
+                            return {
+                                x: t[0],
+                                y: t[1]
+                            };
+                        })
+                    ;
+
+
+                    //update
+                    pathArcs
+                        .attr('d', function (d) {
+                            return line(d);
+                        })
+                        .attr("stroke-dasharray", function (d) {
+                            var totalLen = (<SVGPathElement>d3.select(this).node()).getTotalLength();
+                            return totalLen + "," + totalLen;
+                        })
+                        .attr("stroke-dashoffset", function (d) {
+                            var totalLen = (<SVGPathElement>d3.select(this).node()).getTotalLength();
+                            return totalLen;
+                        })
+                        .style({
+                            "stroke": "#d73027",
+                            "stroke-width": "1px"
+                        })
+                        .transition()
+                        .duration(2000)
+                        .attr("stroke-dashoffset", 0);
+                    ;
+
+                    //exit
+                    pathArcs.exit().remove();
+
                 });
-
             }
 
         }

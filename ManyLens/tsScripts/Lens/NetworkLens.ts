@@ -136,8 +136,10 @@
                     //.attr('y1', function (d) { return nodes[d.source].y; })
                     //.attr('x2', function (d) { return nodes[d.target].x; })
                     //.attr('y2', function (d) { return nodes[d.target].y; })
-                    .style("stroke", "#777")
-                    .style("stroke-width", "1px")
+                    .style({
+                        "stroke": "#777",
+                        "stroke-width": "1px"
+                    })
                 ;
 
                 var node = this._lens_circle_svg
@@ -148,9 +150,11 @@
                     .attr("r",4)
                     .attr('cx', function (d) { return d.x; })
                     .attr('cy', function (d) { return d.y; })
-                    .style("stroke", "steelblue")
-                    .style("fill", "#fff")
-                    .style("stroke-width", 1.5)
+                    .style({
+                        "stroke": "steelblue",
+                        "fill": "#fff",
+                        "stroke-width": 1.5
+                    })
                 ;
 
                 this._force.on("tick", ()=>{

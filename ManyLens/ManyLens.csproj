@@ -42,6 +42,7 @@
     <TypeScriptCompile Include="tsScripts\Lens\BaseD3Lens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cBoundleLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cChordDiagramLens.ts" />
+    <TypeScriptCompile Include="tsScripts\Lens\cNetworkMapLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cTreeNetworkLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cPackingCircleLens.ts" />
     <TypeScriptCompile Include="tsScripts\Lens\cPieChartLens.ts" />
