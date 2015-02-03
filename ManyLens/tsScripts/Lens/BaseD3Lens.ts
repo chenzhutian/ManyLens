@@ -105,13 +105,17 @@ module ManyLens {
                 this._lens_circle_drag
                     .origin(function (d) { return d; })
                     .on("dragstart", () => {
+                        
                         this.LensCircleDragstartFunc();
+                        console.log("dragstart " + this._type);
                     })
                     .on("drag", () => {
                         this.LensCircleDragFunc();
+                        console.log("drag " + this._type);
                     })
                     .on("dragend", () => {
                         this.LensCircleDragendFunc();
+                        console.log("dragend " + this._type);
                     })
                 ;
             }
@@ -147,9 +151,11 @@ module ManyLens {
                         console.log("mousedown " + this._type);
                     })
                     .on("mouseup", () => {
+
                         console.log("mouseup " + this._type);
                     })
                     .on("click", () => {
+
                         console.log("click " + this._type)
                     })
                     .call(this._lens_circle_zoom)

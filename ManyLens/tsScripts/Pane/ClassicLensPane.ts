@@ -20,7 +20,7 @@ module ManyLens {
 
             private _manyLens: ManyLens.ManyLens;
 
-            private _lens_count: number = 5;
+            private _lens_count: number = 6;
             private _pane_color: D3.Scale.OrdinalScale = d3.scale.category20();
             private _pang_g: PaneG;
 
@@ -105,15 +105,19 @@ module ManyLens {
                                 break;
                             }
                             case 2: {
-                                len = new Lens.BarChartLens(this._element, this._manyLens);
-                                break;
-                            }
-                            case 3: {
                                 len = new Lens.PieChartLens(this._element, this._manyLens);
                                 break;
                             }
-                            case 4: {
+                            case 3: {
                                 len = new Lens.MapLens(this._element, this._manyLens);
+                                break;
+                            }
+                            case 4: {
+                                len = new Lens.BarChartLens(this._element, this._manyLens);
+                                break;
+                            }
+                            case 5: {
+                                len = new Lens.TreeNetworkLens(this._element, this._manyLens);
                                 break;
                             }
                         }

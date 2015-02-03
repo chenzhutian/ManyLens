@@ -48,9 +48,13 @@
                 while (+new Date - start < timeInterval && ++i < n && timer) {
                     d = data[i];
                     if (d.group) {
-                        d.x = size[0]/2 + Math.sin(Math.PI * (2 - parseInt(d.group)) * 2 / 3) * 60;
-                        d.y = size[1]/2 + Math.cos(Math.PI * (2 - parseInt(d.group)) * 2 / 3) * 60;
-
+                        if (d.coordinates) {
+                            d.x = size[0] / 2 +  d.coordinates[0];
+                            d.y = size[1] / 2 + d.coordinates[1];
+                        } else {
+                            d.x = size[0] / 2 + Math.sin(Math.PI * (2 - parseInt(d.group)) * 2 / 3) * 60;
+                            d.y = size[1] / 2 + Math.cos(Math.PI * (2 - parseInt(d.group)) * 2 / 3) * 60;
+                        }
                     } else {
                         d.x = size[0] / 2;//(size[0] * (Math.random() + .5)) >> 1;
                         d.y = size[1] / 2;//(size[1] * (Math.random() + .5)) >> 1;

@@ -16,6 +16,23 @@ module ManyLens {
                 color: string[]
             };
 
+            public get Projection(): D3.Geo.Projection {
+                return this._projection;
+            }
+            public get Path(): D3.Geo.Path {
+                return this._path;
+            }
+            public get Color(): D3.Scale.QuantizeScale {
+                return this._color;
+            }
+            public get MapData(): any {
+                return this._map_data;
+            }
+
+            public Render(color: string): void {
+                super.Render(color);
+            }
+
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
                 super(element, MapLens.Type, manyLens);
 
@@ -38,22 +55,6 @@ module ManyLens {
                     ]);
             }
 
-            public get Projection(): D3.Geo.Projection {
-                return this._projection;
-            }
-            public get Path(): D3.Geo.Path {
-                return this._path;
-            }
-            public get Color(): D3.Scale.QuantizeScale {
-                return this._color;
-            }
-            public get MapData(): any {
-                return this._map_data;
-            }
-
-            public Render(color: string): void {
-                super.Render(color);
-            }
 
             protected ExtractData(): any {
                 var data = [78, 72, 56, 55, 54, 53, 51, 50, 49,
@@ -90,7 +91,8 @@ module ManyLens {
                             return color;
                         })
                         .on("click", (d) => {
-                            this.ClickedMap(d);
+                            if (!d3.event.defaultPrevented)
+                                this.ClickedMap(d);
                         })
                     ;
 
@@ -120,7 +122,8 @@ module ManyLens {
                                 return color;
                             })
                             .on("click", (d) => {
-                                this.ClickedMap(d);
+                               if(!d3.event.defaultPrevented)
+                                    this.ClickedMap(d);
                             })
                         ;
 
@@ -163,9 +166,11 @@ module ManyLens {
 
                 this._lens_circle_svg.transition()
                     .duration(750)
-                    .attr("transform", "translate(" + this._lens_circle_cx + "," + this._lens_circle_cy + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
-                    .style("stroke-width", 1.5 / k + "px");
+                    .attr("transform", (d) => {
 
+                       return  "translate(" + (d.x = this._lens_circle_cx) + "," + (d.y = this._lens_circle_cy) + ")scale(" + k + ")translate(" + -x + "," + -y + ")";
+                    })
+                    .style("stroke-width", 1.5 / k + "px");
             }
 
         }

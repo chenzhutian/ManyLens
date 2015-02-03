@@ -27,7 +27,7 @@
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
-                super(element, cWordCloudLens.Type, manyLens, firstLens, secondLens);
+                super(element, cWordCloudNetworkLens.Type, manyLens, firstLens, secondLens);
 
                 this._color = d3.scale.category10();
 
