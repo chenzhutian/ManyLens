@@ -53,11 +53,17 @@ module ManyLens {
                                 y = centroid[1];
                                 k = 4;
                                 centered = d;
+                                this._lens_circle_zoom.on("zoom", null);
                             } else {
                                 x = 0;
                                 y = 0;
-                                k = 1;
+                                k = this._lens_circle_scale;
                                 centered = null;
+                                this._lens_circle_zoom
+                                    .scale(this._lens_circle_scale)
+                                    .on("zoom", () => {
+                                        this.LensCircleZoomFunc();
+                                    });
                             }
 
                             this._lens_circle_svg.selectAll("path")

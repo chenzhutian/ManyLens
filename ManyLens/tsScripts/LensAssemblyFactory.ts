@@ -111,6 +111,7 @@ module ManyLens {
                 
                 /*-----------------------------cNetworkMap Diagram Lens--------------------------*/
                 //single + single = composite
+                case Lens.MapLens.Type + "_" + Lens.NetworkLens.Type:
                 case Lens.NetworkLens.Type + "_" + Lens.MapLens.Type: {
                     return new Lens.cNetworkMapLens(element,
                         manyLens,

@@ -284,7 +284,7 @@ module ManyLens {
                 this._lens_circle_svg
                     .attr("transform", function () {
                         var transform = d3.select(this).attr("transform");
-                        transform = transform.replace(/(scale\()\d+\.?\d*(\))/, "$1" + scale + "$2");
+                        transform = transform.replace(/(scale\()\d+\.?\d*\,?\d*\.?\d*(\))/, "$1" + scale + "$2");
                         return transform;
                     })
                 ;

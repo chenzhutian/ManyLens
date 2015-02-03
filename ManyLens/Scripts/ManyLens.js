@@ -395,7 +395,7 @@ var ManyLens;
                 var scale = this._lens_circle_scale = d3.event.scale;
                 this._lens_circle_svg.attr("transform", function () {
                     var transform = d3.select(this).attr("transform");
-                    transform = transform.replace(/(scale\()\d+\.?\d*(\))/, "$1" + scale + "$2");
+                    transform = transform.replace(/(scale\()\d+\.?\d*\,?\d*\.?\d*(\))/, "$1" + scale + "$2");
                     return transform;
                 });
             };
@@ -745,12 +745,16 @@ var ManyLens;
                             y = centroid[1];
                             k = 4;
                             centered = d;
+                            _this._lens_circle_zoom.on("zoom", null);
                         }
                         else {
                             x = 0;
                             y = 0;
-                            k = 1;
+                            k = _this._lens_circle_scale;
                             centered = null;
+                            _this._lens_circle_zoom.scale(_this._lens_circle_scale).on("zoom", function () {
+                                _this.LensCircleZoomFunc();
+                            });
                         }
                         _this._lens_circle_svg.selectAll("path").classed("active", centered && function (d) {
                             return d === centered;
@@ -2802,7 +2806,7 @@ var ManyLens;
         var cNetworkMapLens = (function (_super) {
             __extends(cNetworkMapLens, _super);
             function cNetworkMapLens(element, manyLens, firstLens, secondLens) {
-                _super.call(this, element, Lens.cWordCloudLens.Type, manyLens, firstLens, secondLens);
+                _super.call(this, element, cNetworkMapLens.Type, manyLens, firstLens, secondLens);
                 this._map_width = this._lens_circle_radius * Math.SQRT2;
                 this._map_height = this._map_width;
                 this._projection = d3.geo.albersUsa();
@@ -2867,12 +2871,16 @@ var ManyLens;
                             y = centroid[1];
                             k = 4;
                             centered = d;
+                            _this._lens_circle_zoom.on("zoom", null);
                         }
                         else {
                             x = 0;
                             y = 0;
-                            k = 1;
+                            k = _this._lens_circle_scale;
                             centered = null;
+                            _this._lens_circle_zoom.scale(_this._lens_circle_scale).on("zoom", function () {
+                                _this.LensCircleZoomFunc();
+                            });
                         }
                         _this._lens_circle_svg.selectAll("path").classed("active", centered && function (d) {
                             return d === centered;
@@ -3157,6 +3165,7 @@ var ManyLens;
                     {
                         return firstLens.AddComponentLens(secondLens);
                     }
+                case ManyLens.Lens.MapLens.Type + "_" + ManyLens.Lens.NetworkLens.Type:
                 case ManyLens.Lens.NetworkLens.Type + "_" + ManyLens.Lens.MapLens.Type:
                     {
                         return new ManyLens.Lens.cNetworkMapLens(element, manyLens, firstLens, secondLens);
