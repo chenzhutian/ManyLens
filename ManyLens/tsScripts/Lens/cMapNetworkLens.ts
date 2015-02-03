@@ -1,27 +1,32 @@
 ﻿///<reference path = "./BaseCompositeLens.ts" />
+///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />
 module ManyLens {
     export module Lens {
-        export class cNetworkMapLens extends BaseCompositeLens {
+        export class cMapNetworkLens extends BaseCompositeLens {
 
-            public static Type: string = "cNetworkMapLens";
-
-            private _map_width: number = this._lens_circle_radius * Math.SQRT2;
-            private _map_height: number = this._map_width;
+            public static Type: string = "cMapNetworkLens";
 
             private _projection: D3.Geo.Projection = d3.geo.albersUsa();
             private _path: D3.Geo.Path = d3.geo.path();
+            private _color: D3.Scale.QuantizeScale = d3.scale.quantize();
+            private _centered_state: Object;
+
+            private _map_data: {
+                raw: any;
+                color: string[]
+            };
+
 
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
-                super(element, cNetworkMapLens.Type, manyLens, firstLens, secondLens);
+                super(element, cMapNetworkLens.Type, manyLens, firstLens, secondLens);
 
-                this._projection
-                    .scale(250)
-                    .translate([0, 0]);
-
-                this._path
-                    .projection(this._projection);
+                var mapLens: MapLens = <MapLens>(firstLens.Type == "MapLens" ? firstLens : secondLens);
+                this._projection = mapLens.Projection;
+                this._path = mapLens.Path;
+                this._color = mapLens.Color;
+                this._map_data = mapLens.MapData;
 
             }
 
@@ -73,7 +78,6 @@ module ManyLens {
             }
 
             public DisplayLens(): void {
-                d3.json("../testData/us.json", (error, data) => {
                     super.DisplayLens();
                     var networkData = this.ExtractData();
                     var centered;
@@ -81,68 +85,44 @@ module ManyLens {
                     this._lens_circle_svg.append("g")
                         .attr("id", "states")
                         .selectAll("path")
-                        .data(topojson.feature(data, data.objects.states).features)
+                        .data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.states).features)
                         .enter().append("path")
                         .attr("d", this._path)
+                        .attr("fill", (d,i) => {
+                            return this._map_data.color[i];
+                        })
                         .on("click", (d) => {
-                            var x, y, k;
-
-                            if (d && centered !== d) {
-                                var centroid = this._path.centroid(d);
-                                x = centroid[0];
-                                y = centroid[1];
-                                k = 4;
-                                centered = d;
-                                this._lens_circle_zoom.on("zoom", null);
-                            } else {
-                                x = 0;
-                                y = 0;
-                                k = this._lens_circle_scale;
-                                centered = null;
-                                this._lens_circle_zoom
-                                    .scale(this._lens_circle_scale)
-                                    .on("zoom", () => {
-                                        this.LensCircleZoomFunc();
-                                    });
-                            }
-
-                            this._lens_circle_svg.selectAll("path")
-                                .classed("active", centered && function (d) { return d === centered; });
-
-                            this._lens_circle_svg.transition()
-                                .duration(750)
-                                .attr("transform", "translate(" + this._lens_circle_cx + "," + this._lens_circle_cy + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
-                                .style("stroke-width", 1.5 / k + "px");
+                            this.ClickedMap(d);
                         })
                     ;
 
                     this._lens_circle_svg.append("g")
                         .attr("id", "state-borders")
                         .append("path")
-                        .datum(topojson.mesh(data, data.objects.states, function (a, b) { return a !== b; }))
+                        .datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.states, function (a, b) { return a !== b; }))
                         .attr("d", this._path);
 
                     var networkG = this._lens_circle_svg.append("g")
                         .attr("id", "network");
 
                     var pathArcs = networkG
-                        .selectAll(".cNetworkMapLensPath")
+                        .selectAll(".cMapPath")
                         .data(networkData)
                     ;
 
                     pathArcs.enter()
                         .append("path")
-                        .attr("class", "cNetworkMapLensPath")
+                        .attr("class", "cMapPath")
                         .style({
                             "fill": "none"
                         })
                     ;
 
                     var networkNode = networkG
-                        .selectAll(".cNetworkMapLensNode")
+                        .selectAll(".cMapNode")
                         .data(networkData).enter()
                         .append("circle")
-                        .attr("class", "cNetworkMapLensNode")
+                        .attr("class", "cMapNode")
                         .attr("cx", (d) => {
                             return this._projection(d.coordinates[0])[0];
                         })
@@ -190,7 +170,7 @@ module ManyLens {
                         })
                         .style({
                             "stroke": "#d73027",
-                            "stroke-width": "1px"
+                            "stroke-width": "1.2px"
                         })
                         .transition()
                         .duration(2000)
@@ -200,7 +180,41 @@ module ManyLens {
                     //exit
                     pathArcs.exit().remove();
 
-                });
+            }
+
+
+            private ClickedMap(d: any) {
+                var x, y, k;
+
+                if (d && this._centered_state !== d) {
+                    var centroid = this._path.centroid(d);
+                    x = centroid[0];
+                    y = centroid[1];
+                    k = 4;
+                    this._centered_state = d;
+                    this._lens_circle_zoom.on("zoom", null);
+                } else {
+                    x = 0;
+                    y = 0;
+                    k = this._lens_circle_scale;
+                    this._centered_state = null;
+                    this._lens_circle_zoom
+                        .scale(this._lens_circle_scale)
+                        .on("zoom", () => {
+                            this.LensCircleZoomFunc();
+                        });
+                }
+
+                this._lens_circle_svg.selectAll("path")
+                    .classed("active", this._centered_state && ((d) => {
+                        return d === this._centered_state;
+                    }));
+
+                this._lens_circle_svg.transition()
+                    .duration(750)
+                    .attr("transform", "translate(" + this._lens_circle_cx + "," + this._lens_circle_cy + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+                    .style("stroke-width", 1.5 / k + "px");
+
             }
 
         }

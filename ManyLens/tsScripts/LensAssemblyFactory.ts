@@ -113,24 +113,24 @@ module ManyLens {
                 //single + single = composite
                 case Lens.MapLens.Type + "_" + Lens.NetworkLens.Type:
                 case Lens.NetworkLens.Type + "_" + Lens.MapLens.Type: {
-                    return new Lens.cNetworkMapLens(element,
+                    return new Lens.cMapNetworkLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);
                 }
                 //composite + single||composite = composite
-                case Lens.MapLens.Type + "_" + Lens.cNetworkMapLens.Type:
-                case Lens.NetworkLens.Type + "_" + Lens.cNetworkMapLens.Type: {
-                    if (firstLens.Type != Lens.cNetworkMapLens.Type) {
+                case Lens.MapLens.Type + "_" + Lens.cMapNetworkLens.Type:
+                case Lens.NetworkLens.Type + "_" + Lens.cMapNetworkLens.Type: {
+                    if (firstLens.Type != Lens.cMapNetworkLens.Type) {
                         var tempLens = firstLens;
                         firstLens = secondLens;
                         secondLens = tempLens;
                     }
                 }
-                case Lens.cNetworkMapLens.Type + "_" + Lens.MapLens.Type:
-                case Lens.cNetworkMapLens.Type + "_" + Lens.NetworkLens.Type:
-                case Lens.cNetworkMapLens.Type + "_" + Lens.cNetworkMapLens.Type: {
-                    return (<Lens.cNetworkMapLens>firstLens).AddComponentLens(secondLens);
+                case Lens.cMapNetworkLens.Type + "_" + Lens.MapLens.Type:
+                case Lens.cMapNetworkLens.Type + "_" + Lens.NetworkLens.Type:
+                case Lens.cMapNetworkLens.Type + "_" + Lens.cMapNetworkLens.Type: {
+                    return (<Lens.cMapNetworkLens>firstLens).AddComponentLens(secondLens);
                 }
 
                 /*----------------------------Single Lens Self Increment---------------------*/

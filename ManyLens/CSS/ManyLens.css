@@ -103,9 +103,10 @@ circle.pane-Lens-Circle:hover {
 }
 
 
-/*-----------LocationLens------------*/
+/*-----------MapLens------------*/
 #states {
-  fill: #aaa;
+    
+  fill: rgb(222,235,247);
 }
 
 #states .active {

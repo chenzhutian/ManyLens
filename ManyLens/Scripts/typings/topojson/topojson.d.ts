@@ -26,7 +26,9 @@
 
         neighbors: (o: any) => any;
 
-        presimplify: (Topology: Topology, trangle?: (t: any) => number) =>Topology;
+        presimplify: (Topology: Topology, trangle?: (t: any) => number) => Topology;
+
+        
     }
 
 }

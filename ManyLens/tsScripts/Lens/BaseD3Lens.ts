@@ -94,14 +94,6 @@ module ManyLens {
                 super(element);
                 this._manyLens = manyLens;
                 this._type = type;
-            }
-
-            public Render(color: string): void {
-                this._lens_type_color = color;
-                this._sc_lc_svg = this._element
-                    .append("g")
-                    .attr("class", "lens")
-                ;
 
                 this._lens_circle_zoom
                     .scaleExtent([1, 2])
@@ -122,6 +114,15 @@ module ManyLens {
                         this.LensCircleDragendFunc();
                     })
                 ;
+            }
+
+            public Render(color: string): void {
+                this._lens_type_color = color;
+                this._sc_lc_svg = this._element
+                    .append("g")
+                    .attr("class", "lens")
+                ;
+
             }
 
             protected ExtractData(any = null): any {

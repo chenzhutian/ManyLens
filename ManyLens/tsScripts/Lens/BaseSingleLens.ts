@@ -192,7 +192,6 @@ module ManyLens {
                 if (hostLens) {
                     this._manyLens.DetachCompositeLens(this._element, hostLens, this);
                 }
-
             }
 
             protected SelectCircleDragendFunc(selectCircle): void {
