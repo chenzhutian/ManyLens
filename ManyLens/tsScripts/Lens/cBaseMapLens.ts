@@ -29,7 +29,7 @@ module ManyLens {
                 return this._map_data;
             }
 
-            constructor(element: D3.Selection, type:string, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
+            constructor(element: D3.Selection, type: string, manyLens: ManyLens, firstLens: BaseD3Lens, secondLens?: BaseSingleLens) {
                 super(element, type, manyLens, firstLens, secondLens);
                 var mapLens: MapLens;
                 if (secondLens) {
@@ -63,7 +63,7 @@ module ManyLens {
                         return this._map_data.color[i];
                     })
                     .on("click", (d) => {
-                        if(!d3.event.defaultPrevented)
+                        if (!d3.event.defaultPrevented)
                             this.ClickedMap(d);
                     })
                 ;
@@ -77,7 +77,8 @@ module ManyLens {
             }
 
 
-            protected ClickedMap(d: any) {
+            private ClickedMap(d: any) {
+                if (d3.event.defaultPrevented) return;
                 var x, y, k;
 
                 if (d && this._centered_state !== d) {
@@ -87,16 +88,38 @@ module ManyLens {
                     k = 4;
                     this._centered_state = d;
                     this._lens_circle_zoom.on("zoom", null);
+                    this._lens_circle_drag
+                        .on("dragstart", null)
+                        .on("drag", null)
+                        .on("dragend", null)
+                    ;
+                    this._element.on("click", () => {
+
+                        this.ClickedMap(this._centered_state);
+                    });
+
                 } else {
                     x = 0;
                     y = 0;
                     k = this._lens_circle_scale;
                     this._centered_state = null;
+                    this._lens_circle_drag
+                        .on("dragstart", () => {
+                            this.LensCircleDragstartFunc();
+                        })
+                        .on("drag", () => {
+                            this.LensCircleDragFunc();
+                        })
+                        .on("dragend", () => {
+                            this.LensCircleDragendFunc();
+                        })
+                    ;
                     this._lens_circle_zoom
                         .scale(this._lens_circle_scale)
                         .on("zoom", () => {
                             this.LensCircleZoomFunc();
                         });
+                    this._element.on("click", null);
                 }
 
                 this._lens_circle_svg.selectAll("path")
@@ -106,8 +129,12 @@ module ManyLens {
 
                 this._lens_circle_svg.transition()
                     .duration(750)
-                    .attr("transform", "translate(" + this._lens_circle_cx + "," + this._lens_circle_cy + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+                    .attr("transform", (d) => {
+                        return "translate(" + this._lens_circle_cx + "," + this._lens_circle_cy + ")scale(" + k + ")translate(" + [-x, -y] + ")";
+                    })
                     .style("stroke-width", 1.5 / k + "px");
+
+                d3.event.stopPropagation();
             }
 
         }
