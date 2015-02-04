@@ -1,4 +1,4 @@
-﻿///<reference path = "./BaseSingleLens.ts" />
+﻿///<reference path = "./BaseCompositeLens.ts" />
 ///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />
 module ManyLens {
     export module Lens {

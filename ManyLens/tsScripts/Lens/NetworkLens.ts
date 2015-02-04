@@ -1,4 +1,5 @@
-﻿module ManyLens {
+﻿///<reference path = "./BaseSingleLens.ts" />
+module ManyLens {
     export module Lens {
 
         export class NetworkLens extends BaseSingleLens {

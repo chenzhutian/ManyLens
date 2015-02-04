@@ -8,11 +8,18 @@
 /*------------ CompositeLens Lens -------------*/
 ///<reference path = "../Lens/cBoundleLens.ts" />
 ///<reference path = "../Lens/cChordDiagramLens.ts" />
-///<reference path = "../Lens/cPackingCircleLens.ts" />
 ///<reference path = "../Lens/cPieChartLens.ts" />
 ///<reference path = "../Lens/cSunBrustLens.ts" />
 ///<reference path = "../Lens/cTreeNetworkLens.ts" />
 ///<reference path = "../Lens/cWordCloudLens.ts" />
+///<reference path = "../Lens/cWordCloudNetworkLens.ts" />
+///<reference path = "../Lens/cWordCloudPieLens.ts" />
+///<reference path = "../Lens/cBaseMapLens.ts" />
+///<reference path = "../Lens/cMapBarLens.ts" />
+///<reference path = "../Lens/cMapLens.ts" />
+///<reference path = "../Lens/cMapNetworkLens.ts" />
+///<reference path = "../Lens/cMapWordCloudLens.ts" />
+
 (function () {
 
 })();
