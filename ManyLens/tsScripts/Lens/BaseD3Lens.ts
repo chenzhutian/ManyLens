@@ -107,15 +107,15 @@ module ManyLens {
                     .on("dragstart", () => {
                         
                         this.LensCircleDragstartFunc();
-                        console.log("dragstart " + this._type);
+                        console.log("lc_dragstart " + this._type);
                     })
                     .on("drag", () => {
                         this.LensCircleDragFunc();
-                        console.log("drag " + this._type);
+                        console.log("lc_drag " + this._type);
                     })
                     .on("dragend", () => {
                         this.LensCircleDragendFunc();
-                        console.log("dragend " + this._type);
+                        console.log("lc_dragend " + this._type);
                     })
                 ;
             }
@@ -148,17 +148,18 @@ module ManyLens {
                     })
                     .on("mousedown", () => {
 
-                        console.log("mousedown " + this._type);
+                        console.log("lc_mousedown " + this._type);
                     })
                     .on("mouseup", () => {
 
-                        console.log("mouseup " + this._type);
+                        console.log("lc_mouseup " + this._type);
                     })
                     .on("click", () => {
 
-                        console.log("click " + this._type)
+                        console.log("lc_click " + this._type)
                     })
                     .call(this._lens_circle_zoom)
+                    .on("dblclick.zoom", null)
                     .call(this._lens_circle_drag)
                 ;
 
@@ -195,6 +196,8 @@ module ManyLens {
             }
 
             protected LensCircleDragstartFunc(): void {
+                if (d3.event.sourceEvent.button != 0) return;
+
                 var tempGs = d3.select("#mapView").selectAll("svg > g");
                 var index = tempGs[0].indexOf(this._sc_lc_svg[0][0]);
                 tempGs[0].splice(index, 1);

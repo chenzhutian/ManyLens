@@ -17,7 +17,7 @@ module ManyLens {
             protected _has_put_down: boolean = false;
             protected _has_showed_lens: boolean = false;
 
-            protected _sc_drag_event_flag: boolean = false;
+            //protected _sc_drag_event_flag: boolean = false;
             protected _sc_lc_default_dist = 100;
 
             public get LinkLine(): D3.Selection {
@@ -51,23 +51,30 @@ module ManyLens {
                     .scaleExtent([1, 4])
                     .on("zoom", () => {
                         this.SelectCircleZoomFunc();
+                        console.log("sc_zoom " + this._type);
                     })
+                    
                 ;
 
                 this._select_circle_drag
                     .origin(function (d) { return d; })
                     .on("dragstart", () => {
-                        this._sc_drag_event_flag = false;
+                        //this._sc_drag_event_flag = false;
+
+                        console.log("sc_dragstart " + this._type);
                     })
                     .on("drag", () => {
-                        if (this._sc_drag_event_flag) {
+
+                        //if (this._sc_drag_event_flag) {
                             this.SelectCircleDragFunc();
-                        } else {
-                            this._sc_drag_event_flag = true;
-                        }
+                        //} else {
+                        //    this._sc_drag_event_flag = true;
+                        //}
+                        console.log("sc_drag " + this._type);
                     })
                     .on("dragend", (d) => {
                         this.SelectCircleDragendFunc(d);
+                        console.log("sc_dragend " + this._type);
                     })
                 ;
 
@@ -108,6 +115,8 @@ module ManyLens {
                         d3.event.preventDefault();
                     })
                     .call(this._select_circle_zoom)
+                    .on("dblclick.zoom", null)
+                    .on("mousedown.zoom", null)
                     .call(this._select_circle_drag)
                 ;
 
@@ -239,9 +248,7 @@ module ManyLens {
                 if (d3.event.scale == this._select_circle_scale) {
                     return;
                 }
-                if (d3.event.scale == this._select_circle_scale) {
-                    return;
-                }
+
 
                 this._select_circle_scale = d3.event.scale;
                 var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));

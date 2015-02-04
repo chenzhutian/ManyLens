@@ -169,13 +169,13 @@ var ManyLens;
                     return d;
                 }).on("dragstart", function () {
                     _this.LensCircleDragstartFunc();
-                    console.log("dragstart " + _this._type);
+                    console.log("lc_dragstart " + _this._type);
                 }).on("drag", function () {
                     _this.LensCircleDragFunc();
-                    console.log("drag " + _this._type);
+                    console.log("lc_drag " + _this._type);
                 }).on("dragend", function () {
                     _this.LensCircleDragendFunc();
-                    console.log("dragend " + _this._type);
+                    console.log("lc_dragend " + _this._type);
                 });
             }
             Object.defineProperty(BaseD3Lens.prototype, "ID", {
@@ -302,12 +302,12 @@ var ManyLens;
                 this._lens_circle_svg = this._sc_lc_svg.append("g").data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }]).attr("id", "lens_" + this._manyLens.LensCount).attr("class", "lens-circle-g " + this._type).attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")").attr("opacity", "1e-6").style("pointer-events", "none").on("contextmenu", function () {
                     //d3.event.preventDefault();
                 }).on("mousedown", function () {
-                    console.log("mousedown " + _this._type);
+                    console.log("lc_mousedown " + _this._type);
                 }).on("mouseup", function () {
-                    console.log("mouseup " + _this._type);
+                    console.log("lc_mouseup " + _this._type);
                 }).on("click", function () {
-                    console.log("click " + _this._type);
-                }).call(this._lens_circle_zoom).call(this._lens_circle_drag);
+                    console.log("lc_click " + _this._type);
+                }).call(this._lens_circle_zoom).on("dblclick.zoom", null).call(this._lens_circle_drag);
                 this._lens_circle = this._lens_circle_svg.append("circle").attr("class", "lens-circle").attr("cx", 0).attr("cy", 0).attr("r", this._lens_circle_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
                 //re-order the line, select-circle and lens-circle
                 //var tempChildren = d3.selectAll(this._sc_lc_svg[0][0].children);
@@ -324,6 +324,8 @@ var ManyLens;
                 return duration;
             };
             BaseD3Lens.prototype.LensCircleDragstartFunc = function () {
+                if (d3.event.sourceEvent.button != 0)
+                    return;
                 var tempGs = d3.select("#mapView").selectAll("svg > g");
                 var index = tempGs[0].indexOf(this._sc_lc_svg[0][0]);
                 tempGs[0].splice(index, 1);
@@ -447,7 +449,7 @@ var ManyLens;
                 this._select_circle_drag = d3.behavior.drag();
                 this._has_put_down = false;
                 this._has_showed_lens = false;
-                this._sc_drag_event_flag = false;
+                //protected _sc_drag_event_flag: boolean = false;
                 this._sc_lc_default_dist = 100;
                 this._is_composite_lens = false;
                 this._select_circle_radius = 10;
@@ -494,20 +496,23 @@ var ManyLens;
                 var hasShow = false;
                 this._select_circle_zoom.scaleExtent([1, 4]).on("zoom", function () {
                     _this.SelectCircleZoomFunc();
+                    console.log("sc_zoom " + _this._type);
                 });
                 this._select_circle_drag.origin(function (d) {
                     return d;
                 }).on("dragstart", function () {
-                    _this._sc_drag_event_flag = false;
+                    //this._sc_drag_event_flag = false;
+                    console.log("sc_dragstart " + _this._type);
                 }).on("drag", function () {
-                    if (_this._sc_drag_event_flag) {
-                        _this.SelectCircleDragFunc();
-                    }
-                    else {
-                        _this._sc_drag_event_flag = true;
-                    }
+                    //if (this._sc_drag_event_flag) {
+                    _this.SelectCircleDragFunc();
+                    //} else {
+                    //    this._sc_drag_event_flag = true;
+                    //}
+                    console.log("sc_drag " + _this._type);
                 }).on("dragend", function (d) {
                     _this.SelectCircleDragendFunc(d);
+                    console.log("sc_dragend " + _this._type);
                 });
                 this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
                 this._select_circle_svg = this._sc_lc_svg.append("g").attr("class", "select-circle");
@@ -526,7 +531,7 @@ var ManyLens;
                         _this._manyLens.DetachCompositeLens(_this._element, hostLens, _this);
                     }
                     d3.event.preventDefault();
-                }).call(this._select_circle_zoom).call(this._select_circle_drag);
+                }).call(this._select_circle_zoom).on("dblclick.zoom", null).on("mousedown.zoom", null).call(this._select_circle_drag);
                 container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 function moveSelectCircle() {
                     var p = d3.mouse(container[0][0]);
@@ -604,9 +609,6 @@ var ManyLens;
             };
             BaseSingleLens.prototype.SelectCircleZoomFunc = function () {
                 if (d3.event.sourceEvent.type != "wheel") {
-                    return;
-                }
-                if (d3.event.scale == this._select_circle_scale) {
                     return;
                 }
                 if (d3.event.scale == this._select_circle_scale) {
