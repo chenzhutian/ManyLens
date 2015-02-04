@@ -1,5 +1,4 @@
-﻿
-///<reference path = "../tsScripts/ManyLens.ts" />
+﻿///<reference path = "../tsScripts/ManyLens.ts" />
 "use strict";
 
 var manyLens;

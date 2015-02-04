@@ -10,7 +10,7 @@ module ManyLens {
             private _y: D3.Scale.LinearScale = d3.scale.linear();
             private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
-            private _section_num: number = 80;
+            private _section_num: number = 10;
             private _view_height: number = 150;
             private _view_width: number = screen.width;
             private _view_top_padding: number = 15;

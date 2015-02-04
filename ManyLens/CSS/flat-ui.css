@@ -8,54 +8,54 @@
   font-style: normal;
   font-weight: 900;
 
-  src: url('../fonts/lato/lato-black.eot');
-  src: url('../fonts/lato/lato-black.eot?#iefix') format('embedded-opentype'), url('../fonts/lato/lato-black.woff') format('woff'), url('../fonts/lato/lato-black.ttf') format('truetype'), url('../fonts/lato/lato-black.svg#latoblack') format('svg');
+  src: url('../Fonts/lato/lato-black.eot');
+  src: url('../Fonts/lato/lato-black.eot?#iefix') format('embedded-opentype'), url('../Fonts/lato/lato-black.woff') format('woff'), url('../Fonts/lato/lato-black.ttf') format('truetype'), url('../Fonts/lato/lato-black.svg#latoblack') format('svg');
   }
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: bold;
 
-  src: url('../fonts/lato/lato-bold.eot');
-  src: url('../fonts/lato/lato-bold.eot?#iefix') format('embedded-opentype'), url('../fonts/lato/lato-bold.woff') format('woff'), url('../fonts/lato/lato-bold.ttf') format('truetype'), url('../fonts/lato/lato-bold.svg#latobold') format('svg');
+  src: url('../Fonts/lato/lato-bold.eot');
+  src: url('../Fonts/lato/lato-bold.eot?#iefix') format('embedded-opentype'), url('../Fonts/lato/lato-bold.woff') format('woff'), url('../Fonts/lato/lato-bold.ttf') format('truetype'), url('../Fonts/lato/lato-bold.svg#latobold') format('svg');
   }
 @font-face {
   font-family: 'Lato';
   font-style: italic;
   font-weight: bold;
 
-  src: url('../fonts/lato/lato-bolditalic.eot');
-  src: url('../fonts/lato/lato-bolditalic.eot?#iefix') format('embedded-opentype'), url('../fonts/lato/lato-bolditalic.woff') format('woff'), url('../fonts/lato/lato-bolditalic.ttf') format('truetype'), url('../fonts/lato/lato-bolditalic.svg#latobold-italic') format('svg');
+  src: url('../Fonts/lato/lato-bolditalic.eot');
+  src: url('../Fonts/lato/lato-bolditalic.eot?#iefix') format('embedded-opentype'), url('../Fonts/lato/lato-bolditalic.woff') format('woff'), url('../Fonts/lato/lato-bolditalic.ttf') format('truetype'), url('../Fonts/lato/lato-bolditalic.svg#latobold-italic') format('svg');
   }
 @font-face {
   font-family: 'Lato';
   font-style: italic;
   font-weight: normal;
 
-  src: url('../fonts/lato/lato-italic.eot');
-  src: url('../fonts/lato/lato-italic.eot?#iefix') format('embedded-opentype'), url('../fonts/lato/lato-italic.woff') format('woff'), url('../fonts/lato/lato-italic.ttf') format('truetype'), url('../fonts/lato/lato-italic.svg#latoitalic') format('svg');
+  src: url('../Fonts/lato/lato-italic.eot');
+  src: url('../Fonts/lato/lato-italic.eot?#iefix') format('embedded-opentype'), url('../Fonts/lato/lato-italic.woff') format('woff'), url('../Fonts/lato/lato-italic.ttf') format('truetype'), url('../Fonts/lato/lato-italic.svg#latoitalic') format('svg');
   }
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: 300;
 
-  src: url('../fonts/lato/lato-light.eot');
-  src: url('../fonts/lato/lato-light.eot?#iefix') format('embedded-opentype'), url('../fonts/lato/lato-light.woff') format('woff'), url('../fonts/lato/lato-light.ttf') format('truetype'), url('../fonts/lato/lato-light.svg#latolight') format('svg');
+  src: url('../Fonts/lato/lato-light.eot');
+  src: url('../Fonts/lato/lato-light.eot?#iefix') format('embedded-opentype'), url('../Fonts/lato/lato-light.woff') format('woff'), url('../Fonts/lato/lato-light.ttf') format('truetype'), url('../Fonts/lato/lato-light.svg#latolight') format('svg');
   }
 @font-face {
   font-family: 'Lato';
   font-style: normal;
   font-weight: normal;
 
-  src: url('../fonts/lato/lato-regular.eot');
-  src: url('../fonts/lato/lato-regular.eot?#iefix') format('embedded-opentype'), url('../fonts/lato/lato-regular.woff') format('woff'), url('../fonts/lato/lato-regular.ttf') format('truetype'), url('../fonts/lato/lato-regular.svg#latoregular') format('svg');
+  src: url('../Fonts/lato/lato-regular.eot');
+  src: url('../Fonts/lato/lato-regular.eot?#iefix') format('embedded-opentype'), url('../Fonts/lato/lato-regular.woff') format('woff'), url('../Fonts/lato/lato-regular.ttf') format('truetype'), url('../Fonts/lato/lato-regular.svg#latoregular') format('svg');
   }
 @font-face {
   font-family: 'Flat-UI-Icons';
 
-  src: url('../fonts/glyphicons/flat-ui-icons-regular.eot');
-  src: url('../fonts/glyphicons/flat-ui-icons-regular.eot?#iefix') format('embedded-opentype'), url('../fonts/glyphicons/flat-ui-icons-regular.woff') format('woff'), url('../fonts/glyphicons/flat-ui-icons-regular.ttf') format('truetype'), url('../fonts/glyphicons/flat-ui-icons-regular.svg#flat-ui-icons-regular') format('svg');
+  src: url('../Fonts/glyphicons/flat-ui-icons-regular.eot');
+  src: url('../Fonts/glyphicons/flat-ui-icons-regular.eot?#iefix') format('embedded-opentype'), url('../Fonts/glyphicons/flat-ui-icons-regular.woff') format('woff'), url('../Fonts/glyphicons/flat-ui-icons-regular.ttf') format('truetype'), url('../Fonts/glyphicons/flat-ui-icons-regular.svg#flat-ui-icons-regular') format('svg');
   }
 [class^="fui-"],
 [class*="fui-"] {
@@ -362,6 +362,7 @@
   }
 body {
   font-family: "Lato", Helvetica, Arial, sans-serif;
+  font-weight:300;
   font-size: 18px;
   line-height: 1.72222;
   color: #34495e;
@@ -415,7 +416,7 @@ h6,
 .h5,
 .h6 {
   font-family: inherit;
-  font-weight: 700;
+  font-weight: 300;
   line-height: 1.1;
   color: inherit;
   }
@@ -2507,7 +2508,7 @@ fieldset[disabled] .input-group-btn .btn-default.active {
 .pager {
   display: inline-block;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 300;
   color: #fff;
   background-color: #34495e;
   border-radius: 6px;
@@ -3026,7 +3027,7 @@ fieldset[disabled] .input-group-btn .btn-default.active {
   padding: 0;
   margin: 0 0 20px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 300;
   list-style-type: none;
   }
 .pagination-plain > li {
@@ -4026,7 +4027,7 @@ fieldset[disabled] .input-group-btn .btn-default.active {
   }
 .navbar {
   min-height: 53px;
-  margin-bottom: 30px;
+  margin-bottom: 1q0px;
   font-size: 16px;
   border: none;
   border-radius: 6px;
@@ -4110,7 +4111,7 @@ fieldset[disabled] .input-group-btn .btn-default.active {
   height: 53px;
   padding: 14px 21px;
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 300;
   line-height: 1.042;
   }
 .navbar-brand > [class*="fui-"] {
@@ -4167,7 +4168,7 @@ fieldset[disabled] .input-group-btn .btn-default.active {
 .navbar-nav > li > a {
   padding: 15px 21px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 300;
   line-height: 23px;
   }
 .navbar-nav > li > a:hover,
@@ -4368,7 +4369,7 @@ select[multiple].navbar-form .select2-search input[type="text"] {
   height: 6px;
   font-family: "Lato", Helvetica, Arial, sans-serif;
   font-size: 0;
-  font-weight: 700;
+  font-weight: 300;
   line-height: 1;
   color: #fff;
   text-align: center;
@@ -4895,7 +4896,7 @@ fieldset[disabled] .navbar-inverse .navbar-btn.active {
   height: 100%;
   padding-top: 5px;
   padding-bottom: 5px;
-  font-weight: 700;
+  font-weight: 300;
   line-height: 19px;
   text-align: center;
   cursor: pointer;
@@ -5679,7 +5680,7 @@ fieldset[disabled] .navbar-inverse .navbar-btn.active {
   padding: 5px 0;
   margin: 0;
   font-size: 19px;
-  font-weight: 700;
+  font-weight: 300;
   line-height: 23px;
   color: #34495e;
   text-indent: 0;
@@ -5815,7 +5816,7 @@ fieldset[disabled] .navbar-inverse .navbar-btn.active {
 .palette-headline {
   margin-top: -3px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 300;
   color: #7f8c8d;
   }
 .login {
@@ -5851,7 +5852,7 @@ fieldset[disabled] .navbar-inverse .navbar-btn.active {
 .login-icon > h4 small {
   display: block;
   font-size: inherit;
-  font-weight: 700;
+  font-weight: 300;
   color: inherit;
   }
 .login-form {
@@ -5903,7 +5904,7 @@ footer {
   background-color: #edeff1;
   }
 footer a {
-  font-weight: 700;
+  font-weight: 300;
   color: #9aa4af;
   }
 footer p {
@@ -6197,4 +6198,3 @@ footer p {
     background: #bdc3c7 !important;
     }
   }
-/*# sourceMappingURL=flat-ui.css.map */

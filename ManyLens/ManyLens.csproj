@@ -16,7 +16,6 @@
     <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="CSS\app.css" />
     <Content Include="CSS\flat-ui.css" />
     <Content Include="CSS\flat-ui.min.css" />
     <Content Include="CSS\ManyLens.css" />

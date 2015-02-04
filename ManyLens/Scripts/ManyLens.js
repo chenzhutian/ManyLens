@@ -31,7 +31,7 @@ var ManyLens;
                 this._y = d3.scale.linear();
                 this._x_axis_gen = d3.svg.axis();
                 this._y_axis_gen = d3.svg.axis();
-                this._section_num = 80;
+                this._section_num = 10;
                 this._view_height = 150;
                 this._view_width = screen.width;
                 this._view_top_padding = 15;
