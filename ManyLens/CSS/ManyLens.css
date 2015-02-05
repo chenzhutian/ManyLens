@@ -142,7 +142,7 @@ circle.pane-Lens-Circle:hover {
     .nav-side-menu li .sub-menu li {
         border: none;
         line-height: 28px;
-        border-bottom: 1px solid #dae1e8;
+        /*border-bottom: 1px solid #dae1e8;*/
         /*margin-left: 0px;*/
         text-align: center;
     }
