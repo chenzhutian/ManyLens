@@ -34,8 +34,13 @@ module ManyLens {
             this._curve = new TweetsCurve.Curve(this._curveView);
             this._curve.Render([10, 10]);
 
-            this._mapView = d3.select("#"+this._mapView_id);
-            this._mapSvg = d3.select("#"+this._mapSvg_id);
+            this._mapSvg = d3.select("#" + this._mapSvg_id);
+            d3.select("#mainArea")
+                .style("height", function () {
+
+                    return window.innerHeight - (<HTMLElement>d3.select("#mainView").node()).offsetTop - 15 + "px";
+                });
+
             this._lensPane = new Pane.ClassicLensPane(this._mapSvg,this);
 
             this._historySvg = d3.select("#"+this._historySvg_id);

@@ -12,7 +12,7 @@ module ManyLens {
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _section_num: number = 10;
             private _view_height: number = 150;
-            private _view_width: number = screen.width;
+            private _view_width: number = window.innerWidth - 30;
             private _view_top_padding: number = 15;
             private _view_botton_padding: number = 20;
             private _view_left_padding: number = 50;
@@ -85,7 +85,7 @@ module ManyLens {
                 svg.append("g")
                     .attr("clip-path", "url(#clip)")
                     .append("g")
-                    .attr("id", "mainView")
+                    .attr("id", "curve.mainView")
                     .append("path")
                     .attr('stroke', 'blue')
                     .attr('stroke-width', 2)

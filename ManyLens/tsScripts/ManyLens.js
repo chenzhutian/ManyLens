@@ -12,8 +12,10 @@ var ManyLens;
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView);
             this._curve.Render([10, 10]);
-            this._mapView = d3.select("#" + this._mapView_id);
             this._mapSvg = d3.select("#" + this._mapSvg_id);
+            d3.select("#mainArea").style("height", function () {
+                return window.innerHeight - d3.select("#mainView").node().offsetTop - 15 + "px";
+            });
             this._lensPane = new _ManyLens.Pane.ClassicLensPane(this._mapSvg, this);
             this._historySvg = d3.select("#" + this._historySvg_id);
             this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg);

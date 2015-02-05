@@ -1,5 +1,6 @@
-﻿html,body {
-    height:100%;
+﻿html, body {
+    background-color: #f7f7f7;
+    height: 100%;
     -moz-user-select: -moz-none;
     -khtml-user-select: none;
     -webkit-user-select: none;
@@ -7,85 +8,150 @@
     user-select: none;
 }
 
-.axis path,
-.axis line{
-    fill:none;
-    stroke:#000;
-    shape-rendering:crispEdges;
-}
 
-div.view {
-    border: 1px dashed;
-    border-radius : 5px;
-}
-
-.blockContainerDiv div {
-    display:inline-block;
-}
-
-div#mainView {
-    height:55%
-}
-
-div#subView {
-    height:20%;
-}
-
-div#cruveView {
-
+#mainView,
+#subView,
+#mapView {
+    height: 100%;
 }
 
 div#mapView {
-    width: 80%;
-    height:100%;
+    background-color: #fff;
 }
 
-div#historyView {
-    width: 19%;
-    height:100%;
-}
-
-div#matrixView {
-    width:80%;
-    height:100%;
-}
-
-div#tweetsView {
-    width:19%;
-    height:100%;
+div.view {
+    /*border: 1px dashed;
+    border-radius : 5px;*/
 }
 
 
 circle.pane-Lens-Circle:hover {
-    opacity:0.7;
-    stroke:#0593fa;
-    stroke-width:2px;
+    opacity: 0.7;
+    stroke: #0593fa;
+    stroke-width: 2px;
 }
 
+
+/*-----------curve view------------*/
 .axis path,
-.axis line{
-    fill:none;
-    stroke:#000;
-    shape-rendering:crispEdges;
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
 }
 
 
 /*-----------MapLens------------*/
 #states {
-    
-  fill: rgb(222,235,247);
+    fill: rgb(222,235,247);
 }
 
-#states .active {
-  fill: orange;
-}
+    #states .active {
+        fill: orange;
+    }
 
 #state-borders {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 1.5px;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  pointer-events: none;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1.5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pointer-events: none;
 }
 
+/*-----------sidebar nav------------*/
+.nav-side-menu {
+    /*width: 100px;*/
+    height: 100%;
+    float: left;
+    font-weight: 300;
+    font-size: 12px;
+    margin: 0em;
+    padding-top: 5.8em;
+    border-right: 1px solid #dae3e9;
+}
+
+    .nav-side-menu .brand {
+        line-height: 50px;
+        display: block;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    .nav-side-menu li:hover {
+        border-left: 1.6px solid #d19b3d;
+        -webkit-transition: all 1s ease;
+        -moz-transition: all 1s ease;
+        -o-transition: all 1s ease;
+        -ms-transition: all 1s ease;
+        transition: all 1s ease;
+    }
+
+    .nav-side-menu .menu-list ul,
+    .nav-side-menu .menu-list li {
+        list-style: none;
+        padding: 0px;
+        margin: 0px;
+        line-height: 35px;
+        cursor: pointer;
+        padding-left: 0px;
+        border-bottom: 1px solid #dae1e8;
+    }
+
+        .nav-side-menu .menu-list li a {
+            /*text-decoration: none;*/
+            color: #6e829b;
+        }
+
+            .nav-side-menu .menu-list li a i {
+                padding-left: 10px;
+                width: 20px;
+                padding-right: 5px;
+            }
+
+        .nav-side-menu .menu-list ul:not(collapsed) .arrow:before,
+        .nav-side-menu .menu-list li:not(collapsed) .arrow:before {
+            display: inline-block;
+            /*padding-left: 5px;
+            padding-right: 10px;*/
+            vertical-align: middle;
+            float: right;
+        }
+
+        .nav-side-menu .menu-list li.panel {
+            background-color: #f7f7f7;
+        }
+
+    /*.nav-side-menu .menu-list ul .active,
+        .nav-side-menu .menu-list li .active {
+            border-left: 3px solid #d19b3d;
+            background-color: #f7f7f7;
+        }*/
+
+    /*.nav-side-menu .menu-list ul .sub-menu li.active,
+        .nav-side-menu .menu-list li .sub-menu li.active {
+            color: #d19b3d;
+        }*/
+
+    /*.nav-side-menu .menu-list ul .sub-menu li.active a,
+            .nav-side-menu .menu-list li .sub-menu li.active a {
+               color: #6e829b;
+            }*/
+
+    /*.nav-side-menu ul .sub-menu li,*/
+    .nav-side-menu li .sub-menu li {
+        border: none;
+        line-height: 28px;
+        border-bottom: 1px solid #dae1e8;
+        /*margin-left: 0px;*/
+        text-align: center;
+    }
+
+        /*.nav-side-menu ul .sub-menu li:hover,*/
+        .nav-side-menu li .sub-menu li:hover {
+            background-color: rgb(189, 195, 199);
+        }
+
+    .nav-side-menu .menu-list .menu-content {
+        display: block;
+    }
