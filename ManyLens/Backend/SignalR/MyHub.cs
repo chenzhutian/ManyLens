@@ -64,6 +64,7 @@ namespace ManyLens.SignalR
         //damn it, I almost forget how this function works.
         public async Task PullPoint(string start)
         {
+            Debug.WriteLine("I'm in again");
             //clear the static data
             interals.Clear();
             //set the parameter

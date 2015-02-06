@@ -21,6 +21,8 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <TypeScriptToolsVersion>1.1</TypeScriptToolsVersion>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -85,6 +87,36 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Frontend\Fonts\glyphicons\flat-ui-icons-regular.eot" />
+    <Content Include="Frontend\Fonts\glyphicons\flat-ui-icons-regular.ttf" />
+    <Content Include="Frontend\Fonts\glyphicons\flat-ui-icons-regular.woff" />
+    <Content Include="Frontend\Fonts\glyphicons\glyphicons-halflings-regular.eot" />
+    <Content Include="Frontend\Fonts\glyphicons\glyphicons-halflings-regular.ttf" />
+    <Content Include="Frontend\Fonts\glyphicons\glyphicons-halflings-regular.woff" />
+    <Content Include="Frontend\Fonts\glyphicons\selection.json" />
+    <Content Include="Frontend\Fonts\lato\lato-black.eot" />
+    <Content Include="Frontend\Fonts\lato\lato-black.ttf" />
+    <Content Include="Frontend\Fonts\lato\lato-black.woff" />
+    <Content Include="Frontend\Fonts\lato\lato-bold.eot" />
+    <Content Include="Frontend\Fonts\lato\lato-bold.ttf" />
+    <Content Include="Frontend\Fonts\lato\lato-bold.woff" />
+    <Content Include="Frontend\Fonts\lato\lato-bolditalic.eot" />
+    <Content Include="Frontend\Fonts\lato\lato-bolditalic.ttf" />
+    <Content Include="Frontend\Fonts\lato\lato-bolditalic.woff" />
+    <Content Include="Frontend\Fonts\lato\lato-italic.eot" />
+    <Content Include="Frontend\Fonts\lato\lato-italic.ttf" />
+    <Content Include="Frontend\Fonts\lato\lato-italic.woff" />
+    <Content Include="Frontend\Fonts\lato\lato-light.eot" />
+    <Content Include="Frontend\Fonts\lato\lato-light.ttf" />
+    <Content Include="Frontend\Fonts\lato\lato-light.woff" />
+    <Content Include="Frontend\Fonts\lato\lato-regular.eot" />
+    <Content Include="Frontend\Fonts\lato\lato-regular.ttf" />
+    <Content Include="Frontend\Fonts\lato\lato-regular.woff" />
+    <Content Include="Frontend\Image\icons\png\Thumbs.db" />
+    <Content Include="Frontend\Image\login\Thumbs.db" />
+    <Content Include="Frontend\Image\tile\Thumbs.db" />
+    <Content Include="Frontend\Scripts\ManyLens.js.map" />
+    <Content Include="Frontend\testData\us.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -93,18 +125,109 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Backend\AppScripts\heatmap.js" />
-    <Content Include="Backend\AppScripts\myApp.js" />
-    <Content Include="Backend\CSS\myStyle.css" />
-    <Content Include="Backend\index.html" />
+    <Content Include="Frontend\OldScripts\heatmap.js" />
+    <Content Include="Frontend\OldScripts\myApp.js" />
+    <Content Include="Frontend\index.html" />
+    <Content Include="Frontend\CSS\bootstrap-theme.css" />
+    <Content Include="Frontend\CSS\bootstrap.css" />
+    <Content Include="Frontend\CSS\flat-ui.css" />
+    <Content Include="Frontend\CSS\ManyLens.css" />
+    <Content Include="Frontend\Fonts\glyphicons\flat-ui-icons-regular.svg" />
+    <Content Include="Frontend\Fonts\glyphicons\glyphicons-halflings-regular.svg" />
+    <Content Include="Frontend\Fonts\lato\lato-black.svg" />
+    <Content Include="Frontend\Fonts\lato\lato-bold.svg" />
+    <Content Include="Frontend\Fonts\lato\lato-bolditalic.svg" />
+    <Content Include="Frontend\Fonts\lato\lato-italic.svg" />
+    <Content Include="Frontend\Fonts\lato\lato-light.svg" />
+    <Content Include="Frontend\Fonts\lato\lato-regular.svg" />
+    <Content Include="Frontend\Image\favicon.ico" />
+    <Content Include="Frontend\Image\icons\png\Book.png" />
+    <Content Include="Frontend\Image\icons\png\Calendar.png" />
+    <Content Include="Frontend\Image\icons\png\Chat.png" />
+    <Content Include="Frontend\Image\icons\png\Clipboard.png" />
+    <Content Include="Frontend\Image\icons\png\Compas.png" />
+    <Content Include="Frontend\Image\icons\png\Gift-Box.png" />
+    <Content Include="Frontend\Image\icons\png\Infinity-Loop.png" />
+    <Content Include="Frontend\Image\icons\png\Mail.png" />
+    <Content Include="Frontend\Image\icons\png\Map.png" />
+    <Content Include="Frontend\Image\icons\png\Pensils.png" />
+    <Content Include="Frontend\Image\icons\png\Pocket.png" />
+    <Content Include="Frontend\Image\icons\png\Retina-Ready.png" />
+    <Content Include="Frontend\Image\icons\png\Toilet-Paper.png" />
+    <Content Include="Frontend\Image\icons\png\Watches.png" />
+    <Content Include="Frontend\Image\icons\svg\book.svg" />
+    <Content Include="Frontend\Image\icons\svg\calendar.svg" />
+    <Content Include="Frontend\Image\icons\svg\chat.svg" />
+    <Content Include="Frontend\Image\icons\svg\clipboard.svg" />
+    <Content Include="Frontend\Image\icons\svg\clocks.svg" />
+    <Content Include="Frontend\Image\icons\svg\compas.svg" />
+    <Content Include="Frontend\Image\icons\svg\gift-box.svg" />
+    <Content Include="Frontend\Image\icons\svg\loop.svg" />
+    <Content Include="Frontend\Image\icons\svg\mail.svg" />
+    <Content Include="Frontend\Image\icons\svg\map.svg" />
+    <Content Include="Frontend\Image\icons\svg\paper-bag.svg" />
+    <Content Include="Frontend\Image\icons\svg\pencils.svg" />
+    <Content Include="Frontend\Image\icons\svg\retina.svg" />
+    <Content Include="Frontend\Image\icons\svg\ribbon.svg" />
+    <Content Include="Frontend\Image\icons\svg\toilet-paper.svg" />
+    <Content Include="Frontend\Image\login\icon.png" />
+    <Content Include="Frontend\Image\login\imac-2x.png" />
+    <Content Include="Frontend\Image\login\imac.png" />
+    <Content Include="Frontend\Image\tile\ribbon-2x.png" />
+    <Content Include="Frontend\Image\tile\ribbon.png" />
+    <Content Include="Frontend\ManyLens.html" />
+    <Content Include="Frontend\Scripts\bootstrap.js" />
+    <Content Include="Frontend\Scripts\d3.js" />
+    <Content Include="Frontend\Scripts\d3.layout.cloud.js" />
+    <Content Include="Frontend\Scripts\flat-ui.js" />
+    <None Include="Frontend\Scripts\jquery-2.1.3.intellisense.js" />
+    <Content Include="Frontend\Scripts\jquery-2.1.3.js" />
+    <Content Include="Frontend\Scripts\jquery.signalR-2.2.0.js" />
+    <Content Include="Frontend\Scripts\ManyLens.js" />
+    <Content Include="Frontend\Scripts\npm.js" />
+    <Content Include="Frontend\Scripts\topojson.js" />
+    <Content Include="Frontend\Scripts\vendor\html5shiv.js" />
+    <Content Include="Frontend\Scripts\vendor\respond.min.js" />
+    <Content Include="Frontend\Scripts\vendor\video-js.swf" />
+    <Content Include="Frontend\Scripts\vendor\video.js" />
+    <Content Include="Frontend\tsScripts\app.js" />
+    <Content Include="Frontend\tsScripts\D3ChartObject.js" />
+    <Content Include="Frontend\tsScripts\LensAssemblyFactory.js" />
+    <Content Include="Frontend\tsScripts\LensHistory\HistoryTree.js" />
+    <Content Include="Frontend\tsScripts\Lens\BarChartLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\BaseCompositeLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\BaseD3Lens.js" />
+    <Content Include="Frontend\tsScripts\Lens\BaseSingleLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\BoundleLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cBaseMapLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cBoundleLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cChordDiagramLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cMapBarLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cMapLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cMapNetworkLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cMapWordCloudLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cNetworkLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cPackingCircleLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cPieChartLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cSunBrustLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cTreeNetworkLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cWordCloudLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cWordCloudNetworkLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\cWordCloudPieLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\LensList.js" />
+    <Content Include="Frontend\tsScripts\Lens\LinkCompositeLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\LocationLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\MapLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\NetworkLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\PieChartLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\TreeNetworkLens.js" />
+    <Content Include="Frontend\tsScripts\Lens\WordCloudLens.js" />
+    <Content Include="Frontend\tsScripts\ManyLens.js" />
+    <Content Include="Frontend\tsScripts\Pane\BlossomLensPane.js" />
+    <Content Include="Frontend\tsScripts\Pane\ClassicLensPane.js" />
+    <Content Include="Frontend\tsScripts\TweetsCurve\Cruve.js" />
     <Content Include="packages.config" />
-    <None Include="Backend\Scripts\jquery-2.1.3.intellisense.js" />
-    <Content Include="Backend\Scripts\jquery-2.1.3.js" />
-    <Content Include="Backend\Scripts\jquery-2.1.3.min.js" />
-    <Content Include="Backend\Scripts\jquery.signalR-2.2.0.js" />
-    <Content Include="Backend\Scripts\jquery.signalR-2.2.0.min.js" />
     <Content Include="Web.config" />
-    <Content Include="Backend\Scripts\jquery-2.1.3.min.map" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Backend\IO\TweetsIO.cs" />
@@ -127,8 +250,43 @@
     <Compile Include="Backend\SignalR\Starup.cs" />
     <Compile Include="Backend\SOM\GPUSOM.cs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Frontend\" />
+    <TypeScriptCompile Include="Frontend\Scripts\typings\d3.cloud.layout\d3.cloud.layout.d.ts" />
+    <TypeScriptCompile Include="Frontend\Scripts\typings\d3\d3.d.ts" />
+    <TypeScriptCompile Include="Frontend\Scripts\typings\d3\plugins\d3.superformula.d.ts" />
+    <TypeScriptCompile Include="Frontend\Scripts\typings\topojson\topojson.d.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\app.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\D3ChartObject.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\LensAssemblyFactory.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\LensHistory\HistoryTree.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\BarChartLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseCompositeLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseD3Lens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseSingleLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cBaseMapLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cBoundleLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cChordDiagramLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapBarLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapNetworkLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapWordCloudLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cPieChartLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cSunBrustLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cTreeNetworkLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cWordCloudLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cWordCloudNetworkLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cWordCloudPieLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\LensList.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\MapLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\NetworkLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\PieChartLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\TreeNetworkLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\WordCloudLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\ManyLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Pane\BlossomLensPane.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Pane\ClassicLensPane.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\TweetsCurve\Cruve.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -156,7 +314,8 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
