@@ -139,7 +139,7 @@
                                 </li>
 
                                 <li>
-                                    <div class="collapsed" data-toggle="collapse" data-target="#new" data-parent="#menu-content">
+                                    <div class="collapsed" data-toggle="collapse" data-target="#" data-parent="#menu-content">
                                         <a href="#">
                                             <i class="fui-android"></i> Profile
                                         </a>
@@ -197,6 +197,17 @@
     <script src="Scripts/vendor/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="Scripts/flat-ui.js"></script>
+    <script>
+        //for sidebar hightlight
+        $(".panel div").click(function (e) {
+            e.preventDefault();
+            if (!$(this).parent().hasClass("active")) {
+                $("li.active").removeClass("active");
+            }
+            $(this).parent().toggleClass("active");
+            
+        });
+    </script>
 
 </body>
 </html>

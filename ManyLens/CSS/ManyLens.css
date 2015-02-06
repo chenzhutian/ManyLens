@@ -78,6 +78,16 @@ circle.pane-Lens-Circle:hover {
         font-size: 14px;
     }
 
+/*li.active {
+            border-left: 1.6px solid #d19b3d;
+        -webkit-transition: all 1s ease;
+        -moz-transition: all 1s ease;
+        -o-transition: all 1s ease;
+        -ms-transition: all 1s ease;
+        transition: all 1s ease;
+
+}*/   
+.nav-side-menu li.active,
     .nav-side-menu li:hover {
         border-left: 1.6px solid #d19b3d;
         -webkit-transition: all 1s ease;
