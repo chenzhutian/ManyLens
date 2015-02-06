@@ -795,7 +795,7 @@ var ManyLens;
                     })).attr("id", "state-borders").attr("d", this._path);
                 }
                 else {
-                    d3.json("../testData/us.json", function (error, data) {
+                    d3.json("./testData/us.json", function (error, data) {
                         _this._color.domain(d3.extent(_this._data));
                         _this._map_data = {
                             raw: data,

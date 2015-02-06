@@ -103,7 +103,7 @@ module ManyLens {
                     ;
 
                 } else {
-                    d3.json("../testData/us.json", (error, data) => {
+                    d3.json("./testData/us.json", (error, data) => {
                         this._color.domain(d3.extent(this._data));
                         this._map_data = {
                             raw: data,
