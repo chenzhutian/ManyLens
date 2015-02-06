@@ -127,6 +127,9 @@
     <Compile Include="Backend\SignalR\Starup.cs" />
     <Compile Include="Backend\SOM\GPUSOM.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Frontend\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
