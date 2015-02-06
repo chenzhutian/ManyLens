@@ -229,5 +229,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-ManyLens/tsScripts/*.js
-ManyLens/tsScripts/*/*.js
+ManyLens/Font-end/tsScripts/*.js
+ManyLens/Font-end/tsScripts/*/*.js
