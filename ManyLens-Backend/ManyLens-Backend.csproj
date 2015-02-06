@@ -93,39 +93,39 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="AppScripts\heatmap.js" />
-    <Content Include="AppScripts\myApp.js" />
-    <Content Include="CSS\myStyle.css" />
-    <Content Include="index.html" />
+    <Content Include="Backend\AppScripts\heatmap.js" />
+    <Content Include="Backend\AppScripts\myApp.js" />
+    <Content Include="Backend\CSS\myStyle.css" />
+    <Content Include="Backend\index.html" />
     <Content Include="packages.config" />
-    <None Include="Scripts\jquery-2.1.3.intellisense.js" />
-    <Content Include="Scripts\jquery-2.1.3.js" />
-    <Content Include="Scripts\jquery-2.1.3.min.js" />
-    <Content Include="Scripts\jquery.signalR-2.2.0.js" />
-    <Content Include="Scripts\jquery.signalR-2.2.0.min.js" />
+    <None Include="Backend\Scripts\jquery-2.1.3.intellisense.js" />
+    <Content Include="Backend\Scripts\jquery-2.1.3.js" />
+    <Content Include="Backend\Scripts\jquery-2.1.3.min.js" />
+    <Content Include="Backend\Scripts\jquery.signalR-2.2.0.js" />
+    <Content Include="Backend\Scripts\jquery.signalR-2.2.0.min.js" />
     <Content Include="Web.config" />
-    <Content Include="Scripts\jquery-2.1.3.min.map" />
+    <Content Include="Backend\Scripts\jquery-2.1.3.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IO\TweetsIO.cs" />
-    <Compile Include="Math\GaussinRandom.cs" />
-    <Compile Include="Models\Interval.cs" />
-    <Compile Include="Models\JSONModels.cs" />
-    <Compile Include="Models\Term.cs" />
-    <Compile Include="Models\Tweet.cs" />
-    <Compile Include="Models\TweetSet.cs" />
-    <Compile Include="Models\Unit.cs" />
-    <Compile Include="Models\VisMap.cs" />
-    <Compile Include="Models\Vocabulary.cs" />
-    <Compile Include="Models\Word.cs" />
-    <Compile Include="Parameter.cs" />
-    <Compile Include="Preprocessing\TweetsPreprocessor.cs" />
-    <Compile Include="Preprocessing\TweetsVectorizer.cs" />
+    <Compile Include="Backend\IO\TweetsIO.cs" />
+    <Compile Include="Backend\Math\GaussinRandom.cs" />
+    <Compile Include="Backend\Models\Interval.cs" />
+    <Compile Include="Backend\Models\JSONModels.cs" />
+    <Compile Include="Backend\Models\Term.cs" />
+    <Compile Include="Backend\Models\Tweet.cs" />
+    <Compile Include="Backend\Models\TweetSet.cs" />
+    <Compile Include="Backend\Models\Unit.cs" />
+    <Compile Include="Backend\Models\VisMap.cs" />
+    <Compile Include="Backend\Models\Vocabulary.cs" />
+    <Compile Include="Backend\Models\Word.cs" />
+    <Compile Include="Backend\Parameter.cs" />
+    <Compile Include="Backend\Preprocessing\TweetsPreprocessor.cs" />
+    <Compile Include="Backend\Preprocessing\TweetsVectorizer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Segmentor\SegmentByFreq.cs" />
-    <Compile Include="SignalR\MyHub.cs" />
-    <Compile Include="SignalR\Starup.cs" />
-    <Compile Include="SOM\GPUSOM.cs" />
+    <Compile Include="Backend\Segmentor\SegmentByFreq.cs" />
+    <Compile Include="Backend\SignalR\MyHub.cs" />
+    <Compile Include="Backend\SignalR\Starup.cs" />
+    <Compile Include="Backend\SOM\GPUSOM.cs" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
