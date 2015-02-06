@@ -161,7 +161,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>ManyLens</RootNamespace>
+    <RootNamespace>ManyLens_Fontend</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName>ManyLens-Fontend</AssemblyName>
