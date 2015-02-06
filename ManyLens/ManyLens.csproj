@@ -75,42 +75,9 @@
     <Content Include="Font-end\Scripts\vendor\respond.min.js" />
     <Content Include="Font-end\Scripts\vendor\video-js.swf" />
     <Content Include="Font-end\Scripts\vendor\video.js" />
-    <Content Include="Font-end\tsScripts\app.js" />
-    <Content Include="Font-end\tsScripts\D3ChartObject.js" />
-    <Content Include="Font-end\tsScripts\LensAssemblyFactory.js" />
-    <Content Include="Font-end\tsScripts\LensHistory\HistoryTree.js" />
-    <Content Include="Font-end\tsScripts\Lens\BarChartLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\BaseCompositeLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\BaseD3Lens.js" />
-    <Content Include="Font-end\tsScripts\Lens\BaseSingleLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\BoundleLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cBaseMapLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cBoundleLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cChordDiagramLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cMapBarLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cMapLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cMapNetworkLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cMapWordCloudLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cNetworkLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cPackingCircleLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cPieChartLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cSunBrustLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cTreeNetworkLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cWordCloudLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cWordCloudNetworkLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\cWordCloudPieLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\LensList.js" />
-    <Content Include="Font-end\tsScripts\Lens\LinkCompositeLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\LocationLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\MapLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\NetworkLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\PieChartLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\TreeNetworkLens.js" />
-    <Content Include="Font-end\tsScripts\Lens\WordCloudLens.js" />
-    <Content Include="Font-end\tsScripts\ManyLens.js" />
-    <Content Include="Font-end\tsScripts\Pane\BlossomLensPane.js" />
-    <Content Include="Font-end\tsScripts\Pane\ClassicLensPane.js" />
-    <Content Include="Font-end\tsScripts\TweetsCurve\Cruve.js" />
+    <None Include="Font-end\Scripts\jquery-2.1.3.intellisense.js" />
+    <Content Include="Font-end\Scripts\jquery-2.1.3.js" />
+    <Content Include="Font-end\Scripts\jquery-2.1.3.min.js" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -142,6 +109,7 @@
     <Content Include="Font-end\testData\us.json" />
     <None Include="manylens - FTP.pubxml" />
     <None Include="manylens - Web Deploy.pubxml" />
+    <Content Include="Font-end\Scripts\jquery-2.1.3.min.map" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -189,6 +157,9 @@
     <TypeScriptCompile Include="Font-end\tsScripts\Pane\ClassicLensPane.ts" />
     <TypeScriptCompile Include="Font-end\tsScripts\TweetsCurve\Cruve.ts" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Scripts\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -221,7 +192,7 @@
     <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
     <TypeScriptModuleKind>AMD</TypeScriptModuleKind>
-    <TypeScriptOutFile>Scripts/ManyLens.js</TypeScriptOutFile>
+    <TypeScriptOutFile>Font-end/Scripts/ManyLens.js</TypeScriptOutFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TypeScriptTarget>ES5</TypeScriptTarget>
