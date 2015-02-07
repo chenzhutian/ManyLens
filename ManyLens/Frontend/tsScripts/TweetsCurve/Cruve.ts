@@ -94,6 +94,12 @@ module ManyLens {
                 ;
 
             }
+
+            public PullData() {
+                var hub: Hub.CurveHub = new Hub.CurveHub();
+                hub.server.pullPoint("");
+                
+            }
         }
     }
 }

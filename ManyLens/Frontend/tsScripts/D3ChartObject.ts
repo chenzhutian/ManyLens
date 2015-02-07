@@ -1,6 +1,7 @@
 ﻿///<reference path = "../Scripts/typings/d3/d3.d.ts" />
 ///<reference path = "../Scripts/typings/d3.cloud.layout/d3.cloud.layout.d.ts" />
 
+
 module ManyLens {
 
     export class D3ChartObject {

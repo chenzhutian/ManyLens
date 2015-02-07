@@ -1,6 +1,12 @@
 #ifndef __SOM_CUDA__
 #define __SOM_CUDA__
 
+#pragma once
+#ifdef __INTELLISENSE__
+void __syncthreads();
+
+#endif
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include <cuda.h>
@@ -15,6 +21,9 @@
 
 #define DIMENSION 1024
 #define CHKSIZE 4     //neuron number must be evenly divisible by CHKSIZE
+
+
+
 
 #ifdef __cplusplus 
 extern "C"

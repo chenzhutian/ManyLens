@@ -37,7 +37,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -115,7 +115,7 @@
     <Content Include="Frontend\Image\icons\png\Thumbs.db" />
     <Content Include="Frontend\Image\login\Thumbs.db" />
     <Content Include="Frontend\Image\tile\Thumbs.db" />
-    <Content Include="Frontend\Scripts\ManyLens.js.map" />
+    <Content Include="Frontend\Scripts\ManyLens.js" />
     <Content Include="Frontend\testData\us.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -183,49 +183,12 @@
     <None Include="Frontend\Scripts\jquery-2.1.3.intellisense.js" />
     <Content Include="Frontend\Scripts\jquery-2.1.3.js" />
     <Content Include="Frontend\Scripts\jquery.signalR-2.2.0.js" />
-    <Content Include="Frontend\Scripts\ManyLens.js" />
     <Content Include="Frontend\Scripts\npm.js" />
     <Content Include="Frontend\Scripts\topojson.js" />
     <Content Include="Frontend\Scripts\vendor\html5shiv.js" />
     <Content Include="Frontend\Scripts\vendor\respond.min.js" />
     <Content Include="Frontend\Scripts\vendor\video-js.swf" />
     <Content Include="Frontend\Scripts\vendor\video.js" />
-    <Content Include="Frontend\tsScripts\app.js" />
-    <Content Include="Frontend\tsScripts\D3ChartObject.js" />
-    <Content Include="Frontend\tsScripts\LensAssemblyFactory.js" />
-    <Content Include="Frontend\tsScripts\LensHistory\HistoryTree.js" />
-    <Content Include="Frontend\tsScripts\Lens\BarChartLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\BaseCompositeLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\BaseD3Lens.js" />
-    <Content Include="Frontend\tsScripts\Lens\BaseSingleLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\BoundleLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cBaseMapLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cBoundleLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cChordDiagramLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cMapBarLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cMapLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cMapNetworkLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cMapWordCloudLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cNetworkLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cPackingCircleLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cPieChartLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cSunBrustLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cTreeNetworkLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cWordCloudLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cWordCloudNetworkLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\cWordCloudPieLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\LensList.js" />
-    <Content Include="Frontend\tsScripts\Lens\LinkCompositeLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\LocationLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\MapLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\NetworkLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\PieChartLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\TreeNetworkLens.js" />
-    <Content Include="Frontend\tsScripts\Lens\WordCloudLens.js" />
-    <Content Include="Frontend\tsScripts\ManyLens.js" />
-    <Content Include="Frontend\tsScripts\Pane\BlossomLensPane.js" />
-    <Content Include="Frontend\tsScripts\Pane\ClassicLensPane.js" />
-    <Content Include="Frontend\tsScripts\TweetsCurve\Cruve.js" />
     <Content Include="packages.config" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -250,7 +213,9 @@
     <Compile Include="Backend\SignalR\Starup.cs" />
     <Compile Include="Backend\SOM\GPUSOM.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Frontend\Scripts\typings\d3.cloud.layout\d3.cloud.layout.d.ts" />
     <TypeScriptCompile Include="Frontend\Scripts\typings\d3\d3.d.ts" />
@@ -284,6 +249,7 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\TreeNetworkLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\WordCloudLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\ManyLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Hub\Hub.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\BlossomLensPane.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\ClassicLensPane.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\TweetsCurve\Cruve.ts" />
@@ -293,6 +259,11 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <TypeScriptOutFile>C:\Users\xiaot_000\Documents\Visual Studio 2013\Projects\ManyLens\ManyLens\Frontend\Scripts\ManyLens.js</TypeScriptOutFile>
+    <TypeScriptOutDir>C:\Users\xiaot_000\Documents\Visual Studio 2013\Projects\ManyLens\ManyLens\Frontend\Scripts\</TypeScriptOutDir>
+    <TypeScriptModuleKind>none</TypeScriptModuleKind>
+  </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />

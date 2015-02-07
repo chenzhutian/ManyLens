@@ -65,6 +65,10 @@ var ManyLens;
                 var yAxis = svg.append("g").attr("class", "y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
                 svg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView").append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
             };
+            Curve.prototype.PullData = function () {
+                var hub = new ManyLens.Hub.CurveHub();
+                hub.server.pullPoint("");
+            };
             return Curve;
         })(ManyLens.D3ChartObject);
         TweetsCurve.Curve = Curve;
@@ -3077,6 +3081,20 @@ var manyLens;
 document.addEventListener('DOMContentLoaded', function () {
     manyLens = new ManyLens.ManyLens();
 });
+var ManyLens;
+(function (ManyLens) {
+    var Hub;
+    (function (Hub) {
+        var CurveHub = (function () {
+            function CurveHub() {
+                this.server = $.connection.curveHub.server;
+                this.client = $.connection.curveHub.client;
+            }
+            return CurveHub;
+        })();
+        Hub.CurveHub = CurveHub;
+    })(Hub = ManyLens.Hub || (ManyLens.Hub = {}));
+})(ManyLens || (ManyLens = {}));
 ///<reference path = "./Lens/LensList.ts" />
 var ManyLens;
 (function (ManyLens) {

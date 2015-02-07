@@ -5,8 +5,6 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManyLens", "ManyLens\ManyLens.csproj", "{ED1B55F1-68C7-4CBB-8414-2816D8794A43}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "som_cuda", "ManyLens-SOM_CUDA\som_cuda\pagerank_cuda.vcxproj", "{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ManyLens-SOM_CUDA", "ManyLens-SOM_CUDA\ManyLens-SOM_CUDA.vcxproj", "{10F53C52-1CB1-4917-8D0C-2C56B701EBA3}"
 EndProject
 Global
@@ -33,20 +31,6 @@ Global
 		{ED1B55F1-68C7-4CBB-8414-2816D8794A43}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{ED1B55F1-68C7-4CBB-8414-2816D8794A43}.Release|Win32.ActiveCfg = Release|Any CPU
 		{ED1B55F1-68C7-4CBB-8414-2816D8794A43}.Release|x64.ActiveCfg = Release|Any CPU
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Debug|Win32.ActiveCfg = Debug|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Debug|Win32.Build.0 = Debug|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Debug|x64.ActiveCfg = Debug|x64
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Debug|x64.Build.0 = Debug|x64
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Release|Any CPU.ActiveCfg = Release|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Release|Win32.ActiveCfg = Release|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Release|Win32.Build.0 = Release|Win32
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Release|x64.ActiveCfg = Release|x64
-		{CFB8EA9C-3C93-4E21-ACDD-2B148519A692}.Release|x64.Build.0 = Release|x64
 		{10F53C52-1CB1-4917-8D0C-2C56B701EBA3}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{10F53C52-1CB1-4917-8D0C-2C56B701EBA3}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{10F53C52-1CB1-4917-8D0C-2C56B701EBA3}.Debug|Mixed Platforms.Build.0 = Debug|Win32

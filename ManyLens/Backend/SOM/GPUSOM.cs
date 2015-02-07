@@ -13,14 +13,14 @@ namespace ManyLens.SOM
     public class GPUSOM
     {
         //Initialize CUDA runtime
-        [DllImport("som_cuda.dll")]
+        [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern int InitializeCUDA();
 
         //Do cleanup when close the program
-        [DllImport("som_cuda.dll")]
+        [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern int CleanUp();
 
-        [DllImport("som_cuda.dll")]
+        [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern IntPtr SOMwithRandomMapping(float[] h_gaussin,
                                                          float[] h_inputSet,
                                                          int input_set_size,
@@ -33,7 +33,7 @@ namespace ManyLens.SOM
                                                          float iterNum);
 
 
-        [DllImport("som_cuda.dll")]
+        [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern void somFree(IntPtr pointer);
 
         public static VisMap TweetSOM(Interval interval, string rootPath)

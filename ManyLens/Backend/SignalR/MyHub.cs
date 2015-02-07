@@ -74,7 +74,8 @@ namespace ManyLens.SignalR
             Parameter.timeSpan = 2;
 
             #region Load the tweets then sort them by date
-            string tweetFile = rootFolder + "\\DataBase\\onedrivetweets";
+            string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
+            Debug.WriteLine(tweetFile);
             SortedDictionary<DateTime, Term> dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
             #endregion
         
@@ -202,7 +203,7 @@ namespace ManyLens.SignalR
 
         public async Task PullInteral(string interalID,IProgress<double> progress)
         {
-            string stopwordFile = rootFolder + "\\DataBase\\PREPROCESSINGDICT\\stop-words";
+            string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
             Interval interal = interals[interalID];
 
             await TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
