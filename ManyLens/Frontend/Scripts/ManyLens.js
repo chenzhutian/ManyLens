@@ -71,7 +71,8 @@ var ManyLens;
                 this._y_scale.range([this._view_height - this._view_botton_padding, this._view_top_padding]).domain([0, 20]);
                 this._x_axis_gen.scale(this._x_scale).ticks(this._section_num).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
-                this._manyLens.CurveHubRegistClientFunction(this, "addPoint", this.AddPoint);
+                /*---Please register all the client function here---*/
+                this._manyLens.CurveHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
                 get: function () {
@@ -3191,7 +3192,7 @@ var ManyLens;
             }
         };
         /* -------------------- Curve related Function -----------------------*/
-        ManyLens.prototype.CurveHubRegistClientFunction = function (curve, funcName, func) {
+        ManyLens.prototype.CurveHubRegisterClientFunction = function (curve, funcName, func) {
             if (!this._curve_hub) {
                 console.log("No hub");
                 this._curve_hub = new _ManyLens.Hub.CurveHub();

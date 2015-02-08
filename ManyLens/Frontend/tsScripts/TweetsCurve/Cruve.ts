@@ -27,6 +27,7 @@ module ManyLens {
             private _y_scale: D3.Scale.LinearScale = d3.scale.linear();
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _y_axis: D3.Selection;
+
             private _section_num: number = 10;
             private _view_height: number = 150;
             private _view_width: number = window.innerWidth - 30;
@@ -34,8 +35,8 @@ module ManyLens {
             private _view_botton_padding: number = 20;
             private _view_left_padding: number = 50;
             private _view_right_padding: number = 50;
-            protected _data: Array<Point>;
 
+            protected _data: Array<Point>;
             private _markData: Array<Mark>;
             private _lastMark: { id: string; type: number };
 
@@ -76,7 +77,8 @@ module ManyLens {
                     .orient("left")
                 ;
 
-                this._manyLens.CurveHubRegistClientFunction(this, "addPoint", this.AddPoint);
+                /*---Please register all the client function here---*/
+                this._manyLens.CurveHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
 
             public Render<T>(data: Array<T>): void {
@@ -138,7 +140,7 @@ module ManyLens {
                 }
             }
 
-            public RefreshGraph(mark: Mark) {
+            private RefreshGraph(mark: Mark) {
                 this._y_scale.domain([0, d3.max(this._data, function (d) { return d.value; })]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);

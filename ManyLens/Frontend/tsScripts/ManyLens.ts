@@ -103,7 +103,7 @@ module ManyLens {
         }
 
         /* -------------------- Curve related Function -----------------------*/
-        public CurveHubRegistClientFunction(curve:TweetsCurve.Curve,funcName: string, func: (...any) => any) {
+        public CurveHubRegisterClientFunction(curve:TweetsCurve.Curve,funcName: string, func: (...any) => any) {
             if (!this._curve_hub) {
                 console.log("No hub");
                 this._curve_hub = new Hub.CurveHub();
