@@ -209,7 +209,7 @@
     <Compile Include="Backend\Preprocessing\TweetsVectorizer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Backend\Segmentor\SegmentByFreq.cs" />
-    <Compile Include="Backend\SignalR\MyHub.cs" />
+    <Compile Include="Backend\SignalR\CurveHub.cs" />
     <Compile Include="Backend\SignalR\Starup.cs" />
     <Compile Include="Backend\SOM\GPUSOM.cs" />
   </ItemGroup>

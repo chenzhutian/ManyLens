@@ -8,7 +8,6 @@ module ManyLens {
             protected _id: string;
             protected _type: string;
             protected _lens_type_color: string;
-            protected _manyLens: ManyLens.ManyLens;
             protected _combine_failure_rebound_duration = 800;
 
             protected _sc_lc_svg: D3.Selection = null;
@@ -91,8 +90,7 @@ module ManyLens {
             }
 
             constructor(element: D3.Selection, type: string,manyLens:ManyLens) {
-                super(element);
-                this._manyLens = manyLens;
+                super(element,manyLens);
                 this._type = type;
 
                 this._lens_circle_zoom

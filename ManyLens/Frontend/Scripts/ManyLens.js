@@ -1,10 +1,33 @@
+var ManyLens;
+(function (ManyLens) {
+    var Hub;
+    (function (Hub) {
+        /*------------------Extent by myself -----------*/
+        var SignalRHub = (function () {
+            function SignalRHub() {
+            }
+            SignalRHub.HubConnection = $.connection.hub;
+            return SignalRHub;
+        })();
+        Hub.SignalRHub = SignalRHub;
+        var CurveHub = (function () {
+            function CurveHub() {
+                this.server = $.connection.curveHub.server;
+                this.client = $.connection.curveHub.client;
+            }
+            return CurveHub;
+        })();
+        Hub.CurveHub = CurveHub;
+    })(Hub = ManyLens.Hub || (ManyLens.Hub = {}));
+})(ManyLens || (ManyLens = {}));
 ///<reference path = "../Scripts/typings/d3/d3.d.ts" />
 ///<reference path = "../Scripts/typings/d3.cloud.layout/d3.cloud.layout.d.ts" />
 var ManyLens;
 (function (ManyLens) {
     var D3ChartObject = (function () {
-        function D3ChartObject(element) {
+        function D3ChartObject(element, manyLens) {
             this._element = element;
+            this._manyLens = manyLens;
         }
         D3ChartObject.prototype.Render = function (any) {
         };
@@ -25,11 +48,11 @@ var ManyLens;
     (function (TweetsCurve) {
         var Curve = (function (_super) {
             __extends(Curve, _super);
-            function Curve(element) {
-                _super.call(this, element);
-                this._x = d3.scale.linear();
-                this._y = d3.scale.linear();
+            function Curve(element, manyLens) {
+                _super.call(this, element, manyLens);
+                this._x_scale = d3.scale.linear();
                 this._x_axis_gen = d3.svg.axis();
+                this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
                 this._section_num = 10;
                 this._view_height = 150;
@@ -38,10 +61,17 @@ var ManyLens;
                 this._view_botton_padding = 20;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._x.range([this._view_left_padding, this._view_width - this._view_right_padding]).domain([0, this._section_num]);
-                this._y.range([this._view_height - this._view_botton_padding, this._view_top_padding]).domain([0, 20]);
-                this._x_axis_gen.scale(this._x).ticks(this._section_num).orient("bottom");
-                this._y_axis_gen.scale(this._y).ticks(2).orient("left");
+                this._data = new Array();
+                this._markData = new Array();
+                this._lastMark = {
+                    id: null,
+                    type: 2
+                };
+                this._x_scale.range([this._view_left_padding, this._view_width - this._view_right_padding]).domain([0, this._section_num]);
+                this._y_scale.range([this._view_height - this._view_botton_padding, this._view_top_padding]).domain([0, 20]);
+                this._x_axis_gen.scale(this._x_scale).ticks(this._section_num).orient("bottom");
+                this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
+                this._manyLens.CurveHubRegistClientFunction(this, "addPoint", this.AddPoint);
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
                 get: function () {
@@ -59,15 +89,94 @@ var ManyLens;
                 _super.prototype.Render.call(this, data);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
-                var svg = this._element.append("svg").attr("width", this._view_width).attr("height", this._view_height);
-                svg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", coordinate_view_height).attr("x", this._view_left_padding).attr("y", this._view_top_padding);
-                var xAxis = svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
-                var yAxis = svg.append("g").attr("class", "y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
-                svg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView").append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
+                this._curveSvg = this._element.append("svg").attr("width", this._view_width).attr("height", this._view_height);
+                this._curveSvg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", coordinate_view_height).attr("x", this._view_left_padding).attr("y", this._view_top_padding);
+                this._x_axis = this._curveSvg.append("g").attr("class", "x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
+                this._y_axis = this._curveSvg.append("g").attr("class", "y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
+                this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
+                this._mainView.append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
+                this.PullData();
             };
             Curve.prototype.PullData = function () {
-                var hub = new ManyLens.Hub.CurveHub();
-                hub.server.pullPoint("");
+                this._manyLens.CurveHubPullPoint("0");
+            };
+            Curve.prototype.AddPoint = function (point) {
+                this._data.push(point);
+                this.RefreshGraph(point.mark);
+                if (this._data.length > this._section_num) {
+                    this._data.shift();
+                }
+            };
+            Curve.prototype.RefreshGraph = function (mark) {
+                var _this = this;
+                this._y_scale.domain([0, d3.max(this._data, function (d) {
+                    return d.value;
+                })]);
+                this._y_axis_gen.scale(this._y_scale);
+                this._y_axis.call(this._y_axis_gen);
+                if (mark.type == 2 || mark.type == 3) {
+                    var eid = mark.id;
+                    var iter = this._markData.length - 1;
+                    while (iter >= 0 && (this._markData[iter].type == 4 || this._markData[iter].type == 1)) {
+                        this._markData[iter].end = eid;
+                        --iter;
+                    }
+                    if (!this._markData[iter]) {
+                        console.log(this._markData);
+                        console.log(iter);
+                    }
+                    if (this._markData[iter].type == 3) {
+                        this._markData[iter].end = eid;
+                    }
+                    mark.beg = mark.id;
+                    this._markData.push(mark);
+                    this._lastMark = mark;
+                }
+                else {
+                    if (mark.type == 4) {
+                        mark.beg = this._lastMark.id;
+                    }
+                    this._markData.push(mark);
+                    if (mark.type == 1)
+                        this._lastMark = mark;
+                }
+                //handle the seg line
+                this._mainView.selectAll(".mark").remove();
+                var lines = this._mainView.selectAll(".mark").data(this._markData);
+                lines.enter().append("line").attr("x1", function (d, i) {
+                    return _this._x_scale(i);
+                }).attr("x2", function (d, i) {
+                    return _this._x_scale(i);
+                }).attr("y1", this._view_top_padding).attr("y2", function (d) {
+                    if (d.type == 1 || d.type == 2 || d.type == 3)
+                        return _this._view_height + _this._view_top_padding;
+                    return _this._view_top_padding;
+                }).attr('stroke', function (d) {
+                    return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy';
+                }).attr('stroke-width', 2).attr("class", "mark");
+                //handle the seg rect
+                this._mainView.selectAll(".seg").remove();
+                var rects = this._mainView.selectAll(".seg").data(this._markData);
+                rects.enter().append("rect").attr("x", function (d, i) {
+                    return _this._x_scale(i);
+                }).attr("y", this._view_top_padding).attr("width", function (d) {
+                    if (d.type == 1 || d.type == 4 || d.type == 3)
+                        return (_this._x_scale(1) - _this._x_scale(0));
+                    return 0;
+                }).attr("height", this._view_height).attr("class", "seg");
+                var lineFunc = d3.svg.line().x(function (d, i) {
+                    return _this._x_scale(i);
+                }).y(function (d, i) {
+                    return _this._y_scale(d.value);
+                }).interpolate("linear");
+                //handle the line path
+                this._mainView.selectAll("#path").attr("d", lineFunc(this._data));
+                // move the main view
+                if (this._data.length > (this._section_num + 1)) {
+                    this._mainView.attr("transform", null).transition().duration(0).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                }
+                if (this._markData.length > (this._section_num + 1))
+                    this._markData.shift();
             };
             return Curve;
         })(ManyLens.D3ChartObject);
@@ -81,8 +190,8 @@ var ManyLens;
     (function (LensHistory) {
         var HistoryTrees = (function (_super) {
             __extends(HistoryTrees, _super);
-            function HistoryTrees(element) {
-                _super.call(this, element);
+            function HistoryTrees(element, manyLens) {
+                _super.call(this, element, manyLens);
                 this._trees = [];
             }
             HistoryTrees.prototype.Render = function () {
@@ -155,7 +264,7 @@ var ManyLens;
             __extends(BaseD3Lens, _super);
             function BaseD3Lens(element, type, manyLens) {
                 var _this = this;
-                _super.call(this, element);
+                _super.call(this, element, manyLens);
                 this._combine_failure_rebound_duration = 800;
                 this._sc_lc_svg = null;
                 this._lens_circle_radius = 100;
@@ -164,7 +273,6 @@ var ManyLens;
                 this._lens_circle_drag = d3.behavior.drag();
                 this._is_component_lens = false;
                 this._is_composite_lens = null;
-                this._manyLens = manyLens;
                 this._type = type;
                 this._lens_circle_zoom.scaleExtent([1, 2]).on("zoom", function () {
                     _this.LensCircleZoomFunc();
@@ -2913,7 +3021,7 @@ var ManyLens;
             __extends(ClassicLensPane, _super);
             function ClassicLensPane(element, manyLens) {
                 var _this = this;
-                _super.call(this, element);
+                _super.call(this, element, manyLens);
                 this._lens_count = 6;
                 this._pane_color = d3.scale.category20();
                 //private _history_trees: LensHistory.HistoryTrees;
@@ -3004,6 +3112,7 @@ var ManyLens;
         Pane.ClassicLensPane = ClassicLensPane;
     })(Pane = ManyLens.Pane || (ManyLens.Pane = {}));
 })(ManyLens || (ManyLens = {}));
+///<reference path = "../tsScripts/Hub/Hub.ts" />
 ///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
 ///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
 ///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
@@ -3011,6 +3120,7 @@ var ManyLens;
 (function (_ManyLens) {
     var ManyLens = (function () {
         function ManyLens() {
+            var _this = this;
             this._curveView_id = "cruveView";
             this._mapView_id = "mapView";
             this._mapSvg_id = "mapSvg";
@@ -3019,19 +3129,25 @@ var ManyLens;
             //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
             this._lens = new Map();
             this._lens_count = 0;
+            /*--------------------------Initial all the hub------------------------------*/
+            this._curve_hub = new _ManyLens.Hub.CurveHub();
+            /*------------------------Initial other Component--------------------------------*/
             this._curveView = d3.select("#" + this._curveView_id);
-            this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView);
-            this._curve.Render([10, 10]);
+            this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
             this._mapSvg = d3.select("#" + this._mapSvg_id);
             d3.select("#mainArea").style("height", function () {
                 return window.innerHeight - d3.select("#mainView").node().offsetTop - 15 + "px";
             });
             this._lensPane = new _ManyLens.Pane.ClassicLensPane(this._mapSvg, this);
+            this._lensPane.Render();
             this._historySvg = d3.select("#" + this._historySvg_id);
-            this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg);
+            this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg, this);
             //Add a new tree here, actually the tree should not be add here
             this._historyTrees.addTree();
-            this._lensPane.Render();
+            /*-------------------------Start the hub-------------------------------------------*/
+            _ManyLens.Hub.SignalRHub.HubConnection.start().done(function () {
+                _this._curve.Render([10, 10]);
+            });
         }
         Object.defineProperty(ManyLens.prototype, "LensCount", {
             get: function () {
@@ -3040,6 +3156,7 @@ var ManyLens;
             enumerable: true,
             configurable: true
         });
+        /* -------------------- Lens related Function -----------------------*/
         ManyLens.prototype.GetLens = function (id) {
             return this._lens.get(id);
         };
@@ -3071,6 +3188,26 @@ var ManyLens;
                 lensC.DisplayLens();
             }
         };
+        /* -------------------- Curve related Function -----------------------*/
+        ManyLens.prototype.CurveHubRegistClientFunction = function (curve, funcName, func) {
+            if (!this._curve_hub) {
+                console.log("No hub");
+                this._curve_hub = new _ManyLens.Hub.CurveHub();
+            }
+            this._curve_hub.client[funcName] = function () {
+                func.apply(curve, arguments);
+            };
+        };
+        ManyLens.prototype.CurveHubClient = function () {
+            return this._curve_hub.client;
+        };
+        ManyLens.prototype.CurveHubPullPoint = function (start) {
+            if (!this._curve_hub) {
+                console.log("No hub");
+                this._curve_hub = new _ManyLens.Hub.CurveHub();
+            }
+            return this._curve_hub.server.pullPoint(start);
+        };
         return ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;
@@ -3081,20 +3218,6 @@ var manyLens;
 document.addEventListener('DOMContentLoaded', function () {
     manyLens = new ManyLens.ManyLens();
 });
-var ManyLens;
-(function (ManyLens) {
-    var Hub;
-    (function (Hub) {
-        var CurveHub = (function () {
-            function CurveHub() {
-                this.server = $.connection.curveHub.server;
-                this.client = $.connection.curveHub.client;
-            }
-            return CurveHub;
-        })();
-        Hub.CurveHub = CurveHub;
-    })(Hub = ManyLens.Hub || (ManyLens.Hub = {}));
-})(ManyLens || (ManyLens = {}));
 ///<reference path = "./Lens/LensList.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -3328,7 +3451,7 @@ var ManyLens;
         var BlossomLensPane = (function (_super) {
             __extends(BlossomLensPane, _super);
             function BlossomLensPane(element, manyLens) {
-                _super.call(this, element);
+                _super.call(this, element, manyLens);
                 //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
                 this._pane_radius = 100;
                 this._pane_arc = d3.svg.arc();

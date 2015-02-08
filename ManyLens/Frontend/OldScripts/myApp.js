@@ -217,7 +217,6 @@
         
         
     }
-
     function smartSelectMove(container) {
         var moveCircle = d3.select("#moveCircle");
         if (moveCircle.empty() || moveCircle.property("fadeouting"))
@@ -453,7 +452,6 @@
         refreshGaph(obj.mark);
         if(data.length > (n+1))
             data.shift();
-
     }
 
     //var mapNum = 0;

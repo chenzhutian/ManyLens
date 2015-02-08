@@ -18,10 +18,9 @@ module ManyLens {
             private _current_pane_g: PaneG = null;
 
             private _lens_count: number = 2;
-            private _manyLens: ManyLens.ManyLens;
 
             constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element);
+                super(element,manyLens);
 
                 this._manyLens = manyLens;
                 this._pane_pie

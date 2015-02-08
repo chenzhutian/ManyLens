@@ -1,14 +1,14 @@
 ﻿module ManyLens {
     export module Hub {
 
-        interface IPromise<T> {
+        export interface IPromise<T> {
             always(...alwaysCallbacks: any[]): IPromise<T>;
             done(...doneCallbacks: any[]): IPromise<T>;
             fail(...failCallbacks: any[]): IPromise<T>;
             progress(...progressCallbacks: any[]): IPromise<T>;
             then<U>(onFulfill: (...values: any[]) => U, onReject?: (...reasons: any[]) => U, onProgress?: (...progression: any[]) => any): IPromise<U>;
         }
-        interface IDeferred<T> extends IPromise<T> {
+        export interface IDeferred<T> extends IPromise<T> {
             always(...alwaysCallbacks: any[]): IDeferred<T>;
             done(...doneCallbacks: any[]): IDeferred<T>;
             fail(...failCallbacks: any[]): IDeferred<T>;
@@ -131,7 +131,12 @@
         };
 
 
+
         /*------------------Extent by myself -----------*/
+        export class SignalRHub {
+            static HubConnection:HubConnection =  $.connection.hub;
+        }
+
         interface SignalR {
             curveHub: ICurveHub;
         }
@@ -151,7 +156,7 @@
         }
 
         interface ICurveHubClient {
-
+            //addPoint(obj: any): void;
         }
 
         export class CurveHub implements ICurveHub{

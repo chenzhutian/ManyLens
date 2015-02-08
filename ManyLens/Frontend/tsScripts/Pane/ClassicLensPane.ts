@@ -18,8 +18,6 @@ module ManyLens {
 
         export class ClassicLensPane extends D3ChartObject {
 
-            private _manyLens: ManyLens.ManyLens;
-
             private _lens_count: number = 6;
             private _pane_color: D3.Scale.OrdinalScale = d3.scale.category20();
             private _pang_g: PaneG;
@@ -29,7 +27,7 @@ module ManyLens {
             private _drag: D3.Behavior.Drag = d3.behavior.drag();
 
             constructor(element: D3.Selection,manyLens:ManyLens.ManyLens) {
-                super(element);
+                super(element,manyLens);
                 this._manyLens = manyLens;
 
                 this._drag

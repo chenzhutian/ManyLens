@@ -7,9 +7,11 @@ module ManyLens {
     export class D3ChartObject {
         protected _element: D3.Selection;
         protected _data: any;
+        protected _manyLens: ManyLens;
 
-        constructor(element: D3.Selection) {
+        constructor(element: D3.Selection, manyLens:ManyLens) {
             this._element = element;
+            this._manyLens = manyLens;
         }
         public Render(any): void {
 

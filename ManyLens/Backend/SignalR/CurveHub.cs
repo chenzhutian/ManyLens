@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 namespace ManyLens.SignalR
 {
-    public class MyHub : Hub
+    public class CurveHub : Hub
     {
         private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 

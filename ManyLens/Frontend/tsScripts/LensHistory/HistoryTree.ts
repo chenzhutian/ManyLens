@@ -21,8 +21,8 @@ module ManyLens {
         export class HistoryTrees extends D3ChartObject {
             private _trees: Array<HistoryTree> = [];
 
-            constructor(element: D3.Selection) {
-                super(element);
+            constructor(element: D3.Selection, manyLens:ManyLens) {
+                super(element,manyLens);
             }
 
             public Render() {
