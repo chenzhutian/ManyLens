@@ -16,7 +16,6 @@ module ManyLens {
             mark: Mark;
         }
 
-
         export class Curve extends D3ChartObject {
 
             private _curveSvg: D3.Selection;
@@ -140,36 +139,35 @@ module ManyLens {
             }
 
             public RefreshGraph(mark: Mark) {
-                this._y_scale.domain([0, d3.max(this._data, function (d) { return d.value;})]);
+                this._y_scale.domain([0, d3.max(this._data, function (d) { return d.value; })]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
 
                 if (mark.type == 2 || mark.type == 3) {
                     var eid = mark.id;
                     var iter = this._markData.length - 1;
-                    while (iter >= 0 && (this._markData[iter].type == 4 || this._markData[iter].type == 1)) {
+                    while (iter >= 0 && (this._markData[iter].type == 4)) {
                         this._markData[iter].end = eid;
                         --iter;
                     }
-                    if (!this._markData[iter]) {
-                        console.log(this._markData);
-                        console.log(iter);
-                    }
-                    if (this._markData[iter].type == 3) {
+                    if (iter >= 0 && this._markData[iter].type == 3 || this._markData[iter].type == 1) {
                         this._markData[iter].end = eid;
                     }
+                    if (mark.type == 2) {
+                        mark.beg = this._lastMark.id;
+                    }
 
-                    mark.beg = mark.id;
                     this._markData.push(mark);
-
                     this._lastMark = mark;
                 } else {
                     if (mark.type == 4) {
                         mark.beg = this._lastMark.id;
                     }
-                    this._markData.push(mark);
-                    if (mark.type == 1)
+
+                    if (mark.type == 1) {
                         this._lastMark = mark;
+                    }
+                    this._markData.push(mark);
                 }
 
                 //handle the seg line
@@ -208,6 +206,10 @@ module ManyLens {
                     })
                     .attr("height", this._view_height)
                     .attr("class", "seg")
+                    .style({
+                        fill: "#ffeda0",
+                        opacity: 0.5
+                    })
                 //.on("click", selectSegment)
                 ;
 

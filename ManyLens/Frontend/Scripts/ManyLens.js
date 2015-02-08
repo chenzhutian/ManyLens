@@ -117,18 +117,16 @@ var ManyLens;
                 if (mark.type == 2 || mark.type == 3) {
                     var eid = mark.id;
                     var iter = this._markData.length - 1;
-                    while (iter >= 0 && (this._markData[iter].type == 4 || this._markData[iter].type == 1)) {
+                    while (iter >= 0 && (this._markData[iter].type == 4)) {
                         this._markData[iter].end = eid;
                         --iter;
                     }
-                    if (!this._markData[iter]) {
-                        console.log(this._markData);
-                        console.log(iter);
-                    }
-                    if (this._markData[iter].type == 3) {
+                    if (iter >= 0 && this._markData[iter].type == 3 || this._markData[iter].type == 1) {
                         this._markData[iter].end = eid;
                     }
-                    mark.beg = mark.id;
+                    if (mark.type == 2) {
+                        mark.beg = this._lastMark.id;
+                    }
                     this._markData.push(mark);
                     this._lastMark = mark;
                 }
@@ -136,9 +134,10 @@ var ManyLens;
                     if (mark.type == 4) {
                         mark.beg = this._lastMark.id;
                     }
-                    this._markData.push(mark);
-                    if (mark.type == 1)
+                    if (mark.type == 1) {
                         this._lastMark = mark;
+                    }
+                    this._markData.push(mark);
                 }
                 //handle the seg line
                 this._mainView.selectAll(".mark").remove();
@@ -163,7 +162,10 @@ var ManyLens;
                     if (d.type == 1 || d.type == 4 || d.type == 3)
                         return (_this._x_scale(1) - _this._x_scale(0));
                     return 0;
-                }).attr("height", this._view_height).attr("class", "seg");
+                }).attr("height", this._view_height).attr("class", "seg").style({
+                    fill: "#ffeda0",
+                    opacity: 0.5
+                });
                 var lineFunc = d3.svg.line().x(function (d, i) {
                     return _this._x_scale(i);
                 }).y(function (d, i) {

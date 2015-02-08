@@ -172,7 +172,7 @@ namespace ManyLens.SignalR
                         interal.EndDate = tp[t].TermDate;
                         interals[id] = interal;
                         lastMarkType = 2;
-
+                        point.mark.end = point.mark.id;
                     }
                     else if (tp[t].SegmentPoint == 3)
                     {
@@ -195,7 +195,7 @@ namespace ManyLens.SignalR
                     }
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(10);
+                    Thread.Sleep(1000);
 
                 }
             });

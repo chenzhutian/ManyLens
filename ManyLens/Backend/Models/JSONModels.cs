@@ -12,7 +12,8 @@ namespace ManyLens.Models
         // 0 -- null
         // 1 -- begin
         // 2 -- end
-        // 3 -- inside
+        // 3 -- end&begin
+        // 4 -- insed
         public uint type { set; get; }
         public string beg { set; get; }
         public string end { set; get; }
