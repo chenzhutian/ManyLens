@@ -38,7 +38,18 @@ namespace ManyLens.IO
         public static SortedDictionary<DateTime, Term> LoadTweetsAsTermsSortedByDate(string tweetFile)
         {
             SortedDictionary<DateTime, Term> sortedTerm = new SortedDictionary<DateTime, Term>();
-            StreamReader sr = new StreamReader(tweetFile);
+            StreamReader sr;
+            bool isCache = false;
+            if(File.Exists(tweetFile+"CACHE"))
+            {
+                sr = new StreamReader(tweetFile+"CACHE");
+                isCache = true;
+            }
+            else
+            {
+                sr = new StreamReader(tweetFile);
+            }
+
             int[] mode = new int[4];
             for (int i = 0; i < Parameter.timeSpan; i++)
             {
@@ -51,7 +62,7 @@ namespace ManyLens.IO
                 string[] tweetAttributes = line.Split('\t');
                 Tweet tweet = null;
 
-                if (tweetAttributes.Length == 4)
+                if (isCache)
                 {
                     tweet = new Tweet(tweetAttributes[1], tweetAttributes[2], tweetAttributes[3]);
                 }
@@ -77,6 +88,23 @@ namespace ManyLens.IO
                     sortedTerm.Add(date, t);
                 }
             }
+
+            if(!isCache)
+            {
+                StreamWriter sw = new StreamWriter(tweetFile + "CACHE");
+                foreach(KeyValuePair<DateTime,Term> p in sortedTerm)
+                {
+                    Term term = p.Value;
+                    DateTime dateTime = p.Key;
+                    for (int i = 0, len = term.TweetsCount; i < len; ++i)
+                    {
+                        sw.WriteLine(dateTime+"\t"+term.TweetIDs[i]+"\t"+term.TweetContents[i]+"\t"+term.Tweets[i].PostDate);
+                    }
+
+                }
+                sw.Close();
+            }
+
             return sortedTerm;
         }
 

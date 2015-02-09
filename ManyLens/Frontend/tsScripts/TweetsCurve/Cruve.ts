@@ -28,9 +28,9 @@ module ManyLens {
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _y_axis: D3.Selection;
 
-            private _section_num: number = 10;
+            private _section_num: number = 100;
             private _view_height: number = 150;
-            private _view_width: number = window.innerWidth - 30;
+            private _view_width: number = d3.select("#mainView").node().clientWidth - 15;
             private _view_top_padding: number = 15;
             private _view_botton_padding: number = 20;
             private _view_left_padding: number = 50;
@@ -59,16 +59,16 @@ module ManyLens {
                 };
 
                 this._x_scale
-                    .range([this._view_left_padding, this._view_width - this._view_right_padding])
                     .domain([0, this._section_num])
+                    .range([this._view_left_padding, this._view_width - this._view_right_padding])
                 ;
                 this._y_scale
-                    .range([this._view_height - this._view_botton_padding, this._view_top_padding])
                     .domain([0, 20])
+                    .range([this._view_height - this._view_botton_padding, this._view_top_padding])
                 ;
                 this._x_axis_gen
                     .scale(this._x_scale)
-                    .ticks(this._section_num)
+                    .ticks(10)
                     .orient("bottom")
                 ;
                 this._y_axis_gen
@@ -101,13 +101,13 @@ module ManyLens {
                 ;
 
                 this._x_axis = this._curveSvg.append("g")
-                    .attr("class", "x axis")
+                    .attr("class", "curve x axis")
                     .attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")")
                     .call(this._x_axis_gen)
                 ;
 
                 this._y_axis = this._curveSvg.append("g")
-                    .attr("class", "y axis")
+                    .attr("class", "curve y axis")
                     .attr("transform", "translate(" + this._view_left_padding + ",0)")
                     .call(this._y_axis_gen)
                 ;
@@ -124,11 +124,23 @@ module ManyLens {
                     .attr("id", "path")
                 ;
 
+                //Adjust the height of mainView
+                d3.select("#mainView")
+                    .style("height", function () {
+                        return window.innerHeight -
+                            (<HTMLElement>d3.select("#mainView").node()).offsetTop -
+                            (<HTMLElement>d3.select("#mainArea").node()).offsetTop - 10 + "px";
+                    });
+
                 this.PullData();
             }
 
             public PullData(): void {
                 this._manyLens.CurveHubPullPoint("0");
+            }
+
+            public PullInteral(interalID: string):void {
+                this._manyLens.CurveHubPullInteral(interalID);
             }
 
             public AddPoint(point: Point): void {
@@ -173,8 +185,8 @@ module ManyLens {
                 }
 
                 //handle the seg line
-                this._mainView.selectAll(".mark").remove();
-                var lines = this._mainView.selectAll(".mark").data(this._markData);
+                this._mainView.selectAll(".curve.mark").remove();
+                var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
                 lines.enter().append("line")
                     .attr("x1", (d, i) => {
                         return this._x_scale(i);
@@ -190,12 +202,12 @@ module ManyLens {
                     })
                     .attr('stroke', function (d) { return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy'; })
                     .attr('stroke-width', 2)
-                    .attr("class", "mark")
+                    .attr("class", "curve mark")
                 ;
 
                 //handle the seg rect
-                this._mainView.selectAll(".seg").remove();
-                var rects = this._mainView.selectAll(".seg").data(this._markData);
+                this._mainView.selectAll(".curve.seg").remove();
+                var rects = this._mainView.selectAll(".curve.seg").data(this._markData);
                 rects.enter().append("rect")
                     .attr("x", (d, i) => {
                         return this._x_scale(i);
@@ -207,7 +219,7 @@ module ManyLens {
                         return 0;
                     })
                     .attr("height", this._view_height)
-                    .attr("class", "seg")
+                    .attr("class", "curve seg")
                     .style({
                         fill: "#ffeda0",
                         opacity: 0.5
@@ -232,7 +244,7 @@ module ManyLens {
                 ;
 
                 // move the main view
-                if (this._data.length > (this._section_num + 1)) {
+                if (this._data.length > (this._section_num+1)) {
                     this._mainView
                         .attr("transform", null)
                         .transition()
@@ -241,8 +253,9 @@ module ManyLens {
                         .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)")
                     ;
                 }
-                if (this._markData.length > (this._section_num + 1))
+                if (this._markData.length > (this._section_num + 1)) {
                     this._markData.shift();
+                }
             }
 
         }

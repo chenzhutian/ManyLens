@@ -54,9 +54,9 @@ var ManyLens;
                 this._x_axis_gen = d3.svg.axis();
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
-                this._section_num = 10;
+                this._section_num = 100;
                 this._view_height = 150;
-                this._view_width = window.innerWidth - 30;
+                this._view_width = d3.select("#mainView").node().clientWidth - 15;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 20;
                 this._view_left_padding = 50;
@@ -67,9 +67,9 @@ var ManyLens;
                     id: null,
                     type: 2
                 };
-                this._x_scale.range([this._view_left_padding, this._view_width - this._view_right_padding]).domain([0, this._section_num]);
-                this._y_scale.range([this._view_height - this._view_botton_padding, this._view_top_padding]).domain([0, 20]);
-                this._x_axis_gen.scale(this._x_scale).ticks(this._section_num).orient("bottom");
+                this._x_scale.domain([0, this._section_num]).range([this._view_left_padding, this._view_width - this._view_right_padding]);
+                this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
+                this._x_axis_gen.scale(this._x_scale).ticks(10).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
                 /*---Please register all the client function here---*/
                 this._manyLens.CurveHubRegisterClientFunction(this, "addPoint", this.AddPoint);
@@ -92,14 +92,21 @@ var ManyLens;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._curveSvg = this._element.append("svg").attr("width", this._view_width).attr("height", this._view_height);
                 this._curveSvg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", coordinate_view_height).attr("x", this._view_left_padding).attr("y", this._view_top_padding);
-                this._x_axis = this._curveSvg.append("g").attr("class", "x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
-                this._y_axis = this._curveSvg.append("g").attr("class", "y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
+                this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
+                this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
                 this._mainView.append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
+                //Adjust the height of mainView
+                d3.select("#mainView").style("height", function () {
+                    return window.innerHeight - d3.select("#mainView").node().offsetTop - d3.select("#mainArea").node().offsetTop - 10 + "px";
+                });
                 this.PullData();
             };
             Curve.prototype.PullData = function () {
                 this._manyLens.CurveHubPullPoint("0");
+            };
+            Curve.prototype.PullInteral = function (interalID) {
+                this._manyLens.CurveHubPullInteral(interalID);
             };
             Curve.prototype.AddPoint = function (point) {
                 this._data.push(point);
@@ -141,8 +148,8 @@ var ManyLens;
                     this._markData.push(mark);
                 }
                 //handle the seg line
-                this._mainView.selectAll(".mark").remove();
-                var lines = this._mainView.selectAll(".mark").data(this._markData);
+                this._mainView.selectAll(".curve.mark").remove();
+                var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
                 lines.enter().append("line").attr("x1", function (d, i) {
                     return _this._x_scale(i);
                 }).attr("x2", function (d, i) {
@@ -153,17 +160,17 @@ var ManyLens;
                     return _this._view_top_padding;
                 }).attr('stroke', function (d) {
                     return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy';
-                }).attr('stroke-width', 2).attr("class", "mark");
+                }).attr('stroke-width', 2).attr("class", "curve mark");
                 //handle the seg rect
-                this._mainView.selectAll(".seg").remove();
-                var rects = this._mainView.selectAll(".seg").data(this._markData);
+                this._mainView.selectAll(".curve.seg").remove();
+                var rects = this._mainView.selectAll(".curve.seg").data(this._markData);
                 rects.enter().append("rect").attr("x", function (d, i) {
                     return _this._x_scale(i);
                 }).attr("y", this._view_top_padding).attr("width", function (d) {
                     if (d.type == 1 || d.type == 4 || d.type == 3)
                         return (_this._x_scale(1) - _this._x_scale(0));
                     return 0;
-                }).attr("height", this._view_height).attr("class", "seg").style({
+                }).attr("height", this._view_height).attr("class", "curve seg").style({
                     fill: "#ffeda0",
                     opacity: 0.5
                 });
@@ -178,8 +185,9 @@ var ManyLens;
                 if (this._data.length > (this._section_num + 1)) {
                     this._mainView.attr("transform", null).transition().duration(0).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
-                if (this._markData.length > (this._section_num + 1))
+                if (this._markData.length > (this._section_num + 1)) {
                     this._markData.shift();
+                }
             };
             return Curve;
         })(ManyLens.D3ChartObject);
@@ -452,6 +460,7 @@ var ManyLens;
             BaseD3Lens.prototype.LensCircleDragFunc = function () {
                 var _this = this;
                 var transform = this._lens_circle_svg.attr("transform");
+                console.log(this._lens_circle_svg);
                 this._lens_circle_svg.attr("transform", function (d) {
                     _this._lens_circle_cx = d.x = Math.max(_this._lens_circle_radius, Math.min(parseFloat(_this._element.style("width")) - _this._lens_circle_radius, d3.event.x));
                     _this._lens_circle_cy = d.y = Math.max(_this._lens_circle_radius, Math.min(parseFloat(_this._element.style("height")) - _this._lens_circle_radius, d3.event.y));
@@ -3124,7 +3133,7 @@ var ManyLens;
     var ManyLens = (function () {
         function ManyLens() {
             var _this = this;
-            this._curveView_id = "cruveView";
+            this._curveView_id = "curveView";
             this._mapView_id = "mapView";
             this._mapSvg_id = "mapSvg";
             this._historyView_id = "historyView";
@@ -3138,9 +3147,6 @@ var ManyLens;
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
             this._mapSvg = d3.select("#" + this._mapSvg_id);
-            d3.select("#mainArea").style("height", function () {
-                return window.innerHeight - d3.select("#mainView").node().offsetTop - 15 + "px";
-            });
             this._lensPane = new _ManyLens.Pane.ClassicLensPane(this._mapSvg, this);
             this._lensPane.Render();
             this._historySvg = d3.select("#" + this._historySvg_id);
@@ -3210,6 +3216,13 @@ var ManyLens;
                 this._curve_hub = new _ManyLens.Hub.CurveHub();
             }
             return this._curve_hub.server.pullPoint(start);
+        };
+        ManyLens.prototype.CurveHubPullInteral = function (id) {
+            if (!this._curve_hub) {
+                console.log("No hub");
+                this._curve_hub = new _ManyLens.Hub.CurveHub();
+            }
+            return this._curve_hub.server.pullInteral(id);
         };
         return ManyLens;
     })();

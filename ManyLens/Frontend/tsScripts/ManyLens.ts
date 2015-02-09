@@ -6,7 +6,7 @@
 module ManyLens {
     export class ManyLens {
 
-        private _curveView_id: string = "cruveView";
+        private _curveView_id: string = "curveView";
         private _curveView: D3.Selection;
         private _curve: TweetsCurve.Curve;
         private _curve_hub: Hub.CurveHub;
@@ -41,10 +41,7 @@ module ManyLens {
             this._curve = new TweetsCurve.Curve(this._curveView, this);
 
             this._mapSvg = d3.select("#" + this._mapSvg_id);
-            d3.select("#mainArea")
-                .style("height", function () {
-                    return window.innerHeight - (<HTMLElement>d3.select("#mainView").node()).offsetTop - 15 + "px";
-                });
+           
 
             this._lensPane = new Pane.ClassicLensPane(this._mapSvg,this);
             this._lensPane.Render();
@@ -123,6 +120,14 @@ module ManyLens {
                 this._curve_hub = new Hub.CurveHub();
             }
             return this._curve_hub.server.pullPoint(start);
+        }
+
+        public CurveHubPullInteral(id: string): Hub.IPromise<void> {
+            if (!this._curve_hub) {
+                console.log("No hub");
+                this._curve_hub = new Hub.CurveHub();
+            }
+            return this._curve_hub.server.pullInteral(id);
         }
 
     }
