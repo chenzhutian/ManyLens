@@ -20,6 +20,157 @@ var ManyLens;
         Hub.CurveHub = CurveHub;
     })(Hub = ManyLens.Hub || (ManyLens.Hub = {}));
 })(ManyLens || (ManyLens = {}));
+var ManyLens;
+(function (ManyLens) {
+    var Navigation;
+    (function (Navigation) {
+        var SideBarNavigation = (function () {
+            function SideBarNavigation(element, brandName, manyLens) {
+                var _this = this;
+                /*-----------------Data menu-----------------*/
+                this._isLoaded = false;
+                this._element = element;
+                this._manyLens = manyLens;
+                this._brand_name = brandName;
+                this._launchDataBtn = this._element.append("button").attr({
+                    type: "button",
+                    class: "btn btn-success btn-block disabled"
+                }).style({
+                    "margin-top": "50px",
+                    "margin-bottom": "70px"
+                }).text("Launch").on("click", function () {
+                    _this._launchDataBtn.classed("disabled", true);
+                    _this.PullData();
+                });
+                this._brand = this._element.append("div").attr("class", "nav-brand").text(this._brand_name);
+                this._menu_list = this._element.append("div").attr("class", "menu-list").append("ul").attr("id", "side-menu-content").attr("class", "menu-content");
+            }
+            SideBarNavigation.prototype.DemoData = function () {
+                var data = {
+                    name: "root",
+                    icon: null,
+                    children: [
+                        {
+                            name: "Dashboard",
+                            icon: "fui-html5",
+                            children: null
+                        },
+                        {
+                            name: "UI",
+                            icon: "fui-foursquare",
+                            children: [
+                                {
+                                    name: "CSS3 Animation"
+                                },
+                                {
+                                    name: "General"
+                                },
+                                {
+                                    name: "Buttons"
+                                },
+                                {
+                                    name: "Tabs&Accordions"
+                                },
+                                {
+                                    name: "Typography"
+                                },
+                                {
+                                    name: "FontAwesome"
+                                },
+                                {
+                                    name: "Slider"
+                                },
+                                {
+                                    name: "Panels"
+                                },
+                                {
+                                    name: "Widgets"
+                                },
+                                {
+                                    name: "Bootstrap Models"
+                                }
+                            ]
+                        },
+                        {
+                            name: "Server",
+                            icon: "fui-windows-8",
+                            children: [
+                                {
+                                    name: "New Service1"
+                                },
+                                {
+                                    name: "New Service2"
+                                },
+                                {
+                                    name: "New Service3"
+                                }
+                            ]
+                        },
+                        {
+                            name: "New",
+                            icon: "fui-mail",
+                            children: [
+                                { name: "New New 1" },
+                                { name: "New New 2" },
+                                { name: "New New 3" }
+                            ]
+                        },
+                        {
+                            name: "Profile",
+                            icon: "fui-android"
+                        },
+                        {
+                            name: "User",
+                            icon: "fui-google-plus"
+                        }
+                    ]
+                };
+                return data;
+            };
+            SideBarNavigation.prototype.BuildList = function (listData) {
+                this._menu_list_data = listData;
+                if (!this._menu_list_data) {
+                    this._menu_list_data = this.DemoData();
+                }
+                var menuList = this._menu_list_data.children;
+                for (var i = 0, menu_len = menuList.length; i < menu_len; ++i) {
+                    var sub_menu = menuList[i].children;
+                    var li = this._menu_list.append("li").attr("class", "panel").html('<div data-target=#' + menuList[i].name + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed"><a href="#"><i class="' + menuList[i].icon + '"></i>' + menuList[i].name + '</a></div>');
+                    //add high light function
+                    li.select("div").on("click", function () {
+                        d3.event.preventDefault();
+                        if (d3.select(this.parentNode).classed("active")) {
+                            d3.select("li.active").classed("active", false);
+                        }
+                        else {
+                            d3.select("li.active").classed("active", false);
+                            d3.select(this.parentNode).classed("active", true);
+                        }
+                    });
+                    if (sub_menu) {
+                        li.select("a").append("span").attr("class", "arrow fui-triangle-down");
+                        var ul = li.append("ul").attr("class", "sub-menu collapse").attr("id", menuList[i].name);
+                        for (var j = 0, submenu_len = sub_menu.length; j < submenu_len; ++j) {
+                            ul.append("li").append("a").attr("href", "#").text(sub_menu[j].name);
+                        }
+                    }
+                }
+            };
+            SideBarNavigation.prototype.FinishLoadData = function () {
+                this._isLoaded = true;
+                this._launchDataBtn.classed("disabled", false);
+            };
+            SideBarNavigation.prototype.PullData = function () {
+                var _this = this;
+                this._manyLens.CurveHubServerPullPoint("0").done(function () {
+                    _this._launchDataBtn.classed("disabled", false);
+                });
+            };
+            return SideBarNavigation;
+        })();
+        Navigation.SideBarNavigation = SideBarNavigation;
+    })(Navigation = ManyLens.Navigation || (ManyLens.Navigation = {}));
+})(ManyLens || (ManyLens = {}));
 ///<reference path = "../Scripts/typings/d3/d3.d.ts" />
 ///<reference path = "../Scripts/typings/d3.cloud.layout/d3.cloud.layout.d.ts" />
 var ManyLens;
@@ -50,7 +201,7 @@ var ManyLens;
             __extends(Curve, _super);
             function Curve(element, manyLens) {
                 _super.call(this, element, manyLens);
-                this._x_scale = d3.scale.linear();
+                this._x_scale = d3.time.scale();
                 this._x_axis_gen = d3.svg.axis();
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
@@ -67,8 +218,8 @@ var ManyLens;
                     id: null,
                     type: 2
                 };
-                this._x_scale.domain([0, this._section_num]).range([this._view_left_padding, this._view_width - this._view_right_padding]);
-                this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
+                this._x_scale.range([this._view_left_padding, this._view_width - this._view_right_padding]);
+                this._y_scale.domain([0, 100]).range([this._view_height - this._view_botton_padding, this._view_top_padding]).nice();
                 this._x_axis_gen.scale(this._x_scale).ticks(10).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
                 /*---Please register all the client function here---*/
@@ -96,17 +247,6 @@ var ManyLens;
                 this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
                 this._mainView.append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
-                //Adjust the height of mainView
-                d3.select("#mainView").style("height", function () {
-                    return window.innerHeight - d3.select("#mainView").node().offsetTop - d3.select("#mainArea").node().offsetTop - 10 + "px";
-                });
-                this.PullData();
-            };
-            Curve.prototype.PullData = function () {
-                this._manyLens.CurveHubPullPoint("0");
-            };
-            Curve.prototype.PullInteral = function (interalID) {
-                this._manyLens.CurveHubPullInteral(interalID);
             };
             Curve.prototype.AddPoint = function (point) {
                 this._data.push(point);
@@ -115,12 +255,45 @@ var ManyLens;
                     this._data.shift();
                 }
             };
+            Curve.prototype.PullInteral = function (interalID) {
+                this._manyLens.CurveHubServerPullInteral(interalID);
+            };
             Curve.prototype.RefreshGraph = function (mark) {
                 var _this = this;
+                var parseDate = d3.time.format("%Y%m%d%H%M%S").parse;
+                var lineFunc = d3.svg.line().x(function (d) {
+                    return _this._x_scale(parseDate(d.mark.id));
+                }).y(function (d) {
+                    return _this._y_scale(d.value);
+                }).interpolate("linear");
+                var _MS_PER_DAY = 1000 * 60 * 60 * 24;
+                // a and b are javascript Date objects
+                function dateDiffInDays(a, b) {
+                    // Discard the time and time-zone information.
+                    var utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+                    var utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+                    return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+                }
+                if (this._data.length == 1) {
+                    //this._x_axis_gen.ticks(10);
+                    this._x_scale.domain([
+                        parseDate(mark.id),
+                        d3.time.day.offset(parseDate(mark.id), this._section_num)
+                    ]);
+                }
+                else if (this._data.length > this._section_num) {
+                    var newHDate = parseDate(mark.id);
+                    var step = dateDiffInDays(newHDate, this._x_scale.domain()[0]);
+                    this._x_scale.domain([
+                        d3.time.day.offset(this._x_scale.domain()[0], step),
+                        newHDate
+                    ]);
+                }
+                this._x_axis.call(this._x_axis_gen);
                 this._y_scale.domain([0, d3.max(this._data, function (d) {
                     return d.value;
                 })]);
-                this._y_axis_gen.scale(this._y_scale);
+                //this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
                 if (mark.type == 2 || mark.type == 3) {
                     var eid = mark.id;
@@ -150,10 +323,10 @@ var ManyLens;
                 //handle the seg line
                 this._mainView.selectAll(".curve.mark").remove();
                 var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
-                lines.enter().append("line").attr("x1", function (d, i) {
-                    return _this._x_scale(i);
-                }).attr("x2", function (d, i) {
-                    return _this._x_scale(i);
+                lines.enter().append("line").attr("x1", function (d) {
+                    return _this._x_scale(parseDate(d.id));
+                }).attr("x2", function (d) {
+                    return _this._x_scale(parseDate(d.id));
                 }).attr("y1", this._view_top_padding).attr("y2", function (d) {
                     if (d.type == 1 || d.type == 2 || d.type == 3)
                         return _this._view_height + _this._view_top_padding;
@@ -164,8 +337,8 @@ var ManyLens;
                 //handle the seg rect
                 this._mainView.selectAll(".curve.seg").remove();
                 var rects = this._mainView.selectAll(".curve.seg").data(this._markData);
-                rects.enter().append("rect").attr("x", function (d, i) {
-                    return _this._x_scale(i);
+                rects.enter().append("rect").attr("x", function (d) {
+                    return _this._x_scale(parseDate(d.id));
                 }).attr("y", this._view_top_padding).attr("width", function (d) {
                     if (d.type == 1 || d.type == 4 || d.type == 3)
                         return (_this._x_scale(1) - _this._x_scale(0));
@@ -174,18 +347,13 @@ var ManyLens;
                     fill: "#ffeda0",
                     opacity: 0.5
                 });
-                var lineFunc = d3.svg.line().x(function (d, i) {
-                    return _this._x_scale(i);
-                }).y(function (d, i) {
-                    return _this._y_scale(d.value);
-                }).interpolate("linear");
                 //handle the line path
                 this._mainView.selectAll("#path").attr("d", lineFunc(this._data));
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
                     this._mainView.attr("transform", null).transition().duration(0).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
-                if (this._markData.length > (this._section_num + 1)) {
+                if (this._markData.length > (this._section_num)) {
                     this._markData.shift();
                 }
             };
@@ -3125,6 +3293,7 @@ var ManyLens;
     })(Pane = ManyLens.Pane || (ManyLens.Pane = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/Hub/Hub.ts" />
+///<reference path="../tsScripts/Navigation/SideBarNavigation.ts" />
 ///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
 ///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
 ///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
@@ -3133,6 +3302,7 @@ var ManyLens;
     var ManyLens = (function () {
         function ManyLens() {
             var _this = this;
+            this._nav_sideBarView_id = "sideBar";
             this._curveView_id = "curveView";
             this._mapView_id = "mapView";
             this._mapSvg_id = "mapSvg";
@@ -3144,8 +3314,12 @@ var ManyLens;
             /*--------------------------Initial all the hub------------------------------*/
             this._curve_hub = new _ManyLens.Hub.CurveHub();
             /*------------------------Initial other Component--------------------------------*/
+            this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
+            this._nav_sidebar = new _ManyLens.Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this);
+            this._nav_sidebar.BuildList(null);
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
+            this._curve.Render([10, 10]);
             this._mapSvg = d3.select("#" + this._mapSvg_id);
             this._lensPane = new _ManyLens.Pane.ClassicLensPane(this._mapSvg, this);
             this._lensPane.Render();
@@ -3155,7 +3329,13 @@ var ManyLens;
             this._historyTrees.addTree();
             /*-------------------------Start the hub-------------------------------------------*/
             _ManyLens.Hub.SignalRHub.HubConnection.start().done(function () {
-                _this._curve.Render([10, 10]);
+                console.log("start connection");
+                _this._curve_hub.server.loadData().done(function () {
+                    console.log("Load data success");
+                    _this._nav_sidebar.FinishLoadData();
+                }).fail(function () {
+                    console.log("load data fail");
+                });
             });
         }
         Object.defineProperty(ManyLens.prototype, "LensCount", {
@@ -3207,17 +3387,14 @@ var ManyLens;
                 func.apply(curve, arguments);
             };
         };
-        ManyLens.prototype.CurveHubClient = function () {
-            return this._curve_hub.client;
-        };
-        ManyLens.prototype.CurveHubPullPoint = function (start) {
+        ManyLens.prototype.CurveHubServerPullPoint = function (start) {
             if (!this._curve_hub) {
                 console.log("No hub");
                 this._curve_hub = new _ManyLens.Hub.CurveHub();
             }
             return this._curve_hub.server.pullPoint(start);
         };
-        ManyLens.prototype.CurveHubPullInteral = function (id) {
+        ManyLens.prototype.CurveHubServerPullInteral = function (id) {
             if (!this._curve_hub) {
                 console.log("No hub");
                 this._curve_hub = new _ManyLens.Hub.CurveHub();

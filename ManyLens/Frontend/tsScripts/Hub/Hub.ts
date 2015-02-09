@@ -140,14 +140,16 @@
         interface SignalR {
             curveHub: ICurveHub;
         }
-
-        /*------------------Curve Hub -----------*/
+  
+        /*-------------Curve Hub -----------*/
         interface ICurveHub {
             server: ICurveHubServer;
             client: ICurveHubClient;
         }
 
         interface ICurveHubServer {
+            loadData(): IPromise<void>;
+
             pullPoint(start: string): IPromise<void>;
             pullInteral(interalID: string): IPromise<void>;
             reOrganize(visMapID: string, selectedUnits: Array<any>): IPromise<void>;
@@ -156,7 +158,7 @@
         }
 
         interface ICurveHubClient {
-            //addPoint(obj: any): void;
+            addPoint(obj: any): void;
         }
 
         export class CurveHub implements ICurveHub{

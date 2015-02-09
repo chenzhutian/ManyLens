@@ -88,6 +88,7 @@ namespace ManyLens.IO
                     sortedTerm.Add(date, t);
                 }
             }
+            sr.Close();
 
             if(!isCache)
             {

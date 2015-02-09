@@ -8,19 +8,61 @@
     user-select: none;
 }
 
-
+/*-----------Adaptive row height------------*/
+.container-fluid {
+    height:100%;
+}
+.row-1 {
+    height: 8.33333333%;
+}
+.row-2 {
+    height:16.66666667%;
+}
+.row-3 {
+    height:25%;
+}
+.row-4 {
+    height: 33.33333333%;
+}
+.row-5 {
+    height:41.66666667%;
+}
+.row-6 {
+    height:50%;
+}
+.row-7 {
+    height:58.33333333%;
+}
+.row-8 {
+    height:66.66666667%;
+}
+.row-9 {
+    height:75%;
+}
+.row-10 {
+    height:83.33333333%;
+}
+.row-11 {
+    height:91.66666667%;
+}
+.row-115 {
+    height:93%
+}
+.row-12 {
+    height:100%;
+}
 
 div#mapView {
-    height: 100%;
+   /*height: 100%;*/
     background-color: #fff;
 }
 
 div#tweetsView {
-    height:70%;
+    /*height:70%;*/
 }
 
 div#historyView {
-    height:30%;
+    /*height:30%;*/
 }
 
 circle.pane-Lens-Circle:hover {
@@ -65,11 +107,11 @@ circle.pane-Lens-Circle:hover {
     font-weight: 300;
     font-size: 12px;
     margin: 0em;
-    padding-top: 5.8em;
+    /*padding-top: 5.8em;*/
     border-right: 1px solid #dae3e9;
 }
 
-    .nav-side-menu .brand {
+    .nav-side-menu .nav-brand {
         line-height: 50px;
         display: block;
         text-align: center;

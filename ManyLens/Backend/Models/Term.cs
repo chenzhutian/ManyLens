@@ -12,7 +12,7 @@ namespace ManyLens.Models
         private DateTime termDate;
         private int isTweetBurstPoint;//1 = this day is a burst point or 0=not in terms of tweetFreq or smoothedTweetFreq
         private double tweetBurstCutoff;//cutoff of tweet
-        private uint segmentPoint = 0; // 1 = start, 2 = end, 3 = start+end
+        private uint segmentPoint = 0; // 1 = start, 2 = end, 3 = start+end, 4 = inside
 
         #region Getter & Setter
         public DateTime TermDate

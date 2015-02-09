@@ -1,10 +1,15 @@
 ﻿///<reference path = "../tsScripts/Hub/Hub.ts" />
+///<reference path="../tsScripts/Navigation/SideBarNavigation.ts" />
 ///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
 ///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
 ///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
 
 module ManyLens {
     export class ManyLens {
+
+        private _nav_sideBarView_id: string = "sideBar";
+        private _nav_sideBarView: D3.Selection;
+        private _nav_sidebar: Navigation.SideBarNavigation;
 
         private _curveView_id: string = "curveView";
         private _curveView: D3.Selection;
@@ -37,12 +42,16 @@ module ManyLens {
 
 
             /*------------------------Initial other Component--------------------------------*/
+            this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
+            this._nav_sidebar = new Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute",this);
+            this._nav_sidebar.BuildList(null);
+
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new TweetsCurve.Curve(this._curveView, this);
+            this._curve.Render([10, 10]);
 
             this._mapSvg = d3.select("#" + this._mapSvg_id);
            
-
             this._lensPane = new Pane.ClassicLensPane(this._mapSvg,this);
             this._lensPane.Render();
 
@@ -53,7 +62,13 @@ module ManyLens {
 
             /*-------------------------Start the hub-------------------------------------------*/
             Hub.SignalRHub.HubConnection.start().done(() => {
-                this._curve.Render([10, 10]);
+                console.log("start connection");
+                this._curve_hub.server.loadData().done(() => {
+                    console.log("Load data success");
+                    this._nav_sidebar.FinishLoadData();
+                }).fail(() => {
+                        console.log("load data fail");
+                    });
             });
 
         }
@@ -110,11 +125,7 @@ module ManyLens {
             }
         }
 
-        public CurveHubClient() {
-            return this._curve_hub.client;
-        }
-
-        public CurveHubPullPoint(start: string): Hub.IPromise<void> {
+        public CurveHubServerPullPoint(start: string): Hub.IPromise<void> {
             if (!this._curve_hub) {
                 console.log("No hub");
                 this._curve_hub = new Hub.CurveHub();
@@ -122,7 +133,7 @@ module ManyLens {
             return this._curve_hub.server.pullPoint(start);
         }
 
-        public CurveHubPullInteral(id: string): Hub.IPromise<void> {
+        public CurveHubServerPullInteral(id: string): Hub.IPromise<void> {
             if (!this._curve_hub) {
                 console.log("No hub");
                 this._curve_hub = new Hub.CurveHub();

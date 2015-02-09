@@ -20,6 +20,7 @@ namespace ManyLens.SignalR
         private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 
         // private readonly TimeSpan MyInterval = TimeSpan.FromMilliseconds(40);
+        private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
 
@@ -61,10 +62,25 @@ namespace ManyLens.SignalR
             Thread.Sleep(200);
         }
 
+        public async Task LoadData() 
+        {
+
+            //clear the static data
+            interals.Clear();
+
+            string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
+            Debug.WriteLine(tweetFile);
+            await Task.Run(() =>
+            {
+                if (dateTweetsFreq == null)
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
+            });
+
+        }
+
         //damn it, I almost forget how this function works.
         public async Task PullPoint(string start)
         {
-            Debug.WriteLine("I'm in again");
             //clear the static data
             interals.Clear();
             //set the parameter
@@ -73,11 +89,15 @@ namespace ManyLens.SignalR
             double beta = 2.0;
             Parameter.timeSpan = 2;
 
-            #region Load the tweets then sort them by date
-            string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
-            Debug.WriteLine(tweetFile);
-            SortedDictionary<DateTime, Term> dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
-            #endregion
+            if (dateTweetsFreq.Count == 0)
+            {
+                string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
+                Debug.WriteLine(tweetFile);
+                await Task.Run(() =>
+                {
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
+                });
+            }
         
             await Task.Run(() =>
             {
@@ -87,6 +107,11 @@ namespace ManyLens.SignalR
                 int p = 5;
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
                 Term[] tp = dateTweetsFreq.Values.ToArray();
+                for (int i = 0, len = tp.Length; i < len; ++i)
+                {
+                    tp[i].SegmentPoint = 0;
+                }
+
                 for (int i = 0; i < p; i++)
                 {
                     mean += tp[i].TweetsCount;
@@ -195,7 +220,7 @@ namespace ManyLens.SignalR
                     }
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(300);
+                    Thread.Sleep(1000);
 
                 }
             });
@@ -219,7 +244,6 @@ namespace ManyLens.SignalR
                 visMaps.Add(visMap.VisMapID, visMap);
             }
             Clients.Caller.showVIS(visMap.GetVisData());
-
         }
 
         public void ReOrganize(string visMapID,int[] selectedUnits)
