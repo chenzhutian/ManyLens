@@ -124,23 +124,11 @@ module ManyLens {
                     .attr("id", "path")
                 ;
 
-                //Adjust the height of mainView
-                d3.select("#mainView")
-                    .style("height", function () {
-                        return window.innerHeight -
-                            (<HTMLElement>d3.select("#mainView").node()).offsetTop -
-                            (<HTMLElement>d3.select("#mainArea").node()).offsetTop - 10 + "px";
-                    });
-
-                this.PullData();
             }
 
-            public PullData(): void {
-                this._manyLens.CurveHubPullPoint("0");
-            }
 
             public PullInteral(interalID: string):void {
-                this._manyLens.CurveHubPullInteral(interalID);
+                this._manyLens.CurveHubServerPullInteral(interalID);
             }
 
             public AddPoint(point: Point): void {

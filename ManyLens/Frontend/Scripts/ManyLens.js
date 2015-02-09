@@ -201,7 +201,7 @@ var ManyLens;
             __extends(Curve, _super);
             function Curve(element, manyLens) {
                 _super.call(this, element, manyLens);
-                this._x_scale = d3.time.scale();
+                this._x_scale = d3.scale.linear();
                 this._x_axis_gen = d3.svg.axis();
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
@@ -218,8 +218,8 @@ var ManyLens;
                     id: null,
                     type: 2
                 };
-                this._x_scale.range([this._view_left_padding, this._view_width - this._view_right_padding]);
-                this._y_scale.domain([0, 100]).range([this._view_height - this._view_botton_padding, this._view_top_padding]).nice();
+                this._x_scale.domain([0, this._section_num]).range([this._view_left_padding, this._view_width - this._view_right_padding]);
+                this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
                 this._x_axis_gen.scale(this._x_scale).ticks(10).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
                 /*---Please register all the client function here---*/
@@ -248,6 +248,9 @@ var ManyLens;
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
                 this._mainView.append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
             };
+            Curve.prototype.PullInteral = function (interalID) {
+                this._manyLens.CurveHubServerPullInteral(interalID);
+            };
             Curve.prototype.AddPoint = function (point) {
                 this._data.push(point);
                 this.RefreshGraph(point.mark);
@@ -255,45 +258,12 @@ var ManyLens;
                     this._data.shift();
                 }
             };
-            Curve.prototype.PullInteral = function (interalID) {
-                this._manyLens.CurveHubServerPullInteral(interalID);
-            };
             Curve.prototype.RefreshGraph = function (mark) {
                 var _this = this;
-                var parseDate = d3.time.format("%Y%m%d%H%M%S").parse;
-                var lineFunc = d3.svg.line().x(function (d) {
-                    return _this._x_scale(parseDate(d.mark.id));
-                }).y(function (d) {
-                    return _this._y_scale(d.value);
-                }).interpolate("linear");
-                var _MS_PER_DAY = 1000 * 60 * 60 * 24;
-                // a and b are javascript Date objects
-                function dateDiffInDays(a, b) {
-                    // Discard the time and time-zone information.
-                    var utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-                    var utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-                    return Math.floor((utc2 - utc1) / _MS_PER_DAY);
-                }
-                if (this._data.length == 1) {
-                    //this._x_axis_gen.ticks(10);
-                    this._x_scale.domain([
-                        parseDate(mark.id),
-                        d3.time.day.offset(parseDate(mark.id), this._section_num)
-                    ]);
-                }
-                else if (this._data.length > this._section_num) {
-                    var newHDate = parseDate(mark.id);
-                    var step = dateDiffInDays(newHDate, this._x_scale.domain()[0]);
-                    this._x_scale.domain([
-                        d3.time.day.offset(this._x_scale.domain()[0], step),
-                        newHDate
-                    ]);
-                }
-                this._x_axis.call(this._x_axis_gen);
                 this._y_scale.domain([0, d3.max(this._data, function (d) {
                     return d.value;
                 })]);
-                //this._y_axis_gen.scale(this._y_scale);
+                this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
                 if (mark.type == 2 || mark.type == 3) {
                     var eid = mark.id;
@@ -323,10 +293,10 @@ var ManyLens;
                 //handle the seg line
                 this._mainView.selectAll(".curve.mark").remove();
                 var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
-                lines.enter().append("line").attr("x1", function (d) {
-                    return _this._x_scale(parseDate(d.id));
-                }).attr("x2", function (d) {
-                    return _this._x_scale(parseDate(d.id));
+                lines.enter().append("line").attr("x1", function (d, i) {
+                    return _this._x_scale(i);
+                }).attr("x2", function (d, i) {
+                    return _this._x_scale(i);
                 }).attr("y1", this._view_top_padding).attr("y2", function (d) {
                     if (d.type == 1 || d.type == 2 || d.type == 3)
                         return _this._view_height + _this._view_top_padding;
@@ -337,8 +307,8 @@ var ManyLens;
                 //handle the seg rect
                 this._mainView.selectAll(".curve.seg").remove();
                 var rects = this._mainView.selectAll(".curve.seg").data(this._markData);
-                rects.enter().append("rect").attr("x", function (d) {
-                    return _this._x_scale(parseDate(d.id));
+                rects.enter().append("rect").attr("x", function (d, i) {
+                    return _this._x_scale(i);
                 }).attr("y", this._view_top_padding).attr("width", function (d) {
                     if (d.type == 1 || d.type == 4 || d.type == 3)
                         return (_this._x_scale(1) - _this._x_scale(0));
@@ -347,13 +317,18 @@ var ManyLens;
                     fill: "#ffeda0",
                     opacity: 0.5
                 });
+                var lineFunc = d3.svg.line().x(function (d, i) {
+                    return _this._x_scale(i);
+                }).y(function (d, i) {
+                    return _this._y_scale(d.value);
+                }).interpolate("linear");
                 //handle the line path
                 this._mainView.selectAll("#path").attr("d", lineFunc(this._data));
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
                     this._mainView.attr("transform", null).transition().duration(0).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
-                if (this._markData.length > (this._section_num)) {
+                if (this._markData.length > (this._section_num + 1)) {
                     this._markData.shift();
                 }
             };
