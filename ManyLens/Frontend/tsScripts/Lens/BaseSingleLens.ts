@@ -53,7 +53,6 @@ module ManyLens {
                         this.SelectCircleZoomFunc();
                         console.log("sc_zoom " + this._type);
                     })
-                    
                 ;
 
                 this._select_circle_drag
@@ -64,7 +63,6 @@ module ManyLens {
                         console.log("sc_dragstart " + this._type);
                     })
                     .on("drag", () => {
-
                         //if (this._sc_drag_event_flag) {
                             this.SelectCircleDragFunc();
                         //} else {

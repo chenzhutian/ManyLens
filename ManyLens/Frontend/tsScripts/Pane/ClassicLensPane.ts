@@ -42,7 +42,7 @@ module ManyLens {
                 var pane_icon_padding: number = 10;
                 this._pang_g = {
                     svg_g: this._element.append("g"),
-                    x: 10,
+                    x: parseFloat( this._element.style("width")) - 3 * (pane_icon_r + pane_icon_padding),
                     y: 10,
                     rect_height: (this._lens_count * pane_icon_r * 2) + (this._lens_count + 1) * pane_icon_padding,
                     rect_width: 2 * (pane_icon_r + pane_icon_padding),

@@ -70,6 +70,7 @@
                     .selectAll("rect")
                     .data(visData.unitsData)
                     .enter().append("rect")
+                    .attr("class","unit")
                     //.attr("r", 4)
                     //.attr("cx", function (d) { return (d.x + 0.5) * xPadding; })
                     //.attr("cy", function (d) { return (d.y + 0.5) * yPadding; })

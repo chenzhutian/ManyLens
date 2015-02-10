@@ -1373,55 +1373,79 @@ var ManyLens;
             // data shape {text: size:}
             WordCloudLens.prototype.ExtractData = function () {
                 var data;
-                data = [
-                    { text: "Samsung", value: 90 },
-                    { text: "Apple", value: 90 },
-                    { text: "Lenovo", value: 90 },
-                    { text: "LG", value: 60 },
-                    { text: "Nokia", value: 30 },
-                    { text: "Huawei", value: 40 },
-                    { text: "Meizu", value: 50 },
-                    { text: "eizu", value: 50 },
-                    { text: "ZTE", value: 40 },
-                    { text: "Fiiit", value: 40 },
-                    { text: "qweri", value: 40 },
-                    { text: "bnm", value: 40 },
-                    { text: "tytyt", value: 40 },
-                    { text: "asdf", value: 40 },
-                    { text: "Fit", value: 40 },
-                    { text: "Gear", value: 30 },
-                    { text: "fear", value: 20 },
-                    { text: "pear", value: 20 },
-                    { text: "jjear", value: 20 },
-                    { text: "weqr", value: 20 },
-                    { text: "vbn", value: 20 },
-                    { text: "lk", value: 20 },
-                    { text: "lopxcv", value: 20 },
-                    { text: "yyyy", value: 20 },
-                    { text: "lxzcvk", value: 20 },
-                    { text: "tyu", value: 20 },
-                    { text: "jjear", value: 20 },
-                    { text: "weqr", value: 20 },
-                    { text: "vbn", value: 20 },
-                    { text: "lk", value: 20 },
-                    { text: "lopxcv", value: 20 },
-                    { text: "yyyy", value: 20 },
-                    { text: "lxzcvk", value: 20 },
-                    { text: "tyu", value: 20 },
-                    { text: "Gea", value: 10 },
-                    { text: "Ge", value: 10 },
-                    { text: "Gfa", value: 10 },
-                    { text: "a", value: 10 },
-                    { text: "bvea", value: 10 },
-                    { text: "Gea", value: 10 },
-                    { text: "cea", value: 10 },
-                    { text: "uea", value: 10 },
-                    { text: "lea", value: 10 },
-                    { text: "ea", value: 10 },
-                    { text: "pp", value: 10 },
-                    { text: "nh", value: 10 },
-                    { text: "erw", value: 10 }
-                ];
+                //data = [
+                //    { text: "Samsung", value: 90 },
+                //    { text: "Apple", value: 90 },
+                //    { text: "Lenovo", value: 90 },
+                //    { text: "LG", value: 60 },
+                //    { text: "Nokia", value: 30 },
+                //    { text: "Huawei", value: 40 },
+                //    { text: "Meizu", value: 50 },
+                //    { text: "eizu", value: 50 },
+                //    { text: "ZTE", value: 40 },
+                //    { text: "Fiiit", value: 40 },
+                //    { text: "qweri", value: 40 },
+                //    { text: "bnm", value: 40 },
+                //    { text: "tytyt", value: 40 },
+                //    { text: "asdf", value: 40 },
+                //    { text: "Fit", value: 40 },
+                //    { text: "Gear", value: 30 },
+                //    { text: "fear", value: 20 },
+                //    { text: "pear", value: 20 },
+                //    { text: "jjear", value: 20 },
+                //    { text: "weqr", value: 20 },
+                //    { text: "vbn", value: 20 },
+                //    { text: "lk", value: 20 },
+                //    { text: "lopxcv", value: 20 },
+                //    { text: "yyyy", value: 20 },
+                //    { text: "lxzcvk", value: 20 },
+                //    { text: "tyu", value: 20 },
+                //    { text: "jjear", value: 20 },
+                //    { text: "weqr", value: 20 },
+                //    { text: "vbn", value: 20 },
+                //    { text: "lk", value: 20 },
+                //    { text: "lopxcv", value: 20 },
+                //    { text: "yyyy", value: 20 },
+                //    { text: "lxzcvk", value: 20 },
+                //    { text: "tyu", value: 20 },
+                //    { text: "Gea", value: 10 },
+                //    { text: "Ge", value: 10 },
+                //    { text: "Gfa", value: 10 },
+                //    { text: "a", value: 10 },
+                //    { text: "bvea", value: 10 },
+                //    { text: "Gea", value: 10 },
+                //    { text: "cea", value: 10 },
+                //    { text: "uea", value: 10 },
+                //    { text: "lea", value: 10 },
+                //    { text: "ea", value: 10 },
+                //    { text: "pp", value: 10 },
+                //    { text: "nh", value: 10 },
+                //    { text: "erw", value: 10 }
+                //]
+                //;
+                var res;
+                var eles = [];
+                var x = d3.event.sourceEvent.x, y = d3.event.sourceEvent.y;
+                var p = d3.mouse(this._element.node());
+                if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
+                    return;
+                var ele = d3.select(document.elementFromPoint(x, y));
+                while (ele && ele.attr("id") != "mapSvg") {
+                    if (ele.classed("unit")) {
+                        res = ele[0][0];
+                        break;
+                    }
+                    eles.push(ele);
+                    ele.style("visibility", "hidden");
+                    ele = d3.select(document.elementFromPoint(x, y));
+                    if (eles.length > 10) {
+                        throw new Error("what the fuck");
+                    }
+                }
+                for (var i = 0, len = eles.length; i < len; ++i) {
+                    eles[i].style("visibility", "");
+                }
+                data = (d3.select(res).data()[0]).labels;
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
                     return d.value;
                 }));
@@ -3201,7 +3225,7 @@ var ManyLens;
                 var pane_icon_padding = 10;
                 this._pang_g = {
                     svg_g: this._element.append("g"),
-                    x: 10,
+                    x: parseFloat(this._element.style("width")) - 3 * (pane_icon_r + pane_icon_padding),
                     y: 10,
                     rect_height: (this._lens_count * pane_icon_r * 2) + (this._lens_count + 1) * pane_icon_padding,
                     rect_width: 2 * (pane_icon_r + pane_icon_padding),
@@ -3656,7 +3680,7 @@ var ManyLens;
                 var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }]).attr("id", function (d) {
                     return "mapSvg" + d.mapID;
                 }).attr("width", somMapWidth).attr("height", somMapHeight);
-                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("x", function (d, i) {
+                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d, i) {
                     return d.x * 20;
                 }).attr("y", function (d, i) {
                     return d.y * 20;

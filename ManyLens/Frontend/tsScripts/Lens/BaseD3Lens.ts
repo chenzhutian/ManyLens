@@ -215,8 +215,6 @@ module ManyLens {
                     transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
                     return transform;
                 });
-
-
             }
 
             protected LensCircleDragendFunc(): boolean {
