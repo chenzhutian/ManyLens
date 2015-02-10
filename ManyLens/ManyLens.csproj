@@ -254,6 +254,7 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\WordCloudLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\ManyLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Hub\Hub.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Map\Map.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Navigation\SideBarNavigation.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\BlossomLensPane.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\ClassicLensPane.ts" />

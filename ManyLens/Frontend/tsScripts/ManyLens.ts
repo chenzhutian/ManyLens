@@ -16,11 +16,10 @@ module ManyLens {
         private _curve: TweetsCurve.Curve;
         private _curve_hub: Hub.CurveHub;
 
-        private _mapView_id: string = "mapView";
-        private _mapView: D3.Selection;
         private _mapSvg_id: string = "mapSvg";
         private _mapSvg: D3.Selection;
-        private _lensPane: ManyLens.Pane.ClassicLensPane;
+        private _mapArea: MapArea.SOMMap;
+
 
         private _historyView_id: string = "historyView";
         private _historyView: D3.Selection;
@@ -51,9 +50,8 @@ module ManyLens {
             this._curve.Render([10, 10]);
 
             this._mapSvg = d3.select("#" + this._mapSvg_id);
-           
-            this._lensPane = new Pane.ClassicLensPane(this._mapSvg,this);
-            this._lensPane.Render();
+            this._mapArea = new MapArea.SOMMap(this._mapSvg, this);
+            this._mapArea.Render();
 
             this._historySvg = d3.select("#"+this._historySvg_id);
             this._historyTrees = new LensHistory.HistoryTrees(this._historySvg,this);
@@ -115,13 +113,13 @@ module ManyLens {
         }
 
         /* -------------------- Curve related Function -----------------------*/
-        public CurveHubRegisterClientFunction(curve:TweetsCurve.Curve,funcName: string, func: (...any) => any) {
+        public CurveHubRegisterClientFunction(obj:any,funcName: string, func: (...any) => any) {
             if (!this._curve_hub) {
                 console.log("No hub");
                 this._curve_hub = new Hub.CurveHub();
             }
             this._curve_hub.client[funcName] = function () {
-                func.apply(curve, arguments);
+                func.apply(obj, arguments);
             }
         }
 

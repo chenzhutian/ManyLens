@@ -62,7 +62,7 @@ namespace ManyLens.IO
                 string[] tweetAttributes = line.Split('\t');
                 Tweet tweet = null;
 
-                if (isCache)
+                if (isCache || tweetAttributes.Length == 4)
                 {
                     tweet = new Tweet(tweetAttributes[1], tweetAttributes[2], tweetAttributes[3]);
                 }

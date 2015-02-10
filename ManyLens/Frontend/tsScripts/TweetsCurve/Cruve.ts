@@ -212,7 +212,9 @@ module ManyLens {
                         fill: "#ffeda0",
                         opacity: 0.5
                     })
-                //.on("click", selectSegment)
+                    .on("click", (d:Mark) => {
+                        this.SelectSegment(d);
+                    })
                 ;
 
                 var lineFunc = d3.svg.line()
@@ -241,8 +243,17 @@ module ManyLens {
                         .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)")
                     ;
                 }
-                if (this._markData.length > (this._section_num + 1)) {
+                if (this._markData.length > this._section_num) {
                     this._markData.shift();
+                }
+            }
+
+            private SelectSegment(d:Mark) {
+                if (d.end != null) {
+                    this._manyLens.CurveHubServerPullInteral(d.beg);
+                }
+                else {
+                    console.log("Segmentation hasn't finished yet!");
                 }
             }
 

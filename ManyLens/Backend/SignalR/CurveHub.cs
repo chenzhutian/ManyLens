@@ -89,16 +89,6 @@ namespace ManyLens.SignalR
             double beta = 2.0;
             Parameter.timeSpan = 2;
 
-            if (dateTweetsFreq.Count == 0)
-            {
-                string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
-                Debug.WriteLine(tweetFile);
-                await Task.Run(() =>
-                {
-                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
-                });
-            }
-        
             await Task.Run(() =>
             {
                 //Peak Detection
@@ -220,7 +210,7 @@ namespace ManyLens.SignalR
                     }
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(1000);
+                    Thread.Sleep(10);
 
                 }
             });

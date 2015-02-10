@@ -159,6 +159,7 @@
 
         interface ICurveHubClient {
             addPoint(obj: any): void;
+            showVIS(obj:any): void;
         }
 
         export class CurveHub implements ICurveHub{

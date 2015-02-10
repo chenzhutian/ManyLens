@@ -8,7 +8,7 @@ namespace ManyLens
 {
     class Parameter
     {
-        private static int _timeSpan = 4;
+        private static int _timeSpan = 2;
         private static string tweetfile = "dtext-tweets-onedriver.txt";
         public static double declineBeta = 0.5;
         public static int maxPerSegment = 5000;

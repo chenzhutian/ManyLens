@@ -316,6 +316,8 @@ var ManyLens;
                 }).attr("height", this._view_height).attr("class", "curve seg").style({
                     fill: "#ffeda0",
                     opacity: 0.5
+                }).on("click", function (d) {
+                    _this.SelectSegment(d);
                 });
                 var lineFunc = d3.svg.line().x(function (d, i) {
                     return _this._x_scale(i);
@@ -328,8 +330,16 @@ var ManyLens;
                 if (this._data.length > (this._section_num + 1)) {
                     this._mainView.attr("transform", null).transition().duration(0).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
-                if (this._markData.length > (this._section_num + 1)) {
+                if (this._markData.length > this._section_num) {
                     this._markData.shift();
+                }
+            };
+            Curve.prototype.SelectSegment = function (d) {
+                if (d.end != null) {
+                    this._manyLens.CurveHubServerPullInteral(d.beg);
+                }
+                else {
+                    console.log("Segmentation hasn't finished yet!");
                 }
             };
             return Curve;
@@ -3279,7 +3289,6 @@ var ManyLens;
             var _this = this;
             this._nav_sideBarView_id = "sideBar";
             this._curveView_id = "curveView";
-            this._mapView_id = "mapView";
             this._mapSvg_id = "mapSvg";
             this._historyView_id = "historyView";
             this._historySvg_id = "historySvg";
@@ -3296,8 +3305,8 @@ var ManyLens;
             this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
             this._curve.Render([10, 10]);
             this._mapSvg = d3.select("#" + this._mapSvg_id);
-            this._lensPane = new _ManyLens.Pane.ClassicLensPane(this._mapSvg, this);
-            this._lensPane.Render();
+            this._mapArea = new _ManyLens.MapArea.SOMMap(this._mapSvg, this);
+            this._mapArea.Render();
             this._historySvg = d3.select("#" + this._historySvg_id);
             this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg, this);
             //Add a new tree here, actually the tree should not be add here
@@ -3353,13 +3362,13 @@ var ManyLens;
             }
         };
         /* -------------------- Curve related Function -----------------------*/
-        ManyLens.prototype.CurveHubRegisterClientFunction = function (curve, funcName, func) {
+        ManyLens.prototype.CurveHubRegisterClientFunction = function (obj, funcName, func) {
             if (!this._curve_hub) {
                 console.log("No hub");
                 this._curve_hub = new _ManyLens.Hub.CurveHub();
             }
             this._curve_hub.client[funcName] = function () {
-                func.apply(curve, arguments);
+                func.apply(obj, arguments);
             };
         };
         ManyLens.prototype.CurveHubServerPullPoint = function (start) {
@@ -3610,6 +3619,28 @@ var ManyLens;
         return LensAssemblyFactory;
     })();
     ManyLens.LensAssemblyFactory = LensAssemblyFactory;
+})(ManyLens || (ManyLens = {}));
+var ManyLens;
+(function (ManyLens) {
+    var MapArea;
+    (function (MapArea) {
+        var SOMMap = (function (_super) {
+            __extends(SOMMap, _super);
+            function SOMMap(element, manyLens) {
+                _super.call(this, element, manyLens);
+                this._lensPane = new ManyLens.Pane.ClassicLensPane(element, manyLens);
+                this._manyLens.CurveHubRegisterClientFunction(this, "showVis", this.ShowVis);
+            }
+            SOMMap.prototype.Render = function () {
+                this._lensPane.Render();
+            };
+            SOMMap.prototype.ShowVis = function (obj) {
+                console.log(obj);
+            };
+            return SOMMap;
+        })(ManyLens.D3ChartObject);
+        MapArea.SOMMap = SOMMap;
+    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../Lens/LensList.ts" />
 var ManyLens;

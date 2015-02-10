@@ -55,7 +55,6 @@ module ManyLens {
 
             public Render(): void {
 
-
                 this.OpenPane();
             }
 
