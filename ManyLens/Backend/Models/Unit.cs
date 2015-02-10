@@ -5,10 +5,10 @@ using System.Web;
 
 namespace ManyLens.Models
 {
+
     public class Unit : TweetSet
     {
         private Dictionary<string,int> wordLabels = null;
-
 
         private float[] unitSumVector = null; //store as accumulate value
         private int x;
@@ -61,6 +61,22 @@ namespace ManyLens.Models
                 this.unitID = value;
             }
         }
+
+        public List<Dictionary<string,Object>> WordLabels
+        {
+            get
+            {
+                List<Dictionary<string, Object>> tList = new List<Dictionary<string, Object>>();
+                foreach (KeyValuePair<string, int> item in this.wordLabels)
+                {
+                    Dictionary<string, Object> tDictionary = new Dictionary<string, Object>();
+                    tDictionary.Add("text", item.Key);
+                    tDictionary.Add("value", item.Value);
+                    tList.Add(tDictionary);
+                }
+                return tList;
+            }
+        }
         public DateTime? VismapID { get; private set; }
         public virtual VisMap Vismap { get; private set; }
         #endregion  
@@ -94,6 +110,8 @@ namespace ManyLens.Models
             string[] words = tweet.DerivedContent.Split(' ');
             for (int i = 0; i < words.Length; ++i)
             {
+                if (words[i] == "")
+                    continue;
                 if (wordLabels.ContainsKey(words[i]))
                     wordLabels[words[i]]++;
                 else

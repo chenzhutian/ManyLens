@@ -6,6 +6,7 @@
 
 module ManyLens {
     export class ManyLens {
+        private _manyLens_hub: Hub.ManyLensHub;
 
         private _nav_sideBarView_id: string = "sideBar";
         private _nav_sideBarView: D3.Selection;
@@ -14,7 +15,6 @@ module ManyLens {
         private _curveView_id: string = "curveView";
         private _curveView: D3.Selection;
         private _curve: TweetsCurve.Curve;
-        private _curve_hub: Hub.CurveHub;
 
         private _mapSvg_id: string = "mapSvg";
         private _mapSvg: D3.Selection;
@@ -37,7 +37,7 @@ module ManyLens {
 
         constructor() {
             /*--------------------------Initial all the hub------------------------------*/
-            this._curve_hub = new Hub.CurveHub();
+            this._manyLens_hub = new Hub.ManyLensHub();
 
 
             /*------------------------Initial other Component--------------------------------*/
@@ -61,7 +61,7 @@ module ManyLens {
             /*-------------------------Start the hub-------------------------------------------*/
             Hub.SignalRHub.HubConnection.start().done(() => {
                 console.log("start connection");
-                this._curve_hub.server.loadData().done(() => {
+                this._manyLens_hub.server.loadData().done(() => {
                     console.log("Load data success");
                     this._nav_sidebar.FinishLoadData();
                 }).fail(() => {
@@ -113,30 +113,30 @@ module ManyLens {
         }
 
         /* -------------------- Curve related Function -----------------------*/
-        public CurveHubRegisterClientFunction(obj:any,funcName: string, func: (...any) => any) {
-            if (!this._curve_hub) {
+        public ManyLensHubRegisterClientFunction(obj:any,funcName: string, func: (...any) => any) {
+            if (!this._manyLens_hub) {
                 console.log("No hub");
-                this._curve_hub = new Hub.CurveHub();
+                this._manyLens_hub = new Hub.ManyLensHub();
             }
-            this._curve_hub.client[funcName] = function () {
+            this._manyLens_hub.client[funcName] = function () {
                 func.apply(obj, arguments);
             }
         }
 
-        public CurveHubServerPullPoint(start: string): Hub.IPromise<void> {
-            if (!this._curve_hub) {
+        public ManyLensHubServerPullPoint(start: string): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
                 console.log("No hub");
-                this._curve_hub = new Hub.CurveHub();
+                this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._curve_hub.server.pullPoint(start);
+            return this._manyLens_hub.server.pullPoint(start);
         }
 
-        public CurveHubServerPullInteral(id: string): Hub.IPromise<void> {
-            if (!this._curve_hub) {
+        public ManyLensHubServerPullInteral(id: string): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
                 console.log("No hub");
-                this._curve_hub = new Hub.CurveHub();
+                this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._curve_hub.server.pullInteral(id);
+            return this._manyLens_hub.server.pullInteral(id);
         }
 
     }

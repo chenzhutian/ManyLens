@@ -138,16 +138,16 @@
         }
 
         interface SignalR {
-            curveHub: ICurveHub;
+            manyLensHub: IManyLensHub;
         }
   
-        /*-------------Curve Hub -----------*/
-        interface ICurveHub {
-            server: ICurveHubServer;
-            client: ICurveHubClient;
+        /*-------------ManyLens Hub -----------*/
+        interface IManyLensHub {
+            server: IManyLensHubServer;
+            client: IManyLensHubClient;
         }
 
-        interface ICurveHubServer {
+        interface IManyLensHubServer {
             loadData(): IPromise<void>;
 
             pullPoint(start: string): IPromise<void>;
@@ -157,19 +157,19 @@
             doLongRunningThing(): IPromise<void>;
         }
 
-        interface ICurveHubClient {
+        interface IManyLensHubClient {
             addPoint(obj: any): void;
             showVIS(obj:any): void;
         }
 
-        export class CurveHub implements ICurveHub{
+        export class ManyLensHub implements IManyLensHub{
 
-            public server: ICurveHubServer;
-            public client: ICurveHubClient;
+            public server: IManyLensHubServer;
+            public client: IManyLensHubClient;
 
             constructor() {
-                this.server = $.connection.curveHub.server;
-                this.client = $.connection.curveHub.client;
+                this.server = $.connection.manyLensHub.server;
+                this.client = $.connection.manyLensHub.client;
             }
         }
 

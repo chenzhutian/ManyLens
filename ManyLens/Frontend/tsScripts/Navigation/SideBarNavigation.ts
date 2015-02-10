@@ -178,7 +178,7 @@
             }
 
             private PullData(): void {
-                this._manyLens.CurveHubServerPullPoint("0").done(() => {
+                this._manyLens.ManyLensHubServerPullPoint("0").done(() => {
                     this._launchDataBtn.classed("disabled", false);
                 });
             }

@@ -115,7 +115,7 @@ namespace ManyLens.Models
         }
         #endregion
 
-        public VisMap(string visMapID,int width, int height, VisMap parentNote = null)
+        public VisMap(string visMapID, int width, int height, VisMap parentNote = null)
         {
             this.ParentNote = parentNote;
             this.VisMapID = visMapID;
@@ -129,11 +129,11 @@ namespace ManyLens.Models
             this.units.Add(unitID, unit);
         }
 
-        public bool TryAddTweetToUnit(int unitID, Tweet tweet,float[] tfidfVector)
+        public bool TryAddTweetToUnit(int unitID, Tweet tweet, float[] tfidfVector)
         {
             if (units.ContainsKey(unitID))
             {
-                units[unitID].AddTweet(tweet,tfidfVector);
+                units[unitID].AddTweet(tweet, tfidfVector);
                 return true;
             }
             return false;
@@ -154,22 +154,27 @@ namespace ManyLens.Models
 
             List<int> keys = units.Keys.ToList();
             List<UnitsData> unitData = new List<UnitsData>();
+
             for (int i = keys.Count - 1; i >= 0; --i)
             {
                 int key = keys[i];
                 Unit unit = units[key];
                 if (unit.TweetsCount > this.maxTweetCount)
+                {
                     this.maxTweetCount = unit.TweetsCount;
+                }
+
+
                 unitData.Add(new UnitsData()
-                             {
-                                 unitID = unit.UnitID,
-                                 count = unit.TweetsCount,
-                                 contents = string.Join("CZTSOM", unit.TweetContents),
-                                 labels = "1",
-                                 x = unit.X,
-                                 y = unit.Y,
-                                 tweetIDs = string.Join("_", unit.TweetIDs)
-                             });
+                                            {
+                                                unitID = unit.UnitID,
+                                                count = unit.TweetsCount,
+                                                contents = unit.TweetContents,
+                                                labels = unit.WordLabels,
+                                                x = unit.X,
+                                                y = unit.Y,
+                                                tweetIDs = unit.TweetIDs
+                                            });
             }
 
             VISData visdata = new VISData()

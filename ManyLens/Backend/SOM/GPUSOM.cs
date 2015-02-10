@@ -45,12 +45,12 @@ namespace ManyLens.SOM
             float[] rmMatrix = grd.RandomMapping(dimensionAfterRM, interval.Dimension);
             interval.RMMatrix = rmMatrix;
 
-            int trainsetSize = 2048;
+            int trainsetSize = interval.TweetsCount;
             float[] trainset = interval.GetTFIDFVector(trainsetSize);
             
             //set the resolution of SOM map
-            int width = 10;
-            int height = 10;
+            int width = 32;
+            int height = 16;
             //set the batch size
             int batch_size = trainsetSize;
             //set the number of iteration

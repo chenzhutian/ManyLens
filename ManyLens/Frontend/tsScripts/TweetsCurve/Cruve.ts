@@ -78,7 +78,7 @@ module ManyLens {
                 ;
 
                 /*---Please register all the client function here---*/
-                this._manyLens.CurveHubRegisterClientFunction(this, "addPoint", this.AddPoint);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
 
             public Render<T>(data: Array<T>): void {
@@ -128,7 +128,7 @@ module ManyLens {
 
 
             public PullInteral(interalID: string):void {
-                this._manyLens.CurveHubServerPullInteral(interalID);
+                this._manyLens.ManyLensHubServerPullInteral(interalID);
             }
 
             public AddPoint(point: Point): void {
@@ -250,7 +250,7 @@ module ManyLens {
 
             private SelectSegment(d:Mark) {
                 if (d.end != null) {
-                    this._manyLens.CurveHubServerPullInteral(d.beg);
+                    this._manyLens.ManyLensHubServerPullInteral(d.beg);
                 }
                 else {
                     console.log("Segmentation hasn't finished yet!");

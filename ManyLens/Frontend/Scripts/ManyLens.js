@@ -10,14 +10,14 @@ var ManyLens;
             return SignalRHub;
         })();
         Hub.SignalRHub = SignalRHub;
-        var CurveHub = (function () {
-            function CurveHub() {
-                this.server = $.connection.curveHub.server;
-                this.client = $.connection.curveHub.client;
+        var ManyLensHub = (function () {
+            function ManyLensHub() {
+                this.server = $.connection.manyLensHub.server;
+                this.client = $.connection.manyLensHub.client;
             }
-            return CurveHub;
+            return ManyLensHub;
         })();
-        Hub.CurveHub = CurveHub;
+        Hub.ManyLensHub = ManyLensHub;
     })(Hub = ManyLens.Hub || (ManyLens.Hub = {}));
 })(ManyLens || (ManyLens = {}));
 var ManyLens;
@@ -162,7 +162,7 @@ var ManyLens;
             };
             SideBarNavigation.prototype.PullData = function () {
                 var _this = this;
-                this._manyLens.CurveHubServerPullPoint("0").done(function () {
+                this._manyLens.ManyLensHubServerPullPoint("0").done(function () {
                     _this._launchDataBtn.classed("disabled", false);
                 });
             };
@@ -223,7 +223,7 @@ var ManyLens;
                 this._x_axis_gen.scale(this._x_scale).ticks(10).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
                 /*---Please register all the client function here---*/
-                this._manyLens.CurveHubRegisterClientFunction(this, "addPoint", this.AddPoint);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
                 get: function () {
@@ -249,7 +249,7 @@ var ManyLens;
                 this._mainView.append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
             };
             Curve.prototype.PullInteral = function (interalID) {
-                this._manyLens.CurveHubServerPullInteral(interalID);
+                this._manyLens.ManyLensHubServerPullInteral(interalID);
             };
             Curve.prototype.AddPoint = function (point) {
                 this._data.push(point);
@@ -336,7 +336,7 @@ var ManyLens;
             };
             Curve.prototype.SelectSegment = function (d) {
                 if (d.end != null) {
-                    this._manyLens.CurveHubServerPullInteral(d.beg);
+                    this._manyLens.ManyLensHubServerPullInteral(d.beg);
                 }
                 else {
                     console.log("Segmentation hasn't finished yet!");
@@ -3296,7 +3296,7 @@ var ManyLens;
             this._lens = new Map();
             this._lens_count = 0;
             /*--------------------------Initial all the hub------------------------------*/
-            this._curve_hub = new _ManyLens.Hub.CurveHub();
+            this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             /*------------------------Initial other Component--------------------------------*/
             this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
             this._nav_sidebar = new _ManyLens.Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this);
@@ -3314,7 +3314,7 @@ var ManyLens;
             /*-------------------------Start the hub-------------------------------------------*/
             _ManyLens.Hub.SignalRHub.HubConnection.start().done(function () {
                 console.log("start connection");
-                _this._curve_hub.server.loadData().done(function () {
+                _this._manyLens_hub.server.loadData().done(function () {
                     console.log("Load data success");
                     _this._nav_sidebar.FinishLoadData();
                 }).fail(function () {
@@ -3362,28 +3362,28 @@ var ManyLens;
             }
         };
         /* -------------------- Curve related Function -----------------------*/
-        ManyLens.prototype.CurveHubRegisterClientFunction = function (obj, funcName, func) {
-            if (!this._curve_hub) {
+        ManyLens.prototype.ManyLensHubRegisterClientFunction = function (obj, funcName, func) {
+            if (!this._manyLens_hub) {
                 console.log("No hub");
-                this._curve_hub = new _ManyLens.Hub.CurveHub();
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            this._curve_hub.client[funcName] = function () {
+            this._manyLens_hub.client[funcName] = function () {
                 func.apply(obj, arguments);
             };
         };
-        ManyLens.prototype.CurveHubServerPullPoint = function (start) {
-            if (!this._curve_hub) {
+        ManyLens.prototype.ManyLensHubServerPullPoint = function (start) {
+            if (!this._manyLens_hub) {
                 console.log("No hub");
-                this._curve_hub = new _ManyLens.Hub.CurveHub();
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._curve_hub.server.pullPoint(start);
+            return this._manyLens_hub.server.pullPoint(start);
         };
-        ManyLens.prototype.CurveHubServerPullInteral = function (id) {
-            if (!this._curve_hub) {
+        ManyLens.prototype.ManyLensHubServerPullInteral = function (id) {
+            if (!this._manyLens_hub) {
                 console.log("No hub");
-                this._curve_hub = new _ManyLens.Hub.CurveHub();
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._curve_hub.server.pullInteral(id);
+            return this._manyLens_hub.server.pullInteral(id);
         };
         return ManyLens;
     })();
@@ -3628,14 +3628,48 @@ var ManyLens;
             __extends(SOMMap, _super);
             function SOMMap(element, manyLens) {
                 _super.call(this, element, manyLens);
+                this._colorPalettes = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)"];
                 this._lensPane = new ManyLens.Pane.ClassicLensPane(element, manyLens);
-                this._manyLens.CurveHubRegisterClientFunction(this, "showVis", this.ShowVis);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
             SOMMap.prototype.Render = function () {
                 this._lensPane.Render();
             };
-            SOMMap.prototype.ShowVis = function (obj) {
-                console.log(obj);
+            SOMMap.prototype.ShowVis = function (visData) {
+                var _this = this;
+                var scale = d3.scale.quantize().domain([visData.min, visData.max]).range(d3.range(this._colorPalettes.length - 1));
+                var data0 = [];
+                visData.unitsData.forEach(function (d) {
+                    var index = scale(d.count);
+                    d.colorIndex = index;
+                    if (data0[index] == null) {
+                        data0[index] = [d.count];
+                    }
+                    else {
+                        data0[index].push(d.count);
+                    }
+                });
+                var somMapWidth = 300.0;
+                var somMapHeight = 300.0;
+                var xPadding = somMapWidth / (visData.width + 1);
+                var yPadding = somMapHeight / (visData.height + 1);
+                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }]).attr("id", function (d) {
+                    return "mapSvg" + d.mapID;
+                }).attr("width", somMapWidth).attr("height", somMapHeight);
+                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("x", function (d, i) {
+                    return d.x * 20;
+                }).attr("y", function (d, i) {
+                    return d.y * 20;
+                }).attr({
+                    width: 20,
+                    height: 20
+                }).attr("fill", function (d) {
+                    //var interpalote = d3.interpolateRgb(this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]);
+                    //var extent = d3.extent<number>(data0[d.colorIndex]);
+                    //return interpalote((d.count - extent[0]) / (extent[1] - extent[0]));
+                    var colorScale = d3.scale.linear().domain(d3.extent(data0[d.colorIndex])).range([_this._colorPalettes[d.colorIndex], _this._colorPalettes[d.colorIndex + 1]]);
+                    return colorScale(d.count);
+                });
             };
             return SOMMap;
         })(ManyLens.D3ChartObject);

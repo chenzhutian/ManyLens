@@ -29,11 +29,11 @@ namespace ManyLens.Models
     {
         public int unitID { set; get; }
         public int count{set;get;}
-        public string contents{set;get;}
-        public string labels{set;get;}
+        public List<string> contents{set;get;}
+        public List<Dictionary<string,Object>> labels{set;get;}
         public int x{set;get;}
         public int y{set;get;}
-        public string tweetIDs{set;get;}
+        public List<string> tweetIDs{set;get;}
 
     }
 
