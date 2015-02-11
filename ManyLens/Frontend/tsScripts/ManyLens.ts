@@ -8,7 +8,7 @@ module ManyLens {
     export class ManyLens {
         private _manyLens_hub: Hub.ManyLensHub;
 
-        private _nav_sideBarView_id: string = "sideBar";
+        private _nav_sideBarView_id: string = "sidebar-nav";
         private _nav_sideBarView: D3.Selection;
         private _nav_sidebar: Navigation.SideBarNavigation;
 
@@ -41,17 +41,17 @@ module ManyLens {
 
 
             /*------------------------Initial other Component--------------------------------*/
-            this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
-            this._nav_sidebar = new Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute",this);
-            this._nav_sidebar.BuildList(null);
+            this._mapSvg = d3.select("#" + this._mapSvg_id);
+            this._mapArea = new MapArea.SOMMap(this._mapSvg, this);
+            this._mapArea.Render();
 
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new TweetsCurve.Curve(this._curveView, this);
             this._curve.Render([10, 10]);
 
-            this._mapSvg = d3.select("#" + this._mapSvg_id);
-            this._mapArea = new MapArea.SOMMap(this._mapSvg, this);
-            this._mapArea.Render();
+            this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
+            this._nav_sidebar = new Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
+            this._nav_sidebar.BuildList(null);
 
             this._historySvg = d3.select("#"+this._historySvg_id);
             this._historyTrees = new LensHistory.HistoryTrees(this._historySvg,this);

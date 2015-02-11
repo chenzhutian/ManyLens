@@ -28,6 +28,9 @@
             constructor(element: D3.Selection, manyLens: ManyLens) {
                 super(element, manyLens);
                 this._lensPane = new Pane.ClassicLensPane(element, manyLens);
+                this._element.attr("height", function () {
+                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                });
 
 
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);

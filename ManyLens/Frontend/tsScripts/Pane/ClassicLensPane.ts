@@ -1,8 +1,6 @@
 ﻿///<reference path = "../D3ChartObject.ts" />
 ///<reference path = "../Lens/LensList.ts" />
 
-
-
 module ManyLens {
     export module Pane {
         interface PaneG {

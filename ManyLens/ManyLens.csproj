@@ -73,6 +73,7 @@
     <Reference Include="StemmersNet">
       <HintPath>..\packages\StemmersNet.1.1.1.0\lib\net20\StemmersNet.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -118,6 +119,7 @@
     <Content Include="Frontend\Fonts\lato\lato-regular.woff" />
     <Content Include="Frontend\Image\icons\png\Thumbs.db" />
     <Content Include="Frontend\Image\login\Thumbs.db" />
+    <Content Include="Frontend\Image\search79.png" />
     <Content Include="Frontend\Image\tile\Thumbs.db" />
     <Content Include="Frontend\Scripts\ManyLens.js" />
     <Content Include="Frontend\testData\us.json" />
@@ -254,7 +256,7 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\WordCloudLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\ManyLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Hub\Hub.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Map\Map.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\MapArea\SOMMap.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Navigation\SideBarNavigation.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\BlossomLensPane.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\ClassicLensPane.ts" />

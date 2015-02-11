@@ -8,8 +8,8 @@ module ManyLens {
             protected _select_circle_svg: D3.Selection;
             protected _select_circle: D3.Selection;
             protected _select_circle_radius: number = 0;
-            protected _select_circle_cx: number = 0;
-            protected _select_circle_cy: number = 0;
+            protected _select_circle_cx: number = -10;
+            protected _select_circle_cy: number = -10;
             protected _select_circle_scale: number = 1;
             protected _select_circle_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _select_circle_drag: D3.Behavior.Drag = d3.behavior.drag();
@@ -96,6 +96,10 @@ module ManyLens {
                     .attr("fill-opacity", 0.7)
                     .attr("stroke", "black")
                     .attr("stroke-width", 1)
+                    .attr({
+                        cx: -50,
+                        cy:-50
+                    })
                     .on("mouseup", (d) => {
                         if (!this._has_put_down) {
                             this._has_put_down = true;
@@ -126,7 +130,6 @@ module ManyLens {
                         .attr("cy", p[1])
                     ;
                 }
-
             }
 
             protected ExtractData(): any {

@@ -25,19 +25,20 @@ var ManyLens;
     var Navigation;
     (function (Navigation) {
         var SideBarNavigation = (function () {
-            function SideBarNavigation(element, brandName, manyLens) {
+            function SideBarNavigation(element, brandName, mapSvg, manyLens) {
                 var _this = this;
                 /*-----------------Data menu-----------------*/
                 this._isLoaded = false;
                 this._element = element;
                 this._manyLens = manyLens;
                 this._brand_name = brandName;
+                this._map_Svg = mapSvg;
                 this._launchDataBtn = this._element.append("button").attr({
                     type: "button",
                     class: "btn btn-success btn-block disabled"
                 }).style({
-                    "margin-top": "50px",
-                    "margin-bottom": "70px"
+                    "margin-top": "30px",
+                    "margin-bottom": "90px"
                 }).text("Launch").on("click", function () {
                     _this._launchDataBtn.classed("disabled", true);
                     _this.PullData();
@@ -55,7 +56,20 @@ var ManyLens;
                             icon: "fui-html5",
                             children: [
                                 {
-                                    name: "Tweet Length"
+                                    name: "Tweet Length",
+                                    lensConstructFunc: ManyLens.Lens.PieChartLens
+                                },
+                                {
+                                    name: "Hashtag Count",
+                                    lensConstructFunc: ManyLens.Lens.PieChartLens
+                                },
+                                {
+                                    name: "Url Count",
+                                    lensConstructFunc: ManyLens.Lens.PieChartLens
+                                },
+                                {
+                                    name: "@Mention Count",
+                                    lensConstructFunc: ManyLens.Lens.PieChartLens
                                 }
                             ]
                         },
@@ -64,7 +78,8 @@ var ManyLens;
                             icon: "fui-foursquare",
                             children: [
                                 {
-                                    name: "Keywords"
+                                    name: "Keywords",
+                                    lensConstructFunc: ManyLens.Lens.WordCloudLens
                                 }
                             ]
                         },
@@ -73,38 +88,29 @@ var ManyLens;
                             icon: "fui-windows-8",
                             children: [
                                 {
-                                    name: "New Service1"
-                                },
-                                {
-                                    name: "New Service2"
-                                },
-                                {
-                                    name: "New Service3"
+                                    name: "New Service1",
+                                    lensConstructFunc: ManyLens.Lens.NetworkLens
                                 }
                             ]
                         },
                         {
-                            name: "New",
+                            name: "Map",
                             icon: "fui-mail",
                             children: [
-                                { name: "New New 1" },
+                                {
+                                    name: "New New 1",
+                                    lensConstructFunc: ManyLens.Lens.MapLens
+                                },
                                 { name: "New New 2" },
                                 { name: "New New 3" }
                             ]
-                        },
-                        {
-                            name: "Profile",
-                            icon: "fui-android"
-                        },
-                        {
-                            name: "User",
-                            icon: "fui-google-plus"
                         }
                     ]
                 };
                 return data;
             };
             SideBarNavigation.prototype.BuildList = function (listData) {
+                var _this = this;
                 this._menu_list_data = listData;
                 if (!this._menu_list_data) {
                     this._menu_list_data = this.DemoData();
@@ -127,9 +133,12 @@ var ManyLens;
                     if (sub_menu) {
                         li.select("div").append("span").attr("class", "arrow fui-triangle-down");
                         var ul = li.append("ul").attr("class", "sub-menu collapse").attr("id", menuList[i].name.replace(" ", "-"));
-                        for (var j = 0, submenu_len = sub_menu.length; j < submenu_len; ++j) {
-                            ul.append("li").text(sub_menu[j].name); //.append("a").attr("href", "#")
-                        }
+                        ul.selectAll("li").data(sub_menu).enter().append("li").text(function (d) {
+                            return d.name;
+                        }).on("click", function (d) {
+                            var len = new d.lensConstructFunc(_this._map_Svg, _this._manyLens);
+                            len.Render("red");
+                        });
                     }
                 }
             };
@@ -184,7 +193,6 @@ var ManyLens;
                 this._y_axis_gen = d3.svg.axis();
                 this._section_num = 100;
                 this._view_height = 130;
-                this._view_width = d3.select("#mainView").node().clientWidth - 15;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
@@ -195,6 +203,7 @@ var ManyLens;
                     id: null,
                     type: 2
                 };
+                this._view_width = parseFloat(this._element.style("width"));
                 this._x_scale.domain([0, this._section_num]).range([this._view_left_padding, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
                 this._x_axis_gen.scale(this._x_scale).ticks(0).orient("bottom");
@@ -224,7 +233,7 @@ var ManyLens;
                 this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
                 this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
-                this._mainView.append("path").attr('stroke', 'blue').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
+                this._mainView.append("path").attr('stroke', 'rgb(31, 145, 189)').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
             };
             Curve.prototype.PullInteral = function (interalID) {
                 this._manyLens.ManyLensHubServerPullInteral(interalID);
@@ -344,6 +353,9 @@ var ManyLens;
             function HistoryTrees(element, manyLens) {
                 _super.call(this, element, manyLens);
                 this._trees = [];
+                this._element.attr("height", function () {
+                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                });
             }
             HistoryTrees.prototype.Render = function () {
             };
@@ -690,7 +702,6 @@ var ManyLens;
             BaseD3Lens.prototype.RemoveLens = function () {
                 this._lens_circle_svg.attr("opacity", "1").style("pointer-events", "none").transition().duration(200).attr("opacity", "1e-6").remove();
             };
-            BaseD3Lens.Type = "BaseD3Lens";
             return BaseD3Lens;
         })(ManyLens.D3ChartObject);
         Lens.BaseD3Lens = BaseD3Lens;
@@ -706,8 +717,8 @@ var ManyLens;
             function BaseSingleLens(element, type, manyLens) {
                 _super.call(this, element, type, manyLens);
                 this._select_circle_radius = 0;
-                this._select_circle_cx = 0;
-                this._select_circle_cy = 0;
+                this._select_circle_cx = -10;
+                this._select_circle_cy = -10;
                 this._select_circle_scale = 1;
                 this._select_circle_zoom = d3.behavior.zoom();
                 this._select_circle_drag = d3.behavior.drag();
@@ -781,7 +792,10 @@ var ManyLens;
                 this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
                 this._select_circle_svg = this._sc_lc_svg.append("g").attr("class", "select-circle");
                 var selectCircle = this._select_circle = this._select_circle_svg.append("circle").data([{ x: this._select_circle_cx, y: this._select_circle_cy }]);
-                selectCircle.attr("r", this._select_circle_radius).attr("fill", color).attr("fill-opacity", 0.7).attr("stroke", "black").attr("stroke-width", 1).on("mouseup", function (d) {
+                selectCircle.attr("r", this._select_circle_radius).attr("fill", color).attr("fill-opacity", 0.7).attr("stroke", "black").attr("stroke-width", 1).attr({
+                    cx: -50,
+                    cy: -50
+                }).on("mouseup", function (d) {
                     if (!_this._has_put_down) {
                         _this._has_put_down = true;
                         d.x = _this._select_circle_cx = parseFloat(selectCircle.attr("cx"));
@@ -3302,7 +3316,7 @@ var ManyLens;
     var ManyLens = (function () {
         function ManyLens() {
             var _this = this;
-            this._nav_sideBarView_id = "sideBar";
+            this._nav_sideBarView_id = "sidebar-nav";
             this._curveView_id = "curveView";
             this._mapSvg_id = "mapSvg";
             this._historyView_id = "historyView";
@@ -3313,15 +3327,15 @@ var ManyLens;
             /*--------------------------Initial all the hub------------------------------*/
             this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             /*------------------------Initial other Component--------------------------------*/
-            this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
-            this._nav_sidebar = new _ManyLens.Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this);
-            this._nav_sidebar.BuildList(null);
-            this._curveView = d3.select("#" + this._curveView_id);
-            this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
-            this._curve.Render([10, 10]);
             this._mapSvg = d3.select("#" + this._mapSvg_id);
             this._mapArea = new _ManyLens.MapArea.SOMMap(this._mapSvg, this);
             this._mapArea.Render();
+            this._curveView = d3.select("#" + this._curveView_id);
+            this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
+            this._curve.Render([10, 10]);
+            this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
+            this._nav_sidebar = new _ManyLens.Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
+            this._nav_sidebar.BuildList(null);
             this._historySvg = d3.select("#" + this._historySvg_id);
             this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg, this);
             //Add a new tree here, actually the tree should not be add here
@@ -3645,6 +3659,9 @@ var ManyLens;
                 _super.call(this, element, manyLens);
                 this._colorPalettes = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)"];
                 this._lensPane = new ManyLens.Pane.ClassicLensPane(element, manyLens);
+                this._element.attr("height", function () {
+                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                });
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
             SOMMap.prototype.Render = function () {

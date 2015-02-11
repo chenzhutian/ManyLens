@@ -1,6 +1,6 @@
 ﻿html, body {
-    background-color: #f7f7f7;
     height: 100%;
+    background-color: #E8E9EE;
     -moz-user-select: -moz-none;
     -khtml-user-select: none;
     -webkit-user-select: none;
@@ -8,78 +8,120 @@
     user-select: none;
 }
 
-/*-----------Adaptive row height------------*/
-.container-fluid {
-    height:100%;
-}
-.row-1 {
-    height: 8.33333333%;
-}
-.row-2 {
-    height:16.66666667%;
-}
-.row-3 {
-    height:25%;
-}
-.row-4 {
-    height: 33.33333333%;
-}
-.row-5 {
-    height:41.66666667%;
-}
-.row-6 {
-    height:50%;
-}
-.row-7 {
-    height:58.33333333%;
-}
-.row-8 {
-    height:66.66666667%;
-}
-.row-9 {
-    height:75%;
-}
-.row-10 {
-    height:83.33333333%;
-}
-.row-11 {
-    height:91.66666667%;
-}
-.row-115 {
-    height:93%
-}
-.row-12 {
-    height:100%;
+div.wrapper {
+    height: 100%;
 }
 
-div#mapView {
-   /*height: 100%;*/
-    background-color: #fff;
+div#page-content {
+    margin-left: 180px;
+    padding-top: 50px;
 }
-
-div#tweetsView {
-    /*height:70%;*/
-}
-
-div#historyView {
-    /*height:30%;*/
-}
-
+/*----------Maybe delete later------------------*/
 circle.pane-Lens-Circle:hover {
     opacity: 0.7;
     stroke: #0593fa;
     stroke-width: 2px;
 }
 
+/*------------Define each view------------------*/
+.view-title {
+    text-align:center;
+    border: none;
+    border-radius: 0;
+}
+
+.view-title-md-red {
+    font-size:20px;
+    color:#fff;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background: #E9573F;
+}
+.view-title-lg-yellow {
+    padding-top: 30px;
+    padding-bottom: 5px;
+    background: #F6BB42;
+}
+
+.view-title-lg-yellow .glyphicon {
+    font-size:80px;
+}
+.view-title-lg-yellow p {
+    font-size:30px;
+    margin:0 0 5px;
+}
+
+
+
+.view-title-sm-green {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background: #58d68d;
+}
+
+.view {
+    height: 100%;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0);
+    margin-top: 20px;
+}
+
+
+div#mapView {
+    background-color: #fff;
+}
+
+div#historyView {
+    background-color: #fff;
+    height: 60%;
+}
+/*---------------tweets view-------------*/
+div#tweetsView {
+    background-color: #fff;
+    max-height: 37%;
+}
+
+.list-group {
+    margin-bottom: 0px;
+}
+
+.list-group-item {
+    border: none;
+    margin-bottom: 0px;
+    border-bottom: 1px solid #ddd;
+}
+
+    .list-group-item:first-child {
+        border-radius: 0;
+    }
+
+    .list-group-item:last-child {
+        border-radius: 0;
+        border-bottom: none;
+    }
+
+.pagination {
+    margin: 0px;
+}
 
 /*-----------curve view------------*/
+div#curveView {
+    background-color: #3BAFDA;
+}
+
+/*rgb(31, 145, 189);*/
 .curve.axis path,
 .curve.axis line {
     fill: none;
-    stroke: #000;
+    stroke: #fff;
     shape-rendering: crispEdges;
 }
 
+.curve.axis text {
+    fill:#fff;
+    font-size: 12px;
+}
 
 /*-----------MapLens------------*/
 #states {
@@ -101,14 +143,17 @@ circle.pane-Lens-Circle:hover {
 
 /*-----------sidebar nav------------*/
 .nav-side-menu {
-    /*width: 100px;*/
+    background-color: #f7f7f7;
+    overflow: hidden;
+    outline: none;
+    position: fixed;
     height: 100%;
-    float: left;
-    font-weight: 300;
-    font-size: 12px;
-    margin: 0em;
-    /*padding-top: 5.8em;*/
+    width: 180px;
+    padding-top: 100px;
+    padding-left: 15px;
+    padding-right: 15px;
     border-right: 1px solid #dae3e9;
+    font-size: 13px;
 }
 
     .nav-side-menu .nav-brand {
@@ -148,16 +193,16 @@ circle.pane-Lens-Circle:hover {
         border-bottom: 1px solid #dae1e8;
     }
 
-        .nav-side-menu .menu-list li  {
-            /*text-decoration: none;*/
-            color: #6e829b;
-        }
+    .nav-side-menu .menu-list li {
+        /*text-decoration: none;*/
+        color: #6e829b;
+    }
 
-            .nav-side-menu .menu-list li  i {
-                padding-left: 10px;
-                width: 20px;
-                padding-right: 5px;
-            }
+        .nav-side-menu .menu-list li i {
+            padding-left: 10px;
+            width: 20px;
+            padding-right: 5px;
+        }
 
         .nav-side-menu .menu-list ul:not(collapsed) .arrow:before,
         .nav-side-menu .menu-list li:not(collapsed) .arrow:before {
@@ -205,3 +250,61 @@ circle.pane-Lens-Circle:hover {
     .nav-side-menu .menu-list .menu-content {
         display: block;
     }
+
+
+/*-----------Adaptive row height------------*/
+.container-fluid {
+    height: 100%;
+}
+
+.row-1 {
+    height: 8.33333333%;
+}
+
+.row-2 {
+    height: 16.66666667%;
+}
+
+.row-3 {
+    height: 25%;
+}
+
+.row-4 {
+    height: 33.33333333%;
+}
+
+.row-5 {
+    height: 41.66666667%;
+}
+
+.row-6 {
+    height: 50%;
+}
+
+.row-7 {
+    height: 58.33333333%;
+}
+
+.row-8 {
+    height: 66.66666667%;
+}
+
+.row-9 {
+    height: 75%;
+}
+
+.row-10 {
+    height: 83.33333333%;
+}
+
+.row-11 {
+    height: 91.66666667%;
+}
+
+.row-115 {
+    height: 93%;
+}
+
+.row-12 {
+    height: 100%;
+}
