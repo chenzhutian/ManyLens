@@ -51,48 +51,25 @@ var ManyLens;
                     icon: null,
                     children: [
                         {
-                            name: "Dashboard",
+                            name: "Annulus Chart",
                             icon: "fui-html5",
-                            children: null
-                        },
-                        {
-                            name: "UI",
-                            icon: "fui-foursquare",
                             children: [
                                 {
-                                    name: "CSS3 Animation"
-                                },
-                                {
-                                    name: "General"
-                                },
-                                {
-                                    name: "Buttons"
-                                },
-                                {
-                                    name: "Tabs&Accordions"
-                                },
-                                {
-                                    name: "Typography"
-                                },
-                                {
-                                    name: "FontAwesome"
-                                },
-                                {
-                                    name: "Slider"
-                                },
-                                {
-                                    name: "Panels"
-                                },
-                                {
-                                    name: "Widgets"
-                                },
-                                {
-                                    name: "Bootstrap Models"
+                                    name: "Tweet Length"
                                 }
                             ]
                         },
                         {
-                            name: "Server",
+                            name: "Text",
+                            icon: "fui-foursquare",
+                            children: [
+                                {
+                                    name: "Keywords"
+                                }
+                            ]
+                        },
+                        {
+                            name: "Network",
                             icon: "fui-windows-8",
                             children: [
                                 {
@@ -135,7 +112,7 @@ var ManyLens;
                 var menuList = this._menu_list_data.children;
                 for (var i = 0, menu_len = menuList.length; i < menu_len; ++i) {
                     var sub_menu = menuList[i].children;
-                    var li = this._menu_list.append("li").attr("class", "panel").html('<div data-target=#' + menuList[i].name + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed"><a href="#"><i class="' + menuList[i].icon + '"></i>' + menuList[i].name + '</a></div>');
+                    var li = this._menu_list.append("li").attr("class", "panel").html('<div data-target=#' + menuList[i].name.replace(" ", "-") + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed"><i class="' + menuList[i].icon + '"></i>' + menuList[i].name + '</div>');
                     //add high light function
                     li.select("div").on("click", function () {
                         d3.event.preventDefault();
@@ -148,10 +125,10 @@ var ManyLens;
                         }
                     });
                     if (sub_menu) {
-                        li.select("a").append("span").attr("class", "arrow fui-triangle-down");
-                        var ul = li.append("ul").attr("class", "sub-menu collapse").attr("id", menuList[i].name);
+                        li.select("div").append("span").attr("class", "arrow fui-triangle-down");
+                        var ul = li.append("ul").attr("class", "sub-menu collapse").attr("id", menuList[i].name.replace(" ", "-"));
                         for (var j = 0, submenu_len = sub_menu.length; j < submenu_len; ++j) {
-                            ul.append("li").append("a").attr("href", "#").text(sub_menu[j].name);
+                            ul.append("li").text(sub_menu[j].name); //.append("a").attr("href", "#")
                         }
                     }
                 }
@@ -206,10 +183,10 @@ var ManyLens;
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
                 this._section_num = 100;
-                this._view_height = 150;
+                this._view_height = 130;
                 this._view_width = d3.select("#mainView").node().clientWidth - 15;
                 this._view_top_padding = 15;
-                this._view_botton_padding = 20;
+                this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
                 this._data = new Array();
@@ -220,7 +197,7 @@ var ManyLens;
                 };
                 this._x_scale.domain([0, this._section_num]).range([this._view_left_padding, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
-                this._x_axis_gen.scale(this._x_scale).ticks(10).orient("bottom");
+                this._x_axis_gen.scale(this._x_scale).ticks(0).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
@@ -241,7 +218,8 @@ var ManyLens;
                 _super.prototype.Render.call(this, data);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
-                this._curveSvg = this._element.append("svg").attr("width", this._view_width).attr("height", this._view_height);
+                this._element.select(".progress").style("display", "none");
+                this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", coordinate_view_height).attr("x", this._view_left_padding).attr("y", this._view_top_padding);
                 this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
                 this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
@@ -335,8 +313,17 @@ var ManyLens;
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
+                var _this = this;
                 if (d.end != null) {
-                    this._manyLens.ManyLensHubServerPullInteral(d.beg);
+                    this._curveSvg.style("margin-bottom", "0px");
+                    this._element.select(".progress").style("display", "block");
+                    this._manyLens.ManyLensHubServerPullInteral(d.beg).progress(function (percent) {
+                        _this._element.select(".progress-bar").style("width", percent * 100 + "%");
+                    }).done(function () {
+                        _this._element.select(".progress-bar").style("width", 0);
+                        _this._element.select(".progress").style("display", "none");
+                        _this._curveSvg.style("margin-bottom", "17px");
+                    });
                 }
                 else {
                     console.log("Segmentation hasn't finished yet!");
@@ -1445,6 +1432,8 @@ var ManyLens;
                 for (var i = 0, len = eles.length; i < len; ++i) {
                     eles[i].style("visibility", "");
                 }
+                if (!res)
+                    return null;
                 data = (d3.select(res).data()[0]).labels;
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
                     return d.value;
@@ -1453,6 +1442,8 @@ var ManyLens;
             };
             WordCloudLens.prototype.DisplayLens = function (data) {
                 var _this = this;
+                if (data == null)
+                    return;
                 _super.prototype.DisplayLens.call(this, data);
                 this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                     return _this._font_size(d.value);
@@ -3240,7 +3231,7 @@ var ManyLens;
             ClassicLensPane.prototype.OpenPane = function () {
                 var _this = this;
                 var container = this._element;
-                var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("class", "lensPane").attr("transform", "translate(" + [10, 10] + ")").call(this._drag);
+                var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("class", "lensPane").attr("transform", "translate(" + [this._pang_g.x, this._pang_g.y] + ")").call(this._drag);
                 pane_g.append("rect").attr("x", 0).attr("y", 0).attr("width", this._pang_g.rect_width).attr("height", this._pang_g.rect_height).attr("fill", "#fff7bc").attr("stroke", "pink").attr("stroke-width", 2);
                 pane_g.selectAll("circle").data(d3.range(this._lens_count)).enter().append("circle").attr("class", "pane-Lens-Circle").attr("r", this._pang_g.lens_icon_r).attr("cx", this._pang_g.rect_width / 2).attr("cy", function (d, i) {
                     return _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding + i * (2 * _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding);
@@ -3662,6 +3653,7 @@ var ManyLens;
             SOMMap.prototype.ShowVis = function (visData) {
                 var _this = this;
                 var scale = d3.scale.quantize().domain([visData.min, visData.max]).range(d3.range(this._colorPalettes.length - 1));
+                console.log(visData.min, visData.max);
                 var data0 = [];
                 visData.unitsData.forEach(function (d) {
                     var index = scale(d.count);
@@ -3673,6 +3665,7 @@ var ManyLens;
                         data0[index].push(d.count);
                     }
                 });
+                console.log(data0);
                 var somMapWidth = 300.0;
                 var somMapHeight = 300.0;
                 var xPadding = somMapWidth / (visData.width + 1);

@@ -63,7 +63,7 @@ module ManyLens {
 
                 var pane_g = this._pang_g.svg_g.data([this._pang_g])
                     .attr("class", "lensPane")
-                    .attr("transform", "translate(" + [10, 10] + ")")
+                    .attr("transform", "translate(" + [this._pang_g.x, this._pang_g.y] + ")")
                     .call(this._drag);
 
                 pane_g.append("rect")

@@ -58,47 +58,25 @@
                     icon: null,
                     children: [
                         {
-                            name: "Dashboard",
+                            name: "Annulus Chart",
                             icon: "fui-html5",
-                            children: null
+                            children: [
+                                {
+                                    name: "Tweet Length"
+                                }
+                            ]
                         },
                         {
-                            name: "UI",
+                            name: "Text",
                             icon: "fui-foursquare",
                             children: [
                                 {
-                                    name: "CSS3 Animation"
-                                },
-                                {
-                                    name: "General"
-                                },
-                                {
-                                    name: "Buttons"
-                                },
-                                {
-                                    name: "Tabs&Accordions"
-                                },
-                                {
-                                    name: "Typography"
-                                },
-                                {
-                                    name: "FontAwesome"
-                                },
-                                {
-                                    name: "Slider"
-                                },
-                                {
-                                    name: "Panels"
-                                },
-                                {
-                                    name: "Widgets"
-                                },
-                                {
-                                    name: "Bootstrap Models"
-                                }]
+                                    name: "Keywords"
+                                }
+                            ]
                         },
                         {
-                            name: "Server",
+                            name: "Network",
                             icon: "fui-windows-8",
                             children: [
                                 {
@@ -145,7 +123,7 @@
                     var sub_menu: Array<MenuListData> = menuList[i].children;
                     var li = this._menu_list.append("li")
                         .attr("class", "panel")
-                        .html('<div data-target=#' + menuList[i].name + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed"><a href="#"><i class="' + menuList[i].icon + '"></i>' + menuList[i].name + '</a></div>')
+                        .html('<div data-target=#' + menuList[i].name.replace(" ","-") + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed"><i class="' + menuList[i].icon + '"></i>' + menuList[i].name + '</div>')
                     ;
                     //add high light function
                     li.select("div").on("click", function () {
@@ -159,13 +137,13 @@
                     });
 
                     if (sub_menu) {
-                        li.select("a").append("span").attr("class","arrow fui-triangle-down")
+                        li.select("div").append("span").attr("class","arrow fui-triangle-down")
                         var ul = li.append("ul")
                             .attr("class", "sub-menu collapse")
-                            .attr("id", menuList[i].name);
+                            .attr("id", menuList[i].name.replace(" ","-"));
 
                         for (var j = 0, submenu_len = sub_menu.length; j < submenu_len; ++j) {
-                            ul.append("li").append("a").attr("href", "#").text(sub_menu[j].name);
+                            ul.append("li").text(sub_menu[j].name);//.append("a").attr("href", "#")
                         }
                     }
 

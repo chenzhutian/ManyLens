@@ -149,9 +149,10 @@
 
         interface IManyLensHubServer {
             loadData(): IPromise<void>;
-
             pullPoint(start: string): IPromise<void>;
             pullInteral(interalID: string): IPromise<void>;
+
+
             reOrganize(visMapID: string, selectedUnits: Array<any>): IPromise<void>;
             moveTweets(visMapID: string, fromUnitsID: Array<any>, toUnitsID: Array<any>): IPromise<void>;
             doLongRunningThing(): IPromise<void>;

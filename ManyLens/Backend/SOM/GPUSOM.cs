@@ -55,7 +55,7 @@ namespace ManyLens.SOM
             int batch_size = trainsetSize;
             //set the number of iteration
             int iteration = 20;
-            float lambda = 0.05f;
+            float lambda = 0.03f;
             float iterD = 1f;
 
             Debug.WriteLine("Let's have SOM");

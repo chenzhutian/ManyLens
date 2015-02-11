@@ -113,8 +113,9 @@ module ManyLens {
                 for (var i = 0, len = eles.length; i < len; ++i) {
                     eles[i].style("visibility", "");
                 }
-                data = (d3.select(res).data()[0]).labels;
+                if (!res) return null;
 
+                data = (d3.select(res).data()[0]).labels;
                 this._font_size
                     .range([10, this._cloud_w / 8])
                     .domain(d3.extent(data, function (d) { return d.value; }))
@@ -124,6 +125,8 @@ module ManyLens {
             }
 
             public DisplayLens(data: Array<any>): any {
+                if (data == null)
+                    return;
                 super.DisplayLens(data);
 
                 this._cloud.size([this._cloud_w, this._cloud_h])

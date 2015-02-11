@@ -148,12 +148,12 @@ circle.pane-Lens-Circle:hover {
         border-bottom: 1px solid #dae1e8;
     }
 
-        .nav-side-menu .menu-list li a {
+        .nav-side-menu .menu-list li  {
             /*text-decoration: none;*/
             color: #6e829b;
         }
 
-            .nav-side-menu .menu-list li a i {
+            .nav-side-menu .menu-list li  i {
                 padding-left: 10px;
                 width: 20px;
                 padding-right: 5px;

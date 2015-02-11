@@ -2404,6 +2404,7 @@ fieldset[disabled] .input-group-btn .btn-default.active {
 .progress {
   height: 12px;
   background: #ebedef;
+  margin-bottom : 5px;
   border-radius: 32px;
   box-shadow: none;
   }

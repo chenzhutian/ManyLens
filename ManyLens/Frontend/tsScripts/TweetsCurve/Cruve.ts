@@ -29,10 +29,10 @@ module ManyLens {
             private _y_axis: D3.Selection;
 
             private _section_num: number = 100;
-            private _view_height: number = 150;
+            private _view_height: number = 130;
             private _view_width: number = d3.select("#mainView").node().clientWidth - 15;
             private _view_top_padding: number = 15;
-            private _view_botton_padding: number = 20;
+            private _view_botton_padding: number = 5;
             private _view_left_padding: number = 50;
             private _view_right_padding: number = 50;
 
@@ -68,7 +68,7 @@ module ManyLens {
                 ;
                 this._x_axis_gen
                     .scale(this._x_scale)
-                    .ticks(10)
+                    .ticks(0)
                     .orient("bottom")
                 ;
                 this._y_axis_gen
@@ -85,10 +85,11 @@ module ManyLens {
                 super.Render(data);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
-
-                this._curveSvg = this._element.append("svg")
+                this._element.select(".progress").style("display", "none");
+                this._curveSvg = this._element.insert("svg",":first-child")
                     .attr("width", this._view_width)
                     .attr("height", this._view_height)
+                    .style("margin-bottom","17px")
                 ;
 
                 this._curveSvg.append("defs").append("clipPath")
@@ -250,7 +251,21 @@ module ManyLens {
 
             private SelectSegment(d:Mark) {
                 if (d.end != null) {
-                    this._manyLens.ManyLensHubServerPullInteral(d.beg);
+                    this._curveSvg.style("margin-bottom","0px")
+                    this._element.select(".progress").style("display", "block");
+                    this._manyLens.ManyLensHubServerPullInteral(d.beg)
+                        .progress((percent) => {
+                                this._element.select(".progress-bar")
+                                .style("width",percent*100+"%")
+                            ;
+                        })
+                        .done(() => {
+                            this._element.select(".progress-bar")
+                                .style("width", 0)
+                            ;
+                            this._element.select(".progress").style("display", "none");
+                            this._curveSvg .style("margin-bottom", "17px")
+                        });
                 }
                 else {
                     console.log("Segmentation hasn't finished yet!");

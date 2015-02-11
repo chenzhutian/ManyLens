@@ -39,6 +39,7 @@
 
             public ShowVis(visData: MapData): void {
                 var scale = d3.scale.quantize().domain([visData.min, visData.max]).range(d3.range(this._colorPalettes.length - 1));
+                console.log(visData.min, visData.max);
                 var data0 = [];
                 visData.unitsData.forEach(function (d) {
                     var index = scale(d.count);
@@ -50,7 +51,7 @@
                     }
                 });
 
-
+                console.log(data0);
                 var somMapWidth = 300.0;
                 var somMapHeight = 300.0;
 

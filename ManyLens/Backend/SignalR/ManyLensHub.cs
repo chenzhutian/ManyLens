@@ -233,6 +233,54 @@ namespace ManyLens.SignalR
                 visMap = GPUSOM.TweetSOM(interal, rootFolder);
                 visMaps.Add(visMap.VisMapID, visMap);
             }
+
+            VISData visData = visMap.GetVisData();
+            System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
+            sw.WriteLine("{");
+            sw.WriteLine("'mapID':" + visData.mapID + ",");
+            sw.WriteLine("'width':" + visData.width + ",");
+            sw.WriteLine("'height':" + visData.height + ",");
+            sw.WriteLine("'max':" + visData.max + ",");
+            sw.WriteLine("'min':" + visData.min + ",");
+            sw.WriteLine("'unitsData':[");
+            foreach (UnitsData u in visData.unitsData)
+            {
+
+                sw.WriteLine("{'unitID':" + u.unitID + ",");
+                sw.WriteLine("'count':" + u.count + ",");
+                sw.WriteLine("'x':" + u.x + ",");
+                sw.WriteLine("'y':" + u.y + ",");
+                sw.WriteLine("'contents':[");
+                for (int i = 0, len = u.contents.Count; i < len; ++i)
+                {
+                    if (i != len - 1)
+                        sw.WriteLine(u.contents[i] + ",");
+                    else
+                        sw.WriteLine(u.contents[i] + "],");
+                }
+                sw.WriteLine("'tweetIDs':[");
+                for (int i = 0, len = u.tweetIDs.Count; i < len; ++i)
+                {
+                    if (i != len - 1)
+                        sw.WriteLine(u.tweetIDs[i] + ",");
+                    else
+                        sw.WriteLine(u.tweetIDs[i] + "],");
+                }
+                sw.WriteLine("'labels':[");
+                for (int i = 0, len = u.labels.Count; i < len; ++i)
+                {
+                    if (i != len - 1)
+                    {
+                        sw.WriteLine("{'text':" + u.labels[i]["text"] + ",'value':" + u.labels[i]["value"] + "},");
+                    }
+                    else
+                        sw.WriteLine("{'text':" + u.labels[i]["text"] + ",'value':" + u.labels[i]["value"] + "}]");
+                }
+                sw.WriteLine("},");
+            }
+            sw.WriteLine("]}");
+            sw.Close();
+
             Clients.Caller.showVIS(visMap.GetVisData());
         }
 
@@ -296,7 +344,7 @@ namespace ManyLens.SignalR
                 }
                 closetUnit.AddTweet(rawTweets[i], rawTrainVector);
             }
-
+    
             Clients.Caller.reDrawSOMMap(visMap.GetVisData());
         }
 
