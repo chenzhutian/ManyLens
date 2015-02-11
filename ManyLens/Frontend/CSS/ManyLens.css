@@ -16,6 +16,28 @@ div#page-content {
     margin-left: 180px;
     padding-top: 50px;
 }
+
+/*-------------------top menu------------------*/
+.navbar-header {
+    text-align:center;
+    width:180px;
+    height:48px;
+    padding-top:5px;
+}
+
+.navbar-brand {
+    float:none;
+    font-size:33px;
+}
+    .navbar-brand i {
+        padding-right:4px;
+    }
+
+.navbar-form {
+    padding-top:7px;
+    padding-bottom:7px;
+}
+
 /*----------Maybe delete later------------------*/
 circle.pane-Lens-Circle:hover {
     opacity: 0.7;
@@ -56,7 +78,7 @@ circle.pane-Lens-Circle:hover {
 .view-title-sm-green {
     padding-top: 10px;
     padding-bottom: 10px;
-    background: #58d68d;
+    background: #1abc9c;
 }
 
 .view {
@@ -81,6 +103,7 @@ div#tweetsView {
     background-color: #fff;
     max-height: 37%;
 }
+
 
 .list-group {
     margin-bottom: 0px;
@@ -108,6 +131,13 @@ div#tweetsView {
 /*-----------curve view------------*/
 div#curveView {
     background-color: #3BAFDA;
+}
+
+.progress {
+    border-radius:0px;
+}
+.progress-bar {
+    background-color:#3BAFDA;
 }
 
 /*rgb(31, 145, 189);*/

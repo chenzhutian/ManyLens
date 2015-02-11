@@ -35,7 +35,7 @@
                 this._launchDataBtn = this._element.append("button")
                     .attr({
                         type: "button",
-                        class: "btn btn-success btn-block disabled"
+                        class: "btn btn-primary btn-block disabled"
                     })
                     .style({
                         "margin-top": "30px",
