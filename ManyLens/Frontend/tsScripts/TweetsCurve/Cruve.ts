@@ -30,7 +30,7 @@ module ManyLens {
 
             private _section_num: number = 100;
             private _view_height: number = 130;
-            private _view_width: number = d3.select("#mainView").node().clientWidth - 15;
+            private _view_width: number;
             private _view_top_padding: number = 15;
             private _view_botton_padding: number = 5;
             private _view_left_padding: number = 50;
@@ -57,6 +57,8 @@ module ManyLens {
                     id: null,
                     type: 2
                 };
+
+                this._view_width = parseFloat(this._element.style("width"));
 
                 this._x_scale
                     .domain([0, this._section_num])
@@ -119,7 +121,7 @@ module ManyLens {
                     .attr("id", "curve.mainView")
                 ;
                 this._mainView.append("path")
-                    .attr('stroke', 'blue')
+                    .attr('stroke', 'rgb(31, 145, 189)')
                     .attr('stroke-width', 2)
                     .attr('fill', 'none')
                     .attr("id", "path")

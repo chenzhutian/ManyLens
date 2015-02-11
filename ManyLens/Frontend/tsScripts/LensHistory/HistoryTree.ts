@@ -22,7 +22,12 @@ module ManyLens {
             private _trees: Array<HistoryTree> = [];
 
             constructor(element: D3.Selection, manyLens:ManyLens) {
-                super(element,manyLens);
+                super(element, manyLens);
+                this._element.attr("height", function () {
+                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                });
+
+
             }
 
             public Render() {

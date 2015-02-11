@@ -3,8 +3,6 @@ module ManyLens {
     export module Lens {
         export class BaseD3Lens extends D3ChartObject{
 
-            public static Type: string = "BaseD3Lens";
-
             protected _id: string;
             protected _type: string;
             protected _lens_type_color: string;
