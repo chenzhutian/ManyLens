@@ -9,12 +9,11 @@ namespace ManyLens.Preprocessing
 {
     public class TweetsVectorizer
     {
-        public async static Task VectorizeEachTweet(TweetSet tweetSet,IProgress<double> progress)
+        public async static Task VectorizeEachTweet(Interval interval,IProgress<double> progress)
         {
-            if (tweetSet.HasVectorized)
+            if (interval.HasVectorized)
                 return;
 
-            //List<Tweet> tweets = tweetSet.Tweets;
             Dictionary<string,int> vocabulary = new Dictionary<string,int>();
             Dictionary<string,int> dfOfWords = new Dictionary<string,int>();
             Dictionary<string,int> idOfWords = new Dictionary<string,int>();
@@ -22,11 +21,11 @@ namespace ManyLens.Preprocessing
 
             await Task.Run(() => 
             {
-                int tweetsCount = tweetSet.TweetsCount;
+                int tweetsCount = interval.TweetsCount;
                 for (int i = 0, percent = 0 ; i < tweetsCount; ++i)
                 {
                     Dictionary<string, int> tempVector = new Dictionary<string, int>();
-                    string[] words = tweetSet.GetTweetDerivedContentAt(i).Split(' ');
+                    string[] words = interval.GetTweetDerivedContentAt(i).Split(' ');
                     for (int j = words.Length - 1; j >= 0; --j)
                     {
                         string word = words[j];
@@ -89,7 +88,7 @@ namespace ManyLens.Preprocessing
                     if (cleanVector.Count == 0)
                     {
                         vectors.RemoveAt(i);
-                        tweetSet.RemoveTweetAt(i);
+                        interval.RemoveTweetAt(i);
                     }
                     else
                     {
@@ -113,10 +112,10 @@ namespace ManyLens.Preprocessing
                              orderby item.Value descending
                              select item).ToDictionary(pair => pair.Key, pair => pair.Value);
 
-                tweetSet.SparseVector = vectors;
-                tweetSet.Vocabulary = new Vocabulary(idOfWords, dfOfWords);
+                interval.SparseVector = vectors;
+                interval.Vocabulary = new Vocabulary(idOfWords, dfOfWords);
 
-                tweetSet.HasVectorized = true;
+                interval.HasVectorized = true;
             });
 
         }

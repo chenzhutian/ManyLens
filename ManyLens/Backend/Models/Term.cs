@@ -12,7 +12,7 @@ namespace ManyLens.Models
         private DateTime termDate;
         private bool isTweetBurstPoint;//1 = this day is a burst point or 0=not in terms of tweetFreq or smoothedTweetFreq
         private double tweetBurstCutoff;//cutoff of tweet
-        private uint segmentPoint = 0; // 1 = start, 2 = end, 3 = start+end, 4 = inside
+        private uint pointType = 0; // 1 = start, 2 = end, 3 = start+end, 4 = inside
         private bool isPeak = false;
 
         #region Getter & Setter
@@ -60,28 +60,18 @@ namespace ManyLens.Models
                 this.tweetBurstCutoff = value;
             }
         }
-        public uint SegmentPoint
+        public uint PointType
         {
             get
             {
-                return this.segmentPoint;
+                return this.pointType;
             }
             set
             {
-                this.segmentPoint = value;
+                this.pointType = value;
             }
         }
         #endregion
-
-        private Term() { }
-
-        public Term(string date)
-            : base()
-        {
-            
-            this.TermDate = DateTime.Parse(date);
-            this.SetDateTimeToID(this.TermDate);
-        }
 
         public Term(DateTime date)
             :base()
@@ -90,25 +80,9 @@ namespace ManyLens.Models
             this.SetDateTimeToID(date);
         }
 
-
         public void AddTweet(string id, string content)
         {
             base.AddTweet(id, content,this.termDate);
         }
-
-        public void AddTweet(string id, string content, DateTime postDate)
-        {
-            if(!postDate.Equals(this.TermDate))
-                throw new Exception("This tweet should not belong to this term! The date is wrong.");
-            base.AddTweet(id, content, postDate);
-        }
-
-        public void AddTweet(string id, string content, string postDate)
-        {
-            if (!postDate.Equals(this.TermDate))
-                throw new Exception("This tweet should not belong to this term! The date is wrong.");
-            base.AddTweet(id, content, postDate);
-        }
-
     }
 }

@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ManyLens.Models.Interval">
+    <Position X="2.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAgAgAAAAIAQKACAAIgAAAAAAAAQAAAAAAAAAA=</HashCode>
+      <FileName>Backend\Models\Interval.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManyLens.Models.Term">
+    <Position X="0.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAIACAACAAgAAAAAEAAAABABAACAAAEAAAABAAA=</HashCode>
+      <FileName>Backend\Models\Term.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManyLens.Models.Tweet" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAABAAAEAQAABAIAAAACAAAQAAAAFAAIA=</HashCode>
+      <FileName>Backend\Models\Tweet.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManyLens.Models.TweetSet">
+    <Position X="1.5" Y="0.5" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAABAAAAAIAgAAAAAAAAAAAQAAAAASAAgAkAAAAIgA=</HashCode>
+      <FileName>Backend\Models\TweetSet.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManyLens.Models.Unit">
+    <Position X="5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAABAAAAAQAAAAABAAEAASAAIBkAAAAYAA=</HashCode>
+      <FileName>Backend\Models\Unit.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManyLens.Models.VisMap" Collapsed="true">
+    <Position X="9.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAhAgDAAAAAQQQCAAAEAQEQAQQAAAEAAAEAAUAAA=</HashCode>
+      <FileName>Backend\Models\VisMap.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManyLens.Models.Vocabulary" Collapsed="true">
+    <Position X="7.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAggAAAAAAAAAAAAAAAQAAAAEAAACBAAgA=</HashCode>
+      <FileName>Backend\Models\Vocabulary.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManyLens.Models.Word" Collapsed="true">
+    <Position X="9.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAEAAAAAAAAAAAAgQAAAAEAAAAAkAAACAAAAE=</HashCode>
+      <FileName>Backend\Models\Word.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ManyLens.Models.DerivedTweetSet">
+    <Position X="3.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAECAgABgAAAAAAAAAAEAEQAEgBAAAAABAAAA=</HashCode>
+      <FileName>Backend\Models\DerivedTweetSet.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>

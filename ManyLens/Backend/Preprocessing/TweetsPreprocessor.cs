@@ -13,43 +13,10 @@ namespace ManyLens.Preprocessing
 {
     public class TweetsPreprocessor
     {
-        /// <summary>
-        /// only for summarization
-        /// </summary>
-        /// <param name="tweetsFile"></param>
-        /// <param name="stopwordFile"></param>
-        /// <param name="stopAbbreviationWordFile"></param>
-        /// <param name="stopHashtagFile"></param>
-        /// <param name="pluralDictFile"></param>
-        /// <param name="predefinedTopicWords"></param>
-        public static List<Tweet> ProcessTweet(String tweetsFile, String stopwordFile)
+     
+        public async static Task ProcessTweetAsync(Interval interval, String stopwordFile,IProgress<double> progress)
         {
-            List<Tweet> tweets = TweetsIO.LoadTweetsAsList(tweetsFile);
-
-            System.Console.WriteLine("deleting repeated tweet ...");
-            DelRepeats(ref tweets);
-
-            //del stop words, stop abbreviation words, stop hashtags
-            System.Console.WriteLine("deleting stop_words, stop_abbreviation_words, stop_hashtags ...");
-            CleanTweet(ref tweets, stopwordFile);
-            
-            return tweets;
-        }
-
-        public static List<Tweet> ProcessTweet(List<Tweet> tweets, String stopwordFile)
-        {
-            System.Console.WriteLine("deleting repeated tweet...");
-            DelRepeats(ref tweets);
-
-            System.Console.WriteLine("deleting stop_words, stop_abbreviation_words, stop_hashtags ...");
-            CleanTweet(ref tweets, stopwordFile);
-
-            return tweets;
-        }
-
-        public async static Task ProcessTweetAsync(TweetSet tweetSet, String stopwordFile,IProgress<double> progress)
-        {
-            if (tweetSet.HasPreprocessed)
+            if (interval.HasPreprocessed)
                 return;
 
             //deleting repeated tweet.
@@ -63,14 +30,14 @@ namespace ManyLens.Preprocessing
             await Task.Run(() => 
             {
                 int percent = 0;
-                int tweetsCount = tweetSet.TweetsCount - 1;
+                int tweetsCount = interval.TweetsCount - 1;
                 
                 for (int i = tweetsCount; i >= 0; --i)
                 {
-                    if (tweetsDict.ContainsKey(tweetSet.GetTweetIDAt(i)))
-                        tweetSet.RemoveTweetAt(i);
+                    if (tweetsDict.ContainsKey(interval.GetTweetIDAt(i)))
+                        interval.RemoveTweetAt(i);
                     else
-                        tweetsDict.Add(tweetSet.GetTweetIDAt(i), true);
+                        tweetsDict.Add(interval.GetTweetIDAt(i), true);
 
                     if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 10.0)
                     {
@@ -80,7 +47,7 @@ namespace ManyLens.Preprocessing
                 }
 
                 percent = 0;
-                Parallel.ForEach(tweetSet.Tweets, tweet => {
+                Parallel.ForEach(interval.Tweets, tweet => {
                     string derivedContent = FilterSpecialToken(tweet.OriginalContent);
                     string newContent = "";
                     //match words in tweet content
@@ -106,11 +73,11 @@ namespace ManyLens.Preprocessing
                 });
 
                 percent = 0;
-                tweetsCount = tweetSet.TweetsCount - 1;
+                tweetsCount = interval.TweetsCount - 1;
                 for (int i = tweetsCount; i >= 0; --i)
                 {
-                    if (tweetSet.GetTweetDerivedContentAt(i) == null)
-                        tweetSet.RemoveTweetAt(i);
+                    if (interval.GetTweetDerivedContentAt(i) == null)
+                        interval.RemoveTweetAt(i);
 
                     if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 10.0)
                     {
@@ -166,82 +133,9 @@ namespace ManyLens.Preprocessing
                 }*/
 #endregion
             });
-            tweetSet.HasPreprocessed = true; 
+            interval.HasPreprocessed = true; 
         }
 
-        /// <summary>
-        /// del repreated tweets
-        /// </summary>
-        /// <param name="tweetFile">input original tweet file</param>
-        private static void DelRepeats(ref List<Tweet> tweets)
-        {
-            Dictionary<string,bool> tweetcDict = new Dictionary<string,bool>();
-            List<string> tweetsDict = new List<string>();
-            int count = tweets.Count -1 ;
-            for(int i = count; i >=0; --i)
-            {
-                if(tweetsDict.Contains(tweets.ElementAt(i).TweetID))
-                    tweets.RemoveAt(i);
-                else
-                    tweetsDict.Add(tweets.ElementAt(i).TweetID);
-            }
-
-        }
-
-        ///del stopwords and abbreviation terms, reserve predifined topic words(such as microsoft, troy davis)
-        /// <summary>
-        /// del stopwords, abbreviation and predefined topic terms, only #hashtag and effective words
-        /// </summary>
-        /// <param name="sortedTweetFile"></param>
-        /// <param name="stopwordFile">common stopword</param>
-        /// <param name="stopAbbreviationWordFile">abbreviation word used often in tweets</param>
-        /// <param name="predefinedTopicTerms">special words related with the topic (such as troy davis, microsoft)</param>
-        /// <param name="preprocessedTweetFile"></param>
-        private static void CleanTweet(ref List<Tweet> tweets, String stopwordFile)
-        {
-            int tweetsCount = tweets.Count-1;
-            Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
-            //load stopwords
-            HashSet<string> stopWords = LoadStopWord(stopwordFile);
-            for (int i = tweetsCount; i >= 0; --i)
-            { 
-                Tweet tweet = tweets[i];
-                string derivedContent = FilterSpecialToken(tweet.OriginalContent);
-                string newContent = null;
-                //match words in tweet content
-                MatchCollection words = wordreg.Matches(derivedContent);
-                IStemmer stemmer = new EnglishStemmer();
-                for (int j = 0; j < words.Count; ++j)
-                {
-                    string originalWord = words[j].Value.Trim();
-                    string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
-                    if (deriveWord != null)
-                    {
-                        newContent = newContent + " " + deriveWord;
-                    }
-                }
-
-                if (newContent != null && newContent.Length > 2)
-                {
-                    tweet.DerivedContent = newContent.Substring(1);
-                    tweets[i] = tweet;
-                }
-                else
-                {
-                    tweets.RemoveAt(i);
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// filter to filter out some words
-        /// </summary>
-        /// <param name="word">word to fiter</param>
-        /// <param name="stopWords">common stop words</param>
-        /// <param name="stopAbbreviationWords">abbreviation words in tweets, cloud be null</param>
-        /// <param name="predefinedTopicTerms">words related with the topic,clould be null</param>
-        /// <returns>the word or null</returns>
         private static string WordFilterWithStemmer(string word, HashSet<string> stopWords, IStemmer stemmer)
         {
 
@@ -277,7 +171,6 @@ namespace ManyLens.Preprocessing
             newContent = httpreg.Replace(newContent, " ");
             return newContent;
         }
-
 
         /// <summary>
         /// replace some special tokens in tweet
@@ -369,7 +262,6 @@ namespace ManyLens.Preprocessing
             return tweetContent.Trim();
         }
 
-
         private static HashSet<string> LoadStopWord(string StopWordDictFile)
         {
             if (StopWordDictFile == null)
@@ -384,6 +276,5 @@ namespace ManyLens.Preprocessing
 
             return _stop_word_dict;
         }
-
     }
 }

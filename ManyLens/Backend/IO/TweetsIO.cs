@@ -77,6 +77,7 @@ namespace ManyLens.IO
                 DateTime date = tweet.PostDate;
                 date = new DateTime(date.Year, mode[0] == 1 ? date.Month : 1, mode[1] == 1 ? date.Day : 1, date.Hour * mode[2], date.Minute * mode[3], 0);
 
+
                 if (sortedTerm.ContainsKey(date))
                 {
                     sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent);
@@ -99,7 +100,7 @@ namespace ManyLens.IO
                     DateTime dateTime = p.Key;
                     for (int i = 0, len = term.TweetsCount; i < len; ++i)
                     {
-                        sw.WriteLine(dateTime+"\t"+term.TweetIDs[i]+"\t"+term.TweetContents[i]+"\t"+term.Tweets[i].PostDate);
+                        sw.WriteLine(dateTime+"\t"+term.GetTweetIDAt(i)+"\t"+term.GetTweetContentAt(i)+"\t"+term.Tweets[i].PostDate);
                     }
 
                 }

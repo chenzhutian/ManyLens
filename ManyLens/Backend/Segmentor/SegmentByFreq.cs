@@ -121,8 +121,8 @@ namespace ManyLens.Segmentor
                         }
                     }
 
-                    tp[start].SegmentPoint += 1;
-                    tp[end].SegmentPoint += 2;
+                    tp[start].PointType += 1;
+                    tp[end].PointType += 2;
                 }
                 else
                 {
@@ -221,9 +221,9 @@ namespace ManyLens.Segmentor
 
                     end = minIndex;
                     startSegmentPoints.Add(dp[start]);
-                    tp[start].SegmentPoint += 1;
+                    tp[start].PointType += 1;
                     endSegmentPoints.Add(dp[end]);
-                    tp[end].SegmentPoint += 2;
+                    tp[end].PointType += 2;
 
                     lastStart = start;
                     start = end;
@@ -268,7 +268,7 @@ namespace ManyLens.Segmentor
                     (i - start < halfWindow || tp[start].TweetsCount == intervalMax))
                 {
                     tp[start].IsTweetBurstPoint = false;
-                    tp[start].SegmentPoint = 0;
+                    tp[start].PointType = 0;
                     start = lastStart;
                     middle = lastMiddle;
                     if (startSegmentPoints.Count > 0)
@@ -287,9 +287,9 @@ namespace ManyLens.Segmentor
             {
                 end = tp.Length - 1;
                 startSegmentPoints.Add(dp[start]);
-                tp[start].SegmentPoint += 1;
+                tp[start].PointType += 1;
                 endSegmentPoints.Add(dp[end]);
-                tp[end].SegmentPoint += 2;
+                tp[end].PointType += 2;
             }
         }
 
@@ -360,7 +360,7 @@ namespace ManyLens.Segmentor
                     }
 
 
-                    tp[minPoint].SegmentPoint = 1;//set it as the segment point
+                    tp[minPoint].PointType = 1;//set it as the segment point
                     endSegmentPoints.Add(dateTweetsFreq.ElementAt(minPoint).Key);
                     startSegmentPoints.Add(dateTweetsFreq.ElementAt(minPoint).Key);
 
@@ -395,12 +395,12 @@ namespace ManyLens.Segmentor
                 {
                     //the first 1 point of burst_area
                     startSegmentPoints.Add(dateTweetsFreq.ElementAt(i).Key);
-                    dateTweetsFreq.ElementAt(i).Value.SegmentPoint += 1;
+                    dateTweetsFreq.ElementAt(i).Value.PointType += 1;
                 }
                 if (previousTerm.IsTweetBurstPoint && !currentTerm.IsTweetBurstPoint)
                 {//the next 0 point of burst_area
                     endSegmentPoints.Add(dateTweetsFreq.ElementAt(i).Key);
-                    dateTweetsFreq.ElementAt(i).Value.SegmentPoint += 2;
+                    dateTweetsFreq.ElementAt(i).Value.PointType += 2;
                 }
             }
             if (dateTweetsFreq.Last().Value.IsTweetBurstPoint )//the last point is burst_point

@@ -80,10 +80,10 @@ namespace ManyLens.SOM
             {
                 for (int i = 0; i < trainsetSize; ++i)
                 {
-                    if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i], interval.GetTFIDFVectorAt(i)))
+                    if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i], interval.TFIDFVectors[i]))
                     {
                         Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i]);
-                        float[] tfv = interval.GetTFIDFVectorAt(i);
+                        float[] tfv = interval.TFIDFVectors[i];
                         unit.AddTweet(interval.Tweets[i], tfv);
                         visMap.AddUnit(h_output[i], unit);
                     }

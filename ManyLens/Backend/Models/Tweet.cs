@@ -9,7 +9,6 @@ namespace ManyLens.Models
 {
     public class Tweet
     {
-        
         private string tweetID = null;
         private string postUserID = null;
         private DateTime postDate;
@@ -81,21 +80,12 @@ namespace ManyLens.Models
                 return this.length;
             }
         }
-
-        public string IntervalId { get; private set; }
-        public virtual Interval Interval { get; private set; }
-        public string UnitId { get; private set; }
-        public virtual Unit Unit { get; private set; }
-        [Required]
-        public string TermId { get; private set; }
-        public virtual Term Term { get; private set; }
         #endregion
 
-        private Tweet() { }
         private Tweet(string tweetID, string originalContent)
         {
             this.TweetID = tweetID;
-            this.OriginalContent = originalContent;
+            this.OriginalContent = originalContent.Replace("\"", "\\\"");
         }
 
         public Tweet(string tweetID, string originalContent, string postDate)
@@ -109,14 +99,6 @@ namespace ManyLens.Models
             : this(tweetID, originalContent)
         {
             this.PostDate = postDate;
-        }
-
-        public Tweet(string tweetID, string postUserID, string postDate, string originalContent)
-        {
-            this.TweetID = tweetID;
-            this.PostUserID = postUserID;
-            this.PostDate = DateTime.Parse(postDate);
-            this.OriginalContent = originalContent;
         }
     }
 }

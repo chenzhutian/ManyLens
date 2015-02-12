@@ -5,12 +5,15 @@ using System.Web;
 
 namespace ManyLens.Models
 {
-    public class Interval : TweetSet
+    public class Interval : DerivedTweetSet
     {
-        
+
         private DateTime beginDate;
         private DateTime endDate;
         private float[] rmMatrix;
+
+        private bool hasVectorized = false;
+        private bool hasPreprocessed = false;
 
         #region Getter & Setter
         public DateTime BeginDate
@@ -37,7 +40,7 @@ namespace ManyLens.Models
         }
         public float[] RMMatrix
         {
-            get 
+            get
             {
                 return this.rmMatrix;
             }
@@ -46,36 +49,44 @@ namespace ManyLens.Models
                 this.rmMatrix = value;
             }
         }
+        public bool HasVectorized
+        {
+            get
+            {
+                return this.hasVectorized;
+            }
+            set
+            {
+                if (value == true)
+                    this.hasVectorized = value;
+            }
+        }
+        public bool HasPreprocessed
+        {
+            get
+            {
+                return this.hasPreprocessed;
+            }
+            set
+            {
+                if (value == true)
+                    this.hasPreprocessed = value;
+            }
+        }
         #endregion
 
-        private Interval(){ }
-
-        public Interval(DateTime beginDate,List<Tweet> tweets)
+        public Interval(DateTime beginDate, Term term)
+            :base()
         {
             this.SetDateTimeToID(beginDate);
             this.BeginDate = beginDate;
-            this.Tweets = new List<Tweet>();
-            for (int i = tweets.Count - 1; i >= 0; --i)
-            {
-                this.TweetIDs.Add(tweets[i].TweetID);
-                this.TweetContents.Add(tweets[i].OriginalContent);
-            }
-            this.Tweets.AddRange(tweets);
+            this.Tweets.AddRange(term.Tweets);
         }
 
-        public Interval(DateTime beginData, TweetSet tweetSet)
+        public void AddTerm(Term term)
         {
-            this.SetDateTimeToID(beginDate);
-            this.BeginDate = beginData;
-            this.Tweets = new List<Tweet>();
-            this.TweetContents.AddRange(tweetSet.TweetContents);
-            this.TweetIDs.AddRange(tweetSet.TweetIDs);
-            this.Tweets.AddRange(tweetSet.Tweets);
-        }
 
-        public float[] GetTFIDFVectorAt(int index)
-        {
-            return this.TFIDFVectors[index];
+            this.Tweets.AddRange(term.Tweets);
         }
 
     }

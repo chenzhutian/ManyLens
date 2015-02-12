@@ -6,7 +6,7 @@ using System.Web;
 namespace ManyLens.Models
 {
 
-    public class Unit : TweetSet
+    public class Unit : DerivedTweetSet
     {
         private Dictionary<string,int> wordLabels = null;
 
@@ -19,7 +19,7 @@ namespace ManyLens.Models
         public float[] UnitVector
         {
             get
-            {
+            { 
                 float[] averageVector = new float[this.unitSumVector.Length];
                 for (int i = this.unitSumVector.Length - 1; i >= 0; --i)
                 {
@@ -100,8 +100,8 @@ namespace ManyLens.Models
         //public virtual VisMap Vismap { get; private set; }
         #endregion  
 
-        private Unit() { }
         public Unit(int x, int y, int id)
+            :base()
         {
             this.X = x;
             this.Y = y;

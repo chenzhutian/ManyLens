@@ -122,6 +122,7 @@
     <Content Include="Frontend\Image\tile\Thumbs.db" />
     <Content Include="Frontend\Scripts\ManyLens.js" />
     <Content Include="Frontend\testData\us.json" />
+    <Content Include="ClassDiagram1.cd" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -200,6 +201,7 @@
   <ItemGroup>
     <Compile Include="Backend\IO\TweetsIO.cs" />
     <Compile Include="Backend\Math\GaussinRandom.cs" />
+    <Compile Include="Backend\Models\DerivedTweetSet.cs" />
     <Compile Include="Backend\Models\Interval.cs" />
     <Compile Include="Backend\Models\JSONModels.cs" />
     <Compile Include="Backend\Models\Term.cs" />

@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNet.SignalR;
 using ManyLens.Models;
-using ManyLens.Segmentor;
 using ManyLens.IO;
 using ManyLens.Preprocessing;
 using ManyLens.SOM;
@@ -37,7 +36,7 @@ namespace ManyLens.SignalR
                 mark = new Mark()
                 {
                     id = tp[i].ID,
-                    type = tp[i].SegmentPoint,
+                    type = tp[i].PointType,
                     beg = "",
                     end = ""
                 }
@@ -99,7 +98,7 @@ namespace ManyLens.SignalR
                 Term[] tp = dateTweetsFreq.Values.ToArray();
                 for (int i = 0, len = tp.Length; i < len; ++i)
                 {
-                    tp[i].SegmentPoint = 0;
+                    tp[i].PointType = 0;
                 }
 
                 for (int i = 0; i < p; i++)
@@ -149,8 +148,8 @@ namespace ManyLens.SignalR
                                 }
                             }
 
-                            tp[begin].SegmentPoint += 1;
-                            tp[end].SegmentPoint += 2;
+                            tp[begin].PointType += 1;
+                            tp[end].PointType += 2;
                         }
                         else
                         {
@@ -161,7 +160,7 @@ namespace ManyLens.SignalR
                     }
 
                     //Determine the type of this point
-                    tp[t].SegmentPoint = tp[t].SegmentPoint != 0 ? tp[t].SegmentPoint : lastMarkType == 2 ? (uint)0 : (uint)4;
+                    tp[t].PointType = tp[t].PointType != 0 ? tp[t].PointType : lastMarkType == 2 ? (uint)0 : (uint)4;
                     Point point = new Point()
                     {
                         value = tp[t].TweetsCount,
@@ -169,20 +168,20 @@ namespace ManyLens.SignalR
                         mark = new Mark()
                         {
                             id = tp[t].ID,
-                            type = tp[t].SegmentPoint,
+                            type = tp[t].PointType,
                             beg = "",
                             end = ""
                         }
                     };
 
-                    if (tp[t].SegmentPoint == 1)
+                    if (tp[t].PointType == 1)
                     {
-                        Interval interal = new Interval(tp[t].TermDate, tp[t].Tweets);
+                        Interval interal = new Interval(tp[t].TermDate, tp[t]);
                         interals.Add(interal.ID, interal);
                         lastMarkType = 1;
                         point.mark.beg = point.mark.id;
                     }
-                    else if (tp[t].SegmentPoint == 2)
+                    else if (tp[t].PointType == 2)
                     {
                         string id = interals.Last().Key;
                         Interval interal = interals.Last().Value;
@@ -191,23 +190,23 @@ namespace ManyLens.SignalR
                         lastMarkType = 2;
                         point.mark.end = point.mark.id;
                     }
-                    else if (tp[t].SegmentPoint == 3)
+                    else if (tp[t].PointType == 3)
                     {
                         string id   = interals.Last().Key;
                         Interval interal = interals.Last().Value;
                         interal.EndDate = tp[t].TermDate;
                         interals[id] = interal;
 
-                        Interval newInteral = new Interval(tp[t].TermDate, tp[t].Tweets);
+                        Interval newInteral = new Interval(tp[t].TermDate, tp[t]);
                         interals.Add(newInteral.ID, newInteral);
                         lastMarkType = 1;
                         point.mark.beg = point.mark.id;
                     }
-                    else if (tp[t].SegmentPoint == 4)
+                    else if (tp[t].PointType == 4)
                     {
                         string id = interals.Last().Key;
                         Interval interal = interals.Last().Value;
-                        interal.AddTweets(tp[t].Tweets);
+                        interal.AddTerm(tp[t]);
                         interals[id] = interal;
                     }
 
