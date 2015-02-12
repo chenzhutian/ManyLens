@@ -15,6 +15,7 @@ namespace ManyLens.Models
         private int length = 0;
         private string originalContent = null;
         private string derivedContent = null;
+        private List<string> hashtag = null;
 
         #region Getter & Setter
         public string TweetID 
@@ -80,10 +81,20 @@ namespace ManyLens.Models
                 return this.length;
             }
         }
+        public List<string> HashTag
+        {
+            get
+            {
+                return this.hashtag;
+            }
+        }
+
+
         #endregion
 
         private Tweet(string tweetID, string originalContent)
         {
+            this.hashtag = new List<string>();
             this.TweetID = tweetID;
             this.OriginalContent = originalContent.Replace("\"", "\\\"");
         }
@@ -100,5 +111,11 @@ namespace ManyLens.Models
         {
             this.PostDate = postDate;
         }
+
+        public void AddHashTag(string hashTag)
+        {
+            this.hashtag.Add(hashTag);
+        }
+
     }
 }

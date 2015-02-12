@@ -34,16 +34,13 @@ module ManyLens {
             }
 
             // data shape {text: size:}
-            protected ExtractData(): Array<D3.Layout.ICloudData> {
-                var data: Array<D3.Layout.ICloudData>
-            
-                var res = this.GetElementByMouse();
-                if (!res) return null;
+            public ExtractData(map?:(d?:any)=>any): Array<D3.Layout.ICloudData> {
+                var data: Array<D3.Layout.ICloudData> = super.ExtractData(map);
+                if (data == null) return;
 
-                data = (d3.select(res).data()[0]).labels;
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.value; }))
+                    .domain(d3.extent(data, function (d) { return d.Value; }))
                 ;
 
                 return data;
@@ -56,11 +53,16 @@ module ManyLens {
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._data)
+                    .filter((d) => {
+                        if (d.Value > 2)
+                            return true;
+                        return false;
+                    })
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)
                     .fontWeight(this._cloud_font_weight)
-                    .fontSize((d) => { return this._font_size(d.value); })
+                    .fontSize((d) => { return this._font_size(d.Value); })
                     .on("end", (words, bounds) => {
                         this.DrawCloud(words, bounds);
                     })

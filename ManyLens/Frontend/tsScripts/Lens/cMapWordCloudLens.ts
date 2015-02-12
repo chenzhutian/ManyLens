@@ -36,27 +36,21 @@ module ManyLens {
                 var data: Array<D3.Layout.ICloudData>
                 data = [
               
-                    { text: "lxzcvk", value: 7 },
-                    { text: "tyu", value: 7 },
-                    { text: "jjear", value: 6 },
-                    { text: "weqr", value: 6 },
-                    { text: "vbn", value: 6 },
-                    { text: "lk", value: 6 },
-                    { text: "lopxcv", value: 5 },
-                    { text: "yyyy", value: 5 },
-                    { text: "lxzcvk", value: 5 },
+                    { Key: "lxzcvk", Value: 7 },
+                    { Key: "tyu", Value: 7 },
+
                 ]
                 ;
 
                 data.forEach( (d, i) => {
-                    d.value -= 3;
+                    d.Value -= 3;
                     d["group"] = (i % 2) + 1;
                     d["coordinates"] = d["group"] == 1 ? this._projection([-86.674368, 34.646554]) : this._projection([-118.176008, 34.200463]);
                 });
 
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.value; }))
+                    .domain(d3.extent(data, function (d) { return d.Value; }))
                 ;
 
                 return data;

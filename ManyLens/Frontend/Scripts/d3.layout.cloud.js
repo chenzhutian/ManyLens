@@ -11,6 +11,7 @@
             rotate = cloudRotate,
             padding = cloudPadding,
             spiral = archimedeanSpiral,
+            filter = cloudFilter,
             words = [],
             timeInterval = Infinity,
             event = d3.dispatch("word", "end","step"),
@@ -35,6 +36,7 @@
                     return d;
                 }).sort(function (a, b) { return b.size - a.size; });
 
+            console.log(data);
             if (timer) clearInterval(timer);
             timer = setInterval(step, 0);
 
@@ -47,6 +49,8 @@
                     d;
                 while (+new Date - start < timeInterval && ++i < n && timer) {
                     d = data[i];
+                    if (!filter(d))
+                        continue;
                     if (d.group) {
                         if (d.coordinates) {
                             d.x = size[0] / 2 +  d.coordinates[0];
@@ -191,7 +195,11 @@
             font = d3.functor(x);
             return cloud;
         };
-
+        cloud.filter = function (x) {
+            if (!arguments.length) return filter;
+            filter = x;
+            return cloud;
+        }
         cloud.fontStyle = function (x) {
             if (!arguments.length) return fontStyle;
             fontStyle = d3.functor(x);
@@ -237,8 +245,14 @@
         return d3.rebind(cloud, event, "on");
     }
 
+    function cloudFilter(d) {
+        if (d.Value > 2)
+            return true;
+        return false;
+    }
+
     function cloudText(d) {
-        return d.text;
+        return d.Key;
     }
 
     function cloudFont() {
@@ -250,7 +264,7 @@
     }
 
     function cloudFontSize(d) {
-        return d.value;//Math.sqrt(d.value);
+        return d.Value;//Math.sqrt(d.value);
     }
 
     function cloudRotate() {

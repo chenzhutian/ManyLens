@@ -20,6 +20,8 @@ module ManyLens {
             //protected _sc_drag_event_flag: boolean = false;
             protected _sc_lc_default_dist = 100;
 
+            protected _extract_data_map_func: (d?: any) => any = null;
+
             public get LinkLine(): D3.Selection {
                 return this._sc_lc_svg.select("line");
             }
@@ -132,8 +134,18 @@ module ManyLens {
                 }
             }
 
-            protected ExtractData(): any {
-                throw new Error('This method is abstract');
+            public ExtractData(map?: (d?: any) => any): any {
+                if (map != null) {
+                    this._extract_data_map_func = map;
+                    return null;
+                }
+
+                if (!this._extract_data_map_func) return null;
+
+                var res = this.GetElementByMouse();
+                if (!res) return null;
+
+                return this._extract_data_map_func(d3.select(res).data()[0]);
             }
 
             public DisplayLens(data:any): {
@@ -331,6 +343,40 @@ module ManyLens {
                 } else {
                     return;
                 }
+            }
+
+            protected GetElementByMouse(): Element {
+                var res;
+                var eles = [];
+                try {
+                    var x = d3.event.sourceEvent.x,
+                        y = d3.event.sourceEvent.y;
+                }catch(e){
+                    return;
+                }   
+
+                var p = d3.mouse(this._element.node());
+                if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
+                    return;
+
+                var ele = d3.select(document.elementFromPoint(x, y));
+                while (ele && ele.attr("id") != "mapSvg") {
+                    if (ele.classed("unit")) {
+                        res = ele[0][0];
+                        break;
+                    }
+                    eles.push(ele);
+                    ele.style("visibility", "hidden");
+                    ele = d3.select(document.elementFromPoint(x, y));
+                    if (eles.length > 10) {
+                        throw new Error("what the fuck");
+                    }
+                }
+
+                for (var i = 0, len = eles.length; i < len; ++i) {
+                    eles[i].style("visibility", "");
+                }
+                return res;
             }
         }
     }

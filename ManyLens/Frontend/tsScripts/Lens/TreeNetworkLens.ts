@@ -17,7 +17,7 @@ module ManyLens {
                 super.Render(color);
             }
 
-            protected ExtractData(): D3.Layout.GraphNode {
+            public ExtractData(): D3.Layout.GraphNode {
                 var data: D3.Layout.GraphNode = {
                     "name": "flare",
                     "children": [

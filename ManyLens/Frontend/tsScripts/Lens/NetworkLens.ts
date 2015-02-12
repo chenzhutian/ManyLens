@@ -32,7 +32,7 @@ module ManyLens {
                 super.Render(color);
             }
 
-            protected ExtractData(): any {
+            public ExtractData(): any {
                 var graph = {
                     "nodes": [{ "x": 208.992345, "y": 273.053211 },
                         { "x": 595.98896, "y": 56.377057 },

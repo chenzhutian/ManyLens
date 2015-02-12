@@ -40,13 +40,11 @@ module ManyLens{
 
             }
 
-            protected ExtractData(): Array<any> {
+            public ExtractData(map?: (d?: any) => any): Array<any> {
                 var data: Array<any>;
+                data = super.ExtractData(map);
+                if (data == null) return;
 
-                var res = this.GetElementByMouse();
-                if (!res) return null;
-
-                data = (d3.select(res).data()[0]).tweetLengthDistribute;
                 this._pie.value(function (d) { return d.Value;})
                 return data;
             }

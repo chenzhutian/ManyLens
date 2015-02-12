@@ -61,40 +61,7 @@ module ManyLens {
             // data shape {text: size:}
             protected ExtractData(): Array<D3.Layout.ICloudData> {
                 var data: Array<D3.Layout.ICloudData>
-                data = [
-                    { text: "aaa", value: 10 },
-                    { text: "bbb", value: 10 },
-                    { text: "ccc", value: 9 },
-                    { text: "LG", value: 9 },
-                    { text: "Nokia", value: 9 },
-                    { text: "Gear", value: 9 },
-                    { text: "fear", value: 9 },
-                    { text: "pear", value: 8 },
-                    { text: "jjear", value: 8 },
-                    { text: "weqr", value: 8 },
-                    { text: "vbn", value: 8 },
-                    { text: "lk", value: 8 },
-                    { text: "lopxcv", value: 7 },
-                    { text: "yyyy", value: 7 },
-                    { text: "lxzcvk", value: 7 },
-                    { text: "tyu", value: 7 },
-                    { text: "jjear", value: 6 },
-                    { text: "weqr", value: 6 },
-                    { text: "vbn", value: 6 },
-                    { text: "lk", value: 6 },
-                    { text: "lopxcv", value: 5 },
-                    { text: "yyyy", value: 5 },
-                    { text: "lxzcvk", value: 5 },
-                    //{ text: "Gea", value: 10 },
-                    //{ text: "cea", value: 10 },
-                    //{ text: "uea", value: 10 },
-                    //{ text: "lea", value: 10 },
-                    //{ text: "ea", value: 10 },
-                    //{ text: "pp", value: 10 },
-                    //{ text: "nh", value: 10 },
-                    //{ text: "erw", value: 10 }
-                ]
-                ;
+                
 
                 data.forEach(function (d,i) {
                     d["group"] = (i%3)+1;//Math.ceil(Math.random()*3);
@@ -102,7 +69,7 @@ module ManyLens {
 
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.value; }))
+                    .domain(d3.extent(data, function (d) { return d.Value; }))
                 ;
 
                 return data;

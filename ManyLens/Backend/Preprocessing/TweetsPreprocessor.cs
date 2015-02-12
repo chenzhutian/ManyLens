@@ -32,6 +32,7 @@ namespace ManyLens.Preprocessing
                 int percent = 0;
                 int tweetsCount = interval.TweetsCount - 1;
                 
+                //Remove the repeat tweets
                 for (int i = tweetsCount; i >= 0; --i)
                 {
                     if (tweetsDict.ContainsKey(interval.GetTweetIDAt(i)))
@@ -47,6 +48,7 @@ namespace ManyLens.Preprocessing
                 }
 
                 percent = 0;
+                //clear the tweets content
                 Parallel.ForEach(interval.Tweets, tweet => {
                     string derivedContent = FilterSpecialToken(tweet.OriginalContent);
                     string newContent = "";
@@ -56,6 +58,11 @@ namespace ManyLens.Preprocessing
                     for (int j = 0; j < words.Count; ++j)
                     {
                         string originalWord = words[j].Value.Trim();
+                        if (originalWord.IndexOf("#") == 0)
+                        {
+                            tweet.AddHashTag(originalWord);
+                            originalWord = originalWord.Substring(1, originalWord.Length - 1);
+                        }
                         string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
                         newContent = newContent + " " + deriveWord;
                     }
@@ -226,7 +233,7 @@ namespace ManyLens.Preprocessing
             tweetContent = tweetContent.Replace("]", " ");
             tweetContent = tweetContent.Replace("”", " ");
             tweetContent = tweetContent.Replace("�", " ");
-            tweetContent = tweetContent.Replace("#", " ");
+            //tweetContent = tweetContent.Replace("#", " ");
 
             //replace pure number, such as 100
             Regex numreg = new Regex(@"\b\d+\b");

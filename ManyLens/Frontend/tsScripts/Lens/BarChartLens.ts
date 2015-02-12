@@ -21,7 +21,7 @@ module ManyLens {
 
             }
 
-            protected ExtractData(): any {
+            public ExtractData(): any {
                 var data: Array<number>;
                 data = d3.range(12).map(function (d) {
                     return 10 + 70 * Math.random();

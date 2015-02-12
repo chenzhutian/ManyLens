@@ -52,60 +52,11 @@ module ManyLens {
             // data shape {text: size:}
             protected ExtractData(): Array<D3.Layout.ICloudData> {
                 var data: Array<D3.Layout.ICloudData>
-                data = [
-                    { text: "Samsung", value: 90 },
-                    { text: "Apple", value: 50 },
-                    { text: "Lenovo", value: 50 },
-                    { text: "LG", value: 60 },
-                    { text: "Nokia", value: 30 },
-                    { text: "Huawei", value: 40 },
-                    { text: "Meizu", value: 50 },
-                    { text: "eizu", value: 50 },
-                    { text: "ZTE", value: 40 },
-                    { text: "Fiiit", value: 40 },
-                    { text: "qweri", value: 40 },
-                    { text: "bnm", value: 40 },
-                    { text: "tytyt", value: 40 },
-                    { text: "asdf", value: 40 },
-                    { text: "Fit", value: 40 },
-                    { text: "Gear", value: 30 },
-                    { text: "fear", value: 20 },
-                    { text: "pear", value: 20 },
-                    { text: "jjear", value: 20 },
-                    { text: "weqr", value: 20 },
-                    { text: "vbn", value: 20 },
-                    { text: "lk", value: 20 },
-                    { text: "lopxcv", value: 20 },
-                    { text: "yyyy", value: 20 },
-                    { text: "lxzcvk", value: 20 },
-                    { text: "tyu", value: 20 },
-                    { text: "jjear", value: 20 },
-                    { text: "weqr", value: 20 },
-                    { text: "vbn", value: 20 },
-                    { text: "lk", value: 20 },
-                    { text: "lopxcv", value: 20 },
-                    { text: "yyyy", value: 20 },
-                    { text: "lxzcvk", value: 20 },
-                    { text: "tyu", value: 20 },
-                    { text: "Gea", value: 10 },
-                    { text: "Ge", value: 10 },
-                    { text: "Gfa", value: 10 },
-                    { text: "a", value: 10 },
-                    { text: "bvea", value: 10 },
-                    { text: "Gea", value: 10 },
-                    { text: "cea", value: 10 },
-                    { text: "uea", value: 10 },
-                    { text: "lea", value: 10 },
-                    { text: "ea", value: 10 },
-                    { text: "pp", value: 10 },
-                    { text: "nh", value: 10 },
-                    { text: "erw", value: 10 }
-                ]
-                ;
+             
 
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.value; }))
+                    .domain(d3.extent(data, function (d) { return d.Value; }))
                 ;
 
                 return data;

@@ -13,8 +13,8 @@ declare module D3 {
     }
 
     export interface ICloudData {
-        text: string;
-        value: number;
+        Key: string;
+        Value: number;
     }
 
     export interface CloudLayout {
@@ -31,7 +31,8 @@ declare module D3 {
       */
         (size: Array<number>): CloudLayout;
       };
-      words: (inputArray: Array<ICloudData>) => CloudLayout;
+    words: (inputArray: Array<ICloudData>) => CloudLayout;
+    filter: (func:(d)=>boolean) => CloudLayout;
       rotate:IRotate;
       padding: (number:number) => CloudLayout;
       font: (string:string) => CloudLayout;

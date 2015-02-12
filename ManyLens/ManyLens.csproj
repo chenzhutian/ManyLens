@@ -210,7 +210,6 @@
     <Compile Include="Backend\Models\Unit.cs" />
     <Compile Include="Backend\Models\VisMap.cs" />
     <Compile Include="Backend\Models\Vocabulary.cs" />
-    <Compile Include="Backend\Models\Word.cs" />
     <Compile Include="Backend\Parameter.cs" />
     <Compile Include="Backend\Preprocessing\TweetsPreprocessor.cs" />
     <Compile Include="Backend\Preprocessing\TweetsVectorizer.cs" />

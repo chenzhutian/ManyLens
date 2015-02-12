@@ -57,11 +57,17 @@ var ManyLens;
                             children: [
                                 {
                                     name: "Tweet Length",
-                                    lensConstructFunc: ManyLens.Lens.PieChartLens
+                                    lensConstructFunc: ManyLens.Lens.PieChartLens,
+                                    extractDataFunc: function (d) {
+                                        return d.tweetLengthDistribute;
+                                    }
                                 },
                                 {
                                     name: "Hashtag Count",
-                                    lensConstructFunc: ManyLens.Lens.PieChartLens
+                                    lensConstructFunc: ManyLens.Lens.PieChartLens,
+                                    extractDataFunc: function (d) {
+                                        return d.tweetLengthDistribute;
+                                    }
                                 },
                                 {
                                     name: "Url Count",
@@ -79,7 +85,17 @@ var ManyLens;
                             children: [
                                 {
                                     name: "Keywords",
-                                    lensConstructFunc: ManyLens.Lens.WordCloudLens
+                                    lensConstructFunc: ManyLens.Lens.WordCloudLens,
+                                    extractDataFunc: function (d) {
+                                        return d.labels;
+                                    }
+                                },
+                                {
+                                    name: "Hashtag",
+                                    lensConstructFunc: ManyLens.Lens.WordCloudLens,
+                                    extractDataFunc: function (d) {
+                                        return d.hashTagDistribute;
+                                    }
                                 }
                             ]
                         },
@@ -137,6 +153,7 @@ var ManyLens;
                             return d.name;
                         }).on("click", function (d) {
                             var len = new d.lensConstructFunc(_this._map_Svg, _this._manyLens);
+                            len.ExtractData(d.extractDataFunc);
                             len.Render("red");
                         });
                     }
@@ -579,8 +596,7 @@ var ManyLens;
                 this._lens_type_color = color;
                 this._sc_lc_svg = this._element.append("g").attr("class", "lens");
             };
-            BaseD3Lens.prototype.ExtractData = function (any) {
-                if (any === void 0) { any = null; }
+            BaseD3Lens.prototype.ExtractData = function (map) {
                 throw new Error('This method is abstract');
             };
             BaseD3Lens.prototype.DisplayLens = function (any) {
@@ -692,31 +708,6 @@ var ManyLens;
                     return transform;
                 });
             };
-            BaseD3Lens.prototype.GetElementByMouse = function () {
-                var res;
-                var eles = [];
-                var x = d3.event.sourceEvent.x, y = d3.event.sourceEvent.y;
-                var p = d3.mouse(this._element.node());
-                if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
-                    return;
-                var ele = d3.select(document.elementFromPoint(x, y));
-                while (ele && ele.attr("id") != "mapSvg") {
-                    if (ele.classed("unit")) {
-                        res = ele[0][0];
-                        break;
-                    }
-                    eles.push(ele);
-                    ele.style("visibility", "hidden");
-                    ele = d3.select(document.elementFromPoint(x, y));
-                    if (eles.length > 10) {
-                        throw new Error("what the fuck");
-                    }
-                }
-                for (var i = 0, len = eles.length; i < len; ++i) {
-                    eles[i].style("visibility", "");
-                }
-                return res;
-            };
             //public HideLens() {
             //    this._lens_circle_G
             //        .attr("opacity", "1")
@@ -763,6 +754,7 @@ var ManyLens;
                 this._has_showed_lens = false;
                 //protected _sc_drag_event_flag: boolean = false;
                 this._sc_lc_default_dist = 100;
+                this._extract_data_map_func = null;
                 this._is_composite_lens = false;
                 this._select_circle_radius = 10;
             }
@@ -853,8 +845,17 @@ var ManyLens;
                     selectCircle.attr("cx", p[0]).attr("cy", p[1]);
                 }
             };
-            BaseSingleLens.prototype.ExtractData = function () {
-                throw new Error('This method is abstract');
+            BaseSingleLens.prototype.ExtractData = function (map) {
+                if (map != null) {
+                    this._extract_data_map_func = map;
+                    return null;
+                }
+                if (!this._extract_data_map_func)
+                    return null;
+                var res = this.GetElementByMouse();
+                if (!res)
+                    return null;
+                return this._extract_data_map_func(d3.select(res).data()[0]);
             };
             BaseSingleLens.prototype.DisplayLens = function (data) {
                 var _this = this;
@@ -977,6 +978,36 @@ var ManyLens;
                 else {
                     return;
                 }
+            };
+            BaseSingleLens.prototype.GetElementByMouse = function () {
+                var res;
+                var eles = [];
+                try {
+                    var x = d3.event.sourceEvent.x, y = d3.event.sourceEvent.y;
+                }
+                catch (e) {
+                    return;
+                }
+                var p = d3.mouse(this._element.node());
+                if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
+                    return;
+                var ele = d3.select(document.elementFromPoint(x, y));
+                while (ele && ele.attr("id") != "mapSvg") {
+                    if (ele.classed("unit")) {
+                        res = ele[0][0];
+                        break;
+                    }
+                    eles.push(ele);
+                    ele.style("visibility", "hidden");
+                    ele = d3.select(document.elementFromPoint(x, y));
+                    if (eles.length > 10) {
+                        throw new Error("what the fuck");
+                    }
+                }
+                for (var i = 0, len = eles.length; i < len; ++i) {
+                    eles[i].style("visibility", "");
+                }
+                return res;
             };
             BaseSingleLens.Type = "BaseSingleLens";
             return BaseSingleLens;
@@ -1283,12 +1314,11 @@ var ManyLens;
             PieChartLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
             };
-            PieChartLens.prototype.ExtractData = function () {
+            PieChartLens.prototype.ExtractData = function (map) {
                 var data;
-                var res = this.GetElementByMouse();
-                if (!res)
-                    return null;
-                data = (d3.select(res).data()[0]).tweetLengthDistribute;
+                data = _super.prototype.ExtractData.call(this, map);
+                if (data == null)
+                    return;
                 this._pie.value(function (d) {
                     return d.Value;
                 });
@@ -1413,14 +1443,12 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             // data shape {text: size:}
-            WordCloudLens.prototype.ExtractData = function () {
-                var data;
-                var res = this.GetElementByMouse();
-                if (!res)
-                    return null;
-                data = (d3.select(res).data()[0]).labels;
+            WordCloudLens.prototype.ExtractData = function (map) {
+                var data = _super.prototype.ExtractData.call(this, map);
+                if (data == null)
+                    return;
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
-                    return d.value;
+                    return d.Value;
                 }));
                 return data;
             };
@@ -1429,8 +1457,12 @@ var ManyLens;
                 if (data == null)
                     return;
                 _super.prototype.DisplayLens.call(this, data);
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
-                    return _this._font_size(d.value);
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).filter(function (d) {
+                    if (d.Value > 2)
+                        return true;
+                    return false;
+                }).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                    return _this._font_size(d.Value);
                 }).on("end", function (words, bounds) {
                     _this.DrawCloud(words, bounds);
                 });
@@ -2416,57 +2448,8 @@ var ManyLens;
             // data shape {text: size:}
             cWordCloudLens.prototype.ExtractData = function () {
                 var data;
-                data = [
-                    { text: "Samsung", value: 90 },
-                    { text: "Apple", value: 50 },
-                    { text: "Lenovo", value: 50 },
-                    { text: "LG", value: 60 },
-                    { text: "Nokia", value: 30 },
-                    { text: "Huawei", value: 40 },
-                    { text: "Meizu", value: 50 },
-                    { text: "eizu", value: 50 },
-                    { text: "ZTE", value: 40 },
-                    { text: "Fiiit", value: 40 },
-                    { text: "qweri", value: 40 },
-                    { text: "bnm", value: 40 },
-                    { text: "tytyt", value: 40 },
-                    { text: "asdf", value: 40 },
-                    { text: "Fit", value: 40 },
-                    { text: "Gear", value: 30 },
-                    { text: "fear", value: 20 },
-                    { text: "pear", value: 20 },
-                    { text: "jjear", value: 20 },
-                    { text: "weqr", value: 20 },
-                    { text: "vbn", value: 20 },
-                    { text: "lk", value: 20 },
-                    { text: "lopxcv", value: 20 },
-                    { text: "yyyy", value: 20 },
-                    { text: "lxzcvk", value: 20 },
-                    { text: "tyu", value: 20 },
-                    { text: "jjear", value: 20 },
-                    { text: "weqr", value: 20 },
-                    { text: "vbn", value: 20 },
-                    { text: "lk", value: 20 },
-                    { text: "lopxcv", value: 20 },
-                    { text: "yyyy", value: 20 },
-                    { text: "lxzcvk", value: 20 },
-                    { text: "tyu", value: 20 },
-                    { text: "Gea", value: 10 },
-                    { text: "Ge", value: 10 },
-                    { text: "Gfa", value: 10 },
-                    { text: "a", value: 10 },
-                    { text: "bvea", value: 10 },
-                    { text: "Gea", value: 10 },
-                    { text: "cea", value: 10 },
-                    { text: "uea", value: 10 },
-                    { text: "lea", value: 10 },
-                    { text: "ea", value: 10 },
-                    { text: "pp", value: 10 },
-                    { text: "nh", value: 10 },
-                    { text: "erw", value: 10 }
-                ];
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
-                    return d.value;
+                    return d.Value;
                 }));
                 return data;
             };
@@ -2545,36 +2528,11 @@ var ManyLens;
             // data shape {text: size:}
             cWordCloudNetworkLens.prototype.ExtractData = function () {
                 var data;
-                data = [
-                    { text: "aaa", value: 10 },
-                    { text: "bbb", value: 10 },
-                    { text: "ccc", value: 9 },
-                    { text: "LG", value: 9 },
-                    { text: "Nokia", value: 9 },
-                    { text: "Gear", value: 9 },
-                    { text: "fear", value: 9 },
-                    { text: "pear", value: 8 },
-                    { text: "jjear", value: 8 },
-                    { text: "weqr", value: 8 },
-                    { text: "vbn", value: 8 },
-                    { text: "lk", value: 8 },
-                    { text: "lopxcv", value: 7 },
-                    { text: "yyyy", value: 7 },
-                    { text: "lxzcvk", value: 7 },
-                    { text: "tyu", value: 7 },
-                    { text: "jjear", value: 6 },
-                    { text: "weqr", value: 6 },
-                    { text: "vbn", value: 6 },
-                    { text: "lk", value: 6 },
-                    { text: "lopxcv", value: 5 },
-                    { text: "yyyy", value: 5 },
-                    { text: "lxzcvk", value: 5 },
-                ];
                 data.forEach(function (d, i) {
                     d["group"] = (i % 3) + 1; //Math.ceil(Math.random()*3);
                 });
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
-                    return d.value;
+                    return d.Value;
                 }));
                 return data;
             };
@@ -2671,57 +2629,8 @@ var ManyLens;
             // data shape {text: size:}
             cWordCloudPieLens.prototype.ExtractData = function () {
                 var data;
-                data = [
-                    { text: "Samsung", value: 90 },
-                    { text: "Apple", value: 50 },
-                    { text: "Lenovo", value: 50 },
-                    { text: "LG", value: 60 },
-                    { text: "Nokia", value: 30 },
-                    { text: "Huawei", value: 40 },
-                    { text: "Meizu", value: 50 },
-                    { text: "eizu", value: 50 },
-                    { text: "ZTE", value: 40 },
-                    { text: "Fiiit", value: 40 },
-                    { text: "qweri", value: 40 },
-                    { text: "bnm", value: 40 },
-                    { text: "tytyt", value: 40 },
-                    { text: "asdf", value: 40 },
-                    { text: "Fit", value: 40 },
-                    { text: "Gear", value: 30 },
-                    { text: "fear", value: 20 },
-                    { text: "pear", value: 20 },
-                    { text: "jjear", value: 20 },
-                    { text: "weqr", value: 20 },
-                    { text: "vbn", value: 20 },
-                    { text: "lk", value: 20 },
-                    { text: "lopxcv", value: 20 },
-                    { text: "yyyy", value: 20 },
-                    { text: "lxzcvk", value: 20 },
-                    { text: "tyu", value: 20 },
-                    { text: "jjear", value: 20 },
-                    { text: "weqr", value: 20 },
-                    { text: "vbn", value: 20 },
-                    { text: "lk", value: 20 },
-                    { text: "lopxcv", value: 20 },
-                    { text: "yyyy", value: 20 },
-                    { text: "lxzcvk", value: 20 },
-                    { text: "tyu", value: 20 },
-                    { text: "Gea", value: 10 },
-                    { text: "Ge", value: 10 },
-                    { text: "Gfa", value: 10 },
-                    { text: "a", value: 10 },
-                    { text: "bvea", value: 10 },
-                    { text: "Gea", value: 10 },
-                    { text: "cea", value: 10 },
-                    { text: "uea", value: 10 },
-                    { text: "lea", value: 10 },
-                    { text: "ea", value: 10 },
-                    { text: "pp", value: 10 },
-                    { text: "nh", value: 10 },
-                    { text: "erw", value: 10 }
-                ];
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
-                    return d.value;
+                    return d.Value;
                 }));
                 return data;
             };
@@ -3095,23 +3004,16 @@ var ManyLens;
                 var _this = this;
                 var data;
                 data = [
-                    { text: "lxzcvk", value: 7 },
-                    { text: "tyu", value: 7 },
-                    { text: "jjear", value: 6 },
-                    { text: "weqr", value: 6 },
-                    { text: "vbn", value: 6 },
-                    { text: "lk", value: 6 },
-                    { text: "lopxcv", value: 5 },
-                    { text: "yyyy", value: 5 },
-                    { text: "lxzcvk", value: 5 },
+                    { Key: "lxzcvk", Value: 7 },
+                    { Key: "tyu", Value: 7 },
                 ];
                 data.forEach(function (d, i) {
-                    d.value -= 3;
+                    d.Value -= 3;
                     d["group"] = (i % 2) + 1;
                     d["coordinates"] = d["group"] == 1 ? _this._projection([-86.674368, 34.646554]) : _this._projection([-118.176008, 34.200463]);
                 });
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
-                    return d.value;
+                    return d.Value;
                 }));
                 return data;
             };

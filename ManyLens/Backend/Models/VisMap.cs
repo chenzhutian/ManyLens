@@ -169,7 +169,8 @@ namespace ManyLens.Models
                                                 tweetLengthDistribute = unit.TweetLengthDistribute,
                                                 x = unit.X,
                                                 y = unit.Y,
-                                                tweetIDs = unit.TweetIDs
+                                                hashTagDistribute = unit.HashTagDistribute
+                                               // tweetIDs = unit.TweetIDs
                                             });
             }
 

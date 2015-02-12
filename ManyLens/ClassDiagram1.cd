@@ -38,22 +38,15 @@
   <Class Name="ManyLens.Models.VisMap">
     <Position X="6.25" Y="2.5" Width="4.5" />
     <TypeIdentifier>
-      <HashCode>EAAAAhAgDAAAAAQQQCAAAEAQEQAQQAAAEAAAEAAUAAA=</HashCode>
+      <HashCode>EAAAAhAgDAAAAAQQQKAAAECQEQAQQAAAAAAAEAAUAAA=</HashCode>
       <FileName>Backend\Models\VisMap.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ManyLens.Models.Vocabulary" Collapsed="true">
     <Position X="7.5" Y="1.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>IAAAAAAAAAAggAAAAAAAAAAAAAAAQAAAAEAAACBAAgA=</HashCode>
+      <HashCode>IAAAAAAAAAAgAAAAAAAAAAAAAAAAQAAAAEAAACBAAAA=</HashCode>
       <FileName>Backend\Models\Vocabulary.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ManyLens.Models.Word" Collapsed="true">
-    <Position X="9.25" Y="1.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAEAAAAAAAAAAAAgQAAAAEAAAAAkAAACAAAAE=</HashCode>
-      <FileName>Backend\Models\Word.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ManyLens.Models.DerivedTweetSet">

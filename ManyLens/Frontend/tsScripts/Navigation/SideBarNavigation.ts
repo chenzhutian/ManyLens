@@ -5,7 +5,8 @@
         interface MenuListData {
             name: string;
             icon?: string;
-            lensConstructFunc?: (element: D3.Selection, manyLens: ManyLens)=>void;
+            lensConstructFunc?: (element: D3.Selection, manyLens: ManyLens) => void;
+            extractDataFunc?: (d?: any) => any;
             children?: Array<MenuListData>;
         }
         export class SideBarNavigation {
@@ -71,11 +72,13 @@
                             children: [
                                 {
                                     name: "Tweet Length",
-                                    lensConstructFunc: Lens.PieChartLens
+                                    lensConstructFunc: Lens.PieChartLens,
+                                    extractDataFunc: (d) => { return d.tweetLengthDistribute;}
                                 },
                                 {
                                     name: "Hashtag Count",
-                                    lensConstructFunc: Lens.PieChartLens
+                                    lensConstructFunc: Lens.PieChartLens,
+                                    extractDataFunc: (d) => { return d.tweetLengthDistribute; }
                                 },
                                 {
                                     name: "Url Count",
@@ -94,7 +97,13 @@
                             children: [
                                 {
                                     name: "Keywords",
-                                    lensConstructFunc:  Lens.WordCloudLens
+                                    lensConstructFunc: Lens.WordCloudLens,
+                                    extractDataFunc: (d) => { return d.labels;}
+                                },
+                                {
+                                    name: "Hashtag",
+                                    lensConstructFunc: Lens.WordCloudLens,
+                                    extractDataFunc: (d) => { return d.hashTagDistribute;}
                                 }
                             ]
                         },
@@ -163,7 +172,8 @@
                             .enter().append("li")
                             .text(function (d) { return d.name })
                             .on("click", (d: MenuListData) => {
-                                var len =  new d.lensConstructFunc(this._map_Svg, this._manyLens);
+                                var len:Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg, this._manyLens);
+                                len.ExtractData(d.extractDataFunc);
                                 len.Render("red");
                             });
                     }

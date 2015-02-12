@@ -63,39 +63,60 @@ namespace ManyLens.Models
                 this.unitID = value;
             }
         }
-
-        public List<Dictionary<string,Object>> WordLabels
+        public List<float[]> TFIDFVectors
         {
             get
             {
-                List<Dictionary<string, Object>> tList = new List<Dictionary<string, Object>>();
-                foreach (KeyValuePair<string, int> item in this.wordLabels)
-                {
-                    Dictionary<string, Object> tDictionary = new Dictionary<string, Object>();
-                    tDictionary.Add("text", item.Key);
-                    tDictionary.Add("value", item.Value);
-                    tList.Add(tDictionary);
-                }
-                return tList;
+                return this.tfidfVectors;
+            }
+        }
+
+        public List<KeyValuePair<string,int>> WordLabels
+        {
+            get
+            {
+                return wordLabels.ToList();
             }
         }
         public List<KeyValuePair<int, int>> TweetLengthDistribute
         {
             get
             { 
-                Dictionary<int,int> lensDistribute = new Dictionary<int,int>();
-                int len = this.Tweets.Count;
+                Dictionary<int,int> lenDistribute = new Dictionary<int,int>();
+                int len = this.TweetsCount;
                 for(int i = 0; i < len; ++i)
                 {
                     int index = this.Tweets[i].Length;
-                    if(lensDistribute.ContainsKey(index))
-                        lensDistribute[index]++;
+                    if(lenDistribute.ContainsKey(index))
+                        lenDistribute[index]++;
                     else
                     {
-                        lensDistribute.Add(index,1);
+                        lenDistribute.Add(index,1);
                     }
                 }
-               return lensDistribute.ToList();
+               return lenDistribute.ToList();
+            }
+        }
+        public List<KeyValuePair<string, int>> HashTagDistribute
+        {
+            get
+            {
+                Dictionary<string, int> hashtagDistribute = new Dictionary<string, int>();
+                int len = this.TweetsCount;
+                for (int i = 0; i < len; ++i)
+                {
+                    List<string> hts = this.Tweets[i].HashTag;
+                    foreach(string ht in hts)
+                    {
+                        if (hashtagDistribute.ContainsKey(ht))
+                            hashtagDistribute[ht]++;
+                        else
+                        {
+                            hashtagDistribute.Add(ht, 1);
+                        }
+                    }
+                }
+                return hashtagDistribute.ToList();
             }
         }
 
