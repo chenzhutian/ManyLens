@@ -1071,10 +1071,10 @@ var ManyLens;
             __extends(MapLens, _super);
             function MapLens(element, manyLens) {
                 _super.call(this, element, MapLens.Type, manyLens);
-                this._projection = d3.geo.albersUsa();
+                this._projection = d3.geo.mercator();
                 this._path = d3.geo.path();
                 this._color = d3.scale.quantize();
-                this._projection.scale(250).translate([0, 0]);
+                this._projection.scale(35).translate([0, 30]);
                 this._path.projection(this._projection);
                 this._color.range([
                     "rgb(198,219,239)",
@@ -1128,7 +1128,7 @@ var ManyLens;
                 _super.prototype.DisplayLens.call(this, barData);
                 if (this._map_data) {
                     this._map_data.color = [];
-                    this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.states).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
+                    this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
                         var color = _this._color(_this._data[d.id]);
                         _this._map_data.color.push(color);
                         return color;
@@ -1136,25 +1136,25 @@ var ManyLens;
                         if (!d3.event.defaultPrevented)
                             _this.ClickedMap(d);
                     });
-                    this._lens_circle_svg.append("path").datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.states, function (a, b) {
+                    this._lens_circle_svg.append("path").datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.countries, function (a, b) {
                         return a !== b;
                     })).attr("id", "state-borders").attr("d", this._path);
                 }
                 else {
-                    d3.json("./testData/us.json", function (error, data) {
+                    d3.json("./testData/world.json", function (error, data) {
                         _this._color.domain(d3.extent(_this._data));
                         _this._map_data = {
                             raw: data,
                             color: []
                         };
-                        _this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(data, data.objects.states).features).enter().append("path").attr("d", _this._path).attr("fill", function (d) {
-                            var color = _this._color(_this._data[d.id]);
+                        _this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(data, data.objects.countries).features).enter().append("path").attr("d", _this._path).attr("fill", function (d) {
+                            var color = _this._color(d.id);
                             _this._map_data.color.push(color);
                             return color;
                         }).on("click", function (d) {
                             _this.ClickedMap(d);
                         });
-                        _this._lens_circle_svg.append("path").datum(topojson.mesh(data, data.objects.states, function (a, b) {
+                        _this._lens_circle_svg.append("path").datum(topojson.mesh(data, data.objects.countries, function (a, b) {
                             return a !== b;
                         })).attr("id", "state-borders").attr("d", _this._path);
                     });
@@ -1423,7 +1423,7 @@ var ManyLens;
                 _super.call(this, element, WordCloudLens.Type, manyLens);
                 this._font_size = d3.scale.sqrt();
                 this._cloud = d3.layout.cloud();
-                this._cloud_w = this._lens_circle_radius * 2; //Math.sqrt(2);
+                this._cloud_w = this._lens_circle_radius * 1.7;
                 this._cloud_h = this._cloud_w;
                 this._cloud_padding = 1;
                 this._cloud_font = "Calibri";
@@ -1558,7 +1558,6 @@ var ManyLens;
             }
             Object.defineProperty(BaseCompositeLens.prototype, "Lens", {
                 get: function () {
-                    //这里我感觉有问题，是直接返回本体还是返回复本好
                     return this._lens;
                 },
                 enumerable: true,
@@ -2629,6 +2628,8 @@ var ManyLens;
             // data shape {text: size:}
             cWordCloudPieLens.prototype.ExtractData = function () {
                 var data;
+                console.log(this._data);
+                console.log(this._sub_data);
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
                     return d.Value;
                 }));

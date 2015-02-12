@@ -6,7 +6,7 @@ module ManyLens {
 
             public static Type: string = "MapLens";
 
-            private _projection: D3.Geo.Projection = d3.geo.albersUsa();
+            private _projection: D3.Geo.Projection = d3.geo.mercator();
             private _path: D3.Geo.Path = d3.geo.path();
             private _color: D3.Scale.QuantizeScale = d3.scale.quantize();
             private _centered_state: Object;
@@ -37,8 +37,8 @@ module ManyLens {
                 super(element, MapLens.Type, manyLens);
 
                 this._projection
-                    .scale(250)
-                    .translate([0, 0]);
+                    .scale(35)
+                    .translate([0, 30]);
 
                 this._path
                     .projection(this._projection);
@@ -82,7 +82,7 @@ module ManyLens {
                     this._lens_circle_svg.append("g")
                         .attr("id", "states")
                         .selectAll("path")
-                        .data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.states).features)
+                        .data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features)
                         .enter().append("path")
                         .attr("d", this._path)
                         .attr("fill", (d) => {
@@ -97,13 +97,13 @@ module ManyLens {
                     ;
 
                     this._lens_circle_svg.append("path")
-                        .datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.states, function (a, b) { return a !== b; }))
+                        .datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.countries, function (a, b) { return a !== b; }))
                         .attr("id", "state-borders")
                         .attr("d", this._path)
                     ;
 
                 } else {
-                    d3.json("./testData/us.json", (error, data) => {
+                    d3.json("./testData/world.json", (error, data) => {
                         this._color.domain(d3.extent(this._data));
                         this._map_data = {
                             raw: data,
@@ -113,11 +113,11 @@ module ManyLens {
                         this._lens_circle_svg.append("g")
                             .attr("id", "states")
                             .selectAll("path")
-                            .data(topojson.feature(data, data.objects.states).features)
+                            .data(topojson.feature(data, data.objects.countries).features)
                             .enter().append("path")
                             .attr("d", this._path)
                             .attr("fill", (d) => {
-                                var color = this._color(this._data[d.id]);
+                                var color = this._color(d.id);
                                 this._map_data.color.push(color)
                                 return color;
                             })
@@ -127,7 +127,7 @@ module ManyLens {
                         ;
 
                         this._lens_circle_svg.append("path")
-                            .datum(topojson.mesh(data, data.objects.states, function (a, b) { return a !== b; }))
+                            .datum(topojson.mesh(data, data.objects.countries, function (a, b) { return a !== b; }))
                             .attr("id", "state-borders")
                             .attr("d", this._path)
                         ;

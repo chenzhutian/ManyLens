@@ -27,7 +27,6 @@ module ManyLens {
             protected _need_to_reshape: boolean = false;
 
             public get Lens(): Array<BaseSingleLens> {
-                //这里我感觉有问题，是直接返回本体还是返回复本好
                 return this._lens;
             }
             public get SelectCircle(): Array<selectCircle> {
