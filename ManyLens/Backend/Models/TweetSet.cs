@@ -9,22 +9,10 @@ namespace ManyLens.Models
 {
     public abstract class  TweetSet
     {
-        private string id = null;
 
         private List<Tweet> tweets = null;
 
         #region Getter & Setter
-        public string ID
-        {
-            get
-            {
-                return this.id;
-            }
-            private set
-            {
-                    this.id = value;
-            }
-        }
         public virtual List<Tweet> Tweets
         {
             get
@@ -78,11 +66,6 @@ namespace ManyLens.Models
             this.Tweets = new List<Tweet>();
         }
 
-        protected void SetDateTimeToID(DateTime date)
-        {
-            this.ID = date.ToString("yyyyMMddHHmmss");
-            //Debug.WriteLine(this.ID);
-        }
 
         protected void AddTweet(string id, string content, DateTime postDate)
         {

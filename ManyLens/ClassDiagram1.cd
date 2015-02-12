@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="ManyLens.Models.Interval">
-    <Position X="2.75" Y="9.5" Width="1.5" />
+    <Position X="2.75" Y="9" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AIAAAAAgAgAAAAIAQKACAAIgAAAAAAAAQAAAAAAAAAA=</HashCode>
+      <HashCode>AIAAAAAgAgAAgAIAQKACAAAgAAAAAAAAQAAAAAAAAgA=</HashCode>
       <FileName>Backend\Models\Interval.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ManyLens.Models.Term">
-    <Position X="0.5" Y="5" Width="1.5" />
+    <Position X="0.5" Y="4.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AQAAAAIACAACAAgAAAAAEAAAABABAACAAAEAAAABAAA=</HashCode>
+      <HashCode>AQAAAAIACAACgAgAAAAAEAAAABABAACAAAEAAAABAgA=</HashCode>
       <FileName>Backend\Models\Term.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -24,19 +24,19 @@
   <Class Name="ManyLens.Models.TweetSet">
     <Position X="1.5" Y="0.5" Width="4" />
     <TypeIdentifier>
-      <HashCode>AAAABAAAAAIAgAAAAAAAAAAAQAAAAASAAgAkAAAAIgA=</HashCode>
+      <HashCode>AAAABAAAAAIAAAAAAAAAAAAAQAAAAASAAgAkAAAAIAA=</HashCode>
       <FileName>Backend\Models\TweetSet.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ManyLens.Models.Unit">
-    <Position X="5" Y="9.5" Width="1.5" />
+    <Position X="5" Y="9" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>QAAAAAAAAAAABAAAAAQAAAAABAAEAASAAIBkAAAAYAA=</HashCode>
+      <HashCode>QAAAAAAAAAAABAAAAAQAAACABAAEAASAAIBkAAAAYAA=</HashCode>
       <FileName>Backend\Models\Unit.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="ManyLens.Models.VisMap" Collapsed="true">
-    <Position X="9.25" Y="0.5" Width="1.5" />
+  <Class Name="ManyLens.Models.VisMap">
+    <Position X="6.25" Y="2.5" Width="4.5" />
     <TypeIdentifier>
       <HashCode>EAAAAhAgDAAAAAQQQCAAAEAQEQAQQAAAEAAAEAAUAAA=</HashCode>
       <FileName>Backend\Models\VisMap.cs</FileName>
@@ -57,9 +57,9 @@
     </TypeIdentifier>
   </Class>
   <Class Name="ManyLens.Models.DerivedTweetSet">
-    <Position X="3.75" Y="5" Width="1.5" />
+    <Position X="3.75" Y="4.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAECAgABgAAAAAAAAAAEAEQAEgBAAAAABAAAA=</HashCode>
+      <HashCode>AAAAAAAAECAgABgAAAAAAAAAAEAEQAAgBAAAAABAAAA=</HashCode>
       <FileName>Backend\Models\DerivedTweetSet.cs</FileName>
     </TypeIdentifier>
   </Class>

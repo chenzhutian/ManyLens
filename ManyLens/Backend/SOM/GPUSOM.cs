@@ -75,22 +75,21 @@ namespace ManyLens.SOM
             Marshal.Copy(pointer, h_output, 0, trainsetSize);
 
             //construct the som map for visualization
-            VisMap visMap = new VisMap(interval.ID+"_0",width,height);
+            VisMap visMap = new VisMap(interval.ID+"_0",width,height,interval);
             try
             {
                 for (int i = 0; i < trainsetSize; ++i)
                 {
                     if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i], interval.TFIDFVectors[i]))
                     {
-                        Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i]);
-                        float[] tfv = interval.TFIDFVectors[i];
-                        unit.AddTweet(interval.Tweets[i], tfv);
+                        Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],interval);
+                        unit.AddTweet(i);
                         visMap.AddUnit(h_output[i], unit);
                     }
                 }
                 visMap.RMMatrix = rmMatrix;
             }
-            catch (ArgumentException e)
+            catch (Exception e)
             {
                 Debug.WriteLine(e.InnerException);
             }
@@ -153,13 +152,13 @@ namespace ManyLens.SOM
             string sNum = visMap.ChildrenNum.ToString();
             string visMapID = visMap.VisMapID+"_"+sNum;
             
-            VisMap newVisMap = new VisMap(visMapID,width,height,visMap);
+            VisMap newVisMap = new VisMap(visMapID,width,height,visMap.Interval,visMap);
             for (int i = 0; i < trainsetSize; ++i)
             {
                 if (!newVisMap.TryAddTweetToUnit(h_output[i], rawTweets[i], rawTrainset[i]))
                 {
-                    Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i]);
-                    unit.AddTweet(rawTweets[i], rawTrainset[i]);
+                    Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],visMap.Interval);
+                    unit.AddTweet(i);
                     newVisMap.AddUnit(h_output[i], unit);
                 }
             }

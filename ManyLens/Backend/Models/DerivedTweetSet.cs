@@ -48,6 +48,8 @@ namespace ManyLens.Models
         {
             get
             {
+                if (this.SparseVector == null)
+                    return null;
                 if (this.tfidfVectors == null)
                 {
                     this.tfidfVectors = new List<float[]>();
@@ -92,9 +94,9 @@ namespace ManyLens.Models
         #endregion
 
         protected DerivedTweetSet()
-            :base()
-        { 
-        
+            : base()
+        {
+            this.sparseVector = new List<Dictionary<string, int>>();
         }
 
         public int GetIDofWord(string word)
@@ -118,6 +120,8 @@ namespace ManyLens.Models
 
         public float[] GetTFIDFVector(int num = 0)
         {
+            if (this.SparseVector == null)
+                return null;
             if (this.tfidfVectors == null)
             {
                 this.tfidfVectors = new List<float[]>();
@@ -164,65 +168,5 @@ namespace ManyLens.Models
             return tfidfVector;
         }
 
-        public async Task<float[]> GetTFIDFVectorAsync(IProgress<double> progress, int num = 0)
-        {
-            int percent = 0;
-            return await Task.Run<float[]>(() =>
-            {
-                if (this.tfidfVectors == null)
-                {
-                    this.tfidfVectors = new List<float[]>();
-                    int vectorCount = this.sparseVector.Count;
-                    double D = this.sparseVector.Count;
-                    for (int i = 0; i < vectorCount; ++i)
-                    {
-                        float[] vector = new float[this.vocabulary.Dimension];
-                        double sum = 0.0;
-                        List<string> keys = this.sparseVector[i].Keys.ToList();
-                        for (int j = keys.Count - 1; j >= 0; --j)
-                        {
-                            string key = keys[j];
-                            double value = (double)this.sparseVector[i][key];
-                            int id = this.vocabulary.IdOfWords[key];
-                            double idf = Math.Log(D / ((double)this.vocabulary.DfOfWords[key] + 1.0));
-                            vector[id] = (float)(value * idf);
-                            sum += vector[id] * vector[id];
-                        }
-                        sum = Math.Sqrt(sum);
-                        for (int j = keys.Count - 1; j >= 0; --j)
-                        {
-                            string key = keys[j];
-                            int id = this.vocabulary.IdOfWords[key];
-                            vector[id] = (float)(vector[id] / sum);
-                        }
-                        this.tfidfVectors.Add(vector);
-
-                        if ((double)i / vectorCount > (double)percent / 50.0)
-                        {
-                            progress.Report((double)percent / 100.0);
-                            ++percent;
-                        }
-                    }
-                }
-                int dimension = this.vocabulary.Dimension;
-                if (num == 0)
-                    num = this.sparseVector.Count;
-                float[] tfidfVector = new float[dimension * num];
-                for (int i = 0; i < num; ++i)
-                {
-                    for (int j = 0; j < dimension; ++j)
-                    {
-                        tfidfVector[j + i * dimension] = this.tfidfVectors[i][j];
-                    }
-
-                    if ((double)i / num > (double)percent / 100.0)
-                    {
-                        progress.Report((double)percent / 100.0);
-                        ++percent;
-                    }
-                }
-                return tfidfVector;
-            });
-        }
     }
 }

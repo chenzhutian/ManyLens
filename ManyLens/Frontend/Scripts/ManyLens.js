@@ -1298,7 +1298,6 @@ var ManyLens;
                 var _this = this;
                 _super.prototype.DisplayLens.call(this, data);
                 this._lens_circle_svg.selectAll("path").data(this._pie(this._data)).enter().append("path").attr("fill", function (d) {
-                    console.log(d);
                     return _this._color(d.data.Key);
                 }).attr("d", this._arc);
             };

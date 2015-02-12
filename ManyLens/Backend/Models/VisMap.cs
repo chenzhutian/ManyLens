@@ -13,6 +13,9 @@ namespace ManyLens.Models
         private float[] rmMatrix;
         private int width;
         private int height;
+
+        private Interval interval;
+
         private VisMap parentNote = null;
         private int childNum = 0;
 
@@ -26,6 +29,13 @@ namespace ManyLens.Models
             private set
             {
                 this.visMapId = value;
+            }
+        }
+        public Interval Interval
+        {
+            get
+            {
+                return this.interval;
             }
         }
         public int MaxTweetCount
@@ -61,23 +71,7 @@ namespace ManyLens.Models
                 this.height = value;
             }
         }
-        public virtual List<Unit> Units
-        {
-            get
-            {
-                return this.units.Values.ToList();
-            }
-            private set
-            {
-                this.units = new Dictionary<int, Unit>();
-                int count = value.Count;
-                for (--count; count >= 0; --count)
-                {
-                    Unit unit = value[count];
-                    this.units.Add(unit.UnitID, unit);
-                }
-            }
-        }
+
         public float[] RMMatrix
         {
             get
@@ -115,10 +109,11 @@ namespace ManyLens.Models
         }
         #endregion
 
-        public VisMap(string visMapID, int width, int height, VisMap parentNote = null)
+        public VisMap(string visMapID, int width, int height, Interval interval,VisMap parentNote = null)
         {
             this.ParentNote = parentNote;
             this.VisMapID = visMapID;
+            this.interval = interval;
             this.Width = width;
             this.Height = height;
             this.units = new Dictionary<int, Unit>();

@@ -15,6 +15,8 @@ namespace ManyLens.Models
         private int y;
         private int unitID;
 
+        private Interval interval;
+
         #region Getter & Setter
         public float[] UnitVector
         {
@@ -96,18 +98,42 @@ namespace ManyLens.Models
                return lensDistribute.ToList();
             }
         }
-        //public DateTime? VismapID { get; private set; }   //could be delete
-        //public virtual VisMap Vismap { get; private set; }
+
         #endregion  
 
-        public Unit(int x, int y, int id)
+        public Unit(int x, int y, int id,Interval interval)
             :base()
         {
+            this.wordLabels = new Dictionary<string, int>();
+            this.tfidfVectors = new List<float[]>();
+
             this.X = x;
             this.Y = y;
             this.UnitID = id;
-            this.wordLabels = new Dictionary<string, int>();
-            this.tfidfVectors = new List<float[]>();
+
+            this.interval = interval;
+            this.Vocabulary = interval.Vocabulary;
+
+        }
+
+        public void AddTweet(int index) 
+        {
+            base.AddTweet(interval.Tweets[index]);
+
+            this.SparseVector.Add(interval.SparseVector[index]);
+            float[] tfv = interval.TFIDFVectors[index];
+            this.tfidfVectors.Add(tfv);
+            if (this.unitSumVector == null)
+            {
+                this.unitSumVector =tfv;
+            }
+            else
+            {
+                for (int i = tfv.Length - 1; i >= 0; --i)
+                {
+                    this.unitSumVector[i] += tfv[i];
+                }
+            }
         }
 
         public void AddTweet(Tweet tweet,float[] tfidfVector)

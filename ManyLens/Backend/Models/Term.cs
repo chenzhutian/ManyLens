@@ -8,7 +8,7 @@ namespace ManyLens.Models
 
     public class Term : TweetSet
     {
-
+        private string id;
         private DateTime termDate;
         private bool isTweetBurstPoint;//1 = this day is a burst point or 0=not in terms of tweetFreq or smoothedTweetFreq
         private double tweetBurstCutoff;//cutoff of tweet
@@ -16,6 +16,13 @@ namespace ManyLens.Models
         private bool isPeak = false;
 
         #region Getter & Setter
+        public String ID
+        {
+            get
+            {
+                return this.id;
+            }
+        }
         public DateTime TermDate
         {
             get
@@ -77,7 +84,7 @@ namespace ManyLens.Models
             :base()
         {
             this.TermDate = date;
-            this.SetDateTimeToID(date);
+            this.id = date.ToString("yyyyMMddHHmmss");
         }
 
         public void AddTweet(string id, string content)

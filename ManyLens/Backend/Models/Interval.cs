@@ -7,7 +7,7 @@ namespace ManyLens.Models
 {
     public class Interval : DerivedTweetSet
     {
-
+        private string id;
         private DateTime beginDate;
         private DateTime endDate;
         private float[] rmMatrix;
@@ -16,6 +16,13 @@ namespace ManyLens.Models
         private bool hasPreprocessed = false;
 
         #region Getter & Setter
+        public string ID
+        {
+            get
+            {
+                return this.id;
+            }
+        }
         public DateTime BeginDate
         {
             get
@@ -78,7 +85,7 @@ namespace ManyLens.Models
         public Interval(DateTime beginDate, Term term)
             :base()
         {
-            this.SetDateTimeToID(beginDate);
+            this.id = beginDate.ToString("yyyyMMddHHmmss");
             this.BeginDate = beginDate;
             this.Tweets.AddRange(term.Tweets);
         }

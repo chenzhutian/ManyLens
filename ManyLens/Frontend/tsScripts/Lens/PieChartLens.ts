@@ -57,7 +57,6 @@ module ManyLens{
                     .data(this._pie(this._data))
                     .enter().append("path")
                     .attr("fill", (d) => {
-                        console.log(d);
                         return this._color(d.data.Key);
                     })
                     .attr("d", this._arc)

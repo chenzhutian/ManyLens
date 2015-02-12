@@ -7,12 +7,10 @@ namespace ManyLens.Models
 {
     public class Vocabulary
     {
-        private string id;
         private Dictionary<string, int> idOfWords = null;
         private Dictionary<string, int> dfOfWords = null;
 
         #region Getter&Setter
-        private string ID { get; set; }
         public Dictionary<string, int> IdOfWords
         {
             get
@@ -43,17 +41,14 @@ namespace ManyLens.Models
                     return idOfWords.Count;
                 return -1;
             }
-            private set { }
         }
         #endregion
 
-        private Vocabulary() { }
-        public Vocabulary(Dictionary<string, int> idOfWrods, Dictionary<string, int> dfOfWords, string id = null)
+        public Vocabulary(Dictionary<string, int> idOfWrods, Dictionary<string, int> dfOfWords)
         {
             this.IdOfWords = idOfWrods;
             this.DfOfWords = dfOfWords;
-            if (id != null)
-                this.id = id;
+
         }
         public int GetIDofWord(string word)
         {
