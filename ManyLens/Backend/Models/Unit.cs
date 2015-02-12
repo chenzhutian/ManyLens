@@ -82,10 +82,10 @@ namespace ManyLens.Models
             get
             { 
                 Dictionary<int,int> lensDistribute = new Dictionary<int,int>();
-                int len = this.SparseVector.Count;
+                int len = this.Tweets.Count;
                 for(int i = 0; i < len; ++i)
                 {
-                    int index = this.SparseVector[i].Count;
+                    int index = this.Tweets[i].Length;
                     if(lensDistribute.ContainsKey(index))
                         lensDistribute[index]++;
                     else
@@ -136,7 +136,6 @@ namespace ManyLens.Models
                 else
                     wordLabels.Add(words[i], 1);
             }
-
         }
 
         public Tweet RemoveTweet(Tweet tweet)

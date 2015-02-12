@@ -625,7 +625,6 @@ var ManyLens;
             BaseD3Lens.prototype.LensCircleDragFunc = function () {
                 var _this = this;
                 var transform = this._lens_circle_svg.attr("transform");
-                console.log(this._lens_circle_svg);
                 this._lens_circle_svg.attr("transform", function (d) {
                     _this._lens_circle_cx = d.x = Math.max(_this._lens_circle_radius, Math.min(parseFloat(_this._element.style("width")) - _this._lens_circle_radius, d3.event.x));
                     _this._lens_circle_cy = d.y = Math.max(_this._lens_circle_radius, Math.min(parseFloat(_this._element.style("height")) - _this._lens_circle_radius, d3.event.y));
@@ -692,6 +691,31 @@ var ManyLens;
                     transform = transform.replace(/(scale\()\d+\.?\d*\,?\d*\.?\d*(\))/, "$1" + scale + "$2");
                     return transform;
                 });
+            };
+            BaseD3Lens.prototype.GetElementByMouse = function () {
+                var res;
+                var eles = [];
+                var x = d3.event.sourceEvent.x, y = d3.event.sourceEvent.y;
+                var p = d3.mouse(this._element.node());
+                if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
+                    return;
+                var ele = d3.select(document.elementFromPoint(x, y));
+                while (ele && ele.attr("id") != "mapSvg") {
+                    if (ele.classed("unit")) {
+                        res = ele[0][0];
+                        break;
+                    }
+                    eles.push(ele);
+                    ele.style("visibility", "hidden");
+                    ele = d3.select(document.elementFromPoint(x, y));
+                    if (eles.length > 10) {
+                        throw new Error("what the fuck");
+                    }
+                }
+                for (var i = 0, len = eles.length; i < len; ++i) {
+                    eles[i].style("visibility", "");
+                }
+                return res;
             };
             //public HideLens() {
             //    this._lens_circle_G
@@ -1261,16 +1285,21 @@ var ManyLens;
             };
             PieChartLens.prototype.ExtractData = function () {
                 var data;
-                data = d3.range(6).map(function (d) {
-                    return Math.random() * 70;
+                var res = this.GetElementByMouse();
+                if (!res)
+                    return null;
+                data = (d3.select(res).data()[0]).tweetLengthDistribute;
+                this._pie.value(function (d) {
+                    return d.Value;
                 });
                 return data;
             };
             PieChartLens.prototype.DisplayLens = function (data) {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this, data);
-                this._lens_circle_svg.selectAll("path").data(this._pie(this._data)).enter().append("path").attr("fill", function (d, i) {
-                    return _this._color(i);
+                this._lens_circle_svg.selectAll("path").data(this._pie(this._data)).enter().append("path").attr("fill", function (d) {
+                    console.log(d);
+                    return _this._color(d.data.Key);
                 }).attr("d", this._arc);
             };
             PieChartLens.Type = "PieChartLens";
@@ -1387,78 +1416,7 @@ var ManyLens;
             // data shape {text: size:}
             WordCloudLens.prototype.ExtractData = function () {
                 var data;
-                //data = [
-                //    { text: "Samsung", value: 90 },
-                //    { text: "Apple", value: 90 },
-                //    { text: "Lenovo", value: 90 },
-                //    { text: "LG", value: 60 },
-                //    { text: "Nokia", value: 30 },
-                //    { text: "Huawei", value: 40 },
-                //    { text: "Meizu", value: 50 },
-                //    { text: "eizu", value: 50 },
-                //    { text: "ZTE", value: 40 },
-                //    { text: "Fiiit", value: 40 },
-                //    { text: "qweri", value: 40 },
-                //    { text: "bnm", value: 40 },
-                //    { text: "tytyt", value: 40 },
-                //    { text: "asdf", value: 40 },
-                //    { text: "Fit", value: 40 },
-                //    { text: "Gear", value: 30 },
-                //    { text: "fear", value: 20 },
-                //    { text: "pear", value: 20 },
-                //    { text: "jjear", value: 20 },
-                //    { text: "weqr", value: 20 },
-                //    { text: "vbn", value: 20 },
-                //    { text: "lk", value: 20 },
-                //    { text: "lopxcv", value: 20 },
-                //    { text: "yyyy", value: 20 },
-                //    { text: "lxzcvk", value: 20 },
-                //    { text: "tyu", value: 20 },
-                //    { text: "jjear", value: 20 },
-                //    { text: "weqr", value: 20 },
-                //    { text: "vbn", value: 20 },
-                //    { text: "lk", value: 20 },
-                //    { text: "lopxcv", value: 20 },
-                //    { text: "yyyy", value: 20 },
-                //    { text: "lxzcvk", value: 20 },
-                //    { text: "tyu", value: 20 },
-                //    { text: "Gea", value: 10 },
-                //    { text: "Ge", value: 10 },
-                //    { text: "Gfa", value: 10 },
-                //    { text: "a", value: 10 },
-                //    { text: "bvea", value: 10 },
-                //    { text: "Gea", value: 10 },
-                //    { text: "cea", value: 10 },
-                //    { text: "uea", value: 10 },
-                //    { text: "lea", value: 10 },
-                //    { text: "ea", value: 10 },
-                //    { text: "pp", value: 10 },
-                //    { text: "nh", value: 10 },
-                //    { text: "erw", value: 10 }
-                //]
-                //;
-                var res;
-                var eles = [];
-                var x = d3.event.sourceEvent.x, y = d3.event.sourceEvent.y;
-                var p = d3.mouse(this._element.node());
-                if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
-                    return;
-                var ele = d3.select(document.elementFromPoint(x, y));
-                while (ele && ele.attr("id") != "mapSvg") {
-                    if (ele.classed("unit")) {
-                        res = ele[0][0];
-                        break;
-                    }
-                    eles.push(ele);
-                    ele.style("visibility", "hidden");
-                    ele = d3.select(document.elementFromPoint(x, y));
-                    if (eles.length > 10) {
-                        throw new Error("what the fuck");
-                    }
-                }
-                for (var i = 0, len = eles.length; i < len; ++i) {
-                    eles[i].style("visibility", "");
-                }
+                var res = this.GetElementByMouse();
                 if (!res)
                     return null;
                 data = (d3.select(res).data()[0]).labels;

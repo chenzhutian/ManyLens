@@ -43,10 +43,11 @@ module ManyLens{
             protected ExtractData(): Array<any> {
                 var data: Array<any>;
 
-                data = d3.range(6).map(function (d) {
-                    return Math.random() * 70;
-                });
+                var res = this.GetElementByMouse();
+                if (!res) return null;
 
+                data = (d3.select(res).data()[0]).tweetLengthDistribute;
+                this._pie.value(function (d) { return d.Value;})
                 return data;
             }
 
@@ -55,8 +56,9 @@ module ManyLens{
                 this._lens_circle_svg.selectAll("path")
                     .data(this._pie(this._data))
                     .enter().append("path")
-                    .attr("fill", (d, i) => {
-                        return this._color(i);
+                    .attr("fill", (d) => {
+                        console.log(d);
+                        return this._color(d.data.Key);
                     })
                     .attr("d", this._arc)
                 ;

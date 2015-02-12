@@ -13,6 +13,7 @@ namespace ManyLens.Models
         private string tweetID = null;
         private string postUserID = null;
         private DateTime postDate;
+        private int length = 0;
         private string originalContent = null;
         private string derivedContent = null;
 
@@ -59,6 +60,7 @@ namespace ManyLens.Models
             set
             {
                 this.derivedContent = value;
+                this.length = this.derivedContent.Split(' ').Length;
             }
         }
         public DateTime PostDate
@@ -70,6 +72,13 @@ namespace ManyLens.Models
             private set 
             {
                 this.postDate = value;
+            }
+        }
+        public int Length
+        {
+            get
+            {
+                return this.length;
             }
         }
 
