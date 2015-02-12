@@ -14,6 +14,7 @@ namespace ManyLens.Models
         // 2 -- end
         // 3 -- end&begin
         // 4 -- insed
+
         public uint type { set; get; }
         public string beg { set; get; }
         public string end { set; get; }
@@ -21,7 +22,7 @@ namespace ManyLens.Models
     public class Point
     {
         public double value { set; get; }
-
+        public bool isPeak { set; get; }
         public Mark mark { set; get; }
     }
 
@@ -31,6 +32,7 @@ namespace ManyLens.Models
         public int count{set;get;}
         public List<string> contents{set;get;}
         public List<Dictionary<string,Object>> labels{set;get;}
+        public List<KeyValuePair<int, int>> tweetLengthDistribute { set; get; }
         public int x{set;get;}
         public int y{set;get;}
         public List<string> tweetIDs{set;get;}

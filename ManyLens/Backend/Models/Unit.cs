@@ -77,8 +77,27 @@ namespace ManyLens.Models
                 return tList;
             }
         }
-        public DateTime? VismapID { get; private set; }
-        public virtual VisMap Vismap { get; private set; }
+        public List<KeyValuePair<int, int>> TweetLengthDistribute
+        {
+            get
+            { 
+                Dictionary<int,int> lensDistribute = new Dictionary<int,int>();
+                int len = this.SparseVector.Count;
+                for(int i = 0; i < len; ++i)
+                {
+                    int index = this.SparseVector[i].Count;
+                    if(lensDistribute.ContainsKey(index))
+                        lensDistribute[index]++;
+                    else
+                    {
+                        lensDistribute.Add(index,1);
+                    }
+                }
+               return lensDistribute.ToList();
+            }
+        }
+        //public DateTime? VismapID { get; private set; }   //could be delete
+        //public virtual VisMap Vismap { get; private set; }
         #endregion  
 
         private Unit() { }

@@ -131,6 +131,7 @@ namespace ManyLens.SignalR
                             }
 
                             int end = i;
+                            tp[i-1].IsPeak = true;
                             while (i < tp.Length && tp[i].TweetsCount > tp[begin].TweetsCount)
                             {
                                 cutoff = variance * beta;
@@ -164,6 +165,7 @@ namespace ManyLens.SignalR
                     Point point = new Point()
                     {
                         value = tp[t].TweetsCount,
+                        isPeak = tp[t].IsPeak,
                         mark = new Mark()
                         {
                             id = tp[t].ID,
@@ -218,18 +220,20 @@ namespace ManyLens.SignalR
 
         public async Task PullInteral(string interalID,IProgress<double> progress)
         {
-            string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
-            Interval interal = interals[interalID];
-
-            await TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
-            await TweetsVectorizer.VectorizeEachTweet(interal,progress);
+            
 
             VisMap visMap;
-            string mapID = interal.ID+"_0";
+            string mapID = interalID+"_0";
             if(visMaps.ContainsKey(mapID))
                 visMap = visMaps[mapID];
             else
             {
+                string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+                Interval interal = interals[interalID];
+
+                await TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
+                await TweetsVectorizer.VectorizeEachTweet(interal, progress);
+
                 visMap = GPUSOM.TweetSOM(interal, rootFolder);
                 visMaps.Add(visMap.VisMapID, visMap);
             }

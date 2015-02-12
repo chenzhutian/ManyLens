@@ -79,6 +79,7 @@ namespace ManyLens.Preprocessing
                     }
                 }
 
+                percent = 0;
                 Parallel.ForEach(tweetSet.Tweets, tweet => {
                     string derivedContent = FilterSpecialToken(tweet.OriginalContent);
                     string newContent = "";
@@ -96,9 +97,13 @@ namespace ManyLens.Preprocessing
                     {
                         tweet.DerivedContent = newContent.Trim();
                     }
-
+                    System.Threading.Interlocked.Increment(ref percent);
+                    if (percent % 10 == 0)
+                    { 
+                        double report = ((double)percent/tweetsCount) * 0.7+0.1;
+                        progress.Report(report);
+                    }
                 });
-                progress.Report(0.8);
 
                 percent = 0;
                 tweetsCount = tweetSet.TweetsCount - 1;

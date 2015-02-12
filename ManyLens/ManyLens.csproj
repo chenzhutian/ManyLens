@@ -119,7 +119,6 @@
     <Content Include="Frontend\Fonts\lato\lato-regular.woff" />
     <Content Include="Frontend\Image\icons\png\Thumbs.db" />
     <Content Include="Frontend\Image\login\Thumbs.db" />
-    <Content Include="Frontend\Image\search79.png" />
     <Content Include="Frontend\Image\tile\Thumbs.db" />
     <Content Include="Frontend\Scripts\ManyLens.js" />
     <Content Include="Frontend\testData\us.json" />
@@ -261,6 +260,9 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\BlossomLensPane.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\ClassicLensPane.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\TweetsCurve\Cruve.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

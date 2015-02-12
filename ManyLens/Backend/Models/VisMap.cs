@@ -171,6 +171,7 @@ namespace ManyLens.Models
                                                 count = unit.TweetsCount,
                                                 contents = unit.TweetContents,
                                                 labels = unit.WordLabels,
+                                                tweetLengthDistribute = unit.TweetLengthDistribute,
                                                 x = unit.X,
                                                 y = unit.Y,
                                                 tweetIDs = unit.TweetIDs

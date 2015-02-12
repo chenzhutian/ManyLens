@@ -6,6 +6,7 @@ module ManyLens {
 
         interface Mark {
             id: string;
+
             type: number;
             beg: string;
             end: string;
@@ -13,6 +14,7 @@ module ManyLens {
 
         interface Point {
             value: number;
+            isPeak: boolean;
             mark: Mark;
         }
 
@@ -88,19 +90,19 @@ module ManyLens {
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
-                this._curveSvg = this._element.insert("svg",":first-child")
+                this._curveSvg = this._element.insert("svg", ":first-child")
                     .attr("width", this._view_width)
                     .attr("height", this._view_height)
-                    .style("margin-bottom","17px")
+                    .style("margin-bottom", "17px")
                 ;
 
                 this._curveSvg.append("defs").append("clipPath")
                     .attr("id", "clip")
                     .append("rect")
                     .attr("width", coordinate_view_width)
-                    .attr("height", coordinate_view_height)
+                    .attr("height", coordinate_view_height + 10)
                     .attr("x", this._view_left_padding)
-                    .attr("y", this._view_top_padding)
+                    .attr("y", this._view_top_padding - 10)
                 ;
 
                 this._x_axis = this._curveSvg.append("g")
@@ -130,7 +132,7 @@ module ManyLens {
             }
 
 
-            public PullInteral(interalID: string):void {
+            public PullInteral(interalID: string): void {
                 this._manyLens.ManyLensHubServerPullInteral(interalID);
             }
 
@@ -215,10 +217,29 @@ module ManyLens {
                         fill: "#ffeda0",
                         opacity: 0.5
                     })
-                    .on("click", (d:Mark) => {
+                    .on("click", (d: Mark) => {
                         this.SelectSegment(d);
                     })
                 ;
+
+                this._mainView.selectAll(".curve.node").remove();
+                var nodes = this._mainView.selectAll(".curve.node").data(this._data);
+                nodes.enter().append("circle")
+                    .attr("class", "curve node")
+                    .attr("cx", (d, i) => {
+                        return this._x_scale(i);
+                    })
+                    .attr("cy", (d) => {
+                        return this._y_scale(d.value);
+                    })
+                    .attr("r", (d) => {
+                        return d.isPeak ? 4 : 0;
+                    })
+                    .style({
+                        fill: "#fff",
+                        stroke: "rgb(31, 145, 189)",
+                        "stroke-width": 2
+                    });
 
                 var lineFunc = d3.svg.line()
                     .x((d, i) => {
@@ -237,7 +258,7 @@ module ManyLens {
                 ;
 
                 // move the main view
-                if (this._data.length > (this._section_num+1)) {
+                if (this._data.length > (this._section_num + 1)) {
                     this._mainView
                         .attr("transform", null)
                         .transition()
@@ -251,14 +272,14 @@ module ManyLens {
                 }
             }
 
-            private SelectSegment(d:Mark) {
+            private SelectSegment(d: Mark) {
                 if (d.end != null) {
-                    this._curveSvg.style("margin-bottom","0px")
+                    this._curveSvg.style("margin-bottom", "0px")
                     this._element.select(".progress").style("display", "block");
                     this._manyLens.ManyLensHubServerPullInteral(d.beg)
                         .progress((percent) => {
-                                this._element.select(".progress-bar")
-                                .style("width",percent*100+"%")
+                            this._element.select(".progress-bar")
+                                .style("width", percent * 100 + "%")
                             ;
                         })
                         .done(() => {
@@ -266,7 +287,7 @@ module ManyLens {
                                 .style("width", 0)
                             ;
                             this._element.select(".progress").style("display", "none");
-                            this._curveSvg .style("margin-bottom", "17px")
+                            this._curveSvg.style("margin-bottom", "17px")
                         });
                 }
                 else {

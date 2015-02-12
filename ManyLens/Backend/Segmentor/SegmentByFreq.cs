@@ -55,7 +55,7 @@ namespace ManyLens.Segmentor
                 if (tp[i].TweetsCount > cutoff)
                 {
                     tp[i].TweetBurstCutoff = (int)cutoff;//
-                    tp[i].IsTweetBurstPoint = 1;
+                    tp[i].IsTweetBurstPoint = true;
                 }
                 diff = Math.Abs(tp[i].TweetsCount - mean);
                 variance = alpha * diff + (1 - alpha) * variance;
@@ -227,7 +227,7 @@ namespace ManyLens.Segmentor
 
                     lastStart = start;
                     start = end;
-                    tp[start].IsTweetBurstPoint = 1;
+                    tp[start].IsTweetBurstPoint = true;
                     tp[start].TweetBurstCutoff = cutoff;
 
                     double smean = tp[i - 1].TweetsCount;
@@ -267,7 +267,7 @@ namespace ManyLens.Segmentor
                 if (tp[i].TweetsCount <= tp[start].TweetsCount && 
                     (i - start < halfWindow || tp[start].TweetsCount == intervalMax))
                 {
-                    tp[start].IsTweetBurstPoint = 0;
+                    tp[start].IsTweetBurstPoint = false;
                     tp[start].SegmentPoint = 0;
                     start = lastStart;
                     middle = lastMiddle;
@@ -334,11 +334,11 @@ namespace ManyLens.Segmentor
                 Term currentTerm = tp[i];
 
 
-                if (previousTerm.IsTweetBurstPoint == 1 && currentTerm.IsTweetBurstPoint == 0)//the last 1 point of previous area
+                if (previousTerm.IsTweetBurstPoint&& !currentTerm.IsTweetBurstPoint)//the last 1 point of previous area
                 { 
                     endofPrevious = i - 1; 
                 }
-                if (previousTerm.IsTweetBurstPoint == 0 && currentTerm.IsTweetBurstPoint == 1)//the first 1 point of next burst area
+                if (!previousTerm.IsTweetBurstPoint && currentTerm.IsTweetBurstPoint)//the first 1 point of next burst area
                 { 
                     startofNext = i; 
                 }
@@ -384,26 +384,26 @@ namespace ManyLens.Segmentor
             //List<DateTime> startSegmentPoints = new List<DateTime>();//burst point
             //List<DateTime> endSegmentPoints = new List<DateTime>();//one-to-one correspond to star
             //get all segment points (day) from "dateTweetsFreq"
-            if (dateTweetsFreq.First().Value.IsTweetBurstPoint == 1)//the first point is burst_point
+            if (dateTweetsFreq.First().Value.IsTweetBurstPoint)//the first point is burst_point
                 startSegmentPoints.Add(dateTweetsFreq.First().Key);
             for (int i = 1; i < dateTweetsFreq.Count; i++)
             {
                 Term previousTerm = dateTweetsFreq.ElementAt(i - 1).Value;
                 Term currentTerm = dateTweetsFreq.ElementAt(i).Value;
 
-                if (previousTerm.IsTweetBurstPoint == 0 && currentTerm.IsTweetBurstPoint == 1)
+                if (!previousTerm.IsTweetBurstPoint  && currentTerm.IsTweetBurstPoint)
                 {
                     //the first 1 point of burst_area
                     startSegmentPoints.Add(dateTweetsFreq.ElementAt(i).Key);
                     dateTweetsFreq.ElementAt(i).Value.SegmentPoint += 1;
                 }
-                if (previousTerm.IsTweetBurstPoint == 1 && currentTerm.IsTweetBurstPoint == 0)
+                if (previousTerm.IsTweetBurstPoint && !currentTerm.IsTweetBurstPoint)
                 {//the next 0 point of burst_area
                     endSegmentPoints.Add(dateTweetsFreq.ElementAt(i).Key);
                     dateTweetsFreq.ElementAt(i).Value.SegmentPoint += 2;
                 }
             }
-            if (dateTweetsFreq.Last().Value.IsTweetBurstPoint == 1)//the last point is burst_point
+            if (dateTweetsFreq.Last().Value.IsTweetBurstPoint )//the last point is burst_point
                 endSegmentPoints.Add(dateTweetsFreq.Last().Key);
 
             if (startSegmentPoints.Count == 0 & endSegmentPoints.Count == 0)//without any burst_point

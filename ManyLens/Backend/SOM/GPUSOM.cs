@@ -47,7 +47,7 @@ namespace ManyLens.SOM
 
             int trainsetSize = interval.TweetsCount;
             float[] trainset = interval.GetTFIDFVector(trainsetSize);
-            
+            Debug.WriteLine("Set the parameter for SOM");
             //set the resolution of SOM map
             int width = 32;
             int height = 16;
@@ -55,7 +55,7 @@ namespace ManyLens.SOM
             int batch_size = trainsetSize;
             //set the number of iteration
             int iteration = 20;
-            float lambda = 0.03f;
+            float lambda = 0.02f;
             float iterD = 1f;
 
             Debug.WriteLine("Let's have SOM");

@@ -229,7 +229,7 @@ var ManyLens;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
-                this._curveSvg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", coordinate_view_height).attr("x", this._view_left_padding).attr("y", this._view_top_padding);
+                this._curveSvg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", coordinate_view_height + 10).attr("x", this._view_left_padding).attr("y", this._view_top_padding - 10);
                 this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
                 this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
@@ -305,6 +305,19 @@ var ManyLens;
                     opacity: 0.5
                 }).on("click", function (d) {
                     _this.SelectSegment(d);
+                });
+                this._mainView.selectAll(".curve.node").remove();
+                var nodes = this._mainView.selectAll(".curve.node").data(this._data);
+                nodes.enter().append("circle").attr("class", "curve node").attr("cx", function (d, i) {
+                    return _this._x_scale(i);
+                }).attr("cy", function (d) {
+                    return _this._y_scale(d.value);
+                }).attr("r", function (d) {
+                    return d.isPeak ? 4 : 0;
+                }).style({
+                    fill: "#fff",
+                    stroke: "rgb(31, 145, 189)",
+                    "stroke-width": 2
                 });
                 var lineFunc = d3.svg.line().x(function (d, i) {
                     return _this._x_scale(i);
@@ -3657,7 +3670,7 @@ var ManyLens;
             __extends(SOMMap, _super);
             function SOMMap(element, manyLens) {
                 _super.call(this, element, manyLens);
-                this._colorPalettes = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)"];
+                this._colorPalettes = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
                 this._lensPane = new ManyLens.Pane.ClassicLensPane(element, manyLens);
                 this._element.attr("height", function () {
                     return this.parentNode.clientHeight - this.offsetTop + 20;
@@ -3669,19 +3682,50 @@ var ManyLens;
             };
             SOMMap.prototype.ShowVis = function (visData) {
                 var _this = this;
-                var scale = d3.scale.quantize().domain([visData.min, visData.max]).range(d3.range(this._colorPalettes.length - 1));
-                console.log(visData.min, visData.max);
+                var deviation = d3.deviation(visData.unitsData, function (d) {
+                    return d.count;
+                });
+                var mean = d3.mean(visData.unitsData, function (d) {
+                    return d.count;
+                });
+                var median = d3.median(visData.unitsData, function (d) {
+                    return d.count;
+                });
+                var oneDeviationMin = (mean - deviation) > 0 ? (mean - deviation) : 0;
+                var twoDeviationMax = (mean + 2 * deviation);
+                var oneDeviationMax = (mean + deviation);
+                var scale = d3.scale.quantize().domain([oneDeviationMin, oneDeviationMax]).range([1, 2, 3]);
                 var data0 = [];
                 visData.unitsData.forEach(function (d) {
-                    var index = scale(d.count);
-                    d.colorIndex = index;
-                    if (data0[index] == null) {
-                        data0[index] = [d.count];
+                    if (d.count > twoDeviationMax) {
+                        d.colorIndex = 5;
+                    }
+                    else if (d.count > oneDeviationMax) {
+                        d.colorIndex = 4;
+                    }
+                    else if (d.count < oneDeviationMin || d.count < median) {
+                        d.colorIndex = 0;
                     }
                     else {
-                        data0[index].push(d.count);
+                        d.colorIndex = scale(d.count);
+                    }
+                    if (data0[d.colorIndex] == null) {
+                        data0[d.colorIndex] = [d.count];
+                    }
+                    else {
+                        data0[d.colorIndex].push(d.count);
                     }
                 });
+                console.log(visData.min, visData.max);
+                console.log(d3.deviation(visData.unitsData, function (d) {
+                    return d.count;
+                }));
+                console.log(d3.mean(visData.unitsData, function (d) {
+                    return d.count;
+                }));
+                console.log(d3.median(visData.unitsData, function (d) {
+                    return d.count;
+                }));
                 console.log(data0);
                 var somMapWidth = 300.0;
                 var somMapHeight = 300.0;
@@ -3691,9 +3735,9 @@ var ManyLens;
                     return "mapSvg" + d.mapID;
                 }).attr("width", somMapWidth).attr("height", somMapHeight);
                 svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d, i) {
-                    return d.x * 20;
+                    return 100 + d.x * 20;
                 }).attr("y", function (d, i) {
-                    return d.y * 20;
+                    return 100 + d.y * 20;
                 }).attr({
                     width: 20,
                     height: 20
