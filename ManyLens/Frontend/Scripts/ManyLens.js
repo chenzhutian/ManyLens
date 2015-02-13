@@ -809,15 +809,6 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
-            Object.defineProperty(BaseSingleLens.prototype, "TargetData", {
-                get: function () {
-                    if (this._extract_data_map_func)
-                        return this._extract_data_map_func(this._data);
-                    return null;
-                },
-                enumerable: true,
-                configurable: true
-            });
             Object.defineProperty(BaseSingleLens.prototype, "LensPlace", {
                 get: function () {
                     return this._place;
@@ -890,7 +881,7 @@ var ManyLens;
                 }
                 else {
                     this._data = (d3.select(res).data()[0].lensData);
-                    this._place = this._data.unitID;
+                    this._place = this._data.unitID[0];
                 }
                 return this._data;
             };
@@ -1076,13 +1067,13 @@ var ManyLens;
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
-                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data.length]);
+                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data]);
                 this._x_axis_gen.scale(x).ticks(0).orient("bottom");
                 this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
                     return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
                 }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
-                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
-                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
+                this._bar_width = (this._bar_chart_width - 20) / this._extract_data_map_func(this._data).length;
+                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._extract_data_map_func(this._data)));
                 var bar = this._lens_circle_svg.selectAll(".bar").data(this._extract_data_map_func(this._data)).enter().append("g").attr("transform", function (d, i) {
                     return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
                 });
@@ -1179,7 +1170,7 @@ var ManyLens;
                 }
                 else {
                     d3.json("./testData/world.json", function (error, mapData) {
-                        _this._color.domain(d3.extent(_this._data));
+                        _this._color.domain(d3.extent(_this._extract_data_map_func(_this._data)));
                         _this._map_data = {
                             raw: mapData,
                             color: []
@@ -1544,10 +1535,8 @@ var ManyLens;
         var BaseCompositeLens = (function (_super) {
             __extends(BaseCompositeLens, _super);
             function BaseCompositeLens(element, type, manyLens, firstLens, secondLens) {
-                var _this = this;
                 _super.call(this, element, type, manyLens);
                 this._components_places = null;
-                //protected _base_data: any;
                 this._base_accessor_func = null;
                 this._sub_accessor_func = null;
                 this._new_lens_count = 1;
@@ -1593,24 +1582,6 @@ var ManyLens;
                     this._sub_accessor_func = secondLens.DataAccesser();
                 }
                 else {
-                    //haven't handle data yet
-                    var firstLens1 = firstLens;
-                    for (var i = 0, len = firstLens1.Lens.length; i < len; ++i) {
-                        this._lens.push(firstLens1.Lens[i]);
-                        this._select_circle.push(firstLens1.SelectCircle[i]);
-                        if (this._components_kind.has(firstLens1.Lens[i].Type)) {
-                            var num = this._components_kind.get(firstLens1.Lens[i].Type) + 1;
-                            this._components_kind.set(firstLens1.Lens[i].Type, num);
-                        }
-                        else {
-                            this._components_kind.set(firstLens1.Lens[i].Type, 1);
-                        }
-                        firstLens1.Lens[i].ChangeHostTo(this);
-                    }
-                    //？this._sub_data = firstLens1.RawData;
-                    firstLens1.RawData.forEach(function (v) {
-                        _this._data.push(v);
-                    });
                 }
             }
             Object.defineProperty(BaseCompositeLens.prototype, "Lens", {
@@ -1670,7 +1641,53 @@ var ManyLens;
                 this._sub_component = null;
             };
             BaseCompositeLens.prototype.ExtractData = function () {
-                throw new Error('This method is abstract');
+                var _this = this;
+                if (this._sub_data) {
+                    this._data.unitID.concat(this._sub_data.unitID);
+                    this._data.contents.concat(this._sub_data.contents);
+                    this._sub_data.hashTagDistribute.forEach(function (d) {
+                        var key = d.Key;
+                        var value = d.Value;
+                        var column = _this._data.hashTagDistribute;
+                        for (var i = 0, len = column.length; i < len; ++i) {
+                            if (key == column[i].Key) {
+                                column[i].Value += value;
+                                break;
+                            }
+                        }
+                        if (i == len) {
+                            column.push(d);
+                        }
+                    });
+                    this._sub_data.labels.forEach(function (d) {
+                        var key = d.Key;
+                        var value = d.Value;
+                        var column = _this._data.labels;
+                        for (var i = 0, len = column.length; i < len; ++i) {
+                            if (key == column[i].Key) {
+                                column[i].Value += value;
+                                break;
+                            }
+                        }
+                        if (i == len) {
+                            column.push(d);
+                        }
+                    });
+                    this._sub_data.tweetLengthDistribute.forEach(function (d) {
+                        var key = d.Key;
+                        var value = d.Value;
+                        var column = _this._data.tweetLengthDistribute;
+                        for (var i = 0, len = column.length; i < len; ++i) {
+                            if (key == column[i].Key) {
+                                column[i].Value += value;
+                                break;
+                            }
+                        }
+                        if (i == len) {
+                            column.push(d);
+                        }
+                    });
+                }
             };
             BaseCompositeLens.prototype.DisplayLens = function () {
                 _super.prototype.DisplayLens.call(this);
@@ -1796,11 +1813,10 @@ var ManyLens;
                 }
                 //Handle the data   
                 //TODO here
-                if (lens.LensPlace != this.ComponentsPlace[0]) {
+                if (this.ComponentsPlace.indexOf(lens.LensPlace) == -1) {
                     this._components_places.push(lens.LensPlace);
                     this._sub_data = lens.RawData;
                 }
-                this._sub_accessor_func = lens.DataAccesser();
                 this._new_lens_count = 1;
             };
             BaseCompositeLens.prototype.RemoveWholeSVG = function () {

@@ -21,11 +21,10 @@ module ManyLens {
             protected _components_places: number[] = null;
 
             protected _base_component: BaseD3Lens;
-            //protected _base_data: any;
             protected _base_accessor_func: (d: any,newData?:any) => any = null;
             protected _sub_component: BaseD3Lens;
-            protected _sub_data: any;
             protected _sub_accessor_func: (d: any,newData?:any) => any = null;
+            protected _sub_data: UnitsDataForLens;
 
             protected _new_lens_count: number = 1;
             protected _need_to_reshape: boolean = false;
@@ -99,24 +98,24 @@ module ManyLens {
                     this._sub_accessor_func = secondLens.DataAccesser();
 
                 } else {
-                    //haven't handle data yet
-                    var firstLens1: BaseCompositeLens = (<BaseCompositeLens>firstLens);
-                    for (var i = 0, len = firstLens1.Lens.length; i < len; ++i) {
-                        this._lens.push(firstLens1.Lens[i]);
-                        this._select_circle.push(firstLens1.SelectCircle[i]);
-                        if (this._components_kind.has(firstLens1.Lens[i].Type)) {
-                            var num: number = this._components_kind.get(firstLens1.Lens[i].Type) + 1;
-                            this._components_kind.set(firstLens1.Lens[i].Type, num);
-                        } else {
-                            this._components_kind.set(firstLens1.Lens[i].Type, 1);
-                        }
-                        firstLens1.Lens[i].ChangeHostTo(this);
-                    }
+                    ////haven't finish yet
+                    //var firstLens1: BaseCompositeLens = (<BaseCompositeLens>firstLens);
+                    //for (var i = 0, len = firstLens1.Lens.length; i < len; ++i) {
+                    //    this._lens.push(firstLens1.Lens[i]);
+                    //    this._select_circle.push(firstLens1.SelectCircle[i]);
+                    //    if (this._components_kind.has(firstLens1.Lens[i].Type)) {
+                    //        var num: number = this._components_kind.get(firstLens1.Lens[i].Type) + 1;
+                    //        this._components_kind.set(firstLens1.Lens[i].Type, num);
+                    //    } else {
+                    //        this._components_kind.set(firstLens1.Lens[i].Type, 1);
+                    //    }
+                    //    firstLens1.Lens[i].ChangeHostTo(this);
+                    //}
                     
-                    //？this._sub_data = firstLens1.RawData;
-                    firstLens1.RawData.forEach((v)=>{
-                        this._data.push(v);
-                    });
+                    ////？this._sub_data = firstLens1.RawData;
+                    //firstLens1.RawData.forEach((v)=>{
+                    //    this._data.push(v);
+                    //});
                 }
             }
 
@@ -141,7 +140,53 @@ module ManyLens {
             }
 
             protected ExtractData(): any {
-                throw new Error('This method is abstract');
+                if (this._sub_data) {
+                    this._data.unitID.concat(this._sub_data.unitID);
+                    this._data.contents.concat(this._sub_data.contents);
+                    this._sub_data.hashTagDistribute.forEach((d) => {
+                        var key = d.Key;
+                        var value = d.Value;
+                        var column = this._data.hashTagDistribute;
+                        for (var i = 0, len = column.length; i < len; ++i) {
+                            if (key == column[i].Key) {
+                              column[i].Value += value;
+                                break;
+                            }
+                        }
+                        if (i == len) {
+                            column.push(d);
+                        }
+
+                    });
+                    this._sub_data.labels.forEach((d) => {
+                        var key = d.Key;
+                        var value = d.Value;
+                        var column = this._data.labels;
+                        for (var i = 0, len = column.length; i < len; ++i) {
+                            if (key == column[i].Key) {
+                                column[i].Value += value;
+                                break;
+                            }
+                        }
+                        if (i == len) {
+                            column.push(d);
+                        }
+                    });
+                    this._sub_data.tweetLengthDistribute.forEach((d) => {
+                        var key = d.Key;
+                        var value = d.Value;
+                        var column = this._data.tweetLengthDistribute;
+                        for (var i = 0, len = column.length; i < len; ++i) {
+                            if (key == column[i].Key) {
+                                column[i].Value += value;
+                                break;
+                            }
+                        }
+                        if (i == len) {
+                            column.push(d);
+                        }
+                    });
+                }
             }
 
             public DisplayLens(): void {
@@ -302,11 +347,11 @@ module ManyLens {
 
                 //Handle the data   
                 //TODO here
-                if (lens.LensPlace != this.ComponentsPlace[0]) {
+                if (this.ComponentsPlace.indexOf(lens.LensPlace) == -1) {
                     this._components_places.push(lens.LensPlace);
                     this._sub_data = lens.RawData;
                 }
-                this._sub_accessor_func = lens.DataAccesser();
+
                 this._new_lens_count = 1;
             }
 
