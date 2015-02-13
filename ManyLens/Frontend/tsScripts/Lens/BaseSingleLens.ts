@@ -134,26 +134,23 @@ module ManyLens {
                 }
             }
 
-            public ExtractData(map?: (d?: any) => any): any {
-                if (map != null) {
-                    this._extract_data_map_func = map;
-                    return null;
-                }
+            public DataAccesser(map?: (d?: any) => any): any {
+                if (map == null) return this._extract_data_map_func;
+                this._extract_data_map_func = map;
+                return this;
+            }
 
-                if (!this._extract_data_map_func) return null;
-
+            public ExtractData(): any {
                 var res = this.GetElementByMouse();
                 if (!res) return null;
-
-                return this._extract_data_map_func(d3.select(res).data()[0]);
+                this._data = (d3.select(res).data()[0]);
+                return this._data;
             }
 
             public DisplayLens() {
                 
-                var duration: number = super.DisplayLens();
-
-                //if is new area with new data, then show the link line 
                 if (this._data) {
+                    var duration: number = super.DisplayLens();
                     var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
                     var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
                     var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
@@ -229,7 +226,7 @@ module ManyLens {
                     + this._sc_lc_default_dist
                     + this._lens_circle_radius) * sinTheta;
 
-                    this._data = this.ExtractData();
+                    this.ExtractData();
                     this.DisplayLens();
 
                     this._has_showed_lens = true;

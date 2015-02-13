@@ -34,13 +34,15 @@ module ManyLens {
             }
 
             // data shape {text: size:}
-            public ExtractData(map?:(d?:any)=>any): Array<D3.Layout.ICloudData> {
-                var data: Array<D3.Layout.ICloudData> = super.ExtractData(map);
-                if (data == null) return;
+            public ExtractData() {
+                var data = super.ExtractData();
+
 
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.Value; }))
+                    .domain(d3.extent(this._extract_data_map_func(data), (d: { Key: any;Value:any}) => {
+                        return d.Value;
+                    }))
                 ;
 
                 return data;
@@ -49,8 +51,11 @@ module ManyLens {
             public DisplayLens(): any {
                 super.DisplayLens();
 
+                console.log(this._data);
+                console.log(this._extract_data_map_func(this._data));
+
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(this._data)
+                    .words(this._extract_data_map_func(this._data))
                     .filter((d) => {
                         if (d.Value > 2)
                             return true;

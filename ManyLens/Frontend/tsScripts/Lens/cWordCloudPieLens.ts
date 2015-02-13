@@ -70,7 +70,7 @@ module ManyLens {
                 var data = this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(data)
+                    .words(this._data)
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)

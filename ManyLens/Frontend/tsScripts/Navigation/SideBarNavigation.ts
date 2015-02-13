@@ -172,9 +172,11 @@
                             .enter().append("li")
                             .text(function (d) { return d.name })
                             .on("click", (d: MenuListData) => {
-                                var len:Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg, this._manyLens);
-                                len.ExtractData(d.extractDataFunc);
-                                len.Render("red");
+                                var lens: Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg, this._manyLens);
+                                lens
+                                    .DataAccesser(d.extractDataFunc)
+                                    .Render("red")
+                                ;
                             });
                     }
                 }

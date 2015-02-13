@@ -125,7 +125,7 @@ module ManyLens {
 
             }
 
-            protected ExtractData(map?:(d?:Array<any>,i?:number)=>any): any {
+            protected ExtractData(): any {
                 throw new Error('This method is abstract');
             }
 

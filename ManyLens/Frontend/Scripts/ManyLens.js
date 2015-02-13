@@ -152,9 +152,8 @@ var ManyLens;
                         ul.selectAll("li").data(sub_menu).enter().append("li").text(function (d) {
                             return d.name;
                         }).on("click", function (d) {
-                            var len = new d.lensConstructFunc(_this._map_Svg, _this._manyLens);
-                            len.ExtractData(d.extractDataFunc);
-                            len.Render("red");
+                            var lens = new d.lensConstructFunc(_this._map_Svg, _this._manyLens);
+                            lens.DataAccesser(d.extractDataFunc).Render("red");
                         });
                     }
                 }
@@ -596,7 +595,7 @@ var ManyLens;
                 this._lens_type_color = color;
                 this._sc_lc_svg = this._element.append("g").attr("class", "lens");
             };
-            BaseD3Lens.prototype.ExtractData = function (map) {
+            BaseD3Lens.prototype.ExtractData = function () {
                 throw new Error('This method is abstract');
             };
             BaseD3Lens.prototype.DisplayLens = function (any) {
@@ -845,23 +844,23 @@ var ManyLens;
                     selectCircle.attr("cx", p[0]).attr("cy", p[1]);
                 }
             };
-            BaseSingleLens.prototype.ExtractData = function (map) {
-                if (map != null) {
-                    this._extract_data_map_func = map;
-                    return null;
-                }
-                if (!this._extract_data_map_func)
-                    return null;
+            BaseSingleLens.prototype.DataAccesser = function (map) {
+                if (map == null)
+                    return this._extract_data_map_func;
+                this._extract_data_map_func = map;
+                return this;
+            };
+            BaseSingleLens.prototype.ExtractData = function () {
                 var res = this.GetElementByMouse();
                 if (!res)
                     return null;
-                return this._extract_data_map_func(d3.select(res).data()[0]);
+                this._data = (d3.select(res).data()[0]);
+                return this._data;
             };
             BaseSingleLens.prototype.DisplayLens = function () {
                 var _this = this;
-                var duration = _super.prototype.DisplayLens.call(this);
-                //if is new area with new data, then show the link line 
                 if (this._data) {
+                    var duration = _super.prototype.DisplayLens.call(this);
                     var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
                     var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
                     var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
@@ -907,7 +906,7 @@ var ManyLens;
                     var sinTheta = Math.sin(theta);
                     this._lens_circle_cx = this._select_circle_cx + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist + this._lens_circle_radius) * cosTheta;
                     this._lens_circle_cy = this._select_circle_cy + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist + this._lens_circle_radius) * sinTheta;
-                    this._data = this.ExtractData();
+                    this.ExtractData();
                     this.DisplayLens();
                     this._has_showed_lens = true;
                 }
@@ -1295,7 +1294,7 @@ var ManyLens;
                 this._color = d3.scale.category20();
                 this._arc.innerRadius(this._innerRadius).outerRadius(this._outterRadius);
                 this._pie.value(function (d) {
-                    return d;
+                    return d.Value;
                 }).sort(null);
             }
             Object.defineProperty(PieChartLens.prototype, "Color", {
@@ -1308,20 +1307,14 @@ var ManyLens;
             PieChartLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
             };
-            PieChartLens.prototype.ExtractData = function (map) {
-                var data;
-                data = _super.prototype.ExtractData.call(this, map);
-                if (data == null)
-                    return;
-                this._pie.value(function (d) {
-                    return d.Value;
-                });
+            PieChartLens.prototype.ExtractData = function () {
+                var data = _super.prototype.ExtractData.call(this);
                 return data;
             };
-            PieChartLens.prototype.DisplayLens = function (data) {
+            PieChartLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this, data);
-                this._lens_circle_svg.selectAll("path").data(this._pie(this._data)).enter().append("path").attr("fill", function (d) {
+                _super.prototype.DisplayLens.call(this);
+                this._lens_circle_svg.selectAll("path").data(this._pie(this._extract_data_map_func(this._data))).enter().append("path").attr("fill", function (d) {
                     return _this._color(d.data.Key);
                 }).attr("d", this._arc);
             };
@@ -1384,8 +1377,8 @@ var ManyLens;
                 };
                 return data;
             };
-            TreeNetworkLens.prototype.DisplayLens = function (data) {
-                _super.prototype.DisplayLens.call(this, data);
+            TreeNetworkLens.prototype.DisplayLens = function () {
+                _super.prototype.DisplayLens.call(this);
                 var nodeRadius = 4.5;
                 var diagonal = d3.svg.diagonal.radial().projection(function (d) {
                     return [d.y, d.x / 180 * Math.PI];
@@ -1437,11 +1430,9 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             // data shape {text: size:}
-            WordCloudLens.prototype.ExtractData = function (map) {
-                var data = _super.prototype.ExtractData.call(this, map);
-                if (data == null)
-                    return;
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
+            WordCloudLens.prototype.ExtractData = function () {
+                var data = _super.prototype.ExtractData.call(this);
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func(data), function (d) {
                     return d.Value;
                 }));
                 return data;
@@ -1449,7 +1440,9 @@ var ManyLens;
             WordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).filter(function (d) {
+                console.log(this._data);
+                console.log(this._extract_data_map_func(this._data));
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._extract_data_map_func(this._data)).filter(function (d) {
                     if (d.Value > 2)
                         return true;
                     return false;
@@ -2632,7 +2625,7 @@ var ManyLens;
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
                 var data = this.ExtractData();
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                     return _this._font_size(d.value);
                 }).on("end", function (words, bounds) {
                     _this.DrawCloud(words, bounds);

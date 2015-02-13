@@ -27,7 +27,7 @@ module ManyLens{
 
                 this._pie
                     .value((d) => {
-                        return d;
+                        return d.Value;
                     })
                     .sort(null)
                    // .padAngle(.02)
@@ -40,19 +40,16 @@ module ManyLens{
 
             }
 
-            public ExtractData(map?: (d?: any) => any): Array<any> {
-                var data: Array<any>;
-                data = super.ExtractData(map);
-                if (data == null) return;
+            public ExtractData(): Array<any> {
+                var data: Array<any> =  super.ExtractData();
 
-                this._pie.value(function (d) { return d.Value;})
                 return data;
             }
 
             public DisplayLens(): any {
                 super.DisplayLens();  
                 this._lens_circle_svg.selectAll("path")
-                    .data(this._pie(this._data))
+                    .data(this._pie(this._extract_data_map_func(this._data)))
                     .enter().append("path")
                     .attr("fill", (d) => {
                         return this._color(d.data.Key);
