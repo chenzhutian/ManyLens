@@ -33,8 +33,8 @@ module ManyLens {
                 super.Render(color);
             }
 
-            constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, MapLens.Type, manyLens);
+            constructor(element: D3.Selection, attributeName:string, manyLens: ManyLens.ManyLens) {
+                super(element,attributeName, MapLens.Type, manyLens);
 
                 this._projection
                     .scale(35)
@@ -75,7 +75,7 @@ module ManyLens {
             }
 
             public DisplayLens(): any {
-                super.DisplayLens();
+                if (!super.DisplayLens()) return;
 
 
                 if (this._map_data) {

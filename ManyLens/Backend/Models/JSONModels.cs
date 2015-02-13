@@ -26,16 +26,22 @@ namespace ManyLens.Models
         public Mark mark { set; get; }
     }
 
+    public class UnitsDataForLens
+    {
+        public List<KeyValuePair<string, int>> labels { set; get; }
+        public List<KeyValuePair<int, int>> tweetLengthDistribute { set; get; }
+        public List<string> contents { set; get; }
+        public List<KeyValuePair<string, int>> hashTagDistribute { set; get; }
+    }
+
     public class UnitsData
     {
         public int unitID { set; get; }
         public int count{set;get;}
-        public List<KeyValuePair<string,int>> labels{set;get;}
-        public List<KeyValuePair<int, int>> tweetLengthDistribute { set; get; }
-        public int x{set;get;}
-        public int y{set;get;}
-        public List<string> contents { set; get; }
-        public List<KeyValuePair<string, int>> hashTagDistribute { set; get; }
+        public int x { set; get; }
+        public int y { set; get; }
+
+        public UnitsDataForLens lensData { set; get; }
         //public List<string> tweetIDs{set;get;}
     }
 

@@ -12,8 +12,8 @@ module ManyLens {
             private _bar_chart_width: number = this._lens_circle_radius * Math.SQRT2;
             private _bar_chart_height: number = this._bar_chart_width;
 
-            constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, BarChartLens.Type,manyLens);
+            constructor(element: D3.Selection, attributeName:string, manyLens: ManyLens.ManyLens) {
+                super(element, attributeName,BarChartLens.Type,manyLens);
             }
 
             public Render(color: string): void {
@@ -31,7 +31,7 @@ module ManyLens {
             }
 
             public DisplayLens() {
-                super.DisplayLens();
+                if (!super.DisplayLens()) return;
 
                 var x = d3.scale.linear()
                     .range([0, this._bar_chart_width])

@@ -17,8 +17,8 @@ module ManyLens{
                 return this._color;
             }
 
-            constructor(element: D3.Selection, manyLens: ManyLens) {
-                super(element, PieChartLens.Type,manyLens);
+            constructor(element: D3.Selection,attributeName:string, manyLens: ManyLens) {
+                super(element,attributeName, PieChartLens.Type,manyLens);
                 this._arc
                     .innerRadius(this._innerRadius)
                     .outerRadius(this._outterRadius)
@@ -47,7 +47,8 @@ module ManyLens{
             }
 
             public DisplayLens(): any {
-                super.DisplayLens();  
+                if (!super.DisplayLens()) return;
+
                 this._lens_circle_svg.selectAll("path")
                     .data(this._pie(this._extract_data_map_func(this._data)))
                     .enter().append("path")
@@ -55,6 +56,17 @@ module ManyLens{
                         return this._color(d.data.Key);
                     })
                     .attr("d", this._arc)
+                ;
+
+                this._lens_circle_svg
+                    .append("text")
+                    .text(this._attribute_name)
+                    .attr("y", function () {
+                        return 0;//- this.getBBox().height / 2;
+                    })
+                    .attr("x", function () {
+                        return - this.getBBox().width / 2;
+                    })
                 ;
             }
         }

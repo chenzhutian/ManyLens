@@ -22,12 +22,12 @@
 
         export class SOMMap extends D3ChartObject {
 
-            private _lensPane: Pane.ClassicLensPane;
+           // private _lensPane: Pane.ClassicLensPane;
             private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
 
             constructor(element: D3.Selection, manyLens: ManyLens) {
                 super(element, manyLens);
-                this._lensPane = new Pane.ClassicLensPane(element, manyLens);
+               // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
                 this._element.attr("height", function () {
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
@@ -36,7 +36,7 @@
             }
 
             public Render() {
-                this._lensPane.Render();
+                //this._lensPane.Render();
             }
 
             public ShowVis(visData: MapData): void {

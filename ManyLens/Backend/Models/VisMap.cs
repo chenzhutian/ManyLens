@@ -109,7 +109,7 @@ namespace ManyLens.Models
         }
         #endregion
 
-        public VisMap(string visMapID, int width, int height, Interval interval,VisMap parentNote = null)
+        public VisMap(string visMapID, int width, int height, Interval interval, VisMap parentNote = null)
         {
             this.ParentNote = parentNote;
             this.VisMapID = visMapID;
@@ -164,13 +164,16 @@ namespace ManyLens.Models
                                             {
                                                 unitID = unit.UnitID,
                                                 count = unit.TweetsCount,
-                                                contents = unit.TweetContents,
-                                                labels = unit.WordLabels,
-                                                tweetLengthDistribute = unit.TweetLengthDistribute,
                                                 x = unit.X,
                                                 y = unit.Y,
-                                                hashTagDistribute = unit.HashTagDistribute
-                                               // tweetIDs = unit.TweetIDs
+                                                lensData = new UnitsDataForLens()
+                                                {
+                                                    contents = unit.TweetContents,
+                                                    labels = unit.WordLabels,
+                                                    tweetLengthDistribute = unit.TweetLengthDistribute,
+                                                    hashTagDistribute = unit.HashTagDistribute
+                                                    // tweetIDs = unit.TweetIDs
+                                                }
                                             });
             }
 

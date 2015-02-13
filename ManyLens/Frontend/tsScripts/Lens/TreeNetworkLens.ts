@@ -9,8 +9,8 @@ module ManyLens {
             private _theta: number = 360;
             private _tree: D3.Layout.TreeLayout = d3.layout.tree();
 
-            constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, TreeNetworkLens.Type,manyLens);
+            constructor(element: D3.Selection,attributeName:string, manyLens: ManyLens.ManyLens) {
+                super(element,attributeName, TreeNetworkLens.Type,manyLens);
             }
 
             public Render(color: string): void {

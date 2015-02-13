@@ -10,8 +10,8 @@ module ManyLens {
             private _location_x_scale: D3.Scale.LinearScale = d3.scale.linear();
             private _location_y_scale: D3.Scale.LinearScale = d3.scale.linear();
 
-            constructor(element:D3.Selection, manyLens:ManyLens) {
-                super(element, NetworkLens.Type, manyLens);
+            constructor(element:D3.Selection,attributeName:string, manyLens:ManyLens) {
+                super(element, attributeName, NetworkLens.Type, manyLens);
 
                 this._force
                     .size([0, 0])
@@ -108,7 +108,7 @@ module ManyLens {
             }
 
             public DisplayLens(): any {
-                super.DisplayLens();
+                if (!super.DisplayLens()) return;
                 var testData = this.ExtractData();
                 var nodes = testData.nodes,
                     links = testData.links

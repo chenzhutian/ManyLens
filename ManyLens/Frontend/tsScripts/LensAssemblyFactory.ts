@@ -65,6 +65,12 @@ module ManyLens {
                 /*--------------------------------cWordCloudPie Digram Lens------------------------------*/
                 case Lens.WordCloudLens.Type + "_" + Lens.PieChartLens.Type:
                 case Lens.PieChartLens.Type + "_" + Lens.WordCloudLens.Type: {
+                    if (firstLens.Type != Lens.WordCloudLens.Type) {
+                        var tempLens = firstLens;
+                        firstLens = secondLens;
+                        secondLens = tempLens;
+                    }
+
                     return new Lens.cWordCloudPieLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
