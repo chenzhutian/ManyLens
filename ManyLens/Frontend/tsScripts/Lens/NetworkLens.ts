@@ -104,8 +104,8 @@ module ManyLens {
                 return graph;
             }
 
-            public DisplayLens(data: any): any {
-                super.DisplayLens(data);
+            public DisplayLens(): any {
+                super.DisplayLens();
                 var nodes = this._data.nodes,
                     links = this._data.links
                 ;

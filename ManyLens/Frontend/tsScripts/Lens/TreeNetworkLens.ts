@@ -58,8 +58,8 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(data: D3.Layout.GraphNode): any {
-                super.DisplayLens(data);
+            public DisplayLens(): any {
+                super.DisplayLens();
 
                 var nodeRadius = 4.5;
                 var diagonal = d3.svg.diagonal.radial()

@@ -72,8 +72,8 @@ module ManyLens {
 
             }
 
-            public DisplayLens(barData: any): any {
-                super.DisplayLens(barData);
+            public DisplayLens(): any {
+                super.DisplayLens();
 
 
                 if (this._map_data) {
