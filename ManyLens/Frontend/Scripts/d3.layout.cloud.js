@@ -104,20 +104,17 @@
         }
 
         function place(board, tag, bounds) {
-            var perimeter = [
-                { x: 0, y: 0 },
-                { x: size[0], y: size[1] }
-            ],
-                startX = tag.x, 
+            var startX = tag.x, 
                 startY = tag.y, 
                 maxDelta = Math.sqrt(size[0] * size[0] + size[1] * size[1]),
+                maxR = maxDelta * maxDelta * 0.25,
                 s = spiral(size),
                 dt = Math.random() < .5 ? 1 : -1,
                 t = -dt,
                 dxdy,
                 dx,
                 dy;
-
+            console.log(maxR);
             while (dxdy = s(t += dt)) {
                 
                 dx = ~~dxdy[0];
@@ -131,9 +128,13 @@
                 //This is for test
                 event.step({text:tag.text,x:tag.x,y:tag.y});
 
-                if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 ||
-                    tag.x + tag.x1 > size[0] || tag.y + tag.y1 > size[1])
+                var r1 = (startX - (tag.x0+tag.x)) * (startX - (tag.x0+tag.x)) + (startY - (tag.y0+tag.y)) * (startY - (tag.y0+tag.y));
+                var r2 = (startX - (tag.x1+tag.x)) * (startX - (tag.x1+tag.x)) + (startY - (tag.y1+tag.y)) * (startY - (tag.y1+tag.y));
+                if (r1 > maxR || r2 > maxR)
                     continue;
+                //if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 ||
+                //    tag.x + tag.x1 > size[0] || tag.y + tag.y1 > size[1])
+                //    continue;
 
                 // only check for collisions within current bounds.
                 if (!bounds || !cloudCollide(tag, board, size[0])) {

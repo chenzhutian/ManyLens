@@ -1455,7 +1455,7 @@ var ManyLens;
                 _super.call(this, element, attributeName, WordCloudLens.Type, manyLens);
                 this._font_size = d3.scale.sqrt();
                 this._cloud = d3.layout.cloud();
-                this._cloud_w = this._lens_circle_radius * 1.7;
+                this._cloud_w = this._lens_circle_radius * Math.SQRT2;
                 this._cloud_h = this._cloud_w;
                 this._cloud_padding = 1;
                 this._cloud_font = "Calibri";
@@ -2564,7 +2564,11 @@ var ManyLens;
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
                 this.ExtractData();
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func(this._data)).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func(this._data)).filter(function (d) {
+                    if (d.Value > 3)
+                        return true;
+                    return false;
+                }).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                     return _this._font_size(d.Value);
                 }).on("end", function (words, bounds) {
                     _this.DrawCloud(words, bounds);

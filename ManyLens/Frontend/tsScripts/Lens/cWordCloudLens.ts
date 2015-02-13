@@ -52,6 +52,11 @@ module ManyLens {
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._base_accessor_func(this._data))
+                    .filter((d) => {
+                        if (d.Value > 3)
+                            return true;
+                        return false;
+                    })
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)
