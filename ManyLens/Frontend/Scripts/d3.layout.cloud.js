@@ -36,7 +36,6 @@
                     return d;
                 }).sort(function (a, b) { return b.size - a.size; });
 
-            console.log(data);
             if (timer) clearInterval(timer);
             timer = setInterval(step, 0);
 
@@ -246,7 +245,7 @@
     }
 
     function cloudFilter(d) {
-        if (d.Value > 2)
+        if (d.Value > 0)
             return true;
         return false;
     }

@@ -21,9 +21,9 @@ module ManyLens {
                 return this._cloud_text_color;
             }
 
-            constructor(element: D3.Selection, manyLens: ManyLens.ManyLens) {
-                super(element, WordCloudLens.Type,manyLens);
-               
+            constructor(element: D3.Selection, attributeName: string, manyLens: ManyLens.ManyLens) {
+                super(element, attributeName, WordCloudLens.Type, manyLens);
+
                 this._cloud_text_color = d3.scale.category20c();
 
             }
@@ -38,26 +38,25 @@ module ManyLens {
                 var data = super.ExtractData();
 
 
-                this._font_size
-                    .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(this._extract_data_map_func(data), (d: { Key: any;Value:any}) => {
-                        return d.Value;
-                    }))
-                ;
+                if (data)
+                    this._font_size
+                        .range([10, this._cloud_w / 8])
+                        .domain(d3.extent(this._extract_data_map_func(data), (d: { Key: any; Value: any }) => {
+                            return d.Value;
+                        }))
+                    ;
+
 
                 return data;
             }
 
             public DisplayLens(): any {
-                super.DisplayLens();
-
-                console.log(this._data);
-                console.log(this._extract_data_map_func(this._data));
+                if (!super.DisplayLens()) return null;
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._extract_data_map_func(this._data))
                     .filter((d) => {
-                        if (d.Value > 2)
+                        if (d.Value > 0)
                             return true;
                         return false;
                     })
@@ -95,7 +94,6 @@ module ManyLens {
                     .style("fill", (d, i) => { return this._cloud_text_color(d.size); })
                     .style("opacity", 1e-6)
                     .attr("text-anchor", "middle")
-                //.attr("class", "show")
                     .attr("transform", function (d) {
                         return "translate(" + [d.x, d.y] + ")";
                     })

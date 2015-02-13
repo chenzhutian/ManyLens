@@ -28,7 +28,7 @@ module ManyLens {
                 
                 this._pie
                     .value((d) => {
-                        return d;
+                        return d.Value;
                     })
                     .sort(null)
                 ;
@@ -50,19 +50,39 @@ module ManyLens {
             }
 
             // data shape {text: size:}
-            protected ExtractData(): Array<D3.Layout.ICloudData> {
-                var data: Array<D3.Layout.ICloudData>
-                console.log(this._data);
-                console.log(this._sub_data);
+            protected ExtractData() {
 
-                //昨天搞到这
+                //Intersection of base data
+                var newbaseData = [];
+                this._base_accessor_func(this._base_data).forEach((d) => {
 
+                    var joinData = this._base_accessor_func(this._sub_data);
+                    joinData.forEach(function (p) {
+                        if (d.Key == p.Key)
+                            newbaseData.push(p);
+                    });
+                });
+                this._base_accessor_func(this._base_data, newbaseData);
+
+                //Intersection of sub data
+                var newsubData = [];
+                this._sub_accessor_func(this._sub_data).forEach((d) => {
+
+                    var joinData = this._sub_accessor_func(this._base_data);
+                    joinData.forEach(function (p) {
+                        if (d.Key == p.Key)
+                            newsubData.push(p);
+                    });
+
+                });
+                this._sub_accessor_func(this._base_data, newsubData);
+
+                //I dont know how to fix it, just hard code for now
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.Value; }))
+                    .domain(d3.extent(newbaseData, function (d) { return d.Value; }))
                 ;
 
-                return data;
             }
 
             public DisplayLens(): void {
@@ -70,27 +90,23 @@ module ManyLens {
                 var data = this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(this._data)
+                    .words(this._base_accessor_func(this._base_data))
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)
                     .fontWeight(this._cloud_font_weight)
-                    .fontSize((d) => { return this._font_size(d.value); })
+                    .fontSize((d) => { return this._font_size(d.Value); })
                     .on("end", (words, bounds) => {
                         this.DrawCloud(words, bounds);
                     })
                 ;
                 this._cloud.start();
 
-                var barData = d3.range(6).map(function () {
-                    return Math.random() * 60;
-                });
-
                 this._lens_circle_svg.selectAll(".innerPie")
-                    .data(this._pie(barData))
+                    .data(this._pie(this._sub_accessor_func(this._base_data)))
                     .enter().append("path")
                     .attr("d", this._arc)
-                    .style("fill", (d, i) => { return this._cloud_text_color(i); })
+                    .style("fill", (d) => { return this._cloud_text_color(d.data.Key); })
                     .style("fill-rule", "evenodd")
                 ;
             }
@@ -114,10 +130,9 @@ module ManyLens {
                     .style("font-size", function (d) { return d.size + "px"; })
                     .style("font-weight", function (d) { return d.weight; })
                     .style("font-family", function (d) { return d.font })
-                    .style("fill", (d, i) => { return this._cloud_text_color(d.size); })
+                    .style("fill", (d) => { return this._cloud_text_color(d.Key); })
                     .style("opacity", 1e-6)
                     .attr("text-anchor", "middle")
-                //.attr("class", "show")
                     .attr("transform", function (d) {
                         return "translate(" + [d.x, d.y] + ")";
                     })

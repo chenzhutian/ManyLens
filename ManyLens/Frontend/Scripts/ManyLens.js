@@ -58,15 +58,19 @@ var ManyLens;
                                 {
                                     name: "Tweet Length",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
-                                    extractDataFunc: function (d) {
+                                    extractDataFunc: function (d, newData) {
+                                        if (newData)
+                                            d.tweetLengthDistribute = newData;
                                         return d.tweetLengthDistribute;
                                     }
                                 },
                                 {
                                     name: "Hashtag Count",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
-                                    extractDataFunc: function (d) {
-                                        return d.tweetLengthDistribute;
+                                    extractDataFunc: function (d, newData) {
+                                        if (newData)
+                                            d.hashTagDistribute = newData;
+                                        return d.hashTagDistribute;
                                     }
                                 },
                                 {
@@ -86,14 +90,18 @@ var ManyLens;
                                 {
                                     name: "Keywords",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
-                                    extractDataFunc: function (d) {
+                                    extractDataFunc: function (d, newData) {
+                                        if (newData)
+                                            d.labels = newData;
                                         return d.labels;
                                     }
                                 },
                                 {
                                     name: "Hashtag",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
-                                    extractDataFunc: function (d) {
+                                    extractDataFunc: function (d, newData) {
+                                        if (newData)
+                                            d.hashTagDistribute = newData;
                                         return d.hashTagDistribute;
                                     }
                                 }
@@ -152,7 +160,7 @@ var ManyLens;
                         ul.selectAll("li").data(sub_menu).enter().append("li").text(function (d) {
                             return d.name;
                         }).on("click", function (d) {
-                            var lens = new d.lensConstructFunc(_this._map_Svg, _this._manyLens);
+                            var lens = new d.lensConstructFunc(_this._map_Svg, d.name, _this._manyLens);
                             lens.DataAccesser(d.extractDataFunc).Render("red");
                         });
                     }
@@ -584,7 +592,7 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
-            Object.defineProperty(BaseD3Lens.prototype, "Data", {
+            Object.defineProperty(BaseD3Lens.prototype, "RawData", {
                 get: function () {
                     return this._data;
                 },
@@ -741,7 +749,7 @@ var ManyLens;
     (function (Lens) {
         var BaseSingleLens = (function (_super) {
             __extends(BaseSingleLens, _super);
-            function BaseSingleLens(element, type, manyLens) {
+            function BaseSingleLens(element, attributeName, type, manyLens) {
                 _super.call(this, element, type, manyLens);
                 this._select_circle_radius = 0;
                 this._select_circle_cx = -10;
@@ -756,7 +764,15 @@ var ManyLens;
                 this._extract_data_map_func = null;
                 this._is_composite_lens = false;
                 this._select_circle_radius = 10;
+                this._attribute_name = attributeName;
             }
+            Object.defineProperty(BaseSingleLens.prototype, "AttributeName", {
+                get: function () {
+                    return this._attribute_name;
+                },
+                enumerable: true,
+                configurable: true
+            });
             Object.defineProperty(BaseSingleLens.prototype, "LinkLine", {
                 get: function () {
                     return this._sc_lc_svg.select("line");
@@ -788,6 +804,15 @@ var ManyLens;
             Object.defineProperty(BaseSingleLens.prototype, "SelectCircleRadius", {
                 get: function () {
                     return this._select_circle_radius;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(BaseSingleLens.prototype, "TargetData", {
+                get: function () {
+                    if (this._extract_data_map_func)
+                        return this._extract_data_map_func(this._data);
+                    return null;
                 },
                 enumerable: true,
                 configurable: true
@@ -852,9 +877,12 @@ var ManyLens;
             };
             BaseSingleLens.prototype.ExtractData = function () {
                 var res = this.GetElementByMouse();
-                if (!res)
-                    return null;
-                this._data = (d3.select(res).data()[0]);
+                if (!res) {
+                    this._data = null;
+                }
+                else {
+                    this._data = (d3.select(res).data()[0].lensData);
+                }
                 return this._data;
             };
             BaseSingleLens.prototype.DisplayLens = function () {
@@ -871,6 +899,10 @@ var ManyLens;
                     }).attr("y2", function () {
                         return _this._lens_circle_cy; //cy + (this._sc_lc_default_dist * sinTheta);
                     });
+                    return true;
+                }
+                else {
+                    return null;
                 }
             };
             BaseSingleLens.prototype.SelectCircleDragFunc = function () {
@@ -1015,8 +1047,8 @@ var ManyLens;
     (function (Lens) {
         var BarChartLens = (function (_super) {
             __extends(BarChartLens, _super);
-            function BarChartLens(element, manyLens) {
-                _super.call(this, element, BarChartLens.Type, manyLens);
+            function BarChartLens(element, attributeName, manyLens) {
+                _super.call(this, element, attributeName, BarChartLens.Type, manyLens);
                 this._x_axis_gen = d3.svg.axis();
                 this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
                 this._bar_chart_height = this._bar_chart_width;
@@ -1033,7 +1065,8 @@ var ManyLens;
             };
             BarChartLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this);
+                if (!_super.prototype.DisplayLens.call(this))
+                    return;
                 var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data.length]);
                 this._x_axis_gen.scale(x).ticks(0).orient("bottom");
                 this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
@@ -1062,8 +1095,8 @@ var ManyLens;
     (function (Lens) {
         var MapLens = (function (_super) {
             __extends(MapLens, _super);
-            function MapLens(element, manyLens) {
-                _super.call(this, element, MapLens.Type, manyLens);
+            function MapLens(element, attributeName, manyLens) {
+                _super.call(this, element, attributeName, MapLens.Type, manyLens);
                 this._projection = d3.geo.mercator();
                 this._path = d3.geo.path();
                 this._color = d3.scale.quantize();
@@ -1119,7 +1152,8 @@ var ManyLens;
             };
             MapLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this);
+                if (!_super.prototype.DisplayLens.call(this))
+                    return;
                 if (this._map_data) {
                     this._map_data.color = [];
                     this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
@@ -1209,8 +1243,8 @@ var ManyLens;
     (function (Lens) {
         var NetworkLens = (function (_super) {
             __extends(NetworkLens, _super);
-            function NetworkLens(element, manyLens) {
-                _super.call(this, element, NetworkLens.Type, manyLens);
+            function NetworkLens(element, attributeName, manyLens) {
+                _super.call(this, element, attributeName, NetworkLens.Type, manyLens);
                 this._force = d3.layout.force();
                 this._location_x_scale = d3.scale.linear();
                 this._location_y_scale = d3.scale.linear();
@@ -1232,7 +1266,8 @@ var ManyLens;
             };
             NetworkLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this);
+                if (!_super.prototype.DisplayLens.call(this))
+                    return;
                 var testData = this.ExtractData();
                 var nodes = testData.nodes, links = testData.links;
                 this._location_x_scale.domain(d3.extent(nodes, function (d) {
@@ -1289,8 +1324,8 @@ var ManyLens;
     (function (Lens) {
         var PieChartLens = (function (_super) {
             __extends(PieChartLens, _super);
-            function PieChartLens(element, manyLens) {
-                _super.call(this, element, PieChartLens.Type, manyLens);
+            function PieChartLens(element, attributeName, manyLens) {
+                _super.call(this, element, attributeName, PieChartLens.Type, manyLens);
                 this._innerRadius = this._lens_circle_radius - 20;
                 this._outterRadius = this._lens_circle_radius - 0;
                 this._pie = d3.layout.pie();
@@ -1317,10 +1352,16 @@ var ManyLens;
             };
             PieChartLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this);
+                if (!_super.prototype.DisplayLens.call(this))
+                    return;
                 this._lens_circle_svg.selectAll("path").data(this._pie(this._extract_data_map_func(this._data))).enter().append("path").attr("fill", function (d) {
                     return _this._color(d.data.Key);
                 }).attr("d", this._arc);
+                this._lens_circle_svg.append("text").text(this._attribute_name).attr("y", function () {
+                    return 0; //- this.getBBox().height / 2;
+                }).attr("x", function () {
+                    return -this.getBBox().width / 2;
+                });
             };
             PieChartLens.Type = "PieChartLens";
             return PieChartLens;
@@ -1335,8 +1376,8 @@ var ManyLens;
     (function (Lens) {
         var TreeNetworkLens = (function (_super) {
             __extends(TreeNetworkLens, _super);
-            function TreeNetworkLens(element, manyLens) {
-                _super.call(this, element, TreeNetworkLens.Type, manyLens);
+            function TreeNetworkLens(element, attributeName, manyLens) {
+                _super.call(this, element, attributeName, TreeNetworkLens.Type, manyLens);
                 this._theta = 360;
                 this._tree = d3.layout.tree();
             }
@@ -1410,8 +1451,8 @@ var ManyLens;
     (function (Lens) {
         var WordCloudLens = (function (_super) {
             __extends(WordCloudLens, _super);
-            function WordCloudLens(element, manyLens) {
-                _super.call(this, element, WordCloudLens.Type, manyLens);
+            function WordCloudLens(element, attributeName, manyLens) {
+                _super.call(this, element, attributeName, WordCloudLens.Type, manyLens);
                 this._font_size = d3.scale.sqrt();
                 this._cloud = d3.layout.cloud();
                 this._cloud_w = this._lens_circle_radius * 1.7;
@@ -1436,18 +1477,18 @@ var ManyLens;
             // data shape {text: size:}
             WordCloudLens.prototype.ExtractData = function () {
                 var data = _super.prototype.ExtractData.call(this);
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func(data), function (d) {
-                    return d.Value;
-                }));
+                if (data)
+                    this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func(data), function (d) {
+                        return d.Value;
+                    }));
                 return data;
             };
             WordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this);
-                console.log(this._data);
-                console.log(this._extract_data_map_func(this._data));
+                if (!_super.prototype.DisplayLens.call(this))
+                    return null;
                 this._cloud.size([this._cloud_w, this._cloud_h]).words(this._extract_data_map_func(this._data)).filter(function (d) {
-                    if (d.Value > 2)
+                    if (d.Value > 0)
                         return true;
                     return false;
                 }).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
@@ -1494,7 +1535,10 @@ var ManyLens;
         var BaseCompositeLens = (function (_super) {
             __extends(BaseCompositeLens, _super);
             function BaseCompositeLens(element, type, manyLens, firstLens, secondLens) {
+                var _this = this;
                 _super.call(this, element, type, manyLens);
+                this._base_accessor_func = null;
+                this._sub_accessor_func = null;
                 this._new_lens_count = 1;
                 this._need_to_reshape = false;
                 this._is_composite_lens = true;
@@ -1506,6 +1550,7 @@ var ManyLens;
                 this._lens_circle_cy = firstLens.LensCY;
                 if (secondLens) {
                     var firstLens0 = firstLens;
+                    this._data = [];
                     this._sub_component = secondLens;
                     this._lens.push(firstLens0);
                     this._select_circle.push({
@@ -1515,7 +1560,9 @@ var ManyLens;
                         _sc_radius: firstLens0.SelectCircleRadius,
                         _sc_scale: firstLens0.SelectCircleScale
                     });
-                    this._data = firstLens0.Data;
+                    this._data.push(firstLens0.RawData);
+                    this._base_data = JSON.parse(JSON.stringify(firstLens0.RawData));
+                    this._base_accessor_func = firstLens0.DataAccesser();
                     this._components_kind.set(firstLens.Type, 1);
                     this._lens.push(secondLens);
                     this._select_circle.push({
@@ -1525,10 +1572,13 @@ var ManyLens;
                         _sc_radius: secondLens.SelectCircleRadius,
                         _sc_scale: secondLens.SelectCircleScale
                     });
-                    this._sub_data = secondLens.Data;
+                    this._data.push(secondLens.RawData);
+                    this._sub_data = JSON.parse(JSON.stringify(secondLens.RawData));
+                    this._sub_accessor_func = secondLens.DataAccesser();
                     this._components_kind.set(secondLens.Type, 1);
                 }
                 else {
+                    //haven't handle data yet
                     var firstLens1 = firstLens;
                     for (var i = 0, len = firstLens1.Lens.length; i < len; ++i) {
                         this._lens.push(firstLens1.Lens[i]);
@@ -1542,7 +1592,10 @@ var ManyLens;
                         }
                         firstLens1.Lens[i].ChangeHostTo(this);
                     }
-                    this._sub_data = firstLens1.Data;
+                    //？this._sub_data = firstLens1.RawData;
+                    firstLens1.RawData.forEach(function (v) {
+                        _this._data.push(v);
+                    });
                 }
             }
             Object.defineProperty(BaseCompositeLens.prototype, "Lens", {
@@ -1630,7 +1683,7 @@ var ManyLens;
                 else {
                     this.AddSingleLens(lens);
                 }
-                this._sub_data = lens.Data;
+                this._sub_data = lens.RawData;
                 return this;
             };
             BaseCompositeLens.prototype.RemoveComponentLens = function (lens) {
@@ -1683,6 +1736,7 @@ var ManyLens;
                 }
                 this._new_lens_count = 0;
             };
+            //haven't handle data yet
             BaseCompositeLens.prototype.AddCompositeLens = function (componentLens) {
                 if (componentLens.SelectCircle.length != componentLens.Lens.length)
                     throw new Error('The length of sc is different from length of lens');
@@ -1718,6 +1772,9 @@ var ManyLens;
                 else {
                     this._components_kind.set(lens.Type, 1);
                 }
+                this._data.push(lens.RawData);
+                this._sub_data = JSON.parse(JSON.stringify(lens.RawData));
+                this._sub_accessor_func = lens.DataAccesser();
                 this._new_lens_count = 1;
             };
             BaseCompositeLens.prototype.RemoveWholeSVG = function () {
@@ -2602,7 +2659,7 @@ var ManyLens;
                 this._arc = d3.svg.arc();
                 this._cloud_text_color = d3.scale.category10();
                 this._pie.value(function (d) {
-                    return d;
+                    return d.Value;
                 }).sort(null);
                 this._arc.innerRadius(function (d) {
                     return _this._lens_circle_radius;
@@ -2616,30 +2673,44 @@ var ManyLens;
             };
             // data shape {text: size:}
             cWordCloudPieLens.prototype.ExtractData = function () {
-                var data;
-                console.log(this._data);
-                console.log(this._sub_data);
-                //昨天搞到这
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
+                var _this = this;
+                //Intersection of base data
+                var newbaseData = [];
+                this._base_accessor_func(this._base_data).forEach(function (d) {
+                    var joinData = _this._base_accessor_func(_this._sub_data);
+                    joinData.forEach(function (p) {
+                        if (d.Key == p.Key)
+                            newbaseData.push(p);
+                    });
+                });
+                this._base_accessor_func(this._base_data, newbaseData);
+                //Intersection of sub data
+                var newsubData = [];
+                this._sub_accessor_func(this._sub_data).forEach(function (d) {
+                    var joinData = _this._sub_accessor_func(_this._base_data);
+                    joinData.forEach(function (p) {
+                        if (d.Key == p.Key)
+                            newsubData.push(p);
+                    });
+                });
+                this._sub_accessor_func(this._base_data, newsubData);
+                //I dont know how to fix it, just hard code for now
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(newbaseData, function (d) {
                     return d.Value;
                 }));
-                return data;
             };
             cWordCloudPieLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
                 var data = this.ExtractData();
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
-                    return _this._font_size(d.value);
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func(this._base_data)).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                    return _this._font_size(d.Value);
                 }).on("end", function (words, bounds) {
                     _this.DrawCloud(words, bounds);
                 });
                 this._cloud.start();
-                var barData = d3.range(6).map(function () {
-                    return Math.random() * 60;
-                });
-                this._lens_circle_svg.selectAll(".innerPie").data(this._pie(barData)).enter().append("path").attr("d", this._arc).style("fill", function (d, i) {
-                    return _this._cloud_text_color(i);
+                this._lens_circle_svg.selectAll(".innerPie").data(this._pie(this._sub_accessor_func(this._base_data))).enter().append("path").attr("d", this._arc).style("fill", function (d) {
+                    return _this._cloud_text_color(d.data.Key);
                 }).style("fill-rule", "evenodd");
             };
             cWordCloudPieLens.prototype.DrawCloud = function (words, bounds) {
@@ -2657,8 +2728,8 @@ var ManyLens;
                     return d.weight;
                 }).style("font-family", function (d) {
                     return d.font;
-                }).style("fill", function (d, i) {
-                    return _this._cloud_text_color(d.size);
+                }).style("fill", function (d) {
+                    return _this._cloud_text_color(d.Key);
                 }).style("opacity", 1e-6).attr("text-anchor", "middle").attr("transform", function (d) {
                     return "translate(" + [d.x, d.y] + ")";
                 }).text(function (d) {
@@ -3070,105 +3141,6 @@ var ManyLens;
 })();
 ///<reference path = "../D3ChartObject.ts" />
 ///<reference path = "../Lens/LensList.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Pane;
-    (function (Pane) {
-        var ClassicLensPane = (function (_super) {
-            __extends(ClassicLensPane, _super);
-            function ClassicLensPane(element, manyLens) {
-                var _this = this;
-                _super.call(this, element, manyLens);
-                this._lens_count = 6;
-                this._pane_color = d3.scale.category20();
-                //private _history_trees: LensHistory.HistoryTrees;
-                this._drag = d3.behavior.drag();
-                this._manyLens = manyLens;
-                this._drag.origin(function (d) {
-                    return d;
-                }).on("drag", function () {
-                    _this.DragFunc();
-                });
-                var pane_icon_r = 10;
-                var pane_icon_padding = 10;
-                this._pang_g = {
-                    svg_g: this._element.append("g"),
-                    x: parseFloat(this._element.style("width")) - 3 * (pane_icon_r + pane_icon_padding),
-                    y: 10,
-                    rect_height: (this._lens_count * pane_icon_r * 2) + (this._lens_count + 1) * pane_icon_padding,
-                    rect_width: 2 * (pane_icon_r + pane_icon_padding),
-                    lens_icon_r: pane_icon_r,
-                    lens_icon_padding: pane_icon_padding,
-                    lens_count: this._lens_count
-                };
-            }
-            ClassicLensPane.prototype.Render = function () {
-                this.OpenPane();
-            };
-            ClassicLensPane.prototype.OpenPane = function () {
-                var _this = this;
-                var container = this._element;
-                var pane_g = this._pang_g.svg_g.data([this._pang_g]).attr("class", "lensPane").attr("transform", "translate(" + [this._pang_g.x, this._pang_g.y] + ")").call(this._drag);
-                pane_g.append("rect").attr("x", 0).attr("y", 0).attr("width", this._pang_g.rect_width).attr("height", this._pang_g.rect_height).attr("fill", "#fff7bc").attr("stroke", "pink").attr("stroke-width", 2);
-                pane_g.selectAll("circle").data(d3.range(this._lens_count)).enter().append("circle").attr("class", "pane-Lens-Circle").attr("r", this._pang_g.lens_icon_r).attr("cx", this._pang_g.rect_width / 2).attr("cy", function (d, i) {
-                    return _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding + i * (2 * _this._pang_g.lens_icon_r + _this._pang_g.lens_icon_padding);
-                }).attr("fill", function (d, i) {
-                    return _this._pane_color(i);
-                }).on("mousedown", function () {
-                    d3.event.stopPropagation();
-                }).on("click", function (d, i) {
-                    var len;
-                    switch (i) {
-                        case 0:
-                            {
-                                len = new ManyLens.Lens.NetworkLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 1:
-                            {
-                                len = new ManyLens.Lens.WordCloudLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 2:
-                            {
-                                len = new ManyLens.Lens.PieChartLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 3:
-                            {
-                                len = new ManyLens.Lens.MapLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 4:
-                            {
-                                len = new ManyLens.Lens.BarChartLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 5:
-                            {
-                                len = new ManyLens.Lens.TreeNetworkLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                    }
-                    len.Render(_this._pane_color(i));
-                    d3.event.stopPropagation();
-                });
-            };
-            ClassicLensPane.prototype.ClosePane = function (msg) {
-            };
-            ClassicLensPane.prototype.DragFunc = function () {
-                var pane_rect_width = this._pang_g.rect_width;
-                var pane_rect_height = this._pang_g.rect_height;
-                this._pang_g.svg_g.attr("transform", "translate(" + [
-                    this._pang_g.x = Math.max(0, Math.min(parseFloat(this._element.style("width")) - pane_rect_width, d3.event.x)),
-                    this._pang_g.y = Math.max(0, Math.min(parseFloat(this._element.style("height")) - pane_rect_height, d3.event.y))
-                ] + ")");
-            };
-            return ClassicLensPane;
-        })(ManyLens.D3ChartObject);
-        Pane.ClassicLensPane = ClassicLensPane;
-    })(Pane = ManyLens.Pane || (ManyLens.Pane = {}));
-})(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/Hub/Hub.ts" />
 ///<reference path="../tsScripts/Navigation/SideBarNavigation.ts" />
 ///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
@@ -3281,7 +3253,6 @@ var ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;
 })(ManyLens || (ManyLens = {}));
-///<reference path = "../tsScripts/ManyLens.ts" />
 "use strict";
 var manyLens;
 document.addEventListener('DOMContentLoaded', function () {
@@ -3338,6 +3309,11 @@ var ManyLens;
                 case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
+                        if (firstLens.Type != ManyLens.Lens.WordCloudLens.Type) {
+                            var tempLens = firstLens;
+                            firstLens = secondLens;
+                            secondLens = tempLens;
+                        }
                         return new ManyLens.Lens.cWordCloudPieLens(element, manyLens, firstLens, secondLens);
                     }
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.cWordCloudPieLens.Type:
@@ -3520,15 +3496,16 @@ var ManyLens;
             __extends(SOMMap, _super);
             function SOMMap(element, manyLens) {
                 _super.call(this, element, manyLens);
+                // private _lensPane: Pane.ClassicLensPane;
                 this._colorPalettes = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
-                this._lensPane = new ManyLens.Pane.ClassicLensPane(element, manyLens);
+                // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
                 this._element.attr("height", function () {
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
             SOMMap.prototype.Render = function () {
-                this._lensPane.Render();
+                //this._lensPane.Render();
             };
             SOMMap.prototype.ShowVis = function (visData) {
                 var _this = this;
@@ -3605,109 +3582,4 @@ var ManyLens;
     })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../Lens/LensList.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Pane;
-    (function (Pane) {
-        var BlossomLensPane = (function (_super) {
-            __extends(BlossomLensPane, _super);
-            function BlossomLensPane(element, manyLens) {
-                _super.call(this, element, manyLens);
-                //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
-                this._pane_radius = 100;
-                this._pane_arc = d3.svg.arc();
-                this._pane_pie = d3.layout.pie();
-                this._pane_color = d3.scale.category20();
-                this._current_pane_g = null;
-                this._lens_count = 2;
-                this._manyLens = manyLens;
-                this._pane_pie.startAngle(-Math.PI / 2).endAngle(Math.PI / 2).value(function () {
-                    return 1;
-                });
-                this._pane_arc.innerRadius(this._pane_radius - 40).outerRadius(this._pane_radius);
-            }
-            BlossomLensPane.prototype.Render = function () {
-                var _this = this;
-                var container = this._element;
-                container.on("click", function () {
-                    _this.OpenPane();
-                });
-            };
-            BlossomLensPane.prototype.OpenPane = function () {
-                var _this = this;
-                if (this._current_pane_g && this._current_pane_g.isOpened) {
-                    (function () {
-                        _this.ClosePane("click close");
-                    })();
-                }
-                var p = d3.mouse(this._element[0][0]);
-                var timer = setTimeout(function () {
-                    _this.ClosePane("time out close");
-                }, 2000);
-                var svg = this._element.append("g").attr("transform", "translate(" + p[0] + "," + p[1] + ")");
-                svg.selectAll("circle").data(this._pane_pie([1, 1, 1, 1, 1])).enter().append("circle").attr("class", "pane-Lens-Circle").attr("id", function (d, i) {
-                    return "lens" + i;
-                }).style("fill", function (d, i) {
-                    return _this._pane_color(i);
-                }).attr("r", 10).on("mouseover", function () {
-                    clearTimeout(_this._current_pane_g.timer);
-                }).on("mouseout", function () {
-                    _this._current_pane_g.timer = setTimeout(function () {
-                        _this.ClosePane("time out close");
-                    }, 1000);
-                }).on("click", function (d, i) {
-                    var len;
-                    switch (i) {
-                        case 0:
-                            {
-                                len = new ManyLens.Lens.BarChartLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 1:
-                            {
-                                len = new ManyLens.Lens.MapLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 2:
-                            {
-                                len = new ManyLens.Lens.TreeNetworkLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 3:
-                            {
-                                len = new ManyLens.Lens.PieChartLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                        case 4:
-                            {
-                                len = new ManyLens.Lens.WordCloudLens(_this._element, _this._manyLens);
-                                break;
-                            }
-                    }
-                    //this._lens.push(len);
-                    len.Render(_this._pane_color(i));
-                    //this._history_trees.addNode({ color: this._pane_color(i), lensType: len.Type, tree_id: 0 });
-                    d3.event.stopPropagation();
-                    _this.ClosePane("select a lens");
-                }).transition().duration(750).attr("transform", function (d) {
-                    return "translate(" + _this._pane_arc.centroid(d) + ")";
-                });
-                this._current_pane_g = { svg_g: svg, timer: timer, isOpened: true };
-            };
-            BlossomLensPane.prototype.ClosePane = function (msg) {
-                console.log(msg);
-                var t = 400;
-                var closeG = this._current_pane_g;
-                clearTimeout(closeG.timer);
-                closeG.isOpened = false;
-                closeG.svg_g.selectAll(".paneCircle").transition().duration(t).attr("transform", "translate(0)").remove();
-                setTimeout(function () {
-                    closeG.svg_g.remove();
-                }, t);
-            };
-            return BlossomLensPane;
-        })(ManyLens.D3ChartObject);
-        Pane.BlossomLensPane = BlossomLensPane;
-    })(Pane = ManyLens.Pane || (ManyLens.Pane = {}));
-})(ManyLens || (ManyLens = {}));
 //# sourceMappingURL=ManyLens.js.map

@@ -5,6 +5,7 @@ module ManyLens {
 
             public static Type: string = "BaseSingleLens";
 
+            protected _attribute_name: string;
             protected _select_circle_svg: D3.Selection;
             protected _select_circle: D3.Selection;
             protected _select_circle_radius: number = 0;
@@ -20,12 +21,15 @@ module ManyLens {
             //protected _sc_drag_event_flag: boolean = false;
             protected _sc_lc_default_dist = 100;
 
-            protected _extract_data_map_func: (d?: any) => any = null;
+            protected _extract_data_map_func: (d: any,newData?:any) => any = null;
 
+            public get AttributeName(): string {
+                return this._attribute_name;
+            }
             public get LinkLine(): D3.Selection {
                 return this._sc_lc_svg.select("line");
             }
-            public get SelectCircleCX(): number {
+            public get SelectCircleCX(): number {        
                 return this._select_circle_cx;
             }
             public get SelectCircleCY(): number {
@@ -37,11 +41,19 @@ module ManyLens {
             public get SelectCircleRadius(): number {
                 return this._select_circle_radius;
             }
-            
-            constructor(element: D3.Selection, type: string, manyLens: ManyLens) {
+
+            public get TargetData(): any {
+                if(this._extract_data_map_func)
+                    return this._extract_data_map_func(this._data);
+                return null;
+            }
+
+
+            constructor(element: D3.Selection, attributeName:string,type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
                 this._is_composite_lens = false;
                 this._select_circle_radius = 10;
+                this._attribute_name = attributeName;
             }
 
             public Render(color: string): void {
@@ -134,7 +146,7 @@ module ManyLens {
                 }
             }
 
-            public DataAccesser(map?: (d?: any) => any): any {
+            public DataAccesser(map?: (d: any, newData?:any) => any): any {
                 if (map == null) return this._extract_data_map_func;
                 this._extract_data_map_func = map;
                 return this;
@@ -142,13 +154,15 @@ module ManyLens {
 
             public ExtractData(): any {
                 var res = this.GetElementByMouse();
-                if (!res) return null;
-                this._data = (d3.select(res).data()[0]);
+                if (!res) {
+                    this._data = null;
+                } else {
+                    this._data = (d3.select(res).data()[0].lensData);
+                }
                 return this._data;
             }
 
-            public DisplayLens() {
-                
+            public DisplayLens():boolean {
                 if (this._data) {
                     var duration: number = super.DisplayLens();
                     var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
@@ -173,6 +187,9 @@ module ManyLens {
                             return this._lens_circle_cy;//cy + (this._sc_lc_default_dist * sinTheta);
                         })
                     ;
+                    return true;
+                } else {
+                    return null;
                 } 
             }
 

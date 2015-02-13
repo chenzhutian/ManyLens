@@ -5,7 +5,7 @@
         interface MenuListData {
             name: string;
             icon?: string;
-            lensConstructFunc?: (element: D3.Selection, manyLens: ManyLens) => void;
+            lensConstructFunc?: (element: D3.Selection,attributeName:string, manyLens: ManyLens) => void;
             extractDataFunc?: (d?: any) => any;
             children?: Array<MenuListData>;
         }
@@ -73,12 +73,20 @@
                                 {
                                     name: "Tweet Length",
                                     lensConstructFunc: Lens.PieChartLens,
-                                    extractDataFunc: (d) => { return d.tweetLengthDistribute;}
+                                    extractDataFunc: (d, newData?: any) => {
+                                        if (newData)
+                                            d.tweetLengthDistribute = newData;
+                                        return d.tweetLengthDistribute;
+                                    }
                                 },
                                 {
                                     name: "Hashtag Count",
                                     lensConstructFunc: Lens.PieChartLens,
-                                    extractDataFunc: (d) => { return d.tweetLengthDistribute; }
+                                    extractDataFunc: (d, newData?: any) => {
+                                        if (newData)
+                                            d.hashTagDistribute = newData;
+                                        return d.hashTagDistribute;
+                                    }
                                 },
                                 {
                                     name: "Url Count",
@@ -98,12 +106,20 @@
                                 {
                                     name: "Keywords",
                                     lensConstructFunc: Lens.WordCloudLens,
-                                    extractDataFunc: (d) => { return d.labels;}
+                                    extractDataFunc: (d,newData?:any) => {
+                                        if (newData)
+                                            d.labels = newData;
+                                        return d.labels;
+                                    }
                                 },
                                 {
                                     name: "Hashtag",
                                     lensConstructFunc: Lens.WordCloudLens,
-                                    extractDataFunc: (d) => { return d.hashTagDistribute;}
+                                    extractDataFunc: (d, newData?: any) => {
+                                        if (newData)
+                                            d.hashTagDistribute = newData;
+                                        return d.hashTagDistribute;
+                                    }
                                 }
                             ]
                         },
@@ -172,7 +188,7 @@
                             .enter().append("li")
                             .text(function (d) { return d.name })
                             .on("click", (d: MenuListData) => {
-                                var lens: Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg, this._manyLens);
+                                var lens: Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg,d.name, this._manyLens);
                                 lens
                                     .DataAccesser(d.extractDataFunc)
                                     .Render("red")

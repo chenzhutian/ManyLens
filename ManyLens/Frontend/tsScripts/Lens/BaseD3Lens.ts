@@ -83,9 +83,10 @@ module ManyLens {
                     this._is_component_lens = false;
                 }
             }
-            public get Data(): any {
+            public get RawData(): any {
                 return this._data;
             }
+
 
             constructor(element: D3.Selection, type: string,manyLens:ManyLens) {
                 super(element,manyLens);
@@ -294,8 +295,6 @@ module ManyLens {
                 ;
 
             }
-
-           
 
             //public HideLens() {
             //    this._lens_circle_G
