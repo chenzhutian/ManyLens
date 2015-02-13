@@ -148,15 +148,12 @@ module ManyLens {
                 return this._extract_data_map_func(d3.select(res).data()[0]);
             }
 
-            public DisplayLens(data:any): {
-                lcx: number; lcy: number; duration: number
-            } {
+            public DisplayLens() {
                 
                 var duration: number = super.DisplayLens();
-                this._data = data || this._data;
 
                 //if is new area with new data, then show the link line 
-                if (data) {
+                if (this._data) {
                     var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
                     var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
                     var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
@@ -180,13 +177,6 @@ module ManyLens {
                         })
                     ;
                 } 
-
-                return {
-                    lcx: this._lens_circle_cx,
-                    lcy: this._lens_circle_cy,
-                    duration: duration
-                }
-
             }
 
             protected SelectCircleDragFunc(): void {
@@ -240,7 +230,7 @@ module ManyLens {
                     + this._lens_circle_radius) * sinTheta;
 
                     this._data = this.ExtractData();
-                    this.DisplayLens(this._data);
+                    this.DisplayLens();
 
                     this._has_showed_lens = true;
                 }

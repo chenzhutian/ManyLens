@@ -52,7 +52,10 @@ module ManyLens {
             // data shape {text: size:}
             protected ExtractData(): Array<D3.Layout.ICloudData> {
                 var data: Array<D3.Layout.ICloudData>
-             
+                console.log(this._data);
+                console.log(this._sub_data);
+
+                //昨天搞到这
 
                 this._font_size
                     .range([10, this._cloud_w / 8])

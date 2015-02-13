@@ -46,10 +46,8 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(data: Array<any>): any {
-                if (data == null)
-                    return;
-                super.DisplayLens(data);
+            public DisplayLens(): any {
+                super.DisplayLens();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._data)

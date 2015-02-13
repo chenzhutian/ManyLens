@@ -857,12 +857,11 @@ var ManyLens;
                     return null;
                 return this._extract_data_map_func(d3.select(res).data()[0]);
             };
-            BaseSingleLens.prototype.DisplayLens = function (data) {
+            BaseSingleLens.prototype.DisplayLens = function () {
                 var _this = this;
                 var duration = _super.prototype.DisplayLens.call(this);
-                this._data = data || this._data;
                 //if is new area with new data, then show the link line 
-                if (data) {
+                if (this._data) {
                     var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
                     var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
                     var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
@@ -874,11 +873,6 @@ var ManyLens;
                         return _this._lens_circle_cy; //cy + (this._sc_lc_default_dist * sinTheta);
                     });
                 }
-                return {
-                    lcx: this._lens_circle_cx,
-                    lcy: this._lens_circle_cy,
-                    duration: duration
-                };
             };
             BaseSingleLens.prototype.SelectCircleDragFunc = function () {
                 var _this = this;
@@ -914,7 +908,7 @@ var ManyLens;
                     this._lens_circle_cx = this._select_circle_cx + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist + this._lens_circle_radius) * cosTheta;
                     this._lens_circle_cy = this._select_circle_cy + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist + this._lens_circle_radius) * sinTheta;
                     this._data = this.ExtractData();
-                    this.DisplayLens(this._data);
+                    this.DisplayLens();
                     this._has_showed_lens = true;
                 }
                 //z-index的问题先不解决
@@ -1038,9 +1032,9 @@ var ManyLens;
                 });
                 return data;
             };
-            BarChartLens.prototype.DisplayLens = function (data) {
+            BarChartLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this, data);
+                _super.prototype.DisplayLens.call(this);
                 var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data.length]);
                 this._x_axis_gen.scale(x).ticks(0).orient("bottom");
                 this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
@@ -1123,9 +1117,9 @@ var ManyLens;
                 });
                 return barData;
             };
-            MapLens.prototype.DisplayLens = function (barData) {
+            MapLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this, barData);
+                _super.prototype.DisplayLens.call(this);
                 if (this._map_data) {
                     this._map_data.color = [];
                     this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
@@ -1234,9 +1228,9 @@ var ManyLens;
                 };
                 return graph;
             };
-            NetworkLens.prototype.DisplayLens = function (data) {
+            NetworkLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this, data);
+                _super.prototype.DisplayLens.call(this);
                 var nodes = this._data.nodes, links = this._data.links;
                 this._location_x_scale.domain(d3.extent(nodes, function (d) {
                     return d['x'];
@@ -1452,11 +1446,9 @@ var ManyLens;
                 }));
                 return data;
             };
-            WordCloudLens.prototype.DisplayLens = function (data) {
+            WordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;
-                if (data == null)
-                    return;
-                _super.prototype.DisplayLens.call(this, data);
+                _super.prototype.DisplayLens.call(this);
                 this._cloud.size([this._cloud_w, this._cloud_h]).words(this._data).filter(function (d) {
                     if (d.Value > 2)
                         return true;
@@ -2630,6 +2622,7 @@ var ManyLens;
                 var data;
                 console.log(this._data);
                 console.log(this._sub_data);
+                //昨天搞到这
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
                     return d.Value;
                 }));

@@ -30,8 +30,8 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens(data: Array<number>): any {
-                super.DisplayLens(data);
+            public DisplayLens() {
+                super.DisplayLens();
 
                 var x = d3.scale.linear()
                     .range([0, this._bar_chart_width])
