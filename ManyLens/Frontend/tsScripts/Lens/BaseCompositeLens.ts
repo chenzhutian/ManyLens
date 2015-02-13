@@ -167,10 +167,10 @@ module ManyLens {
                         }
 
                     });
-                    componentData.labels.forEach((d) => {
+                    componentData.keywordsDistribute.forEach((d) => {
                         var key = d.Key;
                         var value = d.Value;
-                        var column = this._data.labels;
+                        var column = this._data.keywordsDistribute;
                         for (var i = 0, len = column.length; i < len; ++i) {
                             if (key == column[i].Key) {
                                 column[i].Value += value;

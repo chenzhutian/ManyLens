@@ -3,7 +3,7 @@ module ManyLens {
     export module Lens {
         export interface UnitsDataForLens {
             unitsID: Array<number>;
-            labels: Array<{ Key: string; Value: number }>;
+            keywordsDistribute: Array<{ Key: string; Value: number }>;
             tweetLengthDistribute: Array<{ Key: number; Value: number }>;
             contents: Array<string>;
             hashTagDistribute: Array<{ Key: string; Value: number }>;

@@ -171,7 +171,7 @@ namespace ManyLens.Models
                                                 {
                                                     unitsID = unitsID,
                                                     contents = unit.TweetContents,
-                                                    labels = unit.WordLabels,
+                                                    keywordsDistribute = unit.WordLabels,
                                                     tweetLengthDistribute = unit.TweetLengthDistribute,
                                                     hashTagDistribute = unit.HashTagDistribute
                                                     // tweetIDs = unit.TweetIDs

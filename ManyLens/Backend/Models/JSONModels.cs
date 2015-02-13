@@ -29,7 +29,7 @@ namespace ManyLens.Models
     public class UnitsDataForLens
     {
         public List<int> unitsID { set; get; }
-        public List<KeyValuePair<string, int>> labels { set; get; }
+        public List<KeyValuePair<string, int>> keywordsDistribute { set; get; }
         public List<KeyValuePair<int, int>> tweetLengthDistribute { set; get; }
         public List<string> contents { set; get; }
         public List<KeyValuePair<string, int>> hashTagDistribute { set; get; }

@@ -108,8 +108,8 @@
                                     lensConstructFunc: Lens.WordCloudLens,
                                     extractDataFunc: (d,newData?:any) => {
                                         if (newData)
-                                            d.labels = newData;
-                                        return d.labels;
+                                            d.keywordsDistribute = newData;
+                                        return d.keywordsDistribute;
                                     }
                                 },
                                 {

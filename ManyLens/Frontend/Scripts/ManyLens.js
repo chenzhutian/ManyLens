@@ -92,8 +92,8 @@ var ManyLens;
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
                                     extractDataFunc: function (d, newData) {
                                         if (newData)
-                                            d.labels = newData;
-                                        return d.labels;
+                                            d.keywordsDistribute = newData;
+                                        return d.keywordsDistribute;
                                     }
                                 },
                                 {
@@ -1665,10 +1665,10 @@ var ManyLens;
                             column.push(d);
                         }
                     });
-                    componentData.labels.forEach(function (d) {
+                    componentData.keywordsDistribute.forEach(function (d) {
                         var key = d.Key;
                         var value = d.Value;
-                        var column = _this._data.labels;
+                        var column = _this._data.keywordsDistribute;
                         for (var i = 0, len = column.length; i < len; ++i) {
                             if (key == column[i].Key) {
                                 column[i].Value += value;
@@ -2542,9 +2542,9 @@ var ManyLens;
                 _super.call(this, element, cWordCloudLens.Type, manyLens, firstLens, secondLens);
                 this._font_size = d3.scale.sqrt();
                 this._cloud = d3.layout.cloud();
-                this._cloud_w = this._lens_circle_radius * 2; //Math.sqrt(2);
+                this._cloud_w = this._lens_circle_radius * Math.SQRT2; //Math.sqrt(2);
                 this._cloud_h = this._cloud_w;
-                this._cloud_padding = 3;
+                this._cloud_padding = 1;
                 this._cloud_font = "Calibri";
                 this._cloud_font_weight = "normal";
                 this._cloud_text_color = d3.scale.category20c();
@@ -2716,7 +2716,7 @@ var ManyLens;
                 _super.call(this, element, cWordCloudPieLens.Type, manyLens, firstLens, secondLens);
                 this._font_size = d3.scale.sqrt();
                 this._cloud = d3.layout.cloud();
-                this._cloud_w = this._lens_circle_radius * 2; //Math.sqrt(2);
+                this._cloud_w = this._lens_circle_radius * Math.SQRT2;
                 this._cloud_h = this._cloud_w;
                 this._cloud_padding = 1;
                 this._cloud_font = "Calibri";
