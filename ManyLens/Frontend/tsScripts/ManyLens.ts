@@ -5,6 +5,10 @@
 ///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
 
 module ManyLens {
+
+
+
+
     export class ManyLens {
         private _manyLens_hub: Hub.ManyLensHub;
 

@@ -43,16 +43,9 @@ module ManyLens {
             public get SelectCircleRadius(): number {
                 return this._select_circle_radius;
             }
-
-            public get TargetData(): any {
-                if(this._extract_data_map_func)
-                    return this._extract_data_map_func(this._data);
-                return null;
-            }
             public get LensPlace(): number{
                 return this._place;
             }
-
 
             constructor(element: D3.Selection, attributeName:string,type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
@@ -163,7 +156,7 @@ module ManyLens {
                     this._data = null;
                 } else {
                     this._data = (d3.select(res).data()[0].lensData);
-                    this._place = this._data.unitID;
+                    this._place = this._data.unitID[0];
                 }
                 return this._data;
             }

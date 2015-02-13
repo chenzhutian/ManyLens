@@ -159,7 +159,8 @@ namespace ManyLens.Models
                     this.maxTweetCount = unit.TweetsCount;
                 }
 
-
+                List<int> unitsID = new List<int>();
+                unitsID.Add(unit.UnitID);
                 unitData.Add(new UnitsData()
                                             {
                                                 unitID = unit.UnitID,
@@ -168,6 +169,7 @@ namespace ManyLens.Models
                                                 y = unit.Y,
                                                 lensData = new UnitsDataForLens()
                                                 {
+                                                    unitsID = unitsID,
                                                     contents = unit.TweetContents,
                                                     labels = unit.WordLabels,
                                                     tweetLengthDistribute = unit.TweetLengthDistribute,

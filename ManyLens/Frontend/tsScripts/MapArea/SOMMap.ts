@@ -2,21 +2,21 @@
     export module MapArea {
 
         interface UnitData {
-            colorIndex: number;
             unitID: number;
+            colorIndex: number;
             count: number;
-            contents: string;
-            labels: string;
-            tweetIDs: string;
             x: number;
-            y: number
+            y: number;
+            lensData: Array<Lens.UnitsDataForLens>;
         }
+
         interface MapData {
             mapID: string;
             width: number;
             height: number;
             max: number;
             min: number;
+
             unitsData: Array<UnitData>;
         }
 

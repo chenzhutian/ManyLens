@@ -1,12 +1,21 @@
 ﻿///<reference path = "../D3ChartObject.ts" />
 module ManyLens {
     export module Lens {
-        export class BaseD3Lens extends D3ChartObject{
+        export interface UnitsDataForLens {
+            unitID: Array<number>;
+            labels: Array<{ Key: string; Value: number }>;
+            tweetLengthDistribute: Array<{ Key: number; Value: number }>;
+            contents: Array<string>;
+            hashTagDistribute: Array<{ Key: string; Value: number }>;
+        }
+
+        export class BaseD3Lens extends D3ChartObject {
 
             protected _id: string;
             protected _type: string;
             protected _lens_type_color: string;
             protected _combine_failure_rebound_duration = 800;
+            protected _data: UnitsDataForLens;
 
             protected _sc_lc_svg: D3.Selection = null;
 

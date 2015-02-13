@@ -2,6 +2,9 @@
 ///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />
 module ManyLens {
     export module Lens {
+
+
+
         export class MapLens extends BaseSingleLens {
 
             public static Type: string = "MapLens";
@@ -106,7 +109,7 @@ module ManyLens {
 
                 } else {
                     d3.json("./testData/world.json", (error, mapData) => {
-                        this._color.domain(d3.extent(this._data));
+                        this._color.domain(d3.extent(this._extract_data_map_func(this._data)));
                         this._map_data = {
                             raw: mapData,
                             color: []

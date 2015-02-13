@@ -35,7 +35,7 @@ module ManyLens {
 
                 var x = d3.scale.linear()
                     .range([0, this._bar_chart_width])
-                    .domain([0, this._data.length]);
+                    .domain([0, this._data]);
 
                 this._x_axis_gen
                     .scale(x)
@@ -53,10 +53,10 @@ module ManyLens {
                     .call(this._x_axis_gen)
                 ;
 
-                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
+                this._bar_width = (this._bar_chart_width - 20) / this._extract_data_map_func(this._data).length;
                 var barHeight = d3.scale.linear()
                     .range([10, this._bar_chart_height])
-                    .domain(d3.extent(this._data));
+                    .domain(d3.extent(this._extract_data_map_func(this._data)));
 
                 var bar = this._lens_circle_svg.selectAll(".bar")
                     .data(this._extract_data_map_func(this._data))
