@@ -15,6 +15,8 @@ module ManyLens {
             protected _select_circle_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _select_circle_drag: D3.Behavior.Drag = d3.behavior.drag();
 
+            protected _place: number = null;
+
             protected _has_put_down: boolean = false;
             protected _has_showed_lens: boolean = false;
 
@@ -46,6 +48,9 @@ module ManyLens {
                 if(this._extract_data_map_func)
                     return this._extract_data_map_func(this._data);
                 return null;
+            }
+            public get LensPlace(): number{
+                return this._place;
             }
 
 
@@ -158,6 +163,7 @@ module ManyLens {
                     this._data = null;
                 } else {
                     this._data = (d3.select(res).data()[0].lensData);
+                    this._place = this._data.unitID;
                 }
                 return this._data;
             }

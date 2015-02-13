@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="ManyLens.Models.Interval">
-    <Position X="2.75" Y="8.75" Width="1.5" />
+    <Position X="0.75" Y="8.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AIAAAAAgAgAAgAoAQKACAAAgAAAAAAAgQAAAAAAAAgA=</HashCode>
       <FileName>Backend\Models\Interval.cs</FileName>
@@ -29,7 +29,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="ManyLens.Models.Unit">
-    <Position X="5.75" Y="8.75" Width="2.5" />
+    <Position X="3.25" Y="8.75" Width="2.5" />
     <TypeIdentifier>
       <HashCode>QIAAAAAAAAAABAAAAAQAAACABAAEAASgAIBkAAAAYAA=</HashCode>
       <FileName>Backend\Models\Unit.cs</FileName>

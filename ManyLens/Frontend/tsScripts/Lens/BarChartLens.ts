@@ -30,7 +30,7 @@ module ManyLens {
                 return data;
             }
 
-            public DisplayLens() {
+            public DisplayLens():any {
                 if (!super.DisplayLens()) return;
 
                 var x = d3.scale.linear()

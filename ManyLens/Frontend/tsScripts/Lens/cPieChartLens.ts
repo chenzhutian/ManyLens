@@ -38,8 +38,7 @@ module ManyLens {
                         return this._lens_circle_radius;
                     })
                 ;
-                
-                
+
             }
 
             public Render(color = "pupple"): void {

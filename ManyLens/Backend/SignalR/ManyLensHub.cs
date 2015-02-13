@@ -258,6 +258,30 @@ namespace ManyLens.SignalR
             Clients.Caller.showVIS(visMap.GetVisData());
         }
 
+        //combineType true : intersection
+        //combineType false : union
+        public void CombineLens(string visMapID, int[] unitsID, bool combineType = true)
+        {
+            VisMap visMap = visMaps[visMapID];
+            List<int> uniqueIDs = new List<int>();
+            for (int i = 0, len = unitsID.Length; i < len; ++i)
+            {
+                if (uniqueIDs.Contains(unitsID[i]))
+                    continue;
+                else
+                    uniqueIDs.Add(unitsID[i]);
+            }
+
+            UnitsDataForLens tempLensData = new UnitsDataForLens();
+            for(int i =0, len = uniqueIDs.Count; i < len; ++i)
+            {
+                Unit unit = visMap.GetUnitAt(unitsID[i]);
+
+            }
+            
+
+        }
+
         public void ReOrganize(string visMapID,int[] selectedUnits)
         {
             VisMap newVisMap = GPUSOM.TweetReOrganizeSOM(visMaps[visMapID], selectedUnits);

@@ -34,8 +34,8 @@ module ManyLens {
                     }
                 }
                 case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type:
-                case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: 
-                case Lens.cBoundleLens.Type + "_" + Lens.cBoundleLens.Type: {
+                case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
+              //  case Lens.cBoundleLens.Type + "_" + Lens.cBoundleLens.Type: {
                     return (<Lens.cBoundleLens>firstLens).AddComponentLens(secondLens);
                 }
 
@@ -57,19 +57,19 @@ module ManyLens {
                     }
                 }
                 case Lens.cWordCloudNetworkLens.Type + "_" + Lens.WordCloudLens.Type:
-                case Lens.cWordCloudNetworkLens.Type + "_" + Lens.NetworkLens.Type:
-                case Lens.cWordCloudNetworkLens.Type + "_" + Lens.cWordCloudNetworkLens.Type: {
+                case Lens.cWordCloudNetworkLens.Type + "_" + Lens.NetworkLens.Type:{
+               // case Lens.cWordCloudNetworkLens.Type + "_" + Lens.cWordCloudNetworkLens.Type: {
                     return (<Lens.cWordCloudNetworkLens>firstLens).AddComponentLens(secondLens);
                 }
 
                 /*--------------------------------cWordCloudPie Digram Lens------------------------------*/
                 case Lens.WordCloudLens.Type + "_" + Lens.PieChartLens.Type:
                 case Lens.PieChartLens.Type + "_" + Lens.WordCloudLens.Type: {
-                    if (firstLens.Type != Lens.WordCloudLens.Type) {
-                        var tempLens = firstLens;
-                        firstLens = secondLens;
-                        secondLens = tempLens;
-                    }
+                    //if (firstLens.Type != Lens.WordCloudLens.Type) {
+                    //    var tempLens = firstLens;
+                    //    firstLens = secondLens;
+                    //    secondLens = tempLens;
+                    //}
 
                     return new Lens.cWordCloudPieLens(element,
                         manyLens,
@@ -86,8 +86,8 @@ module ManyLens {
                     }
                 }
                 case Lens.cWordCloudPieLens.Type + "_" + Lens.WordCloudLens.Type:
-                case Lens.cWordCloudPieLens.Type + "_" + Lens.PieChartLens.Type:
-                case Lens.cWordCloudPieLens.Type + "_" + Lens.cWordCloudPieLens.Type: {
+                case Lens.cWordCloudPieLens.Type + "_" + Lens.PieChartLens.Type:{
+             //   case Lens.cWordCloudPieLens.Type + "_" + Lens.cWordCloudPieLens.Type: {
                     return (<Lens.cWordCloudPieLens>firstLens).AddComponentLens(secondLens);
                 }
 
@@ -110,8 +110,8 @@ module ManyLens {
                     }
                 }
                 case Lens.cSunBrustLens.Type + "_" + Lens.PieChartLens.Type:
-                case Lens.cSunBrustLens.Type + "_" + Lens.NetworkLens.Type: 
-                case Lens.cSunBrustLens.Type + "_" + Lens.cSunBrustLens.Type: {
+                case Lens.cSunBrustLens.Type + "_" + Lens.NetworkLens.Type: {
+               // case Lens.cSunBrustLens.Type + "_" + Lens.cSunBrustLens.Type: {
                     return (<Lens.cSunBrustLens>firstLens).AddComponentLens(secondLens);
                 }
 
@@ -133,8 +133,8 @@ module ManyLens {
                     }
                 }
                 case Lens.cChordDiagramLens.Type + "_" + Lens.PieChartLens.Type: 
-                case Lens.cChordDiagramLens.Type + "_" + Lens.NetworkLens.Type: 
-                case Lens.cChordDiagramLens.Type + "_" + Lens.cChordDiagramLens.Type: {
+                case Lens.cChordDiagramLens.Type + "_" + Lens.NetworkLens.Type: {
+               // case Lens.cChordDiagramLens.Type + "_" + Lens.cChordDiagramLens.Type: {
                     return (<Lens.cChordDiagramLens>firstLens).AddComponentLens(secondLens);
                 }
                 
@@ -157,8 +157,8 @@ module ManyLens {
                     }
                 }
                 case Lens.cMapNetworkLens.Type + "_" + Lens.MapLens.Type:
-                case Lens.cMapNetworkLens.Type + "_" + Lens.NetworkLens.Type:
-                case Lens.cMapNetworkLens.Type + "_" + Lens.cMapNetworkLens.Type: {
+                case Lens.cMapNetworkLens.Type + "_" + Lens.NetworkLens.Type:{
+              //  case Lens.cMapNetworkLens.Type + "_" + Lens.cMapNetworkLens.Type: {
                     return (<Lens.cMapNetworkLens>firstLens).AddComponentLens(secondLens);
                 }
 
@@ -181,8 +181,8 @@ module ManyLens {
                     }
                 }
                 case Lens.cMapBarLens.Type + "_" + Lens.MapLens.Type:
-                case Lens.cMapBarLens.Type + "_" + Lens.PieChartLens.Type:
-                case Lens.cMapBarLens.Type + "_" + Lens.cMapBarLens.Type: {
+                case Lens.cMapBarLens.Type + "_" + Lens.PieChartLens.Type:{
+              //  case Lens.cMapBarLens.Type + "_" + Lens.cMapBarLens.Type: {
                     return (<Lens.cMapBarLens>firstLens).AddComponentLens(secondLens);
                 }
 
@@ -205,8 +205,8 @@ module ManyLens {
                     }
                 }
                 case Lens.cMapWordCloudLens.Type + "_" + Lens.MapLens.Type:
-                case Lens.cMapWordCloudLens.Type + "_" + Lens.WordCloudLens.Type:
-                case Lens.cMapWordCloudLens.Type + "_" + Lens.cMapWordCloudLens.Type: {
+                case Lens.cMapWordCloudLens.Type + "_" + Lens.WordCloudLens.Type:{
+            //    case Lens.cMapWordCloudLens.Type + "_" + Lens.cMapWordCloudLens.Type: {
                     return (<Lens.cMapWordCloudLens>firstLens).AddComponentLens(secondLens);
                 }
 

@@ -69,8 +69,11 @@ namespace ManyLens.Models
             {
                 return this.tfidfVectors;
             }
+            set
+            {
+                this.tfidfVectors = value;
+            }
         }
-
         public List<KeyValuePair<string,int>> WordLabels
         {
             get
@@ -122,6 +125,20 @@ namespace ManyLens.Models
 
         #endregion  
 
+        public Unit(Unit unit)
+            :base()
+        {
+            this.wordLabels = new Dictionary<string, int>();
+            this.tfidfVectors = new List<float[]>();
+            this.interval = unit.interval;
+            this.Vocabulary = unit.Vocabulary;
+
+            this.Tweets.AddRange(unit.Tweets);
+            this.SparseVector.AddRange(unit.SparseVector);
+            this.TFIDFVectors.AddRange(unit.TFIDFVectors);
+            this.unitSumVector = unit.UnitVector;
+        }
+
         public Unit(int x, int y, int id,Interval interval)
             :base()
         {
@@ -136,6 +153,7 @@ namespace ManyLens.Models
             this.Vocabulary = interval.Vocabulary;
 
         }
+
 
         public void AddTweet(int index) 
         {

@@ -49,48 +49,56 @@ module ManyLens {
 
             }
 
-            // data shape {text: size:}
+            // data shape {Key: Value:}
             protected ExtractData() {
 
-                //Intersection of base data
-                var newbaseData = [];
-                this._base_accessor_func(this._base_data).forEach((d) => {
 
-                    var joinData = this._base_accessor_func(this._sub_data);
-                    joinData.forEach(function (p) {
-                        if (d.Key == p.Key)
-                            newbaseData.push(p);
-                    });
-                });
-                this._base_accessor_func(this._base_data, newbaseData);
 
-                //Intersection of sub data
-                var newsubData = [];
-                this._sub_accessor_func(this._sub_data).forEach((d) => {
+                ////Intersection of base data
+                //var newbaseData = [];
+                //this._base_accessor_func(this._base_data).forEach((d) => {
 
-                    var joinData = this._sub_accessor_func(this._base_data);
-                    joinData.forEach(function (p) {
-                        if (d.Key == p.Key)
-                            newsubData.push(p);
-                    });
+                //    var joinData = this._base_accessor_func(this._sub_data);
+                //    joinData.forEach(function (p) {
+                //        if (d.Key == p.Key)
+                //            newbaseData.push(p);
+                //    });
+                //});
+                //this._base_accessor_func(this._base_data, newbaseData);
 
-                });
-                this._sub_accessor_func(this._base_data, newsubData);
+                ////Intersection of sub data
+                //var newsubData = [];
+                //this._sub_accessor_func(this._sub_data).forEach((d) => {
 
-                //I dont know how to fix it, just hard code for now
-                this._font_size
-                    .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(newbaseData, function (d) { return d.Value; }))
-                ;
+                //    var joinData = this._sub_accessor_func(this._base_data);
+                //    joinData.forEach(function (p) {
+                //        if (d.Key == p.Key)
+                //            newsubData.push(p);
+                //    });
+
+                //});
+                //this._sub_accessor_func(this._base_data, newsubData);
+
+                if (!this._sub_data) {
+
+
+                }
+
+                //There is problem here
+                //TODO
+                //this._font_size
+                //    .range([10, this._cloud_w / 8])
+                //    .domain(d3.extent(newbaseData, function (d) { return d.Value; }))
+                //;
 
             }
 
             public DisplayLens(): void {
                 super.DisplayLens();
-                var data = this.ExtractData();
+                this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(this._base_accessor_func(this._base_data))
+                    .words(this._base_accessor_func(this._data))
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)
@@ -103,7 +111,7 @@ module ManyLens {
                 this._cloud.start();
 
                 this._lens_circle_svg.selectAll(".innerPie")
-                    .data(this._pie(this._sub_accessor_func(this._base_data)))
+                    .data(this._pie(this._sub_accessor_func(this._data)))
                     .enter().append("path")
                     .attr("d", this._arc)
                     .style("fill", (d) => { return this._cloud_text_color(d.data.Key); })
