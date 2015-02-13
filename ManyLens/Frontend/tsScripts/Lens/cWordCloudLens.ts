@@ -12,7 +12,7 @@ module ManyLens {
       
             private _cloud_w: number = this._lens_circle_radius * 2;//Math.sqrt(2);
             private _cloud_h: number = this._cloud_w;
-            private _cloud_padding: number = 1;
+            private _cloud_padding: number = 3;
             private _cloud_font: string = "Calibri"
             private _cloud_font_weight: string = "normal";
             private _cloud_text_color: D3.Scale.OrdinalScale;
@@ -33,29 +33,30 @@ module ManyLens {
             }
 
             // data shape {text: size:}
-            protected ExtractData(): Array<D3.Layout.ICloudData> {
-                var data: Array<D3.Layout.ICloudData>
+            protected ExtractData(): any {
+                super.ExtractData();
                
 
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.Value; }))
+                    .domain(d3.extent(this._base_accessor_func(this._data), (d: { Key: any; Value: any }) => {
+                        return d.Value;
+                    }))
                 ;
 
-                return data;
             }
 
             public DisplayLens():void {
                 super.DisplayLens();
-                var data = this.ExtractData();
+                this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(data)
+                    .words(this._base_accessor_func(this._data))
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)
                     .fontWeight(this._cloud_font_weight)
-                    .fontSize((d) => { return this._font_size(d.value); })
+                    .fontSize((d) => { return this._font_size(d.Value); })
                     .on("end", (words, bounds) => {
                         this.DrawCloud(words, bounds);
                     })
@@ -85,7 +86,6 @@ module ManyLens {
                     .style("fill", (d, i) => { return this._cloud_text_color(d.size); })
                     .style("opacity", 1e-6)
                     .attr("text-anchor", "middle")
-                //.attr("class", "show")
                     .attr("transform", function (d) {
                         return "translate(" + [d.x, d.y] + ")";
                     })

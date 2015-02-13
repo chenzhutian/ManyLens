@@ -156,7 +156,7 @@ module ManyLens {
                     this._data = null;
                 } else {
                     this._data = (d3.select(res).data()[0].lensData);
-                    this._place = this._data.unitID[0];
+                    this._place = this._data.unitsID[0];
                 }
                 return this._data;
             }

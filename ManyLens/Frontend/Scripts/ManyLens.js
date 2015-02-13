@@ -881,7 +881,7 @@ var ManyLens;
                 }
                 else {
                     this._data = (d3.select(res).data()[0].lensData);
-                    this._place = this._data.unitID[0];
+                    this._place = this._data.unitsID[0];
                 }
                 return this._data;
             };
@@ -1488,7 +1488,7 @@ var ManyLens;
                 if (!_super.prototype.DisplayLens.call(this))
                     return null;
                 this._cloud.size([this._cloud_w, this._cloud_h]).words(this._extract_data_map_func(this._data)).filter(function (d) {
-                    if (d.Value > 0)
+                    if (d.Value > 3)
                         return true;
                     return false;
                 }).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
@@ -1536,32 +1536,36 @@ var ManyLens;
             __extends(BaseCompositeLens, _super);
             function BaseCompositeLens(element, type, manyLens, firstLens, secondLens) {
                 _super.call(this, element, type, manyLens);
-                this._components_places = null;
                 this._base_accessor_func = null;
                 this._sub_accessor_func = null;
                 this._new_lens_count = 1;
                 this._need_to_reshape = false;
                 this._is_composite_lens = true;
-                this._select_circle = new Array();
+                this._components_select_circle = new Array();
                 this._components_kind = new Map();
-                this._lens = new Array();
+                this._components_places = new Map();
+                this._components_data = new Map();
+                this._components_lens = new Array();
                 this._base_component = firstLens;
                 this._lens_circle_cx = firstLens.LensCX;
                 this._lens_circle_cy = firstLens.LensCY;
                 if (secondLens) {
                     var firstLens0 = firstLens;
                     this._sub_component = secondLens;
-                    this._lens.push(firstLens0);
-                    this._select_circle.push({
+                    this._components_lens.push(firstLens0);
+                    this._components_select_circle.push({
                         _line: firstLens0.LinkLine,
                         _sc_cx: firstLens0.SelectCircleCX,
                         _sc_cy: firstLens0.SelectCircleCY,
                         _sc_radius: firstLens0.SelectCircleRadius,
                         _sc_scale: firstLens0.SelectCircleScale
                     });
-                    this._components_kind.set(firstLens.Type, 1);
-                    this._lens.push(secondLens);
-                    this._select_circle.push({
+                    this._components_kind.set(firstLens0.Type, 1);
+                    this._components_data.set(firstLens0.LensPlace, firstLens0.RawData);
+                    this._components_places.set(firstLens0.LensPlace, 1);
+                    this._base_accessor_func = firstLens0.DataAccesser();
+                    this._components_lens.push(secondLens);
+                    this._components_select_circle.push({
                         _line: secondLens.LinkLine,
                         _sc_cx: secondLens.SelectCircleCX,
                         _sc_cy: secondLens.SelectCircleCY,
@@ -1569,38 +1573,37 @@ var ManyLens;
                         _sc_scale: secondLens.SelectCircleScale
                     });
                     this._components_kind.set(secondLens.Type, 1);
-                    //Handle the data
-                    this._data = firstLens0.RawData;
                     //Check if this two lens are in the same place
-                    this._components_places = [];
-                    this._components_places.push(firstLens0.LensPlace);
                     if (firstLens0.LensPlace != secondLens.LensPlace) {
-                        this._components_places.push(secondLens.LensPlace);
-                        this._sub_data = secondLens.RawData;
+                        this._components_places.set(secondLens.LensPlace, 1);
+                        this._components_data.set(secondLens.LensPlace, secondLens.RawData);
                     }
-                    this._base_accessor_func = firstLens0.DataAccesser();
+                    else {
+                        var t = this._components_places.get(secondLens.LensPlace) + 1;
+                        this._components_places.set(secondLens.LensPlace, t);
+                    }
                     this._sub_accessor_func = secondLens.DataAccesser();
                 }
                 else {
                 }
             }
-            Object.defineProperty(BaseCompositeLens.prototype, "Lens", {
+            Object.defineProperty(BaseCompositeLens.prototype, "ComponentsLens", {
                 get: function () {
-                    return this._lens;
+                    return this._components_lens;
                 },
                 enumerable: true,
                 configurable: true
             });
-            Object.defineProperty(BaseCompositeLens.prototype, "SelectCircle", {
+            Object.defineProperty(BaseCompositeLens.prototype, "ComponentsSelectCircle", {
                 get: function () {
-                    return this._select_circle;
+                    return this._components_select_circle;
                 },
                 enumerable: true,
                 configurable: true
             });
-            Object.defineProperty(BaseCompositeLens.prototype, "ComponentNum", {
+            Object.defineProperty(BaseCompositeLens.prototype, "ComponentsCount", {
                 get: function () {
-                    return this._lens.length;
+                    return this._components_lens.length;
                 },
                 enumerable: true,
                 configurable: true
@@ -1642,10 +1645,13 @@ var ManyLens;
             };
             BaseCompositeLens.prototype.ExtractData = function () {
                 var _this = this;
-                if (this._sub_data) {
-                    this._data.unitID.concat(this._sub_data.unitID);
-                    this._data.contents.concat(this._sub_data.contents);
-                    this._sub_data.hashTagDistribute.forEach(function (d) {
+                this._data = null;
+                this._components_data.forEach(function (componentData) {
+                    if (_this._data == null)
+                        _this._data = JSON.parse(JSON.stringify(componentData));
+                    _this._data.unitsID.concat(componentData.unitsID);
+                    _this._data.contents.concat(componentData.contents);
+                    componentData.hashTagDistribute.forEach(function (d) {
                         var key = d.Key;
                         var value = d.Value;
                         var column = _this._data.hashTagDistribute;
@@ -1659,7 +1665,7 @@ var ManyLens;
                             column.push(d);
                         }
                     });
-                    this._sub_data.labels.forEach(function (d) {
+                    componentData.labels.forEach(function (d) {
                         var key = d.Key;
                         var value = d.Value;
                         var column = _this._data.labels;
@@ -1673,7 +1679,7 @@ var ManyLens;
                             column.push(d);
                         }
                     });
-                    this._sub_data.tweetLengthDistribute.forEach(function (d) {
+                    componentData.tweetLengthDistribute.forEach(function (d) {
                         var key = d.Key;
                         var value = d.Value;
                         var column = _this._data.tweetLengthDistribute;
@@ -1687,7 +1693,7 @@ var ManyLens;
                             column.push(d);
                         }
                     });
-                }
+                });
             };
             BaseCompositeLens.prototype.DisplayLens = function () {
                 _super.prototype.DisplayLens.call(this);
@@ -1700,8 +1706,8 @@ var ManyLens;
             BaseCompositeLens.prototype.LensCircleDragendFunc = function () {
                 var res = _super.prototype.LensCircleDragendFunc.call(this);
                 if (!res) {
-                    for (var i = 0, len = this._select_circle.length; i < len; ++i) {
-                        var sc = this._select_circle[i];
+                    for (var i = 0, len = this._components_select_circle.length; i < len; ++i) {
+                        var sc = this._components_select_circle[i];
                         var theta = Math.atan((this._lens_circle_cy - sc._sc_cy) / (this._lens_circle_cx - sc._sc_cx));
                         var cosTheta = this._lens_circle_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
                         var sinTheta = this._lens_circle_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
@@ -1722,27 +1728,37 @@ var ManyLens;
                 else {
                     this.AddSingleLens(lens);
                 }
-                this._sub_data = lens.RawData;
                 return this;
             };
             BaseCompositeLens.prototype.RemoveComponentLens = function (lens) {
                 //TODO remove related data here;
-                var index = this._lens.indexOf(lens);
+                var index = this._components_lens.indexOf(lens);
                 if (-1 != index) {
-                    this._lens.splice(index, 1);
-                    this._select_circle.splice(index, 1);
-                    if (this.ComponentNum == 1) {
+                    this._components_lens.splice(index, 1);
+                    this._components_select_circle.splice(index, 1);
+                    var num = this._components_places.get(lens.LensPlace) - 1;
+                    if (num > 0) {
+                        this._components_places.set(lens.LensPlace, num);
+                    }
+                    else if (num == 0) {
+                        this._components_places.delete(lens.LensPlace);
+                        this._components_data.delete(lens.LensPlace);
+                    }
+                    else {
+                        throw new Error("The number of this places of component is less than 0!!");
+                    }
+                    if (this.ComponentsCount == 1) {
                         //if there is only one component left, we can just return this one
                         this.RemoveWholeSVG();
-                        var lastLens = this._lens[0];
+                        var lastLens = this._components_lens[0];
                         lastLens.LensCX = this.LensCX;
                         lastLens.LensCY = this.LensCY;
                         lastLens.LensRadius = this.LensRadius;
                         lastLens.LensScale = this.LensScale;
                         lastLens.DetachHostLens();
-                        return this._lens[0];
+                        return this._components_lens[0];
                     }
-                    else if (this.ComponentNum < 1) {
+                    else if (this.ComponentsCount < 1) {
                         throw new Error('The number of component of this lens is less than 2!!');
                     }
                     else {
@@ -1765,9 +1781,9 @@ var ManyLens;
             };
             BaseCompositeLens.prototype.ReDrawLinkLine = function (newLensCount) {
                 if (newLensCount === void 0) { newLensCount = 0; }
-                var i = newLensCount == 0 ? 0 : this._select_circle.length - newLensCount;
-                for (var len = this._select_circle.length; i < len; ++i) {
-                    var sc = this._select_circle[i];
+                var i = newLensCount == 0 ? 0 : this._components_select_circle.length - newLensCount;
+                for (var len = this._components_select_circle.length; i < len; ++i) {
+                    var sc = this._components_select_circle[i];
                     var theta = Math.atan((this._lens_circle_cy - sc._sc_cy) / (this._lens_circle_cx - sc._sc_cx));
                     var cosTheta = this._lens_circle_cx > sc._sc_cx ? Math.cos(theta) : -Math.cos(theta);
                     var sinTheta = this._lens_circle_cx > sc._sc_cx ? Math.sin(theta) : -Math.sin(theta);
@@ -1775,35 +1791,37 @@ var ManyLens;
                 }
                 this._new_lens_count = 0;
             };
-            //haven't handle data yet
+            //haven't handle yet
+            //TODO
             BaseCompositeLens.prototype.AddCompositeLens = function (componentLens) {
-                if (componentLens.SelectCircle.length != componentLens.Lens.length)
+                if (componentLens.ComponentsSelectCircle.length != componentLens.ComponentsLens.length)
                     throw new Error('The length of sc is different from length of lens');
-                for (var i = 0, len = componentLens.Lens.length; i < len; ++i) {
-                    this._lens.push(componentLens.Lens[i]);
-                    this._select_circle.push(componentLens.SelectCircle[i]);
-                    if (this._components_kind.has(componentLens.Lens[i].Type)) {
-                        var num = this._components_kind.get(componentLens.Lens[i].Type) + 1;
-                        this._components_kind.set(componentLens.Lens[i].Type, num);
+                for (var i = 0, len = componentLens.ComponentsLens.length; i < len; ++i) {
+                    this._components_lens.push(componentLens.ComponentsLens[i]);
+                    this._components_select_circle.push(componentLens.ComponentsSelectCircle[i]);
+                    if (this._components_kind.has(componentLens.ComponentsLens[i].Type)) {
+                        var num = this._components_kind.get(componentLens.ComponentsLens[i].Type) + 1;
+                        this._components_kind.set(componentLens.ComponentsLens[i].Type, num);
                     }
                     else {
-                        this._components_kind.set(componentLens.Lens[i].Type, 1);
+                        this._components_kind.set(componentLens.ComponentsLens[i].Type, 1);
                     }
-                    componentLens.Lens[i].ChangeHostTo(this);
+                    componentLens.ComponentsLens[i].ChangeHostTo(this);
                 }
                 componentLens.RemoveWholeSVG();
                 this._manyLens.RemoveLens(componentLens);
-                this._new_lens_count = componentLens.Lens.length;
+                this._new_lens_count = componentLens.ComponentsLens.length;
             };
             BaseCompositeLens.prototype.AddSingleLens = function (lens) {
-                this._lens.push(lens);
-                this._select_circle.push({
+                this._components_lens.push(lens);
+                this._components_select_circle.push({
                     _line: lens.LinkLine,
                     _sc_cx: lens.SelectCircleCX,
                     _sc_cy: lens.SelectCircleCY,
                     _sc_radius: lens.SelectCircleRadius,
                     _sc_scale: lens.SelectCircleScale
                 });
+                //Component kind
                 if (this._components_kind.has(lens.Type)) {
                     var num = this._components_kind.get(lens.Type) + 1;
                     this._components_kind.set(lens.Type, num);
@@ -1811,11 +1829,14 @@ var ManyLens;
                 else {
                     this._components_kind.set(lens.Type, 1);
                 }
-                //Handle the data   
-                //TODO here
-                if (this.ComponentsPlace.indexOf(lens.LensPlace) == -1) {
-                    this._components_places.push(lens.LensPlace);
-                    this._sub_data = lens.RawData;
+                //Component place
+                if (this._components_places.has(lens.LensPlace)) {
+                    var num = this._components_places.get(lens.LensPlace) + 1;
+                    this._components_places.set(lens.LensPlace, num);
+                }
+                else {
+                    this._components_places.set(lens.LensPlace, 1);
+                    this._components_data.set(lens.LensPlace, lens.RawData);
                 }
                 this._new_lens_count = 1;
             };
@@ -2523,7 +2544,7 @@ var ManyLens;
                 this._cloud = d3.layout.cloud();
                 this._cloud_w = this._lens_circle_radius * 2; //Math.sqrt(2);
                 this._cloud_h = this._cloud_w;
-                this._cloud_padding = 1;
+                this._cloud_padding = 3;
                 this._cloud_font = "Calibri";
                 this._cloud_font_weight = "normal";
                 this._cloud_text_color = d3.scale.category20c();
@@ -2534,18 +2555,17 @@ var ManyLens;
             };
             // data shape {text: size:}
             cWordCloudLens.prototype.ExtractData = function () {
-                var data;
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
+                _super.prototype.ExtractData.call(this);
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._base_accessor_func(this._data), function (d) {
                     return d.Value;
                 }));
-                return data;
             };
             cWordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                var data = this.ExtractData();
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
-                    return _this._font_size(d.value);
+                this.ExtractData();
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func(this._data)).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                    return _this._font_size(d.Value);
                 }).on("end", function (words, bounds) {
                     _this.DrawCloud(words, bounds);
                 });
@@ -2715,40 +2735,20 @@ var ManyLens;
             };
             // data shape {Key: Value:}
             cWordCloudPieLens.prototype.ExtractData = function () {
-                ////Intersection of base data
-                //var newbaseData = [];
-                //this._base_accessor_func(this._base_data).forEach((d) => {
-                //    var joinData = this._base_accessor_func(this._sub_data);
-                //    joinData.forEach(function (p) {
-                //        if (d.Key == p.Key)
-                //            newbaseData.push(p);
-                //    });
-                //});
-                //this._base_accessor_func(this._base_data, newbaseData);
-                ////Intersection of sub data
-                //var newsubData = [];
-                //this._sub_accessor_func(this._sub_data).forEach((d) => {
-                //    var joinData = this._sub_accessor_func(this._base_data);
-                //    joinData.forEach(function (p) {
-                //        if (d.Key == p.Key)
-                //            newsubData.push(p);
-                //    });
-                //});
-                //this._sub_accessor_func(this._base_data, newsubData);
-                if (!this._sub_data) {
-                }
-                //There is problem here
-                //TODO
-                //this._font_size
-                //    .range([10, this._cloud_w / 8])
-                //    .domain(d3.extent(newbaseData, function (d) { return d.Value; }))
-                //;
+                _super.prototype.ExtractData.call(this);
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._base_accessor_func(this._data), function (d) {
+                    return d.Value;
+                }));
             };
             cWordCloudPieLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
                 this.ExtractData();
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func(this._data)).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func(this._data)).filter(function (d) {
+                    if (d.Value > 3)
+                        return true;
+                    return false;
+                }).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                     return _this._font_size(d.Value);
                 }).on("end", function (words, bounds) {
                     _this.DrawCloud(words, bounds);
@@ -3354,11 +3354,11 @@ var ManyLens;
                 case ManyLens.Lens.WordCloudLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.WordCloudLens.Type:
                     {
-                        //if (firstLens.Type != Lens.WordCloudLens.Type) {
-                        //    var tempLens = firstLens;
-                        //    firstLens = secondLens;
-                        //    secondLens = tempLens;
-                        //}
+                        if (firstLens.Type != ManyLens.Lens.WordCloudLens.Type) {
+                            var tempLens = firstLens;
+                            firstLens = secondLens;
+                            secondLens = tempLens;
+                        }
                         return new ManyLens.Lens.cWordCloudPieLens(element, manyLens, firstLens, secondLens);
                     }
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.cWordCloudPieLens.Type:

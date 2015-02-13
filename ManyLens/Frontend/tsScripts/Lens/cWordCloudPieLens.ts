@@ -51,46 +51,14 @@ module ManyLens {
 
             // data shape {Key: Value:}
             protected ExtractData() {
+                super.ExtractData();
 
-
-
-                ////Intersection of base data
-                //var newbaseData = [];
-                //this._base_accessor_func(this._base_data).forEach((d) => {
-
-                //    var joinData = this._base_accessor_func(this._sub_data);
-                //    joinData.forEach(function (p) {
-                //        if (d.Key == p.Key)
-                //            newbaseData.push(p);
-                //    });
-                //});
-                //this._base_accessor_func(this._base_data, newbaseData);
-
-                ////Intersection of sub data
-                //var newsubData = [];
-                //this._sub_accessor_func(this._sub_data).forEach((d) => {
-
-                //    var joinData = this._sub_accessor_func(this._base_data);
-                //    joinData.forEach(function (p) {
-                //        if (d.Key == p.Key)
-                //            newsubData.push(p);
-                //    });
-
-                //});
-                //this._sub_accessor_func(this._base_data, newsubData);
-
-                if (!this._sub_data) {
-
-
-                }
-
-                //There is problem here
-                //TODO
-                //this._font_size
-                //    .range([10, this._cloud_w / 8])
-                //    .domain(d3.extent(newbaseData, function (d) { return d.Value; }))
-                //;
-
+                this._font_size
+                    .range([10, this._cloud_w / 8])
+                    .domain(d3.extent(this._base_accessor_func(this._data), (d: { Key: any; Value: any }) => {
+                        return d.Value;
+                    }))
+                ;
             }
 
             public DisplayLens(): void {
@@ -99,6 +67,11 @@ module ManyLens {
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._base_accessor_func(this._data))
+                    .filter((d)=>{
+                        if (d.Value > 3)
+                            return true;
+                        return false;
+                    })
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)

@@ -2,7 +2,7 @@
 module ManyLens {
     export module Lens {
         export interface UnitsDataForLens {
-            unitID: Array<number>;
+            unitsID: Array<number>;
             labels: Array<{ Key: string; Value: number }>;
             tweetLengthDistribute: Array<{ Key: number; Value: number }>;
             contents: Array<string>;
