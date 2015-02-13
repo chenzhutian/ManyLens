@@ -1025,7 +1025,7 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             BarChartLens.prototype.ExtractData = function () {
-                var data;
+                var data = _super.prototype.ExtractData.call(this);
                 data = d3.range(12).map(function (d) {
                     return 10 + 70 * Math.random();
                 });
@@ -1041,7 +1041,7 @@ var ManyLens;
                 }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
                 this._bar_width = (this._bar_chart_width - 20) / this._data.length;
                 var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
-                var bar = this._lens_circle_svg.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
+                var bar = this._lens_circle_svg.selectAll(".bar").data(this._extract_data_map_func(this._data)).enter().append("g").attr("transform", function (d, i) {
                     return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
                 });
                 bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
@@ -1109,12 +1109,13 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             MapLens.prototype.ExtractData = function () {
-                var data = [78, 72, 56, 55, 54, 53, 51, 50, 49, 48, 47, 46, 45, 44, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 13, 12, 11, 10, 9, 8, 6, 5, 4, 2, 1];
+                var data = _super.prototype.ExtractData.call(this);
+                data = [78, 72, 56, 55, 54, 53, 51, 50, 49, 48, 47, 46, 45, 44, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 13, 12, 11, 10, 9, 8, 6, 5, 4, 2, 1];
                 var barData = [];
                 data.forEach(function (d) {
                     barData[d] = Math.random() * 70;
                 });
-                return barData;
+                return data;
             };
             MapLens.prototype.DisplayLens = function () {
                 var _this = this;
@@ -1134,20 +1135,20 @@ var ManyLens;
                     })).attr("id", "state-borders").attr("d", this._path);
                 }
                 else {
-                    d3.json("./testData/world.json", function (error, data) {
+                    d3.json("./testData/world.json", function (error, mapData) {
                         _this._color.domain(d3.extent(_this._data));
                         _this._map_data = {
-                            raw: data,
+                            raw: mapData,
                             color: []
                         };
-                        _this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(data, data.objects.countries).features).enter().append("path").attr("d", _this._path).attr("fill", function (d) {
+                        _this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(mapData, mapData.objects.countries).features).enter().append("path").attr("d", _this._path).attr("fill", function (d) {
                             var color = _this._color(d.id);
                             _this._map_data.color.push(color);
                             return color;
                         }).on("click", function (d) {
                             _this.ClickedMap(d);
                         });
-                        _this._lens_circle_svg.append("path").datum(topojson.mesh(data, data.objects.countries, function (a, b) {
+                        _this._lens_circle_svg.append("path").datum(topojson.mesh(mapData, mapData.objects.countries, function (a, b) {
                             return a !== b;
                         })).attr("id", "state-borders").attr("d", _this._path);
                     });
@@ -1221,16 +1222,19 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             NetworkLens.prototype.ExtractData = function () {
+                var data = _super.prototype.ExtractData.call(this);
                 var graph = {
                     "nodes": [{ "x": 208.992345, "y": 273.053211 }, { "x": 595.98896, "y": 56.377057 }, { "x": 319.568434, "y": 278.523637 }, { "x": 214.494264, "y": 214.893585 }, { "x": 482.664139, "y": 340.386773 }, { "x": 84.078465, "y": 192.021902 }, { "x": 196.952261, "y": 370.798667 }, { "x": 107.358165, "y": 435.15643 }, { "x": 401.168523, "y": 443.407779 }, { "x": 508.368779, "y": 386.665811 }, { "x": 355.93773, "y": 460.158711 }, { "x": 283.630624, "y": 87.898162 }, { "x": 194.771218, "y": 436.366028 }, { "x": 477.520013, "y": 337.547331 }, { "x": 572.98129, "y": 453.668459 }, { "x": 106.717817, "y": 235.990363 }, { "x": 265.064649, "y": 396.904945 }, { "x": 452.719997, "y": 137.886092 }],
                     "links": [{ "target": 11, "source": 0 }, { "target": 3, "source": 0 }, { "target": 10, "source": 0 }, { "target": 16, "source": 0 }, { "target": 1, "source": 0 }, { "target": 3, "source": 0 }, { "target": 9, "source": 0 }, { "target": 5, "source": 0 }, { "target": 11, "source": 0 }, { "target": 13, "source": 0 }, { "target": 16, "source": 0 }, { "target": 3, "source": 1 }, { "target": 9, "source": 1 }, { "target": 12, "source": 1 }, { "target": 4, "source": 2 }, { "target": 6, "source": 2 }, { "target": 8, "source": 2 }, { "target": 13, "source": 2 }, { "target": 10, "source": 3 }, { "target": 16, "source": 3 }, { "target": 9, "source": 3 }, { "target": 7, "source": 3 }, { "target": 11, "source": 5 }, { "target": 13, "source": 5 }, { "target": 12, "source": 5 }, { "target": 8, "source": 6 }, { "target": 13, "source": 6 }, { "target": 10, "source": 7 }, { "target": 11, "source": 7 }, { "target": 17, "source": 8 }, { "target": 13, "source": 8 }, { "target": 11, "source": 10 }, { "target": 16, "source": 10 }, { "target": 13, "source": 11 }, { "target": 14, "source": 12 }, { "target": 14, "source": 12 }, { "target": 14, "source": 12 }, { "target": 15, "source": 12 }, { "target": 16, "source": 12 }, { "target": 15, "source": 14 }, { "target": 16, "source": 14 }, { "target": 15, "source": 14 }, { "target": 16, "source": 15 }, { "target": 16, "source": 15 }, { "target": 17, "source": 16 }]
                 };
                 return graph;
+                return data;
             };
             NetworkLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                var nodes = this._data.nodes, links = this._data.links;
+                var testData = this.ExtractData();
+                var nodes = testData.nodes, links = testData.links;
                 this._location_x_scale.domain(d3.extent(nodes, function (d) {
                     return d['x'];
                 }));

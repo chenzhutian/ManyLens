@@ -22,7 +22,7 @@ module ManyLens {
             }
 
             public ExtractData(): any {
-                var data: Array<number>;
+                var data: Array<number> = super.ExtractData();
                 data = d3.range(12).map(function (d) {
                     return 10 + 70 * Math.random();
                 });
@@ -59,7 +59,7 @@ module ManyLens {
                     .domain(d3.extent(this._data));
 
                 var bar = this._lens_circle_svg.selectAll(".bar")
-                    .data(this._data)
+                    .data(this._extract_data_map_func(this._data))
                     .enter().append("g")
                     .attr("transform", (d, i) => {
                         return "translate(" + [10 + i * this._bar_width - this._bar_chart_width / 2, this._bar_chart_height / 2 - barHeight(d)] + ")";

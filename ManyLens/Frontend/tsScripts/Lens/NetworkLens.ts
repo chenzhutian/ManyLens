@@ -33,6 +33,7 @@ module ManyLens {
             }
 
             public ExtractData(): any {
+                var data = super.ExtractData();
                 var graph = {
                     "nodes": [{ "x": 208.992345, "y": 273.053211 },
                         { "x": 595.98896, "y": 56.377057 },
@@ -101,13 +102,16 @@ module ManyLens {
                     ]
                 };
 
+
                 return graph;
+                return data;
             }
 
             public DisplayLens(): any {
                 super.DisplayLens();
-                var nodes = this._data.nodes,
-                    links = this._data.links
+                var testData = this.ExtractData();
+                var nodes = testData.nodes,
+                    links = testData.links
                 ;
 
                 this._location_x_scale

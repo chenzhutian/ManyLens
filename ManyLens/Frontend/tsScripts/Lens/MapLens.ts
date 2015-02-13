@@ -57,7 +57,10 @@ module ManyLens {
 
 
             public ExtractData(): any {
-                var data = [78, 72, 56, 55, 54, 53, 51, 50, 49,
+                var data = super.ExtractData();
+
+
+                data = [78, 72, 56, 55, 54, 53, 51, 50, 49,
                     48, 47, 46, 45, 44, 42, 41, 40, 39, 38, 37,
                     36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26,
                     25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15,
@@ -68,8 +71,7 @@ module ManyLens {
                     barData[d] = Math.random() * 70;
                 });
 
-                return barData;
-
+                return data;
             }
 
             public DisplayLens(): any {
@@ -103,17 +105,17 @@ module ManyLens {
                     ;
 
                 } else {
-                    d3.json("./testData/world.json", (error, data) => {
+                    d3.json("./testData/world.json", (error, mapData) => {
                         this._color.domain(d3.extent(this._data));
                         this._map_data = {
-                            raw: data,
+                            raw: mapData,
                             color: []
                         };
 
                         this._lens_circle_svg.append("g")
                             .attr("id", "states")
                             .selectAll("path")
-                            .data(topojson.feature(data, data.objects.countries).features)
+                            .data(topojson.feature(mapData, mapData.objects.countries).features)
                             .enter().append("path")
                             .attr("d", this._path)
                             .attr("fill", (d) => {
@@ -127,7 +129,7 @@ module ManyLens {
                         ;
 
                         this._lens_circle_svg.append("path")
-                            .datum(topojson.mesh(data, data.objects.countries, function (a, b) { return a !== b; }))
+                            .datum(topojson.mesh(mapData, mapData.objects.countries, function (a, b) { return a !== b; }))
                             .attr("id", "state-borders")
                             .attr("d", this._path)
                         ;

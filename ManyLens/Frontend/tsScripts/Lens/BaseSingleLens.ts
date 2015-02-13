@@ -37,7 +37,7 @@ module ManyLens {
             public get SelectCircleRadius(): number {
                 return this._select_circle_radius;
             }
-
+            
             constructor(element: D3.Selection, type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
                 this._is_composite_lens = false;
