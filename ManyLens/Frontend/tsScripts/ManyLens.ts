@@ -10,7 +10,7 @@ module ManyLens {
 
 
     export class ManyLens {
-        public static TestMode: boolean = false;
+        public static TestMode: boolean = true;
 
         private _manyLens_hub: Hub.ManyLensHub;
 

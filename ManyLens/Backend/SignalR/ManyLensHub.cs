@@ -84,7 +84,7 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
             //set the parameter
-            int lastMarkType = 2;
+            //int lastMarkType = 2;
             double alpha = 0.125;
             double beta = 2.0;
             Parameter.timeSpan = 2;
@@ -154,8 +154,20 @@ namespace ManyLens.SignalR
                                 }
                             }
 
+                            tp[begin].BeginPoint = tp[begin].ID;
+                            tp[begin].EndPoint = tp[end].ID;
                             tp[begin].PointType += 1;
+                            tp[end].BeginPoint = tp[begin].ID;
+                            tp[end].EndPoint = tp[end].ID;
                             tp[end].PointType += 2;
+
+                            for (int k = begin+1; k < end; ++k)
+                            {
+                                tp[k].BeginPoint = tp[begin].ID;
+                                tp[k].EndPoint = tp[end].ID;
+                                tp[k].PointType = 4;
+                            }
+
                         }
                         else
                         {
@@ -166,7 +178,7 @@ namespace ManyLens.SignalR
                     }
 
                     //Determine the type of this point
-                    tp[t].PointType = tp[t].PointType != 0 ? tp[t].PointType : lastMarkType == 2 ? (uint)0 : (uint)4;
+                    //tp[t].PointType = tp[t].PointType != 0 ? tp[t].PointType : lastMarkType == 2 ? (uint)0 : (uint)4;
                     Point point = new Point()
                     {
                         value = tp[t].TweetsCount,
@@ -175,8 +187,8 @@ namespace ManyLens.SignalR
                         {
                             id = tp[t].ID,
                             type = tp[t].PointType,
-                            beg = "",
-                            end = ""
+                            beg = tp[t].BeginPoint,
+                            end = tp[t].EndPoint
                         }
                     };
 
@@ -184,8 +196,8 @@ namespace ManyLens.SignalR
                     {
                         Interval interal = new Interval(tp[t].TermDate, tp[t]);
                         interals.Add(interal.ID, interal);
-                        lastMarkType = 1;
-                        point.mark.beg = point.mark.id;
+                        //lastMarkType = 1;
+                        //point.mark.beg = point.mark.id;
                     }
                     else if (tp[t].PointType == 2)
                     {
@@ -193,8 +205,8 @@ namespace ManyLens.SignalR
                         Interval interal = interals.Last().Value;
                         interal.EndDate = tp[t].TermDate;
                         interals[id] = interal;
-                        lastMarkType = 2;
-                        point.mark.end = point.mark.id;
+                        //lastMarkType = 2;
+                        //point.mark.end = point.mark.id;
                     }
                     else if (tp[t].PointType == 3)
                     {
@@ -205,8 +217,8 @@ namespace ManyLens.SignalR
 
                         Interval newInteral = new Interval(tp[t].TermDate, tp[t]);
                         interals.Add(newInteral.ID, newInteral);
-                        lastMarkType = 1;
-                        point.mark.beg = point.mark.id;
+                        //lastMarkType = 1;
+                        //point.mark.beg = point.mark.id;
                     }
                     else if (tp[t].PointType == 4)
                     {
@@ -218,8 +230,6 @@ namespace ManyLens.SignalR
 
                     //Output the json data
                     points.Add(point);
-
-
 
                     Clients.Caller.addPoint(point);
                     Thread.Sleep(1000);

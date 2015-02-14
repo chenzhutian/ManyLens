@@ -295,31 +295,31 @@ var ManyLens;
                 })]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
-                if (mark.type == 2 || mark.type == 3) {
-                    var eid = mark.id;
-                    var iter = this._markData.length - 1;
-                    while (iter >= 0 && (this._markData[iter].type == 4)) {
-                        this._markData[iter].end = eid;
-                        --iter;
-                    }
-                    if (iter >= 0 && (this._markData[iter].type == 3 || this._markData[iter].type == 1)) {
-                        this._markData[iter].end = eid;
-                    }
-                    if (mark.type == 2) {
-                        mark.beg = this._lastMark.id;
-                    }
-                    this._markData.push(mark);
-                    this._lastMark = mark;
-                }
-                else {
-                    if (mark.type == 4) {
-                        mark.beg = this._lastMark.id;
-                    }
-                    if (mark.type == 1) {
-                        this._lastMark = mark;
-                    }
-                    this._markData.push(mark);
-                }
+                //if (mark.type == 2 || mark.type == 3) {
+                //    var eid = mark.id;
+                //    var iter = this._markData.length - 1;
+                //    while (iter >= 0 && (this._markData[iter].type == 4)) {
+                //        this._markData[iter].end = eid;
+                //        --iter;
+                //    }
+                //    if (iter >= 0 && (this._markData[iter].type == 3 || this._markData[iter].type == 1)) {
+                //        this._markData[iter].end = eid;
+                //    }
+                //    if (mark.type == 2) {
+                //        mark.beg = this._lastMark.id;
+                //    }
+                //    this._markData.push(mark);
+                //    this._lastMark = mark;
+                //} else {
+                //    if (mark.type == 4) {
+                //        mark.beg = this._lastMark.id;
+                //    }
+                //    if (mark.type == 1) {
+                //        this._lastMark = mark;
+                //    }
+                //    this._markData.push(mark);
+                //}
+                this._markData.push(mark);
                 this._section = new Array();
                 var lastSection;
                 this._markData.forEach(function (d, i) {
@@ -3387,7 +3387,7 @@ var ManyLens;
             }
             return this._manyLens_hub.server.testPullInterval(id);
         };
-        ManyLens.TestMode = false;
+        ManyLens.TestMode = true;
         return ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;

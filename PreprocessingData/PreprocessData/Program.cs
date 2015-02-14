@@ -14,19 +14,48 @@ namespace PreprocessingData
         static void Main(string[] args)
         {
             string ROOT_DIR = "D:\\Data\\";
+            string sampleFile = ROOT_DIR + "clearFIFA";
+            StreamWriter sw = new StreamWriter(ROOT_DIR + "FIFAShortAttributes");
+            //0tweetId \t 1screenName \t 2userName \t 3userId \t 4tweetContent \t 5language \t 6tweetDate \t 7timestamp \t 8userHomepage \t 9tweetsCount \t 10following 
+            //\t 11follower \t 12profile \t 13V \t 14registerDate \t 15unixeTime \t 16timezone \t 17timezoneName \t 18location \t 19gpsA \t 20gpsB \t 21locationtype
+            foreach (string currentLine in File.ReadLines(sampleFile))
+            {
+                string[] tweetsAttribute = currentLine.Split('\t');
+                sw.WriteLine(tweetsAttribute[0] +
+                    '\t' + tweetsAttribute[2] +
+                    '\t' + tweetsAttribute[3] +
+                    '\t' + tweetsAttribute[4] +
+                    '\t' + tweetsAttribute[6] +
+                    '\t' + tweetsAttribute[8] +
+                    '\t' + tweetsAttribute[9] +
+                    '\t' + tweetsAttribute[10] +
+                    '\t' + tweetsAttribute[11] +
+                    '\t' + tweetsAttribute[13] +
+                    '\t' + tweetsAttribute[19] +
+                    '\t' + tweetsAttribute[20]);
+            }
+            sw.Flush();
+            sw.Close();
+
+        }
+
+
+        public void RandomSample(double threadshold = 0.01001)
+        {
+            string ROOT_DIR = "D:\\Data\\";
             string clearFile = ROOT_DIR + "clearFIFA";
-            //int count = 0;
             StreamWriter sw = new StreamWriter(ROOT_DIR + "FIFASample");
             Random rnd = new Random();
             foreach (string currentLine in File.ReadLines(clearFile))
             {
-                if (rnd.NextDouble() < 0.01001) {
+                if (rnd.NextDouble() < threadshold)
+                {
                     sw.WriteLine(currentLine);
                 }
             }
             sw.Flush();
             sw.Close();
-
+        
         }
 
         public void RemoveDuplicate(string filePath)

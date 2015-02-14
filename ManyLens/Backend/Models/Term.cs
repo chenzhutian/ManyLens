@@ -12,7 +12,10 @@ namespace ManyLens.Models
         private DateTime termDate;
         private bool isTweetBurstPoint;//1 = this day is a burst point or 0=not in terms of tweetFreq or smoothedTweetFreq
         private double tweetBurstCutoff;//cutoff of tweet
+        
         private uint pointType = 0; // 1 = start, 2 = end, 3 = start+end, 4 = inside
+        private string begPoint;
+        private string endPoint;
         private bool isPeak = false;
 
         #region Getter & Setter
@@ -45,17 +48,7 @@ namespace ManyLens.Models
                 this.isTweetBurstPoint = value;
             }
         }
-        public bool IsPeak
-        {
-            get
-            {
-                return this.isPeak;
-            }
-            set
-            {
-                this.isPeak = value;
-            }
-        }
+
         public double TweetBurstCutoff
         {
             get
@@ -78,6 +71,40 @@ namespace ManyLens.Models
                 this.pointType = value;
             }
         }
+        public bool IsPeak
+        {
+            get
+            {
+                return this.isPeak;
+            }
+            set
+            {
+                this.isPeak = value;
+            }
+        }
+        public string BeginPoint
+        {
+            get
+            {
+                return this.begPoint;
+            }
+            set
+            {
+                this.begPoint = value;
+            }
+        }
+        public string EndPoint
+        {
+            get
+            {
+                return this.endPoint;
+            }
+            set
+            {
+                this.endPoint = value;
+            }
+        }
+
         #endregion
 
         public Term(DateTime date)
