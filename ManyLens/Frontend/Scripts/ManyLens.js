@@ -222,12 +222,13 @@ var ManyLens;
                 this._x_axis_gen = d3.svg.axis();
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
-                this._section_num = 200;
+                this._section_num = 100;
                 this._view_height = 130;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
+                this._section = new Array();
                 this._data = new Array();
                 this._markData = new Array();
                 this._lastMark = {
@@ -283,7 +284,7 @@ var ManyLens;
             Curve.prototype.AddPoint = function (point) {
                 this._data.push(point);
                 this.RefreshGraph(point.mark);
-                if (this._data.length > this._section_num) {
+                if (this._data.length > this._section_num + 1) {
                     this._data.shift();
                 }
             };
@@ -301,7 +302,7 @@ var ManyLens;
                         this._markData[iter].end = eid;
                         --iter;
                     }
-                    if (iter >= 0 && this._markData[iter].type == 3 || this._markData[iter].type == 1) {
+                    if (iter >= 0 && (this._markData[iter].type == 3 || this._markData[iter].type == 1)) {
                         this._markData[iter].end = eid;
                     }
                     if (mark.type == 2) {
@@ -319,39 +320,92 @@ var ManyLens;
                     }
                     this._markData.push(mark);
                 }
+                this._section = new Array();
+                var lastSection;
+                this._markData.forEach(function (d, i) {
+                    try {
+                        if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
+                            var section = {
+                                beg: i,
+                                end: 0,
+                                values: [0]
+                            };
+                            lastSection = section;
+                        }
+                        else if (d.type == 3) {
+                            lastSection.end = i;
+                            _this._section.push(lastSection);
+                            var section = {
+                                beg: i,
+                                end: 0,
+                                values: [0]
+                            };
+                            lastSection = section;
+                        }
+                        else if (d.type == 2 && i != 0) {
+                            lastSection.end = i;
+                            _this._section.push(lastSection);
+                        }
+                        else if (d.type == 4 && i == _this._markData.length - 1) {
+                            lastSection.end = i;
+                            _this._section.push(lastSection);
+                        }
+                    }
+                    catch (e) {
+                        console.log(d);
+                        console.log(i);
+                        console.log(lastSection);
+                        console.log(_this._markData);
+                    }
+                });
                 //handle the seg line
-                this._mainView.selectAll(".curve.mark").remove();
-                var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
-                lines.enter().append("line").attr("x1", function (d, i) {
-                    return _this._x_scale(i);
-                }).attr("x2", function (d, i) {
-                    return _this._x_scale(i);
-                }).attr("y1", this._view_top_padding).attr("y2", function (d) {
-                    if (d.type == 1 || d.type == 2 || d.type == 3)
-                        return _this._view_height + _this._view_top_padding;
-                    return _this._view_top_padding;
-                }).attr('stroke', function (d) {
-                    return "#fff";
-                }).attr('stroke-width', function (d) {
-                    return d.type == 3 ? 2 : 0;
-                }).attr("class", "curve mark");
+                //this._mainView.selectAll(".curve.mark").remove();
+                //var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
+                //lines.enter().append("line")
+                //    .attr("x1", (d, i) => {
+                //        return this._x_scale(i);
+                //    })
+                //    .attr("x2", (d, i) => {
+                //        return this._x_scale(i);
+                //    })
+                //    .attr("y1", this._view_top_padding)
+                //    .attr("y2", (d) => {
+                //        if (d.type == 1 || d.type == 2 || d.type == 3)
+                //            return this._view_height + this._view_top_padding;
+                //        return this._view_top_padding;
+                //    })
+                //   // .attr('stroke', function (d) { return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy'; })
+                //    .attr('stroke', function (d) { return "#fff"; })
+                //    .attr('stroke-width', function (d) { return d.type == 3 ? 2 : 0;})
+                //    .attr("class", "curve mark")
+                //;
                 //handle the seg rect
-                this._mainView.selectAll(".curve.seg").remove();
-                var rects = this._mainView.selectAll(".curve.seg").data(this._markData);
+                var rects = this._mainView.selectAll(".curve.seg").data(this._section);
+                rects.attr("x", function (d, i) {
+                    return _this._x_scale(d.beg);
+                }).attr("width", function (d, i) {
+                    return _this._x_scale(d.end) - _this._x_scale(d.beg);
+                });
                 rects.enter().append("rect").attr("x", function (d, i) {
-                    return _this._x_scale(i);
-                }).attr("y", this._view_top_padding).attr("width", function (d) {
-                    if (d.type == 1 || d.type == 4 || d.type == 3)
-                        return (_this._x_scale(1) - _this._x_scale(0));
-                    return 0;
+                    return _this._x_scale(d.beg);
+                }).attr("y", this._view_top_padding).attr("width", function (d, i) {
+                    return _this._x_scale(d.end) - _this._x_scale(d.beg);
                 }).attr("height", this._view_height).attr("class", "curve seg").style({
                     fill: "#ffeda0",
                     opacity: 0.5
                 }).on("click", function (d) {
                     _this.SelectSegment(d);
                 });
-                this._mainView.selectAll(".curve.node").remove();
-                var nodes = this._mainView.selectAll(".curve.node").data(this._data);
+                rects.exit().remove();
+                //handle the seg node
+                var nodes = this._mainView.selectAll(".curve.node").data(this._data, function (d) {
+                    return d.mark.id;
+                });
+                nodes.attr("cx", function (d, i) {
+                    return _this._x_scale(i);
+                }).attr("cy", function (d) {
+                    return _this._y_scale(d.value);
+                });
                 nodes.enter().append("circle").attr("class", "curve node").attr("cx", function (d, i) {
                     return _this._x_scale(i);
                 }).attr("cy", function (d) {
@@ -363,6 +417,7 @@ var ManyLens;
                     stroke: "rgb(31, 145, 189)",
                     "stroke-width": 2
                 });
+                nodes.exit().remove();
                 var lineFunc = d3.svg.line().x(function (d, i) {
                     return _this._x_scale(i);
                 }).y(function (d, i) {
@@ -372,9 +427,9 @@ var ManyLens;
                 this._mainView.selectAll("#path").attr("d", lineFunc(this._data));
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(0).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(80).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
-                if (this._markData.length > this._section_num) {
+                if (this._markData.length > this._section_num + 1) {
                     this._markData.shift();
                 }
             };
