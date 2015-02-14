@@ -6,11 +6,30 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
+
 namespace PreprocessingData
 {
     class Program
     {
         static void Main(string[] args)
+        {
+            string ROOT_DIR = "D:\\Data\\";
+            string clearFile = ROOT_DIR + "clearFIFA";
+            //int count = 0;
+            StreamWriter sw = new StreamWriter(ROOT_DIR + "FIFASample");
+            Random rnd = new Random();
+            foreach (string currentLine in File.ReadLines(clearFile))
+            {
+                if (rnd.NextDouble() < 0.01001) {
+                    sw.WriteLine(currentLine);
+                }
+            }
+            sw.Flush();
+            sw.Close();
+
+        }
+
+        public void RemoveDuplicate(string filePath)
         {
             string ROOT_DIR = "D:\\Data\\";
             string rawFIFAFile = ROOT_DIR + "FIFA_cleaned_with_location_info.txt";
@@ -41,5 +60,6 @@ namespace PreprocessingData
             writer1.Dispose(); 
             writer2.Dispose();
         }
+
     }
 }

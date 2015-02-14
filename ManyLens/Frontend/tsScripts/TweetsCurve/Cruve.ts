@@ -6,7 +6,6 @@ module ManyLens {
 
         interface Mark {
             id: string;
-
             type: number;
             beg: string;
             end: string;
@@ -18,7 +17,16 @@ module ManyLens {
             mark: Mark;
         }
 
+        interface Section {
+            beg: number;
+            end: number;
+            values: number[];
+        }
+
         export class Curve extends D3ChartObject {
+            //Try
+            private _section: Array<Section>;
+
 
             private _curveSvg: D3.Selection;
             private _mainView: D3.Selection;
@@ -30,7 +38,7 @@ module ManyLens {
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _y_axis: D3.Selection;
 
-            private _section_num: number = 200;
+            private _section_num: number = 100;
             private _view_height: number = 130;
             private _view_width: number;
             private _view_top_padding: number = 15;
@@ -53,6 +61,8 @@ module ManyLens {
 
             constructor(element: D3.Selection, manyLens: ManyLens) {
                 super(element, manyLens);
+                this._section = new Array<Section>();
+
                 this._data = new Array<Point>();
                 this._markData = new Array<Mark>();
                 this._lastMark = {
@@ -156,7 +166,7 @@ module ManyLens {
                 this._data.push(point);
                 this.RefreshGraph(point.mark);
 
-                if (this._data.length > this._section_num) {
+                if (this._data.length > this._section_num + 1) {
                     this._data.shift();
                 }
             }
@@ -173,7 +183,7 @@ module ManyLens {
                         this._markData[iter].end = eid;
                         --iter;
                     }
-                    if (iter >= 0 && this._markData[iter].type == 3 || this._markData[iter].type == 1) {
+                    if (iter >= 0 && (this._markData[iter].type == 3 || this._markData[iter].type == 1)) {
                         this._markData[iter].end = eid;
                     }
                     if (mark.type == 2) {
@@ -193,40 +203,84 @@ module ManyLens {
                     this._markData.push(mark);
                 }
 
+                this._section = new Array<Section>();
+                var lastSection: Section;
+                this._markData.forEach((d, i) => {
+                    try {
+                        if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
+                            var section: Section = {
+                                beg: i,
+                                end: 0,
+                                values: [0]
+                            };
+                            lastSection = section;
+                        } else if (d.type == 3) {
+                            lastSection.end = i;
+                            this._section.push(lastSection);
+
+                            var section: Section = {
+                                beg: i,
+                                end: 0,
+                                values: [0]
+                            };
+                            lastSection = section;
+
+                        } else if (d.type == 2 && i != 0) {
+                            lastSection.end = i;
+                            this._section.push(lastSection);
+
+                        } else if (d.type == 4 && i == this._markData.length -1 ) {
+                            lastSection.end = i;
+                            this._section.push(lastSection);
+                        }
+                    } catch (e) {
+                        console.log(d);
+                        console.log(i);
+                        console.log(lastSection);
+                        console.log(this._markData);
+                    }
+                    
+                });
+
+
                 //handle the seg line
-                this._mainView.selectAll(".curve.mark").remove();
-                var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
-                lines.enter().append("line")
-                    .attr("x1", (d, i) => {
-                        return this._x_scale(i);
-                    })
-                    .attr("x2", (d, i) => {
-                        return this._x_scale(i);
-                    })
-                    .attr("y1", this._view_top_padding)
-                    .attr("y2", (d) => {
-                        if (d.type == 1 || d.type == 2 || d.type == 3)
-                            return this._view_height + this._view_top_padding;
-                        return this._view_top_padding;
-                    })
-                   // .attr('stroke', function (d) { return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy'; })
-                    .attr('stroke', function (d) { return "#fff"; })
-                    .attr('stroke-width', function (d) { return d.type == 3 ? 2 : 0;})
-                    .attr("class", "curve mark")
-                ;
+                //this._mainView.selectAll(".curve.mark").remove();
+                //var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
+                //lines.enter().append("line")
+                //    .attr("x1", (d, i) => {
+                //        return this._x_scale(i);
+                //    })
+                //    .attr("x2", (d, i) => {
+                //        return this._x_scale(i);
+                //    })
+                //    .attr("y1", this._view_top_padding)
+                //    .attr("y2", (d) => {
+                //        if (d.type == 1 || d.type == 2 || d.type == 3)
+                //            return this._view_height + this._view_top_padding;
+                //        return this._view_top_padding;
+                //    })
+                //   // .attr('stroke', function (d) { return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy'; })
+                //    .attr('stroke', function (d) { return "#fff"; })
+                //    .attr('stroke-width', function (d) { return d.type == 3 ? 2 : 0;})
+                //    .attr("class", "curve mark")
+                //;
 
                 //handle the seg rect
-                this._mainView.selectAll(".curve.seg").remove();
-                var rects = this._mainView.selectAll(".curve.seg").data(this._markData);
+                var rects = this._mainView.selectAll(".curve.seg").data(this._section);
+                rects.attr("x", (d, i) => {
+                    return this._x_scale(d.beg);
+                })
+                    .attr("width", (d, i) => {
+                        return this._x_scale(d.end) - this._x_scale(d.beg);
+                    })
+                ;
                 rects.enter().append("rect")
                     .attr("x", (d, i) => {
-                        return this._x_scale(i);
+                        return this._x_scale(d.beg);
                     })
                     .attr("y", this._view_top_padding)
-                    .attr("width", (d) => {
-                        if (d.type == 1 || d.type == 4 || d.type == 3)
-                            return (this._x_scale(1) - this._x_scale(0));
-                        return 0;
+                    .attr("width", (d, i) => {
+                        return this._x_scale(d.end) - this._x_scale(d.beg);
                     })
                     .attr("height", this._view_height)
                     .attr("class", "curve seg")
@@ -238,9 +292,18 @@ module ManyLens {
                         this.SelectSegment(d);
                     })
                 ;
+                rects.exit().remove();
 
-                this._mainView.selectAll(".curve.node").remove();
-                var nodes = this._mainView.selectAll(".curve.node").data(this._data);
+                //handle the seg node
+                var nodes = this._mainView.selectAll(".curve.node").data(this._data, function (d) { return d.mark.id; });
+                nodes
+                    .attr("cx", (d, i) => {
+                        return this._x_scale(i);
+                    })
+                    .attr("cy", (d) => {
+                        return this._y_scale(d.value);
+                    })
+                ;
                 nodes.enter().append("circle")
                     .attr("class", "curve node")
                     .attr("cx", (d, i) => {
@@ -257,6 +320,7 @@ module ManyLens {
                         stroke: "rgb(31, 145, 189)",
                         "stroke-width": 2
                     });
+                nodes.exit().remove();
 
                 var lineFunc = d3.svg.line()
                     .x((d, i) => {
@@ -270,7 +334,6 @@ module ManyLens {
 
                 //handle the line path
                 this._mainView.selectAll("#path")
-                //.transition(1)
                     .attr("d", lineFunc(this._data))
                 ;
 
@@ -279,12 +342,12 @@ module ManyLens {
                     this._mainView
                         .attr("transform", null)
                         .transition()
-                        .duration(0)
+                        .duration(80)
                         .ease("linear")
                         .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)")
                     ;
                 }
-                if (this._markData.length > this._section_num) {
+                if (this._markData.length > this._section_num + 1) {
                     this._markData.shift();
                 }
             }
