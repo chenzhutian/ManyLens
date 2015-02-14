@@ -235,7 +235,7 @@ module ManyLens {
                             lastSection.end = i;
                             this._section.push(lastSection);
 
-                        } else if (d.type == 4 && i == this._markData.length -1 ) {
+                        } else if (d.type == 4 && i == this._data.length -1 ) {
                             lastSection.end = i;
                             this._section.push(lastSection);
                         }

@@ -66,7 +66,7 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
 
-            string tweetFile = rootFolder + "Backend\\DataBase\\FIFASample";
+            string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
             Debug.WriteLine(tweetFile);
             await Task.Run(() =>
             {
@@ -154,18 +154,25 @@ namespace ManyLens.SignalR
                                 }
                             }
 
+
+                            //Detect segmentation
                             tp[begin].BeginPoint = tp[begin].ID;
                             tp[begin].EndPoint = tp[end].ID;
                             tp[begin].PointType += 1;
+                            Interval interal = new Interval(tp[begin].TermDate, tp[begin]);
+                            interals.Add(interal.ID, interal);
+
                             tp[end].BeginPoint = tp[begin].ID;
                             tp[end].EndPoint = tp[end].ID;
-                            tp[end].PointType += 2;
-
+                            tp[end].PointType += 2;       
+                            interal.EndDate = tp[end].TermDate;
+                            
                             for (int k = begin+1; k < end; ++k)
                             {
                                 tp[k].BeginPoint = tp[begin].ID;
                                 tp[k].EndPoint = tp[end].ID;
                                 tp[k].PointType = 4;
+                                interal.AddTerm(tp[k]);
                             }
 
                         }
@@ -192,41 +199,41 @@ namespace ManyLens.SignalR
                         }
                     };
 
-                    if (tp[t].PointType == 1)
-                    {
-                        Interval interal = new Interval(tp[t].TermDate, tp[t]);
-                        interals.Add(interal.ID, interal);
-                        //lastMarkType = 1;
-                        //point.mark.beg = point.mark.id;
-                    }
-                    else if (tp[t].PointType == 2)
-                    {
-                        string id = interals.Last().Key;
-                        Interval interal = interals.Last().Value;
-                        interal.EndDate = tp[t].TermDate;
-                        interals[id] = interal;
-                        //lastMarkType = 2;
-                        //point.mark.end = point.mark.id;
-                    }
-                    else if (tp[t].PointType == 3)
-                    {
-                        string id   = interals.Last().Key;
-                        Interval interal = interals.Last().Value;
-                        interal.EndDate = tp[t].TermDate;
-                        interals[id] = interal;
+                    //if (tp[t].PointType == 1)
+                    //{
+                    //    Interval interal = new Interval(tp[t].TermDate, tp[t]);
+                    //    interals.Add(interal.ID, interal);
+                    //    //lastMarkType = 1;
+                    //    //point.mark.beg = point.mark.id;
+                    //}
+                    //else if (tp[t].PointType == 2)
+                    //{
+                    //    string id = interals.Last().Key;
+                    //    Interval interal = interals.Last().Value;
+                    //    interal.EndDate = tp[t].TermDate;
+                    //    interals[id] = interal;
+                    //    //lastMarkType = 2;
+                    //    //point.mark.end = point.mark.id;
+                    //}
+                    //else if (tp[t].PointType == 3)
+                    //{
+                    //    string id   = interals.Last().Key;
+                    //    Interval interal = interals.Last().Value;
+                    //    interal.EndDate = tp[t].TermDate;
+                    //    interals[id] = interal;
 
-                        Interval newInteral = new Interval(tp[t].TermDate, tp[t]);
-                        interals.Add(newInteral.ID, newInteral);
-                        //lastMarkType = 1;
-                        //point.mark.beg = point.mark.id;
-                    }
-                    else if (tp[t].PointType == 4)
-                    {
-                        string id = interals.Last().Key;
-                        Interval interal = interals.Last().Value;
-                        interal.AddTerm(tp[t]);
-                        interals[id] = interal;
-                    }
+                    //    Interval newInteral = new Interval(tp[t].TermDate, tp[t]);
+                    //    interals.Add(newInteral.ID, newInteral);
+                    //    //lastMarkType = 1;
+                    //    //point.mark.beg = point.mark.id;
+                    //}
+                    //else if (tp[t].PointType == 4)
+                    //{
+                    //    string id = interals.Last().Key;
+                    //    Interval interal = interals.Last().Value;
+                    //    interal.AddTerm(tp[t]);
+                    //    interals[id] = interal;
+                    //}
 
                     //Output the json data
                     points.Add(point);

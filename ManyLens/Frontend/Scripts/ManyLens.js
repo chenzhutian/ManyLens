@@ -348,7 +348,7 @@ var ManyLens;
                             lastSection.end = i;
                             _this._section.push(lastSection);
                         }
-                        else if (d.type == 4 && i == _this._markData.length - 1) {
+                        else if (d.type == 4 && i == _this._data.length - 1) {
                             lastSection.end = i;
                             _this._section.push(lastSection);
                         }
@@ -3387,7 +3387,7 @@ var ManyLens;
             }
             return this._manyLens_hub.server.testPullInterval(id);
         };
-        ManyLens.TestMode = true;
+        ManyLens.TestMode = false;
         return ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;
