@@ -132,8 +132,24 @@ module ManyLens {
             }
 
 
-            public PullInteral(interalID: string): void {
-                this._manyLens.ManyLensHubServerPullInteral(interalID);
+            public PullInterval(interalID: string): void {
+                if (ManyLens.TestMode)
+                    this._manyLens.ManyLensHubServerTestPullInterval(interalID);
+                else {
+                    this._manyLens.ManyLensHubServerPullInterval(interalID)
+                        .progress((percent) => {
+                            this._element.select(".progress-bar")
+                                .style("width", percent * 100 + "%")
+                            ;
+                        })
+                        .done(() => {
+                            this._element.select(".progress-bar")
+                                .style("width", 0)
+                            ;
+                            this._element.select(".progress").style("display", "none");
+                            this._curveSvg.style("margin-bottom", "17px")
+                        });
+                }
             }
 
             public AddPoint(point: Point): void {
@@ -276,19 +292,8 @@ module ManyLens {
                 if (d.end != null) {
                     this._curveSvg.style("margin-bottom", "0px")
                     this._element.select(".progress").style("display", "block");
-                    this._manyLens.ManyLensHubServerPullInteral(d.beg)
-                        .progress((percent) => {
-                            this._element.select(".progress-bar")
-                                .style("width", percent * 100 + "%")
-                            ;
-                        })
-                        .done(() => {
-                            this._element.select(".progress-bar")
-                                .style("width", 0)
-                            ;
-                            this._element.select(".progress").style("display", "none");
-                            this._curveSvg.style("margin-bottom", "17px")
-                        });
+                    this.PullInterval(d.beg);
+
                 }
                 else {
                     console.log("Segmentation hasn't finished yet!");

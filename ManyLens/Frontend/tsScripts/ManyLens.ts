@@ -10,6 +10,8 @@ module ManyLens {
 
 
     export class ManyLens {
+        public static TestMode: boolean = true;
+
         private _manyLens_hub: Hub.ManyLensHub;
 
         private _nav_sideBarView_id: string = "sidebar-nav";
@@ -57,20 +59,24 @@ module ManyLens {
             this._nav_sidebar = new Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
             this._nav_sidebar.BuildList(null);
 
-            this._historySvg = d3.select("#"+this._historySvg_id);
-            this._historyTrees = new LensHistory.HistoryTrees(this._historySvg,this);
+            this._historySvg = d3.select("#" + this._historySvg_id);
+            this._historyTrees = new LensHistory.HistoryTrees(this._historySvg, this);
             //Add a new tree here, actually the tree should not be add here
             this._historyTrees.addTree();
 
             /*-------------------------Start the hub-------------------------------------------*/
             Hub.SignalRHub.HubConnection.start().done(() => {
                 console.log("start connection");
-                this._manyLens_hub.server.loadData().done(() => {
-                    console.log("Load data success");
+                if (ManyLens.TestMode) {
                     this._nav_sidebar.FinishLoadData();
-                }).fail(() => {
-                        console.log("load data fail");
-                    });
+                } else {
+                    this._manyLens_hub.server.loadData().done(() => {
+                        console.log("Load data success");
+                        this._nav_sidebar.FinishLoadData();
+                    }).fail(() => {
+                            console.log("load data fail");
+                        });
+                }
             });
 
         }
@@ -101,7 +107,7 @@ module ManyLens {
         }
 
         public DetachCompositeLens(element: D3.Selection,
-            hostLens:Lens.BaseCompositeLens,
+            hostLens: Lens.BaseCompositeLens,
             componentLens: Lens.BaseSingleLens): void {
             var lensC: Lens.BaseD3Lens = LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
             if (lensC.IsCompositeLens) {
@@ -113,11 +119,11 @@ module ManyLens {
                 this.RemoveLens(hostLens);
                 lensC.DisplayLens();
             }
-            
+
         }
 
         /* -------------------- Curve related Function -----------------------*/
-        public ManyLensHubRegisterClientFunction(obj:any,funcName: string, func: (...any) => any) {
+        public ManyLensHubRegisterClientFunction(obj: any, funcName: string, func: (...any) => any) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
@@ -135,12 +141,28 @@ module ManyLens {
             return this._manyLens_hub.server.pullPoint(start);
         }
 
-        public ManyLensHubServerPullInteral(id: string): Hub.IPromise<void> {
+        public ManyLensHubServerTestPullPoint(): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.pullInteral(id);
+            return this._manyLens_hub.server.testPullPoint();
+        }
+
+        public ManyLensHubServerPullInterval(id: string): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.pullInterval(id);
+        }
+
+        public ManyLensHubServerTestPullInterval(id: string): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.testPullInterval(id);
         }
 
     }

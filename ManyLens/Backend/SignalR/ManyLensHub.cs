@@ -63,7 +63,6 @@ namespace ManyLens.SignalR
 
         public async Task LoadData() 
         {
-
             //clear the static data
             interals.Clear();
 
@@ -76,6 +75,8 @@ namespace ManyLens.SignalR
             });
 
         }
+
+
 
         //damn it, I almost forget how this function works.
         public async Task PullPoint(string start)
@@ -112,6 +113,11 @@ namespace ManyLens.SignalR
                     variance = variance + Math.Pow(tp[i].TweetsCount - mean, 2);
                 }
                 variance = Math.Sqrt(variance / p);
+
+                //output the point json data
+                System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
+                var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
+                List<Point> points = new List<Point>();
 
                 for (int i = p, t = 0; t < tp.Length; i++, t++)
                 {
@@ -210,14 +216,40 @@ namespace ManyLens.SignalR
                         interals[id] = interal;
                     }
 
+                    //Output the json data
+                    points.Add(point);
+
+
+
                     Clients.Caller.addPoint(point);
                     Thread.Sleep(10);
 
                 }
+
+                //Output the json data
+                Debug.Write("Let's cache the point data as json");
+                jser.WriteObject(sw.BaseStream, points);
+                sw.Close();
+                Debug.Write("finish json");
             });
         }
 
-        public async Task PullInteral(string interalID,IProgress<double> progress)
+        //Just for test
+        public void testPullPoint()
+        {
+            //load the point json data
+            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\pointData_test.json");
+            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
+            List<Point> points = (List<Point>)jser.ReadObject(sr.BaseStream);
+            sr.Close();
+            for (int i = 0, len = points.Count; i < len; ++i)
+            {
+                Clients.Caller.addPoint(points[i]);
+                Thread.Sleep(10);
+            }
+        }
+
+        public async Task PullInterval(string interalID,IProgress<double> progress)
         {
             
 
@@ -237,49 +269,35 @@ namespace ManyLens.SignalR
                 visMaps.Add(visMap.VisMapID, visMap);
             }
 
-            //try
-            //{
-            //    Debug.Write("Let's begin json");
-            //    VISData visData = visMap.GetVisData();
+            try
+            {
+                Debug.Write("Let's cache the visData as  json");
+                VISData visData = visMap.GetVisData();
 
-            //    System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
-            //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-            //    jser.WriteObject(sw.BaseStream, visData);
-            //    sw.Close();
-            //    Debug.Write("finish json");
-            //}
-            //catch (Exception e)
-            //{
-            //    Debug.WriteLine(e.InnerException.Message);
-            //    Debug.WriteLine(e.Message);
-            //}
+                System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
+                var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
+                jser.WriteObject(sw.BaseStream, visData);
+                sw.Close();
+                Debug.Write("finish json");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.InnerException.Message);
+                Debug.WriteLine(e.Message);
+            }
 
   
             Clients.Caller.showVIS(visMap.GetVisData());
         }
 
-        //combineType true : intersection
-        //combineType false : union
-        public void CombineLens(string visMapID, int[] unitsID, bool combineType = true)
+        public void testPullInterval(string interalID)
         {
-            VisMap visMap = visMaps[visMapID];
-            List<int> uniqueIDs = new List<int>();
-            for (int i = 0, len = unitsID.Length; i < len; ++i)
-            {
-                if (uniqueIDs.Contains(unitsID[i]))
-                    continue;
-                else
-                    uniqueIDs.Add(unitsID[i]);
-            }
-
-            UnitsDataForLens tempLensData = new UnitsDataForLens();
-            for(int i =0, len = uniqueIDs.Count; i < len; ++i)
-            {
-                Unit unit = visMap.GetUnitAt(unitsID[i]);
-
-            }
-            
-
+            //load the point json data
+            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\visData_test.json");
+            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
+            VISData visData = (VISData)jser.ReadObject(sr.BaseStream);
+            sr.Close();
+            Clients.Caller.showVIS(visData);
         }
 
         public void ReOrganize(string visMapID,int[] selectedUnits)

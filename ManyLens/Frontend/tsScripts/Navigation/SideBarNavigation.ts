@@ -204,9 +204,15 @@
             }
 
             private PullData(): void {
-                this._manyLens.ManyLensHubServerPullPoint("0").done(() => {
-                    this._launchDataBtn.classed("disabled", false);
-                });
+                if (ManyLens.TestMode) {
+                    this._manyLens.ManyLensHubServerTestPullPoint().done(() => {
+                        this._launchDataBtn.classed("disabled", false);
+                    });
+                } else {
+                    this._manyLens.ManyLensHubServerPullPoint("0").done(() => {
+                        this._launchDataBtn.classed("disabled", false);
+                    });
+                }
             }
         }
     }

@@ -172,9 +172,16 @@ var ManyLens;
             };
             SideBarNavigation.prototype.PullData = function () {
                 var _this = this;
-                this._manyLens.ManyLensHubServerPullPoint("0").done(function () {
-                    _this._launchDataBtn.classed("disabled", false);
-                });
+                if (ManyLens.ManyLens.TestMode) {
+                    this._manyLens.ManyLensHubServerTestPullPoint().done(function () {
+                        _this._launchDataBtn.classed("disabled", false);
+                    });
+                }
+                else {
+                    this._manyLens.ManyLensHubServerPullPoint("0").done(function () {
+                        _this._launchDataBtn.classed("disabled", false);
+                    });
+                }
             };
             return SideBarNavigation;
         })();
@@ -259,8 +266,19 @@ var ManyLens;
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
                 this._mainView.append("path").attr('stroke', 'rgb(31, 145, 189)').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
             };
-            Curve.prototype.PullInteral = function (interalID) {
-                this._manyLens.ManyLensHubServerPullInteral(interalID);
+            Curve.prototype.PullInterval = function (interalID) {
+                var _this = this;
+                if (ManyLens.ManyLens.TestMode)
+                    this._manyLens.ManyLensHubServerTestPullInterval(interalID);
+                else {
+                    this._manyLens.ManyLensHubServerPullInterval(interalID).progress(function (percent) {
+                        _this._element.select(".progress-bar").style("width", percent * 100 + "%");
+                    }).done(function () {
+                        _this._element.select(".progress-bar").style("width", 0);
+                        _this._element.select(".progress").style("display", "none");
+                        _this._curveSvg.style("margin-bottom", "17px");
+                    });
+                }
             };
             Curve.prototype.AddPoint = function (point) {
                 this._data.push(point);
@@ -359,17 +377,10 @@ var ManyLens;
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
-                var _this = this;
                 if (d.end != null) {
                     this._curveSvg.style("margin-bottom", "0px");
                     this._element.select(".progress").style("display", "block");
-                    this._manyLens.ManyLensHubServerPullInteral(d.beg).progress(function (percent) {
-                        _this._element.select(".progress-bar").style("width", percent * 100 + "%");
-                    }).done(function () {
-                        _this._element.select(".progress-bar").style("width", 0);
-                        _this._element.select(".progress").style("display", "none");
-                        _this._curveSvg.style("margin-bottom", "17px");
-                    });
+                    this.PullInterval(d.beg);
                 }
                 else {
                     console.log("Segmentation hasn't finished yet!");
@@ -3227,12 +3238,17 @@ var ManyLens;
             /*-------------------------Start the hub-------------------------------------------*/
             _ManyLens.Hub.SignalRHub.HubConnection.start().done(function () {
                 console.log("start connection");
-                _this._manyLens_hub.server.loadData().done(function () {
-                    console.log("Load data success");
+                if (ManyLens.TestMode) {
                     _this._nav_sidebar.FinishLoadData();
-                }).fail(function () {
-                    console.log("load data fail");
-                });
+                }
+                else {
+                    _this._manyLens_hub.server.loadData().done(function () {
+                        console.log("Load data success");
+                        _this._nav_sidebar.FinishLoadData();
+                    }).fail(function () {
+                        console.log("load data fail");
+                    });
+                }
             });
         }
         Object.defineProperty(ManyLens.prototype, "LensCount", {
@@ -3291,13 +3307,28 @@ var ManyLens;
             }
             return this._manyLens_hub.server.pullPoint(start);
         };
-        ManyLens.prototype.ManyLensHubServerPullInteral = function (id) {
+        ManyLens.prototype.ManyLensHubServerTestPullPoint = function () {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.pullInteral(id);
+            return this._manyLens_hub.server.testPullPoint();
         };
+        ManyLens.prototype.ManyLensHubServerPullInterval = function (id) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.pullInterval(id);
+        };
+        ManyLens.prototype.ManyLensHubServerTestPullInterval = function (id) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.testPullInterval(id);
+        };
+        ManyLens.TestMode = true;
         return ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;

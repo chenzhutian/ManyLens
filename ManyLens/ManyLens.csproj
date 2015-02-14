@@ -271,8 +271,8 @@
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <TypeScriptOutFile>C:\Users\xiaot_000\Documents\Visual Studio 2013\Projects\ManyLens\ManyLens\Frontend\Scripts\ManyLens.js</TypeScriptOutFile>
-    <TypeScriptOutDir>C:\Users\xiaot_000\Documents\Visual Studio 2013\Projects\ManyLens\ManyLens\Frontend\Scripts\</TypeScriptOutDir>
+    <TypeScriptOutFile>.\Frontend\Scripts\ManyLens.js</TypeScriptOutFile>
+    <TypeScriptOutDir>.\Frontend\Scripts</TypeScriptOutDir>
     <TypeScriptModuleKind>none</TypeScriptModuleKind>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
