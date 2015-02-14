@@ -27,12 +27,13 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <IncludeIisSettings>true</IncludeIisSettings>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -41,6 +42,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.AspNet.SignalR.Core">
@@ -121,6 +123,7 @@
     <Content Include="Frontend\Image\login\Thumbs.db" />
     <Content Include="Frontend\Image\tile\Thumbs.db" />
     <Content Include="Frontend\Scripts\ManyLens.js" />
+    <Content Include="Frontend\Scripts\server.js" />
     <Content Include="Frontend\testData\us.json" />
     <Content Include="ClassDiagram1.cd" />
     <None Include="Web.Debug.config">
@@ -196,6 +199,7 @@
     <Content Include="Frontend\Scripts\vendor\video-js.swf" />
     <Content Include="Frontend\Scripts\vendor\video.js" />
     <Content Include="packages.config" />
+    <Content Include="tools\signalr.exe" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -262,9 +266,6 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\ClassicLensPane.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\TweetsCurve\Cruve.ts" />
   </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -274,6 +275,10 @@
     <TypeScriptOutFile>.\Frontend\Scripts\ManyLens.js</TypeScriptOutFile>
     <TypeScriptOutDir>.\Frontend\Scripts</TypeScriptOutDir>
     <TypeScriptModuleKind>none</TypeScriptModuleKind>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TypeScriptOutFile>.\Frontend\Scripts\ManyLens.js</TypeScriptOutFile>
+    <TypeScriptOutDir>.\Frontend\Scripts\</TypeScriptOutDir>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />

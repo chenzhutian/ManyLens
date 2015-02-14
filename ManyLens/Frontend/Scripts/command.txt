@@ -1,0 +1,1 @@
+signalr ghp /path:../../../ManyLens/bin/

@@ -222,7 +222,7 @@ var ManyLens;
                 this._x_axis_gen = d3.svg.axis();
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
-                this._section_num = 100;
+                this._section_num = 50;
                 this._view_height = 130;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
@@ -328,6 +328,7 @@ var ManyLens;
                             var section = {
                                 beg: i,
                                 end: 0,
+                                id: d.beg,
                                 values: [0]
                             };
                             lastSection = section;
@@ -338,6 +339,7 @@ var ManyLens;
                             var section = {
                                 beg: i,
                                 end: 0,
+                                id: d.beg,
                                 values: [0]
                             };
                             lastSection = section;
@@ -427,7 +429,7 @@ var ManyLens;
                 this._mainView.selectAll("#path").attr("d", lineFunc(this._data));
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(80).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(800).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
                 if (this._markData.length > this._section_num + 1) {
                     this._markData.shift();
@@ -437,7 +439,7 @@ var ManyLens;
                 if (d.end != null) {
                     this._curveSvg.style("margin-bottom", "0px");
                     this._element.select(".progress").style("display", "block");
-                    this.PullInterval(d.beg);
+                    this.PullInterval(d.id);
                 }
                 else {
                     console.log("Segmentation hasn't finished yet!");
@@ -3385,7 +3387,7 @@ var ManyLens;
             }
             return this._manyLens_hub.server.testPullInterval(id);
         };
-        ManyLens.TestMode = true;
+        ManyLens.TestMode = false;
         return ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;

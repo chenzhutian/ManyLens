@@ -3,37 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using ManyLens.Models;
+using System.Diagnostics;
 
 namespace ManyLens.IO
 {
     public class TweetsIO
     {
-        /// <summary>
-        /// load tweets to list
-        /// </summary>
-        /// <param name="tweetFile">format: authoid \t tweetid \t tweet_content \t publish_time</param>
-        /// <returns></returns>
-        public static List<Tweet> LoadTweetsAsList(String tweetFile)
-        {
-            List<Tweet> tweets = new List<Tweet>();
-            StreamReader sr = new StreamReader(tweetFile);
-            while (!sr.EndOfStream)
-            {
-                string line = sr.ReadLine();
-                string[] tweetAttributes = line.Split('\t');
-                if (tweetAttributes.Length == 4)
-                {
-                    tweets.Add(new Tweet(tweetAttributes[1], tweetAttributes[2], tweetAttributes[3]));
-                }
-                else if (tweetAttributes.Length == 11)
-                {
-                    tweets.Add(new Tweet(tweetAttributes[0], tweetAttributes[1], tweetAttributes[4]));
-                }
-            }
-            sr.Close();
-
-            return tweets;
-        }
 
         public static SortedDictionary<DateTime, Term> LoadTweetsAsTermsSortedByDate(string tweetFile)
         {
@@ -62,13 +37,19 @@ namespace ManyLens.IO
                 string[] tweetAttributes = line.Split('\t');
                 Tweet tweet = null;
 
-                if (isCache || tweetAttributes.Length == 4)
+
+                if (isCache)
                 {
                     tweet = new Tweet(tweetAttributes[1], tweetAttributes[2], tweetAttributes[3]);
                 }
+
                 else if (tweetAttributes.Length == 11)
                 {
                     tweet = new Tweet(tweetAttributes[0], tweetAttributes[1], tweetAttributes[4]);
+                }
+                else
+                {
+                    tweet = new Tweet(tweetAttributes[0], tweetAttributes[4], tweetAttributes[6]);
                 }
 
                 if (tweet == null)

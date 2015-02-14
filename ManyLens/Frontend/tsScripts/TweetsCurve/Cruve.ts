@@ -20,6 +20,7 @@ module ManyLens {
         interface Section {
             beg: number;
             end: number;
+            id: string;
             values: number[];
         }
 
@@ -38,7 +39,7 @@ module ManyLens {
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _y_axis: D3.Selection;
 
-            private _section_num: number = 100;
+            private _section_num: number = 50;
             private _view_height: number = 130;
             private _view_width: number;
             private _view_top_padding: number = 15;
@@ -211,6 +212,7 @@ module ManyLens {
                             var section: Section = {
                                 beg: i,
                                 end: 0,
+                                id:d.beg,
                                 values: [0]
                             };
                             lastSection = section;
@@ -221,6 +223,7 @@ module ManyLens {
                             var section: Section = {
                                 beg: i,
                                 end: 0,
+                                id:d.beg,
                                 values: [0]
                             };
                             lastSection = section;
@@ -342,7 +345,7 @@ module ManyLens {
                     this._mainView
                         .attr("transform", null)
                         .transition()
-                        .duration(80)
+                        .duration(800)  //this time-step should be equale to the time step of AddPoint() in server.hub
                         .ease("linear")
                         .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)")
                     ;
@@ -356,7 +359,7 @@ module ManyLens {
                 if (d.end != null) {
                     this._curveSvg.style("margin-bottom", "0px")
                     this._element.select(".progress").style("display", "block");
-                    this.PullInterval(d.beg);
+                    this.PullInterval(d.id);
 
                 }
                 else {

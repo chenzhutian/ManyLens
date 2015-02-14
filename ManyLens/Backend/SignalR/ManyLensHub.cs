@@ -66,7 +66,7 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
 
-            string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
+            string tweetFile = rootFolder + "Backend\\DataBase\\FIFASample";
             Debug.WriteLine(tweetFile);
             await Task.Run(() =>
             {
@@ -222,7 +222,7 @@ namespace ManyLens.SignalR
 
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(10);
+                    Thread.Sleep(1000);
 
                 }
 
