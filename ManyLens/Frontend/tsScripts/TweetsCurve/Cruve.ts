@@ -30,7 +30,7 @@ module ManyLens {
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _y_axis: D3.Selection;
 
-            private _section_num: number = 100;
+            private _section_num: number = 200;
             private _view_height: number = 130;
             private _view_width: number;
             private _view_top_padding: number = 15;
@@ -85,8 +85,8 @@ module ManyLens {
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
 
-            public Render<T>(data: Array<T>): void {
-                super.Render(data);
+            public Render(): void {
+                super.Render(null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
@@ -209,8 +209,9 @@ module ManyLens {
                             return this._view_height + this._view_top_padding;
                         return this._view_top_padding;
                     })
-                    .attr('stroke', function (d) { return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy'; })
-                    .attr('stroke-width', 2)
+                   // .attr('stroke', function (d) { return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy'; })
+                    .attr('stroke', function (d) { return "#fff"; })
+                    .attr('stroke-width', function (d) { return d.type == 3 ? 2 : 0;})
                     .attr("class", "curve mark")
                 ;
 
@@ -249,7 +250,7 @@ module ManyLens {
                         return this._y_scale(d.value);
                     })
                     .attr("r", (d) => {
-                        return d.isPeak ? 4 : 0;
+                        return d.mark.type == 0? 0 : 3;
                     })
                     .style({
                         fill: "#fff",

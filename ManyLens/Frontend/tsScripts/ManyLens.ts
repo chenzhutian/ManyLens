@@ -53,7 +53,7 @@ module ManyLens {
 
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new TweetsCurve.Curve(this._curveView, this);
-            this._curve.Render([10, 10]);
+            this._curve.Render();
 
             this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
             this._nav_sidebar = new Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);

@@ -222,7 +222,7 @@ var ManyLens;
                 this._x_axis_gen = d3.svg.axis();
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
-                this._section_num = 100;
+                this._section_num = 200;
                 this._view_height = 130;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
@@ -254,8 +254,8 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
-            Curve.prototype.Render = function (data) {
-                _super.prototype.Render.call(this, data);
+            Curve.prototype.Render = function () {
+                _super.prototype.Render.call(this, null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
@@ -331,8 +331,10 @@ var ManyLens;
                         return _this._view_height + _this._view_top_padding;
                     return _this._view_top_padding;
                 }).attr('stroke', function (d) {
-                    return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy';
-                }).attr('stroke-width', 2).attr("class", "curve mark");
+                    return "#fff";
+                }).attr('stroke-width', function (d) {
+                    return d.type == 3 ? 2 : 0;
+                }).attr("class", "curve mark");
                 //handle the seg rect
                 this._mainView.selectAll(".curve.seg").remove();
                 var rects = this._mainView.selectAll(".curve.seg").data(this._markData);
@@ -355,7 +357,7 @@ var ManyLens;
                 }).attr("cy", function (d) {
                     return _this._y_scale(d.value);
                 }).attr("r", function (d) {
-                    return d.isPeak ? 4 : 0;
+                    return d.mark.type == 0 ? 0 : 3;
                 }).style({
                     fill: "#fff",
                     stroke: "rgb(31, 145, 189)",
@@ -3227,7 +3229,7 @@ var ManyLens;
             this._mapArea.Render();
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
-            this._curve.Render([10, 10]);
+            this._curve.Render();
             this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
             this._nav_sidebar = new _ManyLens.Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
             this._nav_sidebar.BuildList(null);
