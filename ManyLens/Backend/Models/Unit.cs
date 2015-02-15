@@ -155,9 +155,10 @@ namespace ManyLens.Models
         }
 
 
-        public void AddTweet(int index) 
+        public void AddTweet(Tweet tweet) 
         {
-            base.AddTweet(interval.Tweets[index]);
+            base.AddTweet(tweet);
+            int index = this.interval.Tweets.IndexOf(tweet);
 
             this.SparseVector.Add(interval.SparseVector[index]);
             float[] tfv = interval.TFIDFVectors[index];
@@ -173,23 +174,6 @@ namespace ManyLens.Models
                     this.unitSumVector[i] += tfv[i];
                 }
             }
-        }
-
-        public void AddTweet(Tweet tweet,float[] tfidfVector)
-        {
-            base.AddTweet(tweet);
-            this.tfidfVectors.Add(tfidfVector);
-            if (this.unitSumVector == null)
-            {
-                this.unitSumVector = tfidfVector;
-            }
-            else
-            {
-                for (int i = tfidfVector.Length - 1; i >= 0; --i)
-                {
-                    this.unitSumVector[i] += tfidfVector[i];
-                }
-            }
 
             string[] words = tweet.DerivedContent.Split(' ');
             for (int i = 0; i < words.Length; ++i)
@@ -201,6 +185,7 @@ namespace ManyLens.Models
                 else
                     wordLabels.Add(words[i], 1);
             }
+
         }
 
         public Tweet RemoveTweet(Tweet tweet)

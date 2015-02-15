@@ -83,7 +83,8 @@ namespace ManyLens.SOM
                     if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i], interval.TFIDFVectors[i]))
                     {
                         Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],interval);
-                        unit.AddTweet(i);
+                        Tweet tweet = interval.Tweets[i];
+                        unit.AddTweet(tweet);
                         visMap.AddUnit(h_output[i], unit);
                     }
                 }
@@ -158,7 +159,8 @@ namespace ManyLens.SOM
                 if (!newVisMap.TryAddTweetToUnit(h_output[i], rawTweets[i], rawTrainset[i]))
                 {
                     Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],visMap.Interval);
-                    unit.AddTweet(i);
+                    Tweet tweet = rawTweets[i];
+                    unit.AddTweet(tweet);
                     newVisMap.AddUnit(h_output[i], unit);
                 }
             }

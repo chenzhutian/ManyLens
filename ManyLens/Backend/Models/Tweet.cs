@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.RegularExpressions;
 using System.Linq;
 using System.Web;
 
@@ -15,7 +14,10 @@ namespace ManyLens.Models
         private int length = 0;
         private string originalContent = null;
         private string derivedContent = null;
-        private List<string> hashtag = null;
+        private List<string> hashTag = null;
+
+        private User user;
+        private string sourceUserName;
 
         #region Getter & Setter
         public string TweetID 
@@ -85,36 +87,68 @@ namespace ManyLens.Models
         {
             get
             {
-                return this.hashtag;
+                return this.hashTag;
             }
         }
 
+        public User User
+        {
+            get
+            {
+                return this.user;
+            }
 
+            private set
+            {
+                this.user = value;
+            }
+        }
+        public string SourceUserName
+        {
+            get
+            {
+                return this.sourceUserName;
+            }
+        }
         #endregion
 
-        private Tweet(string tweetID, string originalContent)
+        private Tweet(string tweetID, string originalContent, User user)
         {
-            this.hashtag = new List<string>();
+            this.hashTag = new List<string>();
             this.TweetID = tweetID;
             this.OriginalContent = originalContent.Replace("\"", "\\\"");
+            this.User = user;
+
+            Regex RTreg = new Regex(@"^[Rr][Tt] ?@(\w+\b)");
+            MatchCollection rts = RTreg.Matches(this.OriginalContent);
+            if (rts.Count == 1)
+            {
+                this.sourceUserName = rts[0].Groups[1].Value;
+            }
+            else
+            {
+                this.sourceUserName = null;
+            }
         }
 
-        public Tweet(string tweetID, string originalContent, string postDate)
-            : this(tweetID,originalContent)
+        public Tweet(string tweetID, string originalContent, string postDate, User user)
+            : this(tweetID,originalContent, user)
         {
             this.PostDate = DateTime.Parse(postDate);
             
         }
 
-        public Tweet(string tweetID, string originalContent, DateTime postDate)
-            : this(tweetID, originalContent)
+        public Tweet(string tweetID, string originalContent, DateTime postDate, User user)
+            : this(tweetID, originalContent, user)
         {
             this.PostDate = postDate;
         }
 
         public void AddHashTag(string hashTag)
         {
-            this.hashtag.Add(hashTag);
+            if (hashTag.IndexOf("#") != 0)
+                return;
+            this.hashTag.Add(hashTag);
         }
 
     }

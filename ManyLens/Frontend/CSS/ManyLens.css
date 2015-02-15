@@ -38,13 +38,6 @@ div#page-content {
     padding-bottom:7px;
 }
 
-/*----------Maybe delete later------------------*/
-circle.pane-Lens-Circle:hover {
-    opacity: 0.7;
-    stroke: #0593fa;
-    stroke-width: 2px;
-}
-
 /*------------Define each view------------------*/
 .view-title {
     text-align:center;
@@ -55,10 +48,17 @@ circle.pane-Lens-Circle:hover {
 .view-title-md-red {
     font-size:20px;
     color:#fff;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding-top: 0;
+    padding-bottom: 0;
     background: #E9573F;
 }
+
+.view-title-md-red p {
+    font-size:40px;
+    margin: 0;
+    font-weight : 400;
+}
+
 .view-title-lg-yellow {
     padding-top: 30px;
     padding-bottom: 5px;

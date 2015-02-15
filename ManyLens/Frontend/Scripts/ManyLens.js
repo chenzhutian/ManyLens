@@ -298,15 +298,14 @@ var ManyLens;
                 var sectionData = new Array();
                 var i = 0, len = this._data.length;
                 while (i < len) {
-                    var point = this._data[i];
-                    if (point.beg) {
+                    if (this._data[i].beg) {
                         var section = {
-                            id: point.beg,
+                            id: this._data[i].beg,
                             beg: i,
                             end: 0,
-                            pathPoints: [{ index: i, value: point.value }]
+                            pathPoints: [{ index: i, value: this._data[i].value }]
                         };
-                        nodesData.push({ id: point.beg, value: point.value, index: i });
+                        nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         while (this._data[++i] && this._data[i].beg == section.id) {
                             section.pathPoints.push({ index: i, value: this._data[i].value });
                             nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
@@ -314,6 +313,13 @@ var ManyLens;
                         if (this._data[i] && this._data[i].type == 3) {
                             section.end = i;
                             section.pathPoints.push({ index: i, value: this._data[i].value });
+                        }
+                        else if (this._data[i] && this._data[i].type == 1) {
+                            section.end = i - 1;
+                            var sectionRestPath = [];
+                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value });
+                            sectionRestPath.push({ index: i, value: this._data[i].value });
+                            restPathData.push(sectionRestPath);
                         }
                         else {
                             section.end = i - 1;

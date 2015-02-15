@@ -212,6 +212,7 @@
     <Compile Include="Backend\Models\Tweet.cs" />
     <Compile Include="Backend\Models\TweetSet.cs" />
     <Compile Include="Backend\Models\Unit.cs" />
+    <Compile Include="Backend\Models\User.cs" />
     <Compile Include="Backend\Models\VisMap.cs" />
     <Compile Include="Backend\Models\Vocabulary.cs" />
     <Compile Include="Backend\Parameter.cs" />

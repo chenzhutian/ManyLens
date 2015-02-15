@@ -128,7 +128,7 @@ namespace ManyLens.Models
         {
             if (units.ContainsKey(unitID))
             {
-                units[unitID].AddTweet(tweet, tfidfVector);
+                units[unitID].AddTweet(tweet);
                 return true;
             }
             return false;

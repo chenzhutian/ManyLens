@@ -15,9 +15,9 @@ namespace ManyLens.IO
             SortedDictionary<DateTime, Term> sortedTerm = new SortedDictionary<DateTime, Term>();
             StreamReader sr;
             bool isCache = false;
-            if(File.Exists(tweetFile+"CACHE"))
+            if (File.Exists(tweetFile + "CACHE"))
             {
-                sr = new StreamReader(tweetFile+"CACHE");
+                sr = new StreamReader(tweetFile + "CACHE");
                 isCache = true;
             }
             else
@@ -33,55 +33,62 @@ namespace ManyLens.IO
 
             while (!sr.EndOfStream)
             {
+                                
                 string line = sr.ReadLine();
                 string[] tweetAttributes = line.Split('\t');
                 Tweet tweet = null;
-
+                
+                //Filter old date tweet
+                if (DateTime.Parse(tweetAttributes[4]).Month < 6 || DateTime.Parse(tweetAttributes[4]).Year < 2014)
+                    continue;
 
                 if (isCache)
                 {
-                    tweet = new Tweet(tweetAttributes[1], tweetAttributes[2], tweetAttributes[3]);
-                }
-
-                else if (tweetAttributes.Length == 11)
-                {
-                    tweet = new Tweet(tweetAttributes[0], tweetAttributes[1], tweetAttributes[4]);
+                    User user = new User(tweetAttributes[4], tweetAttributes[5], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
+                    tweet = new Tweet(tweetAttributes[1], tweetAttributes[2], tweetAttributes[3], user);
                 }
                 else
                 {
-                    tweet = new Tweet(tweetAttributes[0], tweetAttributes[4], tweetAttributes[6]);
+                    //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
+                    //\t 8follower \9 13V \t 10gpsA \t 11gpsB
+                    User user = new User(tweetAttributes[2], tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
+                    tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], user);
                 }
 
                 if (tweet == null)
                     continue;
 
-                DateTime date = tweet.PostDate;
-                date = new DateTime(date.Year, mode[0] == 1 ? date.Month : 1, mode[1] == 1 ? date.Day : 1, date.Hour * mode[2], date.Minute * mode[3], 0);
+                DateTime postDate = tweet.PostDate;
+                DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, (postDate.Hour > 12 ? 12 : 0) * mode[2], postDate.Minute * mode[3], 0);
 
 
                 if (sortedTerm.ContainsKey(date))
                 {
-                    sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent);
+                    sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.User);
                 }
                 else
                 {
                     Term t = new Term(date);
-                    t.AddTweet(tweet.TweetID, tweet.OriginalContent);
+                    t.AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.User);
                     sortedTerm.Add(date, t);
                 }
             }
             sr.Close();
 
-            if(!isCache)
+            if (!isCache)
             {
                 StreamWriter sw = new StreamWriter(tweetFile + "CACHE");
-                foreach(KeyValuePair<DateTime,Term> p in sortedTerm)
+                foreach (KeyValuePair<DateTime, Term> p in sortedTerm)
                 {
                     Term term = p.Value;
                     DateTime dateTime = p.Key;
                     for (int i = 0, len = term.TweetsCount; i < len; ++i)
                     {
-                        sw.WriteLine(dateTime+"\t"+term.GetTweetIDAt(i)+"\t"+term.GetTweetContentAt(i)+"\t"+term.Tweets[i].PostDate);
+
+                        Tweet tweet = term.Tweets[i];
+                        User user = tweet.User;
+                        sw.WriteLine(dateTime + "\t" + tweet.TweetID + "\t" + tweet.OriginalContent + "\t" + tweet.PostDate + '\t'
+                            + user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + user.Following + '\t' + user.Follower + user.IsV + '\t' + user.Location[0] + '\t' + user.Location[1]);
                     }
 
                 }

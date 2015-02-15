@@ -67,9 +67,9 @@ namespace ManyLens.Models
         }
 
 
-        protected void AddTweet(string id, string content, DateTime postDate)
+        protected void AddTweet(string id, string content, DateTime postDate, User user)
         {
-            this.Tweets.Add(new Tweet(id, content, postDate));
+            this.Tweets.Add(new Tweet(id, content, postDate,user));
         }
 
         protected void AddTweet(Tweet tweet)

@@ -66,7 +66,8 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
 
-            string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
+            //string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
+            string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
             Debug.WriteLine(tweetFile);
             await Task.Run(() =>
             {
@@ -372,7 +373,7 @@ namespace ManyLens.SignalR
                         closetUnit = toUnits[j];
                     }
                 }
-                closetUnit.AddTweet(rawTweets[i], rawTrainVector);
+                closetUnit.AddTweet(rawTweets[i]);
             }
     
             Clients.Caller.reDrawSOMMap(visMap.GetVisData());

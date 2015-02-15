@@ -5,24 +5,69 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Text.RegularExpressions;
 
 
 namespace PreprocessingData
 {
+
+    public class Node
+    {
+        public string source{set;get;}
+        public string target{set;get;}
+    }
+
     class Program
     {
+
         static void Main(string[] args)
         {
 
+            Program pg = new Program();
+          
+            string ROOT_DIR = "D:\\Data\\";
+            string sampleFile = ROOT_DIR + "FIFAShortAttributesSample";
+            List<Node> nodes = new List<Node>();
+            //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
+            //\t 8follower \9 13V \t 10gpsA \t 11gpsB
+
+            Regex RTreg = new Regex(@"^[Rr][Tt] ?@(\w+\b)");
+            foreach (string currentLine in File.ReadLines(sampleFile))
+            {
+                string[] tweetsAttribute = currentLine.Split('\t');
+                string content = tweetsAttribute[3];
+                string userName = tweetsAttribute[1];
+                MatchCollection rts = RTreg.Matches(content);
+                if (rts.Count > 1)
+                {
+                    throw new Exception("The number or RT is more than one!!");
+
+                }
+
+                else if (rts.Count == 1)
+                {
+                    string sourceUserName = rts[0].Groups[1].Value;
+                    Node node = new Node()
+                    {
+                        source = sourceUserName,
+                        target = userName
+                    };
+                    nodes.Add(node);
+                }
+            }
+
+            StreamWriter sw = new StreamWriter(sampleFile +"Network");
+            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Node>));
+            jser.WriteObject(sw.BaseStream, nodes);
+            sw.Flush();
+            sw.Close();
 
         }
 
         public void FilterTheAttribute(string clearFile)
         {
-
-            string ROOT_DIR = "D:\\Data\\";
-            string sampleFile = ROOT_DIR + clearFile;
-            StreamWriter sw = new StreamWriter(ROOT_DIR + "FIFAShortAttributes");
+            string sampleFile =  clearFile;
+            StreamWriter sw = new StreamWriter(clearFile + "ShortAttributes");
             //0tweetId \t 1screenName \t 2userName \t 3userId \t 4tweetContent \t 5language \t 6tweetDate \t 7timestamp \t 8userHomepage \t 9tweetsCount \t 10following 
             //\t 11follower \t 12profile \t 13V \t 14registerDate \t 15unixeTime \t 16timezone \t 17timezoneName \t 18location \t 19gpsA \t 20gpsB \t 21locationtype
             foreach (string currentLine in File.ReadLines(sampleFile))
@@ -45,14 +90,12 @@ namespace PreprocessingData
             sw.Close();
         }
 
-
-        public void RandomSample(double threadshold = 0.01001)
+        public void RandomSample(string fileName,double threadshold = 0.01001)
         {
-            string ROOT_DIR = "D:\\Data\\";
-            string clearFile = ROOT_DIR + "clearFIFA";
-            StreamWriter sw = new StreamWriter(ROOT_DIR + "FIFASample");
+            string sampleFile = fileName;
+            StreamWriter sw = new StreamWriter(fileName +"Sample");
             Random rnd = new Random();
-            foreach (string currentLine in File.ReadLines(clearFile))
+            foreach (string currentLine in File.ReadLines(sampleFile))
             {
                 if (rnd.NextDouble() < threadshold)
                 {
@@ -64,7 +107,7 @@ namespace PreprocessingData
         
         }
 
-        public void RemoveDuplicate(string filePath)
+        public void RemoveDuplicate()
         {
             string ROOT_DIR = "D:\\Data\\";
             string rawFIFAFile = ROOT_DIR + "FIFA_cleaned_with_location_info.txt";

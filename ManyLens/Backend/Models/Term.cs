@@ -114,9 +114,9 @@ namespace ManyLens.Models
             this.id = date.ToString("yyyyMMddHHmmss");
         }
 
-        public void AddTweet(string id, string content)
+        public void AddTweet(string id, string content, DateTime date, User user)
         {
-            base.AddTweet(id, content,this.termDate);
+            base.AddTweet(id, content,date,user);
         }
     }
 }
