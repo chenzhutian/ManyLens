@@ -291,7 +291,6 @@ var ManyLens;
             };
             Curve.prototype.RefreshGraph = function (point) {
                 var _this = this;
-                console.log(point);
                 this._y_scale.domain([0, d3.max(this._data, function (d) {
                     return d.value;
                 })]);
@@ -322,45 +321,76 @@ var ManyLens;
                 //    this._markData.push(mark);
                 //}
                 // this._markData.push(mark);
+                //this._section = new Array<Section>();
+                //var lastSection: Section;
+                //this._data.forEach((d:Point, i) => {
+                //    try {
+                //        if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
+                //            var section: Section = {
+                //                beg: i,
+                //                end: 0,
+                //                id:d.beg,
+                //                values: [d.value]
+                //            };
+                //            lastSection = section;
+                //        } else if (d.type == 3) {
+                //            lastSection.end = i;
+                //            lastSection.values.push(d.value);
+                //            this._section.push(lastSection);
+                //            var section: Section = {
+                //                beg: i,
+                //                end: 0,
+                //                id:d.beg,
+                //                values: [d.value]
+                //            };
+                //            lastSection = section;
+                //        } else if (d.type == 2 && i != 0) {
+                //            lastSection.end = i;
+                //            lastSection.values.push(d.value);
+                //            this._section.push(lastSection);
+                //        } else if (d.type == 4 && i == this._data.length -1 ) {
+                //            lastSection.end = i;
+                //            lastSection.values.push(d.value);
+                //            this._section.push(lastSection);
+                //        } else if(d.type == 4) {
+                //            lastSection.values.push(d.value);
+                //        }
+                //    } catch (e) {
+                //        console.log(d);
+                //        console.log(i);
+                //        console.log(lastSection);
+                //    }
+                //});
+                var nodesData = [];
                 this._section = new Array();
-                var lastSection;
-                this._data.forEach(function (d, i) {
-                    try {
-                        if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
-                            var section = {
-                                beg: i,
-                                end: 0,
-                                id: d.beg,
-                                values: [0]
-                            };
-                            lastSection = section;
+                var i = 0, len = this._data.length;
+                while (i < len) {
+                    var point = this._data[i];
+                    if (point.beg) {
+                        var section = {
+                            id: point.beg,
+                            beg: i,
+                            end: 0,
+                            values: [point.value]
+                        };
+                        nodesData.push({ id: point.beg, value: point.value, index: i });
+                        while (this._data[++i] && this._data[i].beg == section.id) {
+                            section.values.push(this._data[i].value);
+                            nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         }
-                        else if (d.type == 3) {
-                            lastSection.end = i;
-                            _this._section.push(lastSection);
-                            var section = {
-                                beg: i,
-                                end: 0,
-                                id: d.beg,
-                                values: [0]
-                            };
-                            lastSection = section;
+                        if (this._data[i] && this._data[i].type == 3) {
+                            section.end = i;
+                            section.values.push(this._data[i].value);
                         }
-                        else if (d.type == 2 && i != 0) {
-                            lastSection.end = i;
-                            _this._section.push(lastSection);
+                        else {
+                            section.end = i - 1;
                         }
-                        else if (d.type == 4 && i == _this._data.length - 1) {
-                            lastSection.end = i;
-                            _this._section.push(lastSection);
-                        }
+                        this._section.push(section);
                     }
-                    catch (e) {
-                        console.log(d);
-                        console.log(i);
-                        console.log(lastSection);
+                    else {
+                        ++i;
                     }
-                });
+                }
                 //handle the seg line
                 //this._mainView.selectAll(".curve.mark").remove();
                 //var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
@@ -401,20 +431,20 @@ var ManyLens;
                 });
                 rects.exit().remove();
                 //handle the seg node
-                var nodes = this._mainView.selectAll(".curve.node").data(this._data, function (d) {
-                    return d.id;
+                var nodes = this._mainView.selectAll(".curve.node").data(nodesData, function (d) {
+                    return d.index;
                 });
                 nodes.attr("cx", function (d, i) {
-                    return _this._x_scale(i);
+                    return _this._x_scale(d.index);
                 }).attr("cy", function (d) {
                     return _this._y_scale(d.value);
                 });
                 nodes.enter().append("circle").attr("class", "curve node").attr("cx", function (d, i) {
-                    return _this._x_scale(i);
+                    return _this._x_scale(d.index);
                 }).attr("cy", function (d) {
                     return _this._y_scale(d.value);
                 }).attr("r", function (d) {
-                    return d.type == 0 ? 0 : 3;
+                    return 3;
                 }).style({
                     fill: "#fff",
                     stroke: "rgb(31, 145, 189)",
@@ -430,7 +460,7 @@ var ManyLens;
                 this._mainView.selectAll("#path").attr("d", lineFunc(this._data));
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(800).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(400).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
             };
             Curve.prototype.SelectSegment = function (d) {

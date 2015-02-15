@@ -236,7 +236,7 @@ namespace ManyLens.SignalR
                     points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
 
                 }
 

@@ -168,7 +168,6 @@ module ManyLens {
             }
 
             private RefreshGraph(point: Point) {
-                console.log(point);
                 this._y_scale.domain([0, d3.max(this._data, function (d) { return d.value; })]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
@@ -201,48 +200,80 @@ module ManyLens {
                 //    this._markData.push(mark);
                 //}
 
-               // this._markData.push(mark);
+                // this._markData.push(mark);
 
+                //this._section = new Array<Section>();
+                //var lastSection: Section;
+                //this._data.forEach((d:Point, i) => {
+                //    try {
+                //        if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
+                //            var section: Section = {
+                //                beg: i,
+                //                end: 0,
+                //                id:d.beg,
+                //                values: [d.value]
+                //            };
+                //            lastSection = section;
+                //        } else if (d.type == 3) {
+                //            lastSection.end = i;
+                //            lastSection.values.push(d.value);
+                //            this._section.push(lastSection);
+
+                //            var section: Section = {
+                //                beg: i,
+                //                end: 0,
+                //                id:d.beg,
+                //                values: [d.value]
+                //            };
+                //            lastSection = section;
+
+                //        } else if (d.type == 2 && i != 0) {
+                //            lastSection.end = i;
+                //            lastSection.values.push(d.value);
+                //            this._section.push(lastSection);
+
+                //        } else if (d.type == 4 && i == this._data.length -1 ) {
+                //            lastSection.end = i;
+                //            lastSection.values.push(d.value);
+                //            this._section.push(lastSection);
+                //        } else if(d.type == 4) {
+                //            lastSection.values.push(d.value);
+                //        }
+                //    } catch (e) {
+                //        console.log(d);
+                //        console.log(i);
+                //        console.log(lastSection);
+                //    }
+
+                //});
+                var nodesData = [];
                 this._section = new Array<Section>();
-                var lastSection: Section;
-                this._data.forEach((d:Point, i) => {
-                    try {
-                        if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
-                            var section: Section = {
-                                beg: i,
-                                end: 0,
-                                id:d.beg,
-                                values: [0]
-                            };
-                            lastSection = section;
-                        } else if (d.type == 3) {
-                            lastSection.end = i;
-                            this._section.push(lastSection);
-
-                            var section: Section = {
-                                beg: i,
-                                end: 0,
-                                id:d.beg,
-                                values: [0]
-                            };
-                            lastSection = section;
-
-                        } else if (d.type == 2 && i != 0) {
-                            lastSection.end = i;
-                            this._section.push(lastSection);
-
-                        } else if (d.type == 4 && i == this._data.length -1 ) {
-                            lastSection.end = i;
-                            this._section.push(lastSection);
+                var i = 0, len = this._data.length;
+                while (i < len) {
+                    var point = this._data[i];
+                    if (point.beg) {
+                        var section: Section = {
+                            id: point.beg,
+                            beg: i,
+                            end: 0,
+                            values: [point.value]
+                        };
+                        nodesData.push({ id: point.beg, value: point.value, index: i });
+                        while (this._data[++i] && this._data[i].beg == section.id) {
+                            section.values.push(this._data[i].value);
+                            nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         }
-                    } catch (e) {
-                        console.log(d);
-                        console.log(i);
-                        console.log(lastSection);
+                        if (this._data[i] && this._data[i].type == 3) {
+                            section.end = i;
+                            section.values.push(this._data[i].value);
+                        } else {
+                            section.end = i - 1;
+                        }
+                        this._section.push(section);
+                    } else {
+                        ++i;
                     }
-                    
-                });
-
+                }
 
                 //handle the seg line
                 //this._mainView.selectAll(".curve.mark").remove();
@@ -296,10 +327,10 @@ module ManyLens {
                 rects.exit().remove();
 
                 //handle the seg node
-                var nodes = this._mainView.selectAll(".curve.node").data(this._data, function (d) { return d.id; });
+                var nodes = this._mainView.selectAll(".curve.node").data(nodesData, function (d) { return d.index; });
                 nodes
                     .attr("cx", (d, i) => {
-                        return this._x_scale(i);
+                        return this._x_scale(d.index);
                     })
                     .attr("cy", (d) => {
                         return this._y_scale(d.value);
@@ -308,13 +339,13 @@ module ManyLens {
                 nodes.enter().append("circle")
                     .attr("class", "curve node")
                     .attr("cx", (d, i) => {
-                        return this._x_scale(i);
+                        return this._x_scale(d.index);
                     })
                     .attr("cy", (d) => {
                         return this._y_scale(d.value);
                     })
                     .attr("r", (d) => {
-                        return d.type == 0? 0 : 3;
+                        return  3;
                     })
                     .style({
                         fill: "#fff",
@@ -343,7 +374,7 @@ module ManyLens {
                     this._mainView
                         .attr("transform", null)
                         .transition()
-                        .duration(800)  //this time-step should be equale to the time step of AddPoint() in server.hub
+                        .duration(400)  //this time-step should be equale to the time step of AddPoint() in server.hub
                         .ease("linear")
                         .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)")
                     ;
