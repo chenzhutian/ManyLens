@@ -24,41 +24,41 @@ namespace ManyLens.SignalR
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
 
         private Random rnd = new Random();
-        private int lastPointIndex = -1;
-        private Point lastPoint = null;
+        //private int lastPointIndex = -1;
+        //private Point lastPoint = null;
         
         //用来实现真正的streaming的peak detection用的，基本思想是用一个栈来保存状态，当确保状态安全时就推送给客户端
         private void AddPoint(int i, Term[] tp)
         {
-            Point newPoint = new Point()
-            {
-                value = tp[i].TweetsCount,
-                mark = new Mark()
-                {
-                    id = tp[i].ID,
-                    type = tp[i].PointType,
-                    beg = "",
-                    end = ""
-                }
-            };
-            if (lastPoint == null && lastPointIndex != i)
-            {
-                lastPoint = newPoint;
-                lastPointIndex = i;
-            }
-            else if (i != lastPointIndex && lastPoint != null)
-            {
-                Clients.Caller.addPoint(lastPoint);
-                lastPoint = newPoint;
-                lastPointIndex = i;
-            }
-            else
-            {
-                Clients.Caller.addPoint(newPoint);
-                lastPoint = null;
-            }
+            //Point newPoint = new Point()
+            //{
+            //    value = tp[i].TweetsCount,
+            //    mark = new Mark()
+            //    {
+            //        id = tp[i].ID,
+            //        type = tp[i].PointType,
+            //        beg = "",
+            //        end = ""
+            //    }
+            //};
+            //if (lastPoint == null && lastPointIndex != i)
+            //{
+            //    lastPoint = newPoint;
+            //    lastPointIndex = i;
+            //}
+            //else if (i != lastPointIndex && lastPoint != null)
+            //{
+            //    Clients.Caller.addPoint(lastPoint);
+            //    lastPoint = newPoint;
+            //    lastPointIndex = i;
+            //}
+            //else
+            //{
+            //    Clients.Caller.addPoint(newPoint);
+            //    lastPoint = null;
+            //}
 
-            Thread.Sleep(200);
+            //Thread.Sleep(200);
         }
 
         public async Task LoadData() 
@@ -188,15 +188,12 @@ namespace ManyLens.SignalR
                     //tp[t].PointType = tp[t].PointType != 0 ? tp[t].PointType : lastMarkType == 2 ? (uint)0 : (uint)4;
                     Point point = new Point()
                     {
+                        id = tp[t].ID,
                         value = tp[t].TweetsCount,
                         isPeak = tp[t].IsPeak,
-                        mark = new Mark()
-                        {
-                            id = tp[t].ID,
-                            type = tp[t].PointType,
-                            beg = tp[t].BeginPoint,
-                            end = tp[t].EndPoint
-                        }
+                        type = tp[t].PointType,
+                        beg = tp[t].BeginPoint,
+                        end = tp[t].EndPoint
                     };
 
                     //if (tp[t].PointType == 1)

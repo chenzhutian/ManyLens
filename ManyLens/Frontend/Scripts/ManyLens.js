@@ -230,11 +230,11 @@ var ManyLens;
                 this._view_right_padding = 50;
                 this._section = new Array();
                 this._data = new Array();
-                this._markData = new Array();
-                this._lastMark = {
-                    id: null,
-                    type: 2
-                };
+                //this._markData = new Array<Mark>();
+                //this._lastMark = {
+                //    id: null,
+                //    type: 2
+                //};
                 this._view_width = parseFloat(this._element.style("width"));
                 this._x_scale.domain([0, this._section_num]).range([this._view_left_padding, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
@@ -244,6 +244,7 @@ var ManyLens;
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
+                //private _lastMark: { id: string; type: number };
                 get: function () {
                     return this._section_num;
                 },
@@ -283,13 +284,14 @@ var ManyLens;
             };
             Curve.prototype.AddPoint = function (point) {
                 this._data.push(point);
-                this.RefreshGraph(point.mark);
+                this.RefreshGraph(point);
                 if (this._data.length > this._section_num + 1) {
                     this._data.shift();
                 }
             };
-            Curve.prototype.RefreshGraph = function (mark) {
+            Curve.prototype.RefreshGraph = function (point) {
                 var _this = this;
+                console.log(point);
                 this._y_scale.domain([0, d3.max(this._data, function (d) {
                     return d.value;
                 })]);
@@ -319,10 +321,10 @@ var ManyLens;
                 //    }
                 //    this._markData.push(mark);
                 //}
-                this._markData.push(mark);
+                // this._markData.push(mark);
                 this._section = new Array();
                 var lastSection;
-                this._markData.forEach(function (d, i) {
+                this._data.forEach(function (d, i) {
                     try {
                         if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
                             var section = {
@@ -357,7 +359,6 @@ var ManyLens;
                         console.log(d);
                         console.log(i);
                         console.log(lastSection);
-                        console.log(_this._markData);
                     }
                 });
                 //handle the seg line
@@ -401,7 +402,7 @@ var ManyLens;
                 rects.exit().remove();
                 //handle the seg node
                 var nodes = this._mainView.selectAll(".curve.node").data(this._data, function (d) {
-                    return d.mark.id;
+                    return d.id;
                 });
                 nodes.attr("cx", function (d, i) {
                     return _this._x_scale(i);
@@ -413,7 +414,7 @@ var ManyLens;
                 }).attr("cy", function (d) {
                     return _this._y_scale(d.value);
                 }).attr("r", function (d) {
-                    return d.mark.type == 0 ? 0 : 3;
+                    return d.type == 0 ? 0 : 3;
                 }).style({
                     fill: "#fff",
                     stroke: "rgb(31, 145, 189)",
@@ -430,9 +431,6 @@ var ManyLens;
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
                     this._mainView.attr("transform", null).transition().duration(800).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
-                }
-                if (this._markData.length > this._section_num + 1) {
-                    this._markData.shift();
                 }
             };
             Curve.prototype.SelectSegment = function (d) {

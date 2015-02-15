@@ -4,17 +4,13 @@ module ManyLens {
 
     export module TweetsCurve {
 
-        interface Mark {
+        interface Point {
+            value: number;
+            isPeak: boolean;
             id: string;
             type: number;
             beg: string;
             end: string;
-        }
-
-        interface Point {
-            value: number;
-            isPeak: boolean;
-            mark: Mark;
         }
 
         interface Section {
@@ -48,8 +44,7 @@ module ManyLens {
             private _view_right_padding: number = 50;
 
             protected _data: Array<Point>;
-            private _markData: Array<Mark>;
-            private _lastMark: { id: string; type: number };
+            //private _lastMark: { id: string; type: number };
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -65,11 +60,11 @@ module ManyLens {
                 this._section = new Array<Section>();
 
                 this._data = new Array<Point>();
-                this._markData = new Array<Mark>();
-                this._lastMark = {
-                    id: null,
-                    type: 2
-                };
+                //this._markData = new Array<Mark>();
+                //this._lastMark = {
+                //    id: null,
+                //    type: 2
+                //};
 
                 this._view_width = parseFloat(this._element.style("width"));
 
@@ -165,14 +160,15 @@ module ManyLens {
 
             public AddPoint(point: Point): void {
                 this._data.push(point);
-                this.RefreshGraph(point.mark);
+                this.RefreshGraph(point);
 
                 if (this._data.length > this._section_num + 1) {
                     this._data.shift();
                 }
             }
 
-            private RefreshGraph(mark: Mark) {
+            private RefreshGraph(point: Point) {
+                console.log(point);
                 this._y_scale.domain([0, d3.max(this._data, function (d) { return d.value; })]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
@@ -205,11 +201,11 @@ module ManyLens {
                 //    this._markData.push(mark);
                 //}
 
-                this._markData.push(mark);
+               // this._markData.push(mark);
 
                 this._section = new Array<Section>();
                 var lastSection: Section;
-                this._markData.forEach((d, i) => {
+                this._data.forEach((d:Point, i) => {
                     try {
                         if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
                             var section: Section = {
@@ -243,7 +239,6 @@ module ManyLens {
                         console.log(d);
                         console.log(i);
                         console.log(lastSection);
-                        console.log(this._markData);
                     }
                     
                 });
@@ -294,14 +289,14 @@ module ManyLens {
                         fill: "#ffeda0",
                         opacity: 0.5
                     })
-                    .on("click", (d: Mark) => {
+                    .on("click", (d: Section) => {
                         this.SelectSegment(d);
                     })
                 ;
                 rects.exit().remove();
 
                 //handle the seg node
-                var nodes = this._mainView.selectAll(".curve.node").data(this._data, function (d) { return d.mark.id; });
+                var nodes = this._mainView.selectAll(".curve.node").data(this._data, function (d) { return d.id; });
                 nodes
                     .attr("cx", (d, i) => {
                         return this._x_scale(i);
@@ -319,7 +314,7 @@ module ManyLens {
                         return this._y_scale(d.value);
                     })
                     .attr("r", (d) => {
-                        return d.mark.type == 0? 0 : 3;
+                        return d.type == 0? 0 : 3;
                     })
                     .style({
                         fill: "#fff",
@@ -353,12 +348,10 @@ module ManyLens {
                         .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)")
                     ;
                 }
-                if (this._markData.length > this._section_num + 1) {
-                    this._markData.shift();
-                }
+
             }
 
-            private SelectSegment(d: Mark) {
+            private SelectSegment(d: Section) {
                 if (d.end != null) {
                     this._curveSvg.style("margin-bottom", "0px")
                     this._element.select(".progress").style("display", "block");

@@ -6,24 +6,27 @@ using System.Web;
 namespace ManyLens.Models
 {
     //Maybe delete later
-    public class Mark 
-    {
-        public string id { set; get; }
-        // 0 -- null
-        // 1 -- begin
-        // 2 -- end
-        // 3 -- end&begin
-        // 4 -- insed
+    //public class Mark 
+    //{
+    //    public string id { set; get; }
+    //    // 0 -- null
+    //    // 1 -- begin
+    //    // 2 -- end
+    //    // 3 -- end&begin
+    //    // 4 -- insed
 
-        public uint type { set; get; }
-        public string beg { set; get; }
-        public string end { set; get; }
-    }
+    //    public uint type { set; get; }
+    //    public string beg { set; get; }
+    //    public string end { set; get; }
+    //}
     public class Point
     {
+        public string id { set; get; }
         public double value { set; get; }
         public bool isPeak { set; get; }
-        public Mark mark { set; get; }
+        public uint type { get; set; }
+        public string beg { get; set; }
+        public string end { get; set; }
     }
 
     public class UnitsDataForLens
