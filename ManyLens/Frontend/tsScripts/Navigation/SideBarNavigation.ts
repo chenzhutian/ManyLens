@@ -128,8 +128,13 @@
                             icon: "fui-windows-8",
                             children: [
                                 {
-                                    name: "New Service1",
-                                    lensConstructFunc: Lens.NetworkLens
+                                    name: "Retweet Network",
+                                    lensConstructFunc: Lens.NetworkLens,
+                                    extractDataFunc: (d, newData?: any) => {
+                                        if (newData)
+                                            d.retweetNetwork = newData;
+                                        return d.retweetNetwork;
+                                    }
                                 }
                             ]
                         },

@@ -189,7 +189,7 @@ module ManyLens {
                     return true;
                 } else {
                     return null;
-                } 
+                }
             }
 
             protected SelectCircleDragFunc(): void {

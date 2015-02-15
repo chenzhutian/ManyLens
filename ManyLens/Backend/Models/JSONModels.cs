@@ -19,6 +19,26 @@ namespace ManyLens.Models
     //    public string beg { set; get; }
     //    public string end { set; get; }
     //}
+    public class Network
+    {
+        public List<Link> links { set; get; }
+        public List<Node> nodes { set; get; }
+    }
+
+    public class Node
+    {
+        public string userName { set;get; }
+        public double x {set;get;}
+        public double y {set;get;}
+    }
+
+    public class Link
+    {
+        public int source { set; get; }
+        public int target { set; get; }
+    }
+
+
     public class Point
     {
         public string id { set; get; }
@@ -36,6 +56,8 @@ namespace ManyLens.Models
         public List<KeyValuePair<int, int>> tweetLengthDistribute { set; get; }
         public List<string> contents { set; get; }
         public List<KeyValuePair<string, int>> hashTagDistribute { set; get; }
+        public Network retweetNetwork { set; get; }
+        public List<KeyValuePair<string, int>> userTweetsDistribute { set; get; }
     }
 
     public class UnitsData

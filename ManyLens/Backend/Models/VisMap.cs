@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Web;
 
@@ -124,7 +125,7 @@ namespace ManyLens.Models
             this.units.Add(unitID, unit);
         }
 
-        public bool TryAddTweetToUnit(int unitID, Tweet tweet, float[] tfidfVector)
+        public bool TryAddTweetToUnit(int unitID, Tweet tweet)
         {
             if (units.ContainsKey(unitID))
             {
@@ -149,47 +150,58 @@ namespace ManyLens.Models
 
             List<int> keys = units.Keys.ToList();
             List<UnitsData> unitData = new List<UnitsData>();
-
-            for (int i = keys.Count - 1; i >= 0; --i)
+            try
             {
-                int key = keys[i];
-                Unit unit = units[key];
-                if (unit.TweetsCount > this.maxTweetCount)
+                for (int i = keys.Count - 1; i >= 0; --i)
                 {
-                    this.maxTweetCount = unit.TweetsCount;
+                    int key = keys[i];
+                    Unit unit = units[key];
+                    if (unit.TweetsCount > this.maxTweetCount)
+                    {
+                        this.maxTweetCount = unit.TweetsCount;
+                    }
+
+                    List<int> unitsID = new List<int>();
+                    unitsID.Add(unit.UnitID);
+                    unitData.Add(new UnitsData()
+                                                {
+                                                    unitID = unit.UnitID,
+                                                    count = unit.TweetsCount,
+                                                    x = unit.X,
+                                                    y = unit.Y,
+                                                    lensData = new UnitsDataForLens()
+                                                    {
+                                                        unitsID = unitsID,
+                                                        contents = unit.TweetContents,
+                                                        keywordsDistribute = unit.WordLabels,
+                                                        tweetLengthDistribute = unit.TweetLengthDistribute,
+                                                        hashTagDistribute = unit.HashTagDistribute,
+                                                        userTweetsDistribute = unit.UserTweetsDistribute,
+                                                        retweetNetwork = unit.RetweetNetwork
+                                                        // tweetIDs = unit.TweetIDs
+                                                    }
+                                                });
                 }
 
-                List<int> unitsID = new List<int>();
-                unitsID.Add(unit.UnitID);
-                unitData.Add(new UnitsData()
-                                            {
-                                                unitID = unit.UnitID,
-                                                count = unit.TweetsCount,
-                                                x = unit.X,
-                                                y = unit.Y,
-                                                lensData = new UnitsDataForLens()
-                                                {
-                                                    unitsID = unitsID,
-                                                    contents = unit.TweetContents,
-                                                    keywordsDistribute = unit.WordLabels,
-                                                    tweetLengthDistribute = unit.TweetLengthDistribute,
-                                                    hashTagDistribute = unit.HashTagDistribute
-                                                    // tweetIDs = unit.TweetIDs
-                                                }
-                                            });
+                VISData visdata = new VISData()
+                                             {
+                                                 mapID = this.VisMapID,
+                                                 width = this.Width,
+                                                 height = this.Height,
+                                                 max = this.maxTweetCount,
+                                                 min = 0,
+                                                 unitsData = unitData
+                                             };
+
+                return visdata;
             }
-
-            VISData visdata = new VISData()
-                                         {
-                                             mapID = this.VisMapID,
-                                             width = this.Width,
-                                             height = this.Height,
-                                             max = this.maxTweetCount,
-                                             min = 0,
-                                             unitsData = unitData
-                                         };
-
-            return visdata;
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.InnerException);
+                return null;
+            }
         }
+
+
     }
 }

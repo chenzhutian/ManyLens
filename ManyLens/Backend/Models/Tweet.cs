@@ -9,7 +9,7 @@ namespace ManyLens.Models
     public class Tweet
     {
         private string tweetID = null;
-        private string postUserID = null;
+        private string postUserName = null;
         private DateTime postDate;
         private int length = 0;
         private string originalContent = null;
@@ -31,15 +31,15 @@ namespace ManyLens.Models
                 this.tweetID = value;
             }
         }
-        public string PostUserID 
+        public string PostUserName 
         { 
             get
             {
-                return this.postUserID;
+                return this.postUserName;
             }
             private set 
             {
-                this.postUserID = value;
+                this.postUserName = value;
             }
         }
         public string OriginalContent
@@ -118,6 +118,7 @@ namespace ManyLens.Models
             this.TweetID = tweetID;
             this.OriginalContent = originalContent.Replace("\"", "\\\"");
             this.User = user;
+            this.PostUserName = user.UserName;
 
             Regex RTreg = new Regex(@"^[Rr][Tt] ?@(\w+\b)");
             MatchCollection rts = RTreg.Matches(this.OriginalContent);

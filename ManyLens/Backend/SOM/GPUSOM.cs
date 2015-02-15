@@ -80,7 +80,7 @@ namespace ManyLens.SOM
             {
                 for (int i = 0; i < trainsetSize; ++i)
                 {
-                    if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i], interval.TFIDFVectors[i]))
+                    if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i]))
                     {
                         Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],interval);
                         Tweet tweet = interval.Tweets[i];
@@ -90,7 +90,7 @@ namespace ManyLens.SOM
                 }
                 visMap.RMMatrix = rmMatrix;
             }
-            catch (Exception e)
+            catch (NullReferenceException e)
             {
                 Debug.WriteLine(e.InnerException);
             }
@@ -156,7 +156,7 @@ namespace ManyLens.SOM
             VisMap newVisMap = new VisMap(visMapID,width,height,visMap.Interval,visMap);
             for (int i = 0; i < trainsetSize; ++i)
             {
-                if (!newVisMap.TryAddTweetToUnit(h_output[i], rawTweets[i], rawTrainset[i]))
+                if (!newVisMap.TryAddTweetToUnit(h_output[i], rawTweets[i]))
                 {
                     Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],visMap.Interval);
                     Tweet tweet = rawTweets[i];

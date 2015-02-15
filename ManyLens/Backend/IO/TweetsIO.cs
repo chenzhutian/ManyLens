@@ -39,7 +39,7 @@ namespace ManyLens.IO
                 Tweet tweet = null;
                 
                 //Filter old date tweet
-                if (DateTime.Parse(tweetAttributes[4]).Month < 6 || DateTime.Parse(tweetAttributes[4]).Year < 2014)
+                if (!isCache && (DateTime.Parse(tweetAttributes[4]).Month < 6 || DateTime.Parse(tweetAttributes[4]).Year < 2014))
                     continue;
 
                 if (isCache)
@@ -88,7 +88,7 @@ namespace ManyLens.IO
                         Tweet tweet = term.Tweets[i];
                         User user = tweet.User;
                         sw.WriteLine(dateTime + "\t" + tweet.TweetID + "\t" + tweet.OriginalContent + "\t" + tweet.PostDate + '\t'
-                            + user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + user.Following + '\t' + user.Follower + user.IsV + '\t' + user.Location[0] + '\t' + user.Location[1]);
+                            + user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + user.Following + '\t' + user.Follower + '\t'+ user.IsV + '\t' + user.Location[0] + '\t' + user.Location[1]);
                     }
 
                 }

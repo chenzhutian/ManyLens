@@ -11,9 +11,13 @@ namespace ManyLens.Models
         private Dictionary<string,int> wordLabels = null;
 
         private float[] unitSumVector = null; //store as accumulate value
+
+
         private int x;
         private int y;
         private int unitID;
+        private Dictionary<string,User> users;
+        private Dictionary<string, int> userTweets;
 
         private Interval interval;
 
@@ -22,10 +26,10 @@ namespace ManyLens.Models
         {
             get
             { 
-                float[] averageVector = new float[this.unitSumVector.Length];
-                for (int i = this.unitSumVector.Length - 1; i >= 0; --i)
+                float[] averageVector = new float[this.UnitSumVector.Length];
+                for (int i = this.UnitSumVector.Length - 1; i >= 0; --i)
                 {
-                    averageVector[i] = this.unitSumVector[i] / (float)this.TweetsCount;
+                    averageVector[i] = this.UnitSumVector[i] / (float)this.TweetsCount;
                 }
                 return averageVector;
             }
@@ -62,6 +66,11 @@ namespace ManyLens.Models
             {
                 this.unitID = value;
             }
+        }
+        public float[] UnitSumVector
+        {
+            get { return unitSumVector; }
+            set { unitSumVector = value; }
         }
         public List<float[]> TFIDFVectors
         {
@@ -122,28 +131,73 @@ namespace ManyLens.Models
                 return hashtagDistribute.ToList();
             }
         }
+        public Network RetweetNetwork
+        {
+            get
+            {
+                List<string> userNames = new List<string>();
+                List<Node> nodes = new List<Node>();
+                List<Link> links = new List<Link>();
+                int len = this.TweetsCount;
+                for(int i = 0; i < len; ++i)
+                {
+                    Tweet tweet = this.Tweets[i];
+                    if(tweet.SourceUserName != null && this.users.ContainsKey(tweet.SourceUserName))
+                    {
+                        int sourceIndex = userNames.IndexOf(tweet.SourceUserName);
+                        int targetIndex = userNames.IndexOf(tweet.PostUserName);
+                        if( sourceIndex == -1)
+                        {
+                            userNames.Add(tweet.SourceUserName);
+                            nodes.Add(new Node() { userName = tweet.SourceUserName,x = 0, y = 0});
+                            sourceIndex = nodes.Count - 1;
+
+                        }
+                        if(targetIndex == -1)
+                        {
+                            userNames.Add(tweet.PostUserName);
+                            nodes.Add(new Node() { userName = tweet.PostUserName, x = 0, y = 0 });
+                            targetIndex = nodes.Count - 1;
+                        }
+                        links.Add(new Link() { source = sourceIndex, target = targetIndex });
+                    }
+                }
+                return new Network() { links = links, nodes = nodes };
+            }
+        
+        }
+        public List<KeyValuePair<string,int>> UserTweetsDistribute
+        {
+            get
+            {
+                return this.userTweets.ToList();
+            }
+        }
 
         #endregion  
 
-        public Unit(Unit unit)
-            :base()
-        {
-            this.wordLabels = new Dictionary<string, int>();
-            this.tfidfVectors = new List<float[]>();
-            this.interval = unit.interval;
-            this.Vocabulary = unit.Vocabulary;
+        //public Unit(Unit unit)
+        //    :base()
+        //{
+        //    this.wordLabels = new Dictionary<string, int>();
+        //    this.tfidfVectors = new List<float[]>();
+        //    this.users = new List<User>();
+        //    this.interval = unit.interval;
+        //    this.Vocabulary = unit.Vocabulary;
 
-            this.Tweets.AddRange(unit.Tweets);
-            this.SparseVector.AddRange(unit.SparseVector);
-            this.TFIDFVectors.AddRange(unit.TFIDFVectors);
-            this.unitSumVector = unit.UnitVector;
-        }
+        //    this.Tweets.AddRange(unit.Tweets);
+        //    this.SparseVector.AddRange(unit.SparseVector);
+        //    this.TFIDFVectors.AddRange(unit.TFIDFVectors);
+        //    this.unitSumVector = unit.UnitVector;
+        //}
 
         public Unit(int x, int y, int id,Interval interval)
             :base()
         {
             this.wordLabels = new Dictionary<string, int>();
             this.tfidfVectors = new List<float[]>();
+            this.users = new Dictionary<string, User>();
+            this.userTweets = new Dictionary<string, int>();
 
             this.X = x;
             this.Y = y;
@@ -163,15 +217,15 @@ namespace ManyLens.Models
             this.SparseVector.Add(interval.SparseVector[index]);
             float[] tfv = interval.TFIDFVectors[index];
             this.tfidfVectors.Add(tfv);
-            if (this.unitSumVector == null)
+            if (this.UnitSumVector == null)
             {
-                this.unitSumVector =tfv;
+                this.UnitSumVector =tfv;
             }
             else
             {
                 for (int i = tfv.Length - 1; i >= 0; --i)
                 {
-                    this.unitSumVector[i] += tfv[i];
+                    this.UnitSumVector[i] += tfv[i];
                 }
             }
 
@@ -186,14 +240,24 @@ namespace ManyLens.Models
                     wordLabels.Add(words[i], 1);
             }
 
+            User user = tweet.User;
+            if (this.users.ContainsKey(user.UserName))
+            {
+                var num = this.userTweets[user.UserName] + 1;
+                this.userTweets[user.UserName] = num;
+            }else{
+                this.users.Add(user.UserName,user);
+                this.userTweets.Add(user.UserName,1);
+            }
+
         }
 
         public Tweet RemoveTweet(Tweet tweet)
         {
             int index = this.Tweets.IndexOf(tweet);
-            for (int i = this.unitSumVector.Length - 1; i >= 0; --i)
+            for (int i = this.UnitSumVector.Length - 1; i >= 0; --i)
             {
-                this.unitSumVector[i] -= this.tfidfVectors[index][i];
+                this.UnitSumVector[i] -= this.tfidfVectors[index][i];
             }
             this.tfidfVectors.RemoveAt(index);
             Tweet t = base.RemoveTweetAt(index);
