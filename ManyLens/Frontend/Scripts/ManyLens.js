@@ -1301,7 +1301,7 @@ var ManyLens;
                 this._force = d3.layout.force();
                 this._location_x_scale = d3.scale.linear();
                 this._location_y_scale = d3.scale.linear();
-                this._force.size([0, 0]).linkDistance(this._lens_circle_radius / 2).charge(-100);
+                this._force.size([0, 0]).linkDistance(this._lens_circle_radius / 2).charge(-50).gravity(0.1).friction(0.5);
                 this._location_x_scale.range([-this._lens_circle_radius, this._lens_circle_radius]);
                 this._location_y_scale.range([-this._lens_circle_radius, this._lens_circle_radius]);
             }
@@ -1384,23 +1384,29 @@ var ManyLens;
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
-                var testData = this._extract_data_map_func(this.ExtractData());
-                var nodes = testData.nodes, links = testData.links;
+                var graph = this._extract_data_map_func(this.ExtractData());
+                var nodes = graph.nodes, links = graph.links;
+                nodes.forEach(function (d) {
+                    d.x = d.x * _this.LensRadius;
+                    d.y = d.y * _this.LensRadius;
+                });
                 this._location_x_scale.domain(d3.extent(nodes, function (d) {
-                    return d['x'];
+                    return d.x;
                 }));
                 this._location_y_scale.domain(d3.extent(nodes, function (d) {
-                    return d['y'];
+                    return d.y;
                 }));
                 nodes.forEach(function (d) {
-                    d.x = _this._location_x_scale(d.x), d.y = _this._location_y_scale(d.y);
+                    if ((d.x * d.x + d.y * d.y) > _this.LensRadius * _this.LensRadius) {
+                        d.x = _this._location_x_scale(d.x), d.y = _this._location_y_scale(d.y);
+                    }
                 });
                 this._force.nodes(nodes).links(links);
-                var link = this._lens_circle_svg.selectAll(".link").data(links).enter().append("line").attr("class", "link").style({
+                var link = this._lens_circle_svg.selectAll(".network.link").data(links).enter().append("line").attr("class", "network link").style({
                     "stroke": "#777",
                     "stroke-width": "1px"
                 });
-                var node = this._lens_circle_svg.selectAll(".node").data(nodes).enter().append("circle").attr("class", "node").attr("r", 4).attr('cx', function (d) {
+                var node = this._lens_circle_svg.selectAll(".network.node").data(nodes).enter().append("circle").attr("class", "network node").attr("r", 4).attr('cx', function (d) {
                     return d.x;
                 }).attr('cy', function (d) {
                     return d.y;

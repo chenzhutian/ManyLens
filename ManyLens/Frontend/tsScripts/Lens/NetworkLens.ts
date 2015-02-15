@@ -2,6 +2,11 @@
 module ManyLens {
     export module Lens {
 
+        interface Node {
+            x: number;
+            y: number;
+        }
+
         export class NetworkLens extends BaseSingleLens {
 
             public static Type: string = "NetworkLens";
@@ -16,7 +21,9 @@ module ManyLens {
                 this._force
                     .size([0, 0])
                     .linkDistance(this._lens_circle_radius/2)
-                    .charge(-100)
+                    .charge(-50)
+                    .gravity(0.1)
+                    .friction(0.5)
                 ;
 
                 this._location_x_scale
@@ -109,23 +116,31 @@ module ManyLens {
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
 
-                var testData = this._extract_data_map_func(this.ExtractData());
+                var graph = this._extract_data_map_func(this.ExtractData());
            
-                var nodes = testData.nodes,
-                    links = testData.links
-                ;
-
-                this._location_x_scale
-                    .domain(d3.extent(nodes, function (d) { return d['x']; }))
-                ;
-
-                this._location_y_scale
-                    .domain(d3.extent(nodes, function (d) { return d['y']; }))
+                var nodes = graph.nodes,
+                    links = graph.links
                 ;
 
                 nodes.forEach((d) => {
-                    d.x = this._location_x_scale(d.x),
-                    d.y = this._location_y_scale(d.y);
+                    d.x = d.x * this.LensRadius;
+                    d.y = d.y * this.LensRadius;
+                });
+
+                this._location_x_scale
+                    .domain(d3.extent(nodes, function (d:Node) { return d.x; }))
+                ;
+
+                this._location_y_scale
+                    .domain(d3.extent(nodes, function (d:Node) { return d.y; }))
+                ;
+
+                nodes.forEach((d) => {
+                    if ((d.x * d.x + d.y * d.y) > this.LensRadius * this.LensRadius) {
+
+                        d.x = this._location_x_scale(d.x),
+                        d.y = this._location_y_scale(d.y);
+                    }
                 });
 
                 this._force
@@ -134,14 +149,10 @@ module ManyLens {
                 ;
 
                 var link = this._lens_circle_svg
-                    .selectAll(".link")
+                    .selectAll(".network.link")
                     .data(links)
                     .enter().append("line")
-                    .attr("class", "link")
-                    //.attr('x1', function (d) { return nodes[d.source].x; })
-                    //.attr('y1', function (d) { return nodes[d.source].y; })
-                    //.attr('x2', function (d) { return nodes[d.target].x; })
-                    //.attr('y2', function (d) { return nodes[d.target].y; })
+                    .attr("class", "network link")
                     .style({
                         "stroke": "#777",
                         "stroke-width": "1px"
@@ -149,10 +160,10 @@ module ManyLens {
                 ;
 
                 var node = this._lens_circle_svg
-                    .selectAll(".node")
+                    .selectAll(".network.node")
                     .data(nodes)
                     .enter().append("circle")
-                    .attr("class", "node")
+                    .attr("class", "network node")
                     .attr("r",4)
                     .attr('cx', function (d) { return d.x; })
                     .attr('cy', function (d) { return d.y; })
