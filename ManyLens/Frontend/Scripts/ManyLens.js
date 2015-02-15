@@ -228,7 +228,6 @@ var ManyLens;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._section = new Array();
                 this._data = new Array();
                 //this._markData = new Array<Mark>();
                 //this._lastMark = {
@@ -244,7 +243,6 @@ var ManyLens;
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
-                //private _lastMark: { id: string; type: number };
                 get: function () {
                     return this._section_num;
                 },
@@ -259,14 +257,13 @@ var ManyLens;
             Curve.prototype.Render = function () {
                 _super.prototype.Render.call(this, null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
-                var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
+                // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
-                this._curveSvg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", coordinate_view_height + 10).attr("x", this._view_left_padding).attr("y", this._view_top_padding - 10);
+                this._curveSvg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding).attr("y", 0);
                 this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
                 this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
-                this._mainView.append("path").attr('stroke', 'rgb(31, 145, 189)').attr('stroke-width', 2).attr('fill', 'none').attr("id", "path");
             };
             Curve.prototype.PullInterval = function (interalID) {
                 var _this = this;
@@ -296,73 +293,9 @@ var ManyLens;
                 })]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
-                //if (mark.type == 2 || mark.type == 3) {
-                //    var eid = mark.id;
-                //    var iter = this._markData.length - 1;
-                //    while (iter >= 0 && (this._markData[iter].type == 4)) {
-                //        this._markData[iter].end = eid;
-                //        --iter;
-                //    }
-                //    if (iter >= 0 && (this._markData[iter].type == 3 || this._markData[iter].type == 1)) {
-                //        this._markData[iter].end = eid;
-                //    }
-                //    if (mark.type == 2) {
-                //        mark.beg = this._lastMark.id;
-                //    }
-                //    this._markData.push(mark);
-                //    this._lastMark = mark;
-                //} else {
-                //    if (mark.type == 4) {
-                //        mark.beg = this._lastMark.id;
-                //    }
-                //    if (mark.type == 1) {
-                //        this._lastMark = mark;
-                //    }
-                //    this._markData.push(mark);
-                //}
-                // this._markData.push(mark);
-                //this._section = new Array<Section>();
-                //var lastSection: Section;
-                //this._data.forEach((d:Point, i) => {
-                //    try {
-                //        if (d.type == 1 || ((d.type == 4 || d.type == 3) && i == 0)) {
-                //            var section: Section = {
-                //                beg: i,
-                //                end: 0,
-                //                id:d.beg,
-                //                values: [d.value]
-                //            };
-                //            lastSection = section;
-                //        } else if (d.type == 3) {
-                //            lastSection.end = i;
-                //            lastSection.values.push(d.value);
-                //            this._section.push(lastSection);
-                //            var section: Section = {
-                //                beg: i,
-                //                end: 0,
-                //                id:d.beg,
-                //                values: [d.value]
-                //            };
-                //            lastSection = section;
-                //        } else if (d.type == 2 && i != 0) {
-                //            lastSection.end = i;
-                //            lastSection.values.push(d.value);
-                //            this._section.push(lastSection);
-                //        } else if (d.type == 4 && i == this._data.length -1 ) {
-                //            lastSection.end = i;
-                //            lastSection.values.push(d.value);
-                //            this._section.push(lastSection);
-                //        } else if(d.type == 4) {
-                //            lastSection.values.push(d.value);
-                //        }
-                //    } catch (e) {
-                //        console.log(d);
-                //        console.log(i);
-                //        console.log(lastSection);
-                //    }
-                //});
+                var restPathData = [];
                 var nodesData = [];
-                this._section = new Array();
+                var sectionData = new Array();
                 var i = 0, len = this._data.length;
                 while (i < len) {
                     var point = this._data[i];
@@ -371,49 +304,37 @@ var ManyLens;
                             id: point.beg,
                             beg: i,
                             end: 0,
-                            values: [point.value]
+                            pathPoints: [{ index: i, value: point.value }]
                         };
                         nodesData.push({ id: point.beg, value: point.value, index: i });
                         while (this._data[++i] && this._data[i].beg == section.id) {
-                            section.values.push(this._data[i].value);
+                            section.pathPoints.push({ index: i, value: this._data[i].value });
                             nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         }
                         if (this._data[i] && this._data[i].type == 3) {
                             section.end = i;
-                            section.values.push(this._data[i].value);
+                            section.pathPoints.push({ index: i, value: this._data[i].value });
                         }
                         else {
                             section.end = i - 1;
                         }
-                        this._section.push(section);
+                        sectionData.push(section);
                     }
                     else {
-                        ++i;
+                        var sectionRestPath = [];
+                        if (this._data[i - 1])
+                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value });
+                        sectionRestPath.push({ index: i, value: this._data[i].value });
+                        while (this._data[++i] && !this._data[i].beg) {
+                            sectionRestPath.push({ index: i, value: this._data[i].value });
+                        }
+                        if (this._data[i])
+                            sectionRestPath.push({ index: i, value: this._data[i].value });
+                        restPathData.push(sectionRestPath);
                     }
                 }
-                //handle the seg line
-                //this._mainView.selectAll(".curve.mark").remove();
-                //var lines = this._mainView.selectAll(".curve.mark").data(this._markData);
-                //lines.enter().append("line")
-                //    .attr("x1", (d, i) => {
-                //        return this._x_scale(i);
-                //    })
-                //    .attr("x2", (d, i) => {
-                //        return this._x_scale(i);
-                //    })
-                //    .attr("y1", this._view_top_padding)
-                //    .attr("y2", (d) => {
-                //        if (d.type == 1 || d.type == 2 || d.type == 3)
-                //            return this._view_height + this._view_top_padding;
-                //        return this._view_top_padding;
-                //    })
-                //   // .attr('stroke', function (d) { return d.type == 1 ? 'red' : d.type == 2 ? 'green' : 'navy'; })
-                //    .attr('stroke', function (d) { return "#fff"; })
-                //    .attr('stroke-width', function (d) { return d.type == 3 ? 2 : 0;})
-                //    .attr("class", "curve mark")
-                //;
                 //handle the seg rect
-                var rects = this._mainView.selectAll(".curve.seg").data(this._section);
+                var rects = this._mainView.selectAll(".curve.seg").data(sectionData);
                 rects.attr("x", function (d, i) {
                     return _this._x_scale(d.beg);
                 }).attr("width", function (d, i) {
@@ -421,15 +342,45 @@ var ManyLens;
                 });
                 rects.enter().append("rect").attr("x", function (d, i) {
                     return _this._x_scale(d.beg);
-                }).attr("y", this._view_top_padding).attr("width", function (d, i) {
+                }).attr("y", 0).attr("width", function (d, i) {
                     return _this._x_scale(d.end) - _this._x_scale(d.beg);
-                }).attr("height", this._view_height).attr("class", "curve seg").style({
-                    fill: "#ffeda0",
-                    opacity: 0.5
+                }).attr("height", this._view_height + this._view_top_padding).attr("class", "curve seg").style({
+                    fill: 'rgb(31, 145, 189)'
                 }).on("click", function (d) {
                     _this.SelectSegment(d);
                 });
                 rects.exit().remove();
+                var lineFunc = d3.svg.line().x(function (d, i) {
+                    return _this._x_scale(d.index);
+                }).y(function (d, i) {
+                    return _this._y_scale(d.value);
+                }).interpolate("linear");
+                var path = this._mainView.selectAll(".curve.section.path").data(sectionData, function (d) {
+                    return d.id;
+                });
+                path.attr("d", function (d) {
+                    return lineFunc(d.pathPoints);
+                });
+                path.enter().append("path").style({
+                    'stroke': '#fff',
+                    'stroke-width': 3,
+                    'fill': 'none'
+                }).attr("d", function (d) {
+                    return lineFunc(d.pathPoints);
+                }).attr("class", "curve section path");
+                path.exit().remove();
+                var restPath = this._mainView.selectAll(".curve.rest.path").data(restPathData);
+                restPath.attr("d", function (d) {
+                    return lineFunc(d);
+                });
+                restPath.enter().append("path").style({
+                    'stroke': 'rgb(31, 145, 189)',
+                    'stroke-width': 3,
+                    'fill': 'none'
+                }).attr("d", function (d) {
+                    return lineFunc(d);
+                }).attr("class", "curve rest path");
+                restPath.exit().remove();
                 //handle the seg node
                 var nodes = this._mainView.selectAll(".curve.node").data(nodesData, function (d) {
                     return d.index;
@@ -448,19 +399,12 @@ var ManyLens;
                 }).style({
                     fill: "#fff",
                     stroke: "rgb(31, 145, 189)",
-                    "stroke-width": 2
+                    "stroke-width": 1.5
                 });
                 nodes.exit().remove();
-                var lineFunc = d3.svg.line().x(function (d, i) {
-                    return _this._x_scale(i);
-                }).y(function (d, i) {
-                    return _this._y_scale(d.value);
-                }).interpolate("linear");
-                //handle the line path
-                this._mainView.selectAll("#path").attr("d", lineFunc(this._data));
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(400).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(40).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
