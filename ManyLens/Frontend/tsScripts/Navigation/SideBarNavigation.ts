@@ -149,7 +149,10 @@
                             children: [
                                 {
                                     name: "New New 1",
-                                    lensConstructFunc: Lens.MapLens
+                                    lensConstructFunc: Lens.MapLens,
+                                    extractDataFunc: (d) => {
+                                        return d.j;
+                                    }
                                 },
                                 { name: "New New 2" },
                                 { name: "New New 3" }

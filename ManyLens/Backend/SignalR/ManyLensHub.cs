@@ -78,8 +78,6 @@ namespace ManyLens.SignalR
 
         }
 
-
-
         //damn it, I almost forget how this function works.
         public async Task PullPoint(string start)
         {
@@ -267,8 +265,6 @@ namespace ManyLens.SignalR
 
         public async Task PullInterval(string interalID,IProgress<double> progress)
         {
-            
-
             VisMap visMap;
             string mapID = interalID+"_0";
             if(visMaps.ContainsKey(mapID))
@@ -324,6 +320,17 @@ namespace ManyLens.SignalR
             sr.Close();
             Clients.Caller.showVIS(visData);
         }
+
+        public async Task GetDataForLens(string visMapID, int[] unitsID, string whichData)
+        {
+            Task.Run(() => { 
+            
+            });
+        
+        }
+
+
+
 
         public void ReOrganize(string visMapID,int[] selectedUnits)
         {

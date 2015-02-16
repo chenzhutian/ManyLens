@@ -133,7 +133,10 @@ var ManyLens;
                             children: [
                                 {
                                     name: "New New 1",
-                                    lensConstructFunc: ManyLens.Lens.MapLens
+                                    lensConstructFunc: ManyLens.Lens.MapLens,
+                                    extractDataFunc: function (d) {
+                                        return d.j;
+                                    }
                                 },
                                 { name: "New New 2" },
                                 { name: "New New 3" }
@@ -1228,13 +1231,13 @@ var ManyLens;
                 }
                 else {
                     d3.json("./testData/world.json", function (error, mapData) {
-                        _this._color.domain(d3.extent(_this._extract_data_map_func(_this._data)));
+                        //  this._color.domain(d3.extent(this._extract_data_map_func(this._data)));
                         _this._map_data = {
                             raw: mapData,
                             color: []
                         };
                         _this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(mapData, mapData.objects.countries).features).enter().append("path").attr("d", _this._path).attr("fill", function (d) {
-                            var color = _this._color(d.id);
+                            var color = _this._color(3);
                             _this._map_data.color.push(color);
                             return color;
                         }).on("click", function (d) {

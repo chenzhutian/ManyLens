@@ -109,7 +109,7 @@ module ManyLens {
 
                 } else {
                     d3.json("./testData/world.json", (error, mapData) => {
-                        this._color.domain(d3.extent(this._extract_data_map_func(this._data)));
+                      //  this._color.domain(d3.extent(this._extract_data_map_func(this._data)));
                         this._map_data = {
                             raw: mapData,
                             color: []
@@ -122,7 +122,7 @@ module ManyLens {
                             .enter().append("path")
                             .attr("d", this._path)
                             .attr("fill", (d) => {
-                                var color = this._color(d.id);
+                                var color = this._color(3);
                                 this._map_data.color.push(color)
                                 return color;
                             })
