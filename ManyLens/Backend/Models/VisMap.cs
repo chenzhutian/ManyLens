@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Linq;
 using System.Web;
 
@@ -145,7 +146,7 @@ namespace ManyLens.Models
             this.units.Remove(index);
         }
 
-        public VISData GetVisData()
+        public Task<VISData> GetVisData()
         {
 
             List<int> keys = units.Keys.ToList();
@@ -193,12 +194,12 @@ namespace ManyLens.Models
                                                  unitsData = unitData
                                              };
 
-                return visdata;
+                return Task.FromResult<VISData>(visdata);
             }
             catch (Exception e)
             {
                 Debug.WriteLine(e.InnerException);
-                return null;
+                return Task.FromResult<VISData>(null);
             }
         }
 
