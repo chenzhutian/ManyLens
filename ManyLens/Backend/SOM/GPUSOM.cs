@@ -4,7 +4,6 @@ using System.Linq;
 using System.Web;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using ManyLens.myMath;
 using ManyLens.Models;
 using System.IO;
@@ -37,7 +36,7 @@ namespace ManyLens.SOM
         [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern void somFree(IntPtr pointer);
 
-        public static Task<VisMap> TweetSOM(Interval interval, string rootPath)
+        public static VisMap TweetSOM(Interval interval, string rootPath)
         {
             InitializeCUDA();
             //generate the random matrix for random mapping
@@ -102,10 +101,10 @@ namespace ManyLens.SOM
             }
             sw.Flush();
             sw.Close();
-            return Task.FromResult<VisMap>(visMap);
+            return visMap;
         }
 
-        public static Task<VisMap> TestTweetSOM(Interval interval, string rootPath)
+        public static VisMap TestTweetSOM(Interval interval, string rootPath)
         {
             
             int trainsetSize = interval.TweetsCount;
@@ -143,11 +142,9 @@ namespace ManyLens.SOM
                 Debug.WriteLine(e.InnerException);
             }
       
-            return Task.FromResult<VisMap>(visMap);
+            return visMap;
         
         }
-
-
         public static VisMap TweetReOrganizeSOM(VisMap visMap,int[] selectedUnits)
         {
             InitializeCUDA();

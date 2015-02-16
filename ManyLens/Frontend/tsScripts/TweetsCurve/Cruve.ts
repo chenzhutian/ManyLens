@@ -320,7 +320,7 @@ module ManyLens {
                     this._mainView
                         .attr("transform", null)
                         .transition()
-                        .duration(600)  //this time-step should be equale to the time step of AddPoint() in server.hub
+                        .duration(40)  //this time-step should be equale to the time step of AddPoint() in server.hub
                         .ease("linear")
                         .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)")
                     ;

@@ -236,7 +236,7 @@ namespace ManyLens.SignalR
                     points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(800);
+                    Thread.Sleep(50);
 
                 }
 
@@ -274,41 +274,41 @@ namespace ManyLens.SignalR
                 string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
                 Interval interal = interals[interalID];
 
-                 await TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
-                 await TweetsVectorizer.VectorizeEachTweet(interal, progress);
+                await TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
+                await TweetsVectorizer.VectorizeEachTweet(interal, progress);
 
                 //Test
                 if (TestMode)
                 {
-                    visMap = await GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
+                    visMap = GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
                 }
                 else
                 {
-                    visMap = await GPUSOM.TweetSOM(interal, rootFolder);
+                    visMap = GPUSOM.TweetSOM(interal, rootFolder);
                 }
                
                 visMaps.Add(visMap.VisMapID, visMap);
             }
 
-            //try
-            //{
-            //    Debug.Write("Let's cache the visData as  json");
+            try
+            {
+                Debug.Write("Let's cache the visData as  json");
 
-            //    VISData visData = visMap.GetVisData();
-            //    System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
-            //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-            //    jser.WriteObject(sw.BaseStream, visData);
-            //    sw.Close();
-            //    Debug.Write("finish json");
-            //}
-            //catch (Exception e)
-            //{
-            //    Debug.WriteLine(e.InnerException.Message);
-            //    Debug.WriteLine(e.Message);
-            //}
+                VISData visData = visMap.GetVisData();
+                System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
+                var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
+                jser.WriteObject(sw.BaseStream, visData);
+                sw.Close();
+                Debug.Write("finish json");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.InnerException.Message);
+                Debug.WriteLine(e.Message);
+            }
 
   
-            Clients.Caller.showVIS(await visMap.GetVisData());
+            Clients.Caller.showVIS(visMap.GetVisData());
         }
 
         public void testPullInterval(string interalID)
