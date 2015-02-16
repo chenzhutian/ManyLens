@@ -1,6 +1,6 @@
 ﻿///<reference path = "./BaseD3Lens.ts" />
 module ManyLens {
-    export module Lens{
+    export module Lens {
         export class BaseSingleLens extends BaseD3Lens {
 
             public static Type: string = "BaseSingleLens";
@@ -23,7 +23,7 @@ module ManyLens {
             //protected _sc_drag_event_flag: boolean = false;
             protected _sc_lc_default_dist = 100;
 
-            protected _extract_data_map_func: (d: any,newData?:any) => any = null;
+            protected _extract_data_map_func: (d: any, newData?: any) => any = null;
 
             public get AttributeName(): string {
                 return this._attribute_name;
@@ -31,7 +31,7 @@ module ManyLens {
             public get LinkLine(): D3.Selection {
                 return this._sc_lc_svg.select("line");
             }
-            public get SelectCircleCX(): number {        
+            public get SelectCircleCX(): number {
                 return this._select_circle_cx;
             }
             public get SelectCircleCY(): number {
@@ -43,11 +43,11 @@ module ManyLens {
             public get SelectCircleRadius(): number {
                 return this._select_circle_radius;
             }
-            public get LensPlace(): number{
+            public get LensPlace(): number {
                 return this._place;
             }
 
-            constructor(element: D3.Selection, attributeName:string,type: string, manyLens: ManyLens) {
+            constructor(element: D3.Selection, attributeName: string, type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
                 this._is_composite_lens = false;
                 this._select_circle_radius = 10;
@@ -76,7 +76,7 @@ module ManyLens {
                     })
                     .on("drag", () => {
                         //if (this._sc_drag_event_flag) {
-                            this.SelectCircleDragFunc();
+                        this.SelectCircleDragFunc();
                         //} else {
                         //    this._sc_drag_event_flag = true;
                         //}
@@ -110,7 +110,7 @@ module ManyLens {
                     .attr("stroke-width", 1)
                     .attr({
                         cx: -50,
-                        cy:-50
+                        cy: -50
                     })
                     .on("mouseup", (d) => {
                         if (!this._has_put_down) {
@@ -144,7 +144,7 @@ module ManyLens {
                 }
             }
 
-            public DataAccesser(map?: (d: any, newData?:any) => any): any {
+            public DataAccesser(map?: (d: any, newData?: any) => any): any {
                 if (map == null) return this._extract_data_map_func;
                 this._extract_data_map_func = map;
                 return this;
@@ -154,19 +154,22 @@ module ManyLens {
                 var res = this.GetElementByMouse();
                 if (!res) {
                     this._data = null;
-                } else {
-                    var data = (d3.select(res).data())[0];
-                    this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID],"adf")
-                        .done((d: UnitsDataForLens) => {
-                            this._data = d;
-                            this._place = this._data.unitsID[0];
+                    return null;
+                }
+                var data = (d3.select(res).data())[0];
+                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "adf");
+                promise
+                    .done((d: UnitsDataForLens) => {
+                        console.log("promise done in basesingleLens");
+                        this._data = d;
+                        this._place = this._data.unitsID[0];
+                        this.DisplayLens();
                     });
-                    
-               }
-               //return this._data;
+                return promise;
+
             }
 
-            public DisplayLens():boolean {
+            public DisplayLens(): boolean {
                 if (this._data) {
                     var duration: number = super.DisplayLens();
                     var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
@@ -248,7 +251,7 @@ module ManyLens {
                     + this._lens_circle_radius) * sinTheta;
 
                     this.ExtractData();
-                    this.DisplayLens();
+
 
                     this._has_showed_lens = true;
                 }
@@ -345,7 +348,7 @@ module ManyLens {
                 }
             }
 
-            public ChangeHostTo(hostLens: BaseCompositeLens):void {
+            public ChangeHostTo(hostLens: BaseCompositeLens): void {
                 if (this.IsComponentLens) {
                     this.HostLens = hostLens;
                 } else {
@@ -359,9 +362,9 @@ module ManyLens {
                 try {
                     var x = d3.event.sourceEvent.x,
                         y = d3.event.sourceEvent.y;
-                }catch(e){
+                } catch (e) {
                     return;
-                }   
+                }
 
                 var p = d3.mouse(this._element.node());
                 if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))

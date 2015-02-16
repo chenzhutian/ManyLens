@@ -940,15 +940,17 @@ var ManyLens;
                 var res = this.GetElementByMouse();
                 if (!res) {
                     this._data = null;
+                    return null;
                 }
-                else {
-                    var data = (d3.select(res).data())[0];
-                    this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "adf").done(function (d) {
-                        _this._data = d;
-                        _this._place = _this._data.unitsID[0];
-                    });
-                }
-                //return this._data;
+                var data = (d3.select(res).data())[0];
+                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "adf");
+                promise.done(function (d) {
+                    console.log("promise done in basesingleLens");
+                    _this._data = d;
+                    _this._place = _this._data.unitsID[0];
+                    _this.DisplayLens();
+                });
+                return promise;
             };
             BaseSingleLens.prototype.DisplayLens = function () {
                 var _this = this;
@@ -1004,7 +1006,6 @@ var ManyLens;
                     this._lens_circle_cx = this._select_circle_cx + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist + this._lens_circle_radius) * cosTheta;
                     this._lens_circle_cy = this._select_circle_cy + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist + this._lens_circle_radius) * sinTheta;
                     this.ExtractData();
-                    this.DisplayLens();
                     this._has_showed_lens = true;
                 }
                 //z-index的问题先不解决
@@ -1610,10 +1611,15 @@ var ManyLens;
             };
             // data shape {text: size:}
             WordCloudLens.prototype.ExtractData = function () {
-                _super.prototype.ExtractData.call(this);
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func(this._data), function (d) {
-                    return d.Value;
-                }));
+                var _this = this;
+                var promise;
+                if (promise = _super.prototype.ExtractData.call(this))
+                    promise.done(function () {
+                        console.log("promise done in wordcloud lens");
+                        _this._font_size.range([10, _this._cloud_w / 8]).domain(d3.extent(_this._extract_data_map_func(_this._data), function (d) {
+                            return d.Value;
+                        }));
+                    });
             };
             WordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;

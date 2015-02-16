@@ -35,15 +35,19 @@ module ManyLens {
 
             // data shape {text: size:}
             public ExtractData() {
-                super.ExtractData();
+                var promise;
+                if (promise = super.ExtractData())
+                    promise.done(() => {
+                        console.log("promise done in wordcloud lens");
+                        this._font_size
+                            .range([10, this._cloud_w / 8])
+                            .domain(d3.extent(this._extract_data_map_func(this._data), (d: { Key: any; Value: any }) => {
+                                return d.Value;
+                            }))
+                        ;
+                    });
 
 
-                    this._font_size
-                        .range([10, this._cloud_w / 8])
-                        .domain(d3.extent(this._extract_data_map_func(this._data), (d: { Key: any; Value: any }) => {
-                            return d.Value;
-                        }))
-                    ;
 
 
             }
