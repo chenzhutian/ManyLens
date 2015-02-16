@@ -191,7 +191,7 @@ var ManyLens;
                     });
                 }
                 else {
-                    this._manyLens.ManyLensHubServerPullPoint("0").done(function () {
+                    this._manyLens.ManyLensHubServerPullPoint("0").done(function (d) {
                         _this._launchDataBtn.classed("disabled", false);
                     });
                 }
@@ -423,7 +423,7 @@ var ManyLens;
                 nodes.exit().remove();
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(600).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(40).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
@@ -936,15 +936,19 @@ var ManyLens;
                 return this;
             };
             BaseSingleLens.prototype.ExtractData = function () {
+                var _this = this;
                 var res = this.GetElementByMouse();
                 if (!res) {
                     this._data = null;
                 }
                 else {
-                    this._data = (d3.select(res).data()[0].lensData);
-                    this._place = this._data.unitsID[0];
+                    var data = (d3.select(res).data())[0];
+                    this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "adf").done(function (d) {
+                        _this._data = d;
+                        _this._place = _this._data.unitsID[0];
+                    });
                 }
-                return this._data;
+                //return this._data;
             };
             BaseSingleLens.prototype.DisplayLens = function () {
                 var _this = this;
@@ -1606,17 +1610,16 @@ var ManyLens;
             };
             // data shape {text: size:}
             WordCloudLens.prototype.ExtractData = function () {
-                var data = _super.prototype.ExtractData.call(this);
-                if (data)
-                    this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func(data), function (d) {
-                        return d.Value;
-                    }));
-                return data;
+                _super.prototype.ExtractData.call(this);
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func(this._data), function (d) {
+                    return d.Value;
+                }));
             };
             WordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return null;
+                console.log(this._data);
                 this._cloud.size([this._cloud_w, this._cloud_h]).words(this._extract_data_map_func(this._data)).filter(function (d) {
                     if (d.Value > 3)
                         return true;
@@ -3409,7 +3412,7 @@ var ManyLens;
                 lensC.DisplayLens();
             }
         };
-        /* -------------------- Curve related Function -----------------------*/
+        /* -------------------- Hub related Function -----------------------*/
         ManyLens.prototype.ManyLensHubRegisterClientFunction = function (obj, funcName, func) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
@@ -3446,6 +3449,13 @@ var ManyLens;
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
             return this._manyLens_hub.server.testPullInterval(id);
+        };
+        ManyLens.prototype.ManyLensHubServerGetLensData = function (visMapID, unitsID, whichData) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.getLensData(visMapID, unitsID, whichData);
         };
         ManyLens.TestMode = false;
         return ManyLens;

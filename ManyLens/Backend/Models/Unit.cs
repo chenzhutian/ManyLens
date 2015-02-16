@@ -10,6 +10,8 @@ namespace ManyLens.Models
     {
         private Dictionary<string, int> wordLabels = null;
 
+
+
         private float[] unitSumVector = null; //store as accumulate value
 
 
@@ -19,7 +21,10 @@ namespace ManyLens.Models
         private Dictionary<string, User> users;
         private Dictionary<string, int> userTweets;
 
+
+
         private Interval interval;
+
 
         #region Getter & Setter
         public float[] UnitVector
@@ -83,114 +88,29 @@ namespace ManyLens.Models
                 this.tfidfVectors = value;
             }
         }
-        public List<KeyValuePair<string, int>> WordLabels
+        public Dictionary<string, User> Users
         {
-            get
-            {
-                return wordLabels.ToList();
-            }
+            get { return users; }
+            set { users = value; }
         }
-        public List<KeyValuePair<int, int>> TweetLengthDistribute
+        public Dictionary<string, int> WordLabels
         {
-            get
-            {
-                Dictionary<int, int> lenDistribute = new Dictionary<int, int>();
-                int len = this.TweetsCount;
-                for (int i = 0; i < len; ++i)
-                {
-                    int index = this.Tweets[i].Length;
-                    if (lenDistribute.ContainsKey(index))
-                        lenDistribute[index]++;
-                    else
-                    {
-                        lenDistribute.Add(index, 1);
-                    }
-                }
-                return lenDistribute.ToList();
-            }
+            get { return wordLabels; }
+            set { wordLabels = value; }
         }
-        public List<KeyValuePair<string, int>> HashTagDistribute
+        public Interval Interval
         {
-            get
-            {
-                Dictionary<string, int> hashtagDistribute = new Dictionary<string, int>();
-                int len = this.TweetsCount;
-                for (int i = 0; i < len; ++i)
-                {
-                    List<string> hts = this.Tweets[i].HashTag;
-                    foreach (string ht in hts)
-                    {
-                        if (hashtagDistribute.ContainsKey(ht))
-                            hashtagDistribute[ht]++;
-                        else
-                        {
-                            hashtagDistribute.Add(ht, 1);
-                        }
-                    }
-                }
-                return hashtagDistribute.ToList();
-            }
+            get { return interval; }
+            set { interval = value; }
         }
-        public Network RetweetNetwork
+        public Dictionary<string, int> UserTweets
         {
-            get
-            {
-                List<string> userNames = new List<string>();
-                List<Node> nodes = new List<Node>();
-                List<Link> links = new List<Link>();
-                Random rnd = new Random();
-                int len = this.TweetsCount;
-                for (int i = 0; i < len; ++i)
-                {
-                    Tweet tweet = this.Tweets[i];
-                    if (tweet.SourceUserName != null && this.users.ContainsKey(tweet.SourceUserName))
-                    {
-                        int sourceIndex = userNames.IndexOf(tweet.SourceUserName);
-                        int targetIndex = userNames.IndexOf(tweet.PostUserName);
-                        if (sourceIndex == -1)
-                        {
-                            userNames.Add(tweet.SourceUserName);
-                            nodes.Add(new Node() { userName = tweet.SourceUserName, x = rnd.NextDouble(), y = rnd.NextDouble() });
-                            sourceIndex = nodes.Count - 1;
-
-                        }
-                        if (targetIndex == -1)
-                        {
-                            userNames.Add(tweet.PostUserName);
-                            nodes.Add(new Node() { userName = tweet.PostUserName, x = rnd.NextDouble(), y = rnd.NextDouble() });
-                            targetIndex = nodes.Count - 1;
-                        }
-                        links.Add(new Link() { source = sourceIndex, target = targetIndex });
-                    }
-                }
-                return new Network() { links = links, nodes = nodes };
-            }
-
+            get { return userTweets; }
+            set { userTweets = value; }
         }
-        public List<KeyValuePair<string, int>> UserTweetsDistribute
-        {
-            get
-            {
-                return this.userTweets.ToList();
-            }
-        }
-
         #endregion
 
-        //public Unit(Unit unit)
-        //    :base()
-        //{
-        //    this.wordLabels = new Dictionary<string, int>();
-        //    this.tfidfVectors = new List<float[]>();
-        //    this.users = new List<User>();
-        //    this.interval = unit.interval;
-        //    this.Vocabulary = unit.Vocabulary;
 
-        //    this.Tweets.AddRange(unit.Tweets);
-        //    this.SparseVector.AddRange(unit.SparseVector);
-        //    this.TFIDFVectors.AddRange(unit.TFIDFVectors);
-        //    this.unitSumVector = unit.UnitVector;
-        //}
 
         public Unit(int x, int y, int id, Interval interval)
             : base()
@@ -210,13 +130,13 @@ namespace ManyLens.Models
         }
 
 
-        public void AddTweet(Tweet tweet)
+        public new void AddTweet(Tweet tweet)
         {
             base.AddTweet(tweet);
-            int index = this.interval.Tweets.IndexOf(tweet);
+            int index = this.Interval.Tweets.IndexOf(tweet);
 
-            this.SparseVector.Add(interval.SparseVector[index]);
-            float[] tfv = interval.TFIDFVectors[index];
+            this.SparseVector.Add(Interval.SparseVector[index]);
+            float[] tfv = Interval.TFIDFVectors[index];
             this.tfidfVectors.Add(tfv);
             if (this.UnitSumVector == null)
             {
@@ -235,22 +155,22 @@ namespace ManyLens.Models
             {
                 if (words[i] == "")
                     continue;
-                if (wordLabels.ContainsKey(words[i]))
-                    wordLabels[words[i]]++;
+                if (WordLabels.ContainsKey(words[i]))
+                    WordLabels[words[i]]++;
                 else
-                    wordLabels.Add(words[i], 1);
+                    WordLabels.Add(words[i], 1);
             }
 
             User user = tweet.User;
-            if (this.users.ContainsKey(user.UserName))
+            if (this.Users.ContainsKey(user.UserName))
             {
-                var num = this.userTweets[user.UserName] + 1;
-                this.userTweets[user.UserName] = num;
+                var num = this.UserTweets[user.UserName] + 1;
+                this.UserTweets[user.UserName] = num;
             }
             else
             {
-                this.users.Add(user.UserName, user);
-                this.userTweets.Add(user.UserName, 1);
+                this.Users.Add(user.UserName, user);
+                this.UserTweets.Add(user.UserName, 1);
             }
 
         }

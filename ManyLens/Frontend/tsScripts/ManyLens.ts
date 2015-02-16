@@ -121,7 +121,7 @@ module ManyLens {
 
         }
 
-        /* -------------------- Curve related Function -----------------------*/
+        /* -------------------- Hub related Function -----------------------*/
         public ManyLensHubRegisterClientFunction(obj: any, funcName: string, func: (...any) => any) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
@@ -162,6 +162,14 @@ module ManyLens {
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
             return this._manyLens_hub.server.testPullInterval(id);
+        }
+
+        public ManyLensHubServerGetLensData(visMapID:string, unitsID: number[],whichData:string): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.getLensData(visMapID, unitsID, whichData);
         }
 
     }

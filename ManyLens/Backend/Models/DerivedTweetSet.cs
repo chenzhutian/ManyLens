@@ -43,9 +43,6 @@ namespace ManyLens.Models
                 return this.Vocabulary.Dimension;
             }
         }
-
- 
-
         #endregion
 
         protected DerivedTweetSet()

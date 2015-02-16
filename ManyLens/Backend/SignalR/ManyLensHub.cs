@@ -26,7 +26,7 @@ namespace ManyLens.SignalR
 
         private Random rnd = new Random();
 
-        public async Task LoadData() 
+        public async Task LoadData()
         {
             //clear the static data
             interals.Clear();
@@ -100,7 +100,7 @@ namespace ManyLens.SignalR
                             }
 
                             int end = i;
-                            tp[i-1].IsPeak = true;
+                            tp[i - 1].IsPeak = true;
                             while (i < tp.Length && tp[i].TweetsCount > tp[begin].TweetsCount)
                             {
                                 cutoff = variance * beta;
@@ -128,10 +128,10 @@ namespace ManyLens.SignalR
 
                             tp[end].BeginPoint = tp[begin].ID;
                             tp[end].EndPoint = tp[end].ID;
-                            tp[end].PointType += 2;       
+                            tp[end].PointType += 2;
                             interal.EndDate = tp[end].TermDate;
-                            
-                            for (int k = begin+1; k < end; ++k)
+
+                            for (int k = begin + 1; k < end; ++k)
                             {
                                 tp[k].BeginPoint = tp[begin].ID;
                                 tp[k].EndPoint = tp[end].ID;
@@ -202,10 +202,10 @@ namespace ManyLens.SignalR
                     //points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(800);
+                    Thread.Sleep(50);
 
                 }
-
+               
                 ////Output the json data
                 //Debug.Write("Let's cache the point data as json");
                 //jser.WriteObject(sw.BaseStream, points);
@@ -214,12 +214,13 @@ namespace ManyLens.SignalR
             });
         }
 
-        public async Task PullInterval(string interalID,IProgress<double> progress)
+        public async Task PullInterval(string interalID, IProgress<double> progress)
         {
             VisMap visMap;
-            string mapID = interalID+"_0";
+            string mapID = interalID + "_0";
 
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 if (visMaps.ContainsKey(mapID))
                     visMap = visMaps[mapID];
                 else
@@ -233,7 +234,7 @@ namespace ManyLens.SignalR
                     //Test
                     if (TestMode)
                     {
-                         visMap = GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
+                        visMap = GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
                     }
                     else
                     {
@@ -263,7 +264,34 @@ namespace ManyLens.SignalR
                 Clients.Caller.showVIS(visMap.GetVisData());
 
             });
-            
+
+        }
+
+        public async Task<UnitsDataForLens> GetLensData(string visMapID, int[] unitsID, string whichData)
+        {
+            UnitsDataForLens data = null;
+            await Task.Run(() =>
+            {
+                VisMap visMap = visMaps[visMapID];
+                LensData newUnit = new LensData(visMap.GetUnitAt(unitsID[0]));
+                for (int i = 1, len = unitsID.Length; i < len; ++i)
+                {
+                    newUnit.MergeUnit(visMap.GetUnitAt(unitsID[i]));
+                }
+                
+                data = new UnitsDataForLens(){
+                    unitsID = newUnit.UnitsID,
+                    contents = newUnit.TweetContents,
+                    keywordsDistribute = newUnit.KeywordsDistribute,
+                    tweetLengthDistribute = newUnit.TweetLengthDistribute,
+                    hashTagDistribute = newUnit.HashTagDistribute,
+                    userTweetsDistribute = newUnit.UserTweetsDistribute,
+                    retweetNetwork = newUnit.RetweetNetwork
+                    // tweetIDs = unit.TweetIDs
+                };
+                
+            });
+            return data;
         }
 
         #region some code for test
@@ -294,7 +322,7 @@ namespace ManyLens.SignalR
         #endregion
 
 
-        public void ReOrganize(string visMapID,int[] selectedUnits)
+        public void ReOrganize(string visMapID, int[] selectedUnits)
         {
             VisMap newVisMap = GPUSOM.TweetReOrganizeSOM(visMaps[visMapID], selectedUnits);
             visMaps.Add(newVisMap.VisMapID, newVisMap);
@@ -325,7 +353,7 @@ namespace ManyLens.SignalR
                 visMap.RemoveUnitAt(fromUnitsID[i]);
 
             }
-            
+
             for (int i = toUnitsID.Length - 1; i >= 0; --i)
             {
                 Unit unit = visMap.GetUnitAt(toUnitsID[i]);
@@ -353,7 +381,7 @@ namespace ManyLens.SignalR
                 }
                 closetUnit.AddTweet(rawTweets[i]);
             }
-    
+
             Clients.Caller.reDrawSOMMap(visMap.GetVisData());
         }
         public void DoLongRunningThing()

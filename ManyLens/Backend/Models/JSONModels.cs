@@ -66,8 +66,8 @@ namespace ManyLens.Models
         public int count{set;get;}
         public int x { set; get; }
         public int y { set; get; }
-
-        public UnitsDataForLens lensData { set; get; }
+        public string mapID { get; set; }
+        //public UnitsDataForLens lensData { set; get; }
         //public List<string> tweetIDs{set;get;}
     }
 

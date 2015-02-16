@@ -35,24 +35,22 @@ module ManyLens {
 
             // data shape {text: size:}
             public ExtractData() {
-                var data = super.ExtractData();
+                super.ExtractData();
 
 
-                if (data)
                     this._font_size
                         .range([10, this._cloud_w / 8])
-                        .domain(d3.extent(this._extract_data_map_func(data), (d: { Key: any; Value: any }) => {
+                        .domain(d3.extent(this._extract_data_map_func(this._data), (d: { Key: any; Value: any }) => {
                             return d.Value;
                         }))
                     ;
 
 
-                return data;
             }
 
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return null;
-
+                console.log(this._data);
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._extract_data_map_func(this._data))
                     .filter((d) => {

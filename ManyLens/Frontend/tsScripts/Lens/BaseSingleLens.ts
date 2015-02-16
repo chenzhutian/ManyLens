@@ -155,10 +155,15 @@ module ManyLens {
                 if (!res) {
                     this._data = null;
                 } else {
-                    this._data = (d3.select(res).data()[0].lensData);
-                    this._place = this._data.unitsID[0];
-                }
-                return this._data;
+                    var data = (d3.select(res).data())[0];
+                    this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID],"adf")
+                        .done((d: UnitsDataForLens) => {
+                            this._data = d;
+                            this._place = this._data.unitsID[0];
+                    });
+                    
+               }
+               //return this._data;
             }
 
             public DisplayLens():boolean {

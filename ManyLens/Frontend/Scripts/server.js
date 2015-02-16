@@ -86,6 +86,14 @@
                 return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["DoLongRunningThing"], $.makeArray(arguments)));
              },
 
+            getLensData: function (visMapID, unitsID, whichData) {
+            /// <summary>Calls the GetLensData method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
+            /// <param name=\"visMapID\" type=\"String\">Server side type is System.String</param>
+            /// <param name=\"unitsID\" type=\"Object\">Server side type is System.Int32[]</param>
+            /// <param name=\"whichData\" type=\"String\">Server side type is System.String</param>
+                return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["GetLensData"], $.makeArray(arguments)));
+             },
+
             loadData: function () {
             /// <summary>Calls the LoadData method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
                 return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["LoadData"], $.makeArray(arguments)));
@@ -116,17 +124,6 @@
             /// <param name=\"visMapID\" type=\"String\">Server side type is System.String</param>
             /// <param name=\"selectedUnits\" type=\"Object\">Server side type is System.Int32[]</param>
                 return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["ReOrganize"], $.makeArray(arguments)));
-             },
-
-            testPullInterval: function (interalID) {
-            /// <summary>Calls the testPullInterval method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
-            /// <param name=\"interalID\" type=\"String\">Server side type is System.String</param>
-                return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["testPullInterval"], $.makeArray(arguments)));
-             },
-
-            testPullPoint: function () {
-            /// <summary>Calls the testPullPoint method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
-                return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["testPullPoint"], $.makeArray(arguments)));
              }
         };
 

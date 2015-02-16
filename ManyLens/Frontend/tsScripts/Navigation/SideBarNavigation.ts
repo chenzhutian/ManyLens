@@ -219,10 +219,11 @@
             private PullData(): void {
                 if (ManyLens.TestMode) {
                     this._manyLens.ManyLensHubServerTestPullPoint().done(() => {
+                       
                         this._launchDataBtn.classed("disabled", false);
                     });
                 } else {
-                    this._manyLens.ManyLensHubServerPullPoint("0").done(() => {
+                    this._manyLens.ManyLensHubServerPullPoint("0").done((d) => {
                         this._launchDataBtn.classed("disabled", false);
                     });
                 }

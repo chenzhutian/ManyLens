@@ -161,26 +161,14 @@ namespace ManyLens.Models
                         this.maxTweetCount = unit.TweetsCount;
                     }
 
-                    List<int> unitsID = new List<int>();
-                    unitsID.Add(unit.UnitID);
                     unitData.Add(new UnitsData()
-                                                {
-                                                    unitID = unit.UnitID,
-                                                    count = unit.TweetsCount,
-                                                    x = unit.X,
-                                                    y = unit.Y,
-                                                    lensData = new UnitsDataForLens()
-                                                    {
-                                                        unitsID = unitsID,
-                                                        contents = unit.TweetContents,
-                                                        keywordsDistribute = unit.WordLabels,
-                                                        tweetLengthDistribute = unit.TweetLengthDistribute,
-                                                        hashTagDistribute = unit.HashTagDistribute,
-                                                        userTweetsDistribute = unit.UserTweetsDistribute,
-                                                        retweetNetwork = unit.RetweetNetwork
-                                                        // tweetIDs = unit.TweetIDs
-                                                    }
-                                                });
+                    {
+                        unitID = unit.UnitID,
+                        count = unit.TweetsCount,
+                        x = unit.X,
+                        y = unit.Y,
+                        mapID = this.VisMapID
+                    });
                 }
 
                 VISData visdata = new VISData()
