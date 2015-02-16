@@ -74,8 +74,13 @@ var ManyLens;
                                     }
                                 },
                                 {
-                                    name: "Url Count",
-                                    lensConstructFunc: ManyLens.Lens.PieChartLens
+                                    name: "User Tweets",
+                                    lensConstructFunc: ManyLens.Lens.PieChartLens,
+                                    extractDataFunc: function (d, newData) {
+                                        if (newData)
+                                            d.userTweetsDistribute = newData;
+                                        return d.userTweetsDistribute;
+                                    }
                                 },
                                 {
                                     name: "@Mention Count",

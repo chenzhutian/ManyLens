@@ -26,7 +26,6 @@ module ManyLens {
         private _mapSvg: D3.Selection;
         private _mapArea: MapArea.SOMMap;
 
-
         private _historyView_id: string = "historyView";
         private _historyView: D3.Selection;
         private _historySvg_id: string = "historySvg";

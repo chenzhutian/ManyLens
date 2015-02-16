@@ -16,6 +16,7 @@ namespace ManyLens.SignalR
 {
     public class ManyLensHub : Hub
     {
+        private static bool TestMode = true;
         private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 
         // private readonly TimeSpan MyInterval = TimeSpan.FromMilliseconds(40);
@@ -280,15 +281,24 @@ namespace ManyLens.SignalR
                 await TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
                 await TweetsVectorizer.VectorizeEachTweet(interal, progress);
 
-                visMap = GPUSOM.TweetSOM(interal, rootFolder);
+                //Test
+                if (TestMode)
+                {
+                    visMap = GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
+                }
+                else
+                {
+                    visMap = GPUSOM.TweetSOM(interal, rootFolder);
+                }
+               
                 visMaps.Add(visMap.VisMapID, visMap);
             }
 
             try
             {
                 Debug.Write("Let's cache the visData as  json");
-                VISData visData = visMap.GetVisData();
 
+                VISData visData = visMap.GetVisData();
                 System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
                 var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
                 jser.WriteObject(sw.BaseStream, visData);
