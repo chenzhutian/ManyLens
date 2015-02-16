@@ -108,43 +108,31 @@ namespace ManyLens.SOM
         {
             
             int trainsetSize = interval.TweetsCount;
-            int[] h_output = new int[trainsetSize];
             int width = 32;
             int height = 16;
 
             StreamReader sr = new StreamReader(rootPath + "Backend\\DataBase\\somOutput_"+interval.ID+".json");
-            int j = 0;
-            while (!sr.EndOfStream)
-            {
-                h_output[j] =int.Parse(sr.ReadLine());
-                j++;
-            }
-            sr.Close();
-
             //construct the som map for visualization
             VisMap visMap = new VisMap(interval.ID + "_0", width, height, interval);
-            try
+            int i = 0;
+            while (!sr.EndOfStream)
             {
-                for (int i = 0; i < trainsetSize; ++i)
+                int BID = int.Parse(sr.ReadLine());
+                if (!visMap.TryAddTweetToUnit(BID, interval.Tweets[i]))
                 {
-                    if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i]))
-                    {
-                        Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i], interval);
-                        Tweet tweet = interval.Tweets[i];
-                        unit.AddTweet(tweet);
-                        visMap.AddUnit(h_output[i], unit);
-                    }
+                    Unit unit = new Unit(BID % width, BID/ width,BID, interval);
+                    Tweet tweet = interval.Tweets[i];
+                    unit.AddTweet(tweet);
+                    visMap.AddUnit(BID, unit);
                 }
-
-            }
-            catch (NullReferenceException e)
-            {
-                Debug.WriteLine(e.InnerException);
-            }
-      
+                i++;
+            }  
             return visMap;
         
         }
+
+
+
         public static VisMap TweetReOrganizeSOM(VisMap visMap,int[] selectedUnits)
         {
             InitializeCUDA();

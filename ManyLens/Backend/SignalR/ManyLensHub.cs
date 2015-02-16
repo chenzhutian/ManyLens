@@ -25,42 +25,6 @@ namespace ManyLens.SignalR
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
 
         private Random rnd = new Random();
-        //private int lastPointIndex = -1;
-        //private Point lastPoint = null;
-        
-        //用来实现真正的streaming的peak detection用的，基本思想是用一个栈来保存状态，当确保状态安全时就推送给客户端
-        private void AddPoint(int i, Term[] tp)
-        {
-            //Point newPoint = new Point()
-            //{
-            //    value = tp[i].TweetsCount,
-            //    mark = new Mark()
-            //    {
-            //        id = tp[i].ID,
-            //        type = tp[i].PointType,
-            //        beg = "",
-            //        end = ""
-            //    }
-            //};
-            //if (lastPoint == null && lastPointIndex != i)
-            //{
-            //    lastPoint = newPoint;
-            //    lastPointIndex = i;
-            //}
-            //else if (i != lastPointIndex && lastPoint != null)
-            //{
-            //    Clients.Caller.addPoint(lastPoint);
-            //    lastPoint = newPoint;
-            //    lastPointIndex = i;
-            //}
-            //else
-            //{
-            //    Clients.Caller.addPoint(newPoint);
-            //    lastPoint = null;
-            //}
-
-            //Thread.Sleep(200);
-        }
 
         public async Task LoadData() 
         {
@@ -115,9 +79,9 @@ namespace ManyLens.SignalR
                 variance = Math.Sqrt(variance / p);
 
                 //output the point json data
-                System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
-                var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
-                List<Point> points = new List<Point>();
+                //System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
+                //var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
+                //List<Point> points = new List<Point>();
 
                 for (int i = p, t = 0; t < tp.Length; i++, t++)
                 {
@@ -196,6 +160,7 @@ namespace ManyLens.SignalR
                         end = tp[t].EndPoint
                     };
 
+                    #region mark version
                     //if (tp[t].PointType == 1)
                     //{
                     //    Interval interal = new Interval(tp[t].TermDate, tp[t]);
@@ -231,105 +196,102 @@ namespace ManyLens.SignalR
                     //    interal.AddTerm(tp[t]);
                     //    interals[id] = interal;
                     //}
+                    #endregion
 
-                    //Output the json data
-                    points.Add(point);
+                    ////Output the json data
+                    //points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(50);
+                    Thread.Sleep(800);
 
                 }
 
-                //Output the json data
-                Debug.Write("Let's cache the point data as json");
-                jser.WriteObject(sw.BaseStream, points);
-                sw.Close();
-                Debug.Write("finish json");
+                ////Output the json data
+                //Debug.Write("Let's cache the point data as json");
+                //jser.WriteObject(sw.BaseStream, points);
+                //sw.Close();
+                //Debug.Write("finish json");
             });
-        }
-
-        //Just for test
-        public void testPullPoint()
-        {
-            //load the point json data
-            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\pointData_test.json");
-            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
-            List<Point> points = (List<Point>)jser.ReadObject(sr.BaseStream);
-            sr.Close();
-            for (int i = 0, len = points.Count; i < len; ++i)
-            {
-                Clients.Caller.addPoint(points[i]);
-                Thread.Sleep(100);
-            }
         }
 
         public async Task PullInterval(string interalID,IProgress<double> progress)
         {
             VisMap visMap;
             string mapID = interalID+"_0";
-            if(visMaps.ContainsKey(mapID))
-                visMap = visMaps[mapID];
-            else
-            {
-                string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
-                Interval interal = interals[interalID];
 
-                await TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
-                await TweetsVectorizer.VectorizeEachTweet(interal, progress);
-
-                //Test
-                if (TestMode)
-                {
-                    visMap = GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
-                }
+            await Task.Run(() => {
+                if (visMaps.ContainsKey(mapID))
+                    visMap = visMaps[mapID];
                 else
                 {
-                    visMap = GPUSOM.TweetSOM(interal, rootFolder);
+                    string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+                    Interval interal = interals[interalID];
+
+                    TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
+                    TweetsVectorizer.VectorizeEachTweet(interal, progress);
+
+                    //Test
+                    if (TestMode)
+                    {
+                         visMap = GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
+                    }
+                    else
+                    {
+                        visMap = GPUSOM.TweetSOM(interal, rootFolder);
+                    }
+
+                    visMaps.Add(visMap.VisMapID, visMap);
                 }
-               
-                visMaps.Add(visMap.VisMapID, visMap);
-            }
 
-            try
-            {
-                Debug.Write("Let's cache the visData as  json");
+                //try
+                //{
+                //    Debug.Write("Let's cache the visData as  json");
 
-                VISData visData = visMap.GetVisData();
-                System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
-                var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-                jser.WriteObject(sw.BaseStream, visData);
-                sw.Close();
-                Debug.Write("finish json");
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.InnerException.Message);
-                Debug.WriteLine(e.Message);
-            }
+                //    VISData visData = visMap.GetVisData();
+                //    System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
+                //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
+                //    jser.WriteObject(sw.BaseStream, visData);
+                //    sw.Close();
+                //    Debug.Write("finish json");
+                //}
+                //catch (Exception e)
+                //{
+                //    Debug.WriteLine(e.InnerException.Message);
+                //    Debug.WriteLine(e.Message);
+                //}
 
-  
-            Clients.Caller.showVIS(visMap.GetVisData());
-        }
+                Clients.Caller.showVIS(visMap.GetVisData());
 
-        public void testPullInterval(string interalID)
-        {
-            //load the point json data
-            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\visData_test.json");
-            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-            VISData visData = (VISData)jser.ReadObject(sr.BaseStream);
-            sr.Close();
-            Clients.Caller.showVIS(visData);
-        }
-
-        public async Task GetDataForLens(string visMapID, int[] unitsID, string whichData)
-        {
-            Task.Run(() => { 
-            
             });
-        
+            
         }
 
+        #region some code for test
+        //Just for test
+        //public void testPullPoint()
+        //{
+        //    //load the point json data
+        //    System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\pointData_test.json");
+        //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
+        //    List<Point> points = (List<Point>)jser.ReadObject(sr.BaseStream);
+        //    sr.Close();
+        //    for (int i = 0, len = points.Count; i < len; ++i)
+        //    {
+        //        Clients.Caller.addPoint(points[i]);
+        //        Thread.Sleep(800);
+        //    }
+        //}
 
+        //public void testPullInterval(string interalID)
+        //{
+        //    //load the point json data
+        //    System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\visData_test.json");
+        //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
+        //    VISData visData = (VISData)jser.ReadObject(sr.BaseStream);
+        //    sr.Close();
+        //    Clients.Caller.showVIS(visData);
+        //}
+        #endregion
 
 
         public void ReOrganize(string visMapID,int[] selectedUnits)
@@ -338,7 +300,6 @@ namespace ManyLens.SignalR
             visMaps.Add(newVisMap.VisMapID, newVisMap);
             Clients.Caller.showVIS(newVisMap.GetVisData());
         }
-
         public void MoveTweets(string visMapID, int[] fromUnitsID, int[] toUnitsID)
         {
             if (visMapID == null || fromUnitsID == null || toUnitsID == null)
@@ -395,7 +356,6 @@ namespace ManyLens.SignalR
     
             Clients.Caller.reDrawSOMMap(visMap.GetVisData());
         }
-
         public void DoLongRunningThing()
         {
             Clients.Caller.showMSG(rootFolder);

@@ -14,7 +14,7 @@ namespace ManyLens.Preprocessing
     public class TweetsPreprocessor
     {
      
-        public async static Task ProcessTweetAsync(Interval interval, String stopwordFile,IProgress<double> progress)
+        public static void ProcessTweetAsync(Interval interval, String stopwordFile,IProgress<double> progress)
         {
             if (interval.HasPreprocessed)
                 return;
@@ -27,8 +27,8 @@ namespace ManyLens.Preprocessing
             //load stopwords
             HashSet<string> stopWords = LoadStopWord(stopwordFile);
 
-            await Task.Run(() => 
-            {
+            //await Task.Run(() => 
+            //{
                 int percent = 0;
                 int tweetsCount = interval.TweetsCount - 1;
                 
@@ -139,7 +139,7 @@ namespace ManyLens.Preprocessing
 
                 }*/
 #endregion
-            });
+          //  });
             interval.HasPreprocessed = true; 
         }
 

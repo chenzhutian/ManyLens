@@ -9,7 +9,7 @@ namespace ManyLens.Preprocessing
 {
     public class TweetsVectorizer
     {
-        public async static Task VectorizeEachTweet(Interval interval,IProgress<double> progress)
+        public  static void VectorizeEachTweet(Interval interval,IProgress<double> progress)
         {
             if (interval.HasVectorized)
                 return;
@@ -19,8 +19,8 @@ namespace ManyLens.Preprocessing
             Dictionary<string,int> idOfWords = new Dictionary<string,int>();
             List<Dictionary<string,int>> vectors = new List<Dictionary<string,int>>();
 
-            await Task.Run(() => 
-            {
+            //await Task.Run(() => 
+            //{
                 int tweetsCount = interval.TweetsCount;
                 for (int i = 0, percent = 0 ; i < tweetsCount; ++i)
                 {
@@ -116,7 +116,7 @@ namespace ManyLens.Preprocessing
                 interval.Vocabulary = new Vocabulary(idOfWords, dfOfWords);
 
                 interval.HasVectorized = true;
-            });
+           // });
 
         }
     }
