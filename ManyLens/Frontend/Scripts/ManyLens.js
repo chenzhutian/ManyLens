@@ -516,7 +516,9 @@ var ManyLens;
         LensHistory.HistoryTrees = HistoryTrees;
     })(LensHistory = ManyLens.LensHistory || (ManyLens.LensHistory = {}));
 })(ManyLens || (ManyLens = {}));
-///<reference path = "../D3ChartObject.ts" />
+/////<reference path = "./BaseSingleLens.ts" />
+//module ManyLens {
+//    export module Lens {
 var ManyLens;
 (function (ManyLens) {
     var Lens;
@@ -665,6 +667,9 @@ var ManyLens;
                 this._sc_lc_svg = this._element.append("g").attr("class", "lens");
             };
             BaseD3Lens.prototype.ExtractData = function () {
+                throw new Error('This method is abstract');
+            };
+            BaseD3Lens.prototype.AfterExtractData = function () {
                 throw new Error('This method is abstract');
             };
             BaseD3Lens.prototype.DisplayLens = function (any) {
@@ -943,14 +948,16 @@ var ManyLens;
                     return null;
                 }
                 var data = (d3.select(res).data())[0];
-                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "adf");
+                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "test");
                 promise.done(function (d) {
                     console.log("promise done in basesingleLens");
                     _this._data = d;
                     _this._place = _this._data.unitsID[0];
+                    _this.AfterExtractData();
                     _this.DisplayLens();
                 });
-                return promise;
+            };
+            BaseSingleLens.prototype.AfterExtractData = function () {
             };
             BaseSingleLens.prototype.DisplayLens = function () {
                 var _this = this;
@@ -1107,53 +1114,6 @@ var ManyLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "./BaseSingleLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var BarChartLens = (function (_super) {
-            __extends(BarChartLens, _super);
-            function BarChartLens(element, attributeName, manyLens) {
-                _super.call(this, element, attributeName, BarChartLens.Type, manyLens);
-                this._x_axis_gen = d3.svg.axis();
-                this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
-                this._bar_chart_height = this._bar_chart_width;
-            }
-            BarChartLens.prototype.Render = function (color) {
-                _super.prototype.Render.call(this, color);
-            };
-            BarChartLens.prototype.ExtractData = function () {
-                var data = _super.prototype.ExtractData.call(this);
-                data = d3.range(12).map(function (d) {
-                    return 10 + 70 * Math.random();
-                });
-                return data;
-            };
-            BarChartLens.prototype.DisplayLens = function () {
-                var _this = this;
-                if (!_super.prototype.DisplayLens.call(this))
-                    return;
-                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data]);
-                this._x_axis_gen.scale(x).ticks(0).orient("bottom");
-                this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
-                    return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
-                }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
-                this._bar_width = (this._bar_chart_width - 20) / this._extract_data_map_func(this._data).length;
-                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._extract_data_map_func(this._data)));
-                var bar = this._lens_circle_svg.selectAll(".bar").data(this._extract_data_map_func(this._data)).enter().append("g").attr("transform", function (d, i) {
-                    return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
-                });
-                bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
-                    return barHeight(d);
-                }).attr("fill", "steelblue");
-            };
-            BarChartLens.Type = "BarChartLens";
-            return BarChartLens;
-        })(Lens.BaseSingleLens);
-        Lens.BarChartLens = BarChartLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./BaseSingleLens.ts" />
 ///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -1207,14 +1167,7 @@ var ManyLens;
             MapLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
             };
-            MapLens.prototype.ExtractData = function () {
-                var data = _super.prototype.ExtractData.call(this);
-                data = [78, 72, 56, 55, 54, 53, 51, 50, 49, 48, 47, 46, 45, 44, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 13, 12, 11, 10, 9, 8, 6, 5, 4, 2, 1];
-                var barData = [];
-                data.forEach(function (d) {
-                    barData[d] = Math.random() * 70;
-                });
-                return data;
+            MapLens.prototype.AfterExtractData = function () {
             };
             MapLens.prototype.DisplayLens = function () {
                 var _this = this;
@@ -1321,83 +1274,13 @@ var ManyLens;
             NetworkLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
             };
-            NetworkLens.prototype.ExtractData = function () {
-                var data = _super.prototype.ExtractData.call(this);
-                //var graph = {
-                //    "nodes": [{ "x": 208.992345, "y": 273.053211 },
-                //        { "x": 595.98896, "y": 56.377057 },
-                //        { "x": 319.568434, "y": 278.523637 },
-                //        { "x": 214.494264, "y": 214.893585 },
-                //        { "x": 482.664139, "y": 340.386773 },
-                //        { "x": 84.078465, "y": 192.021902 },
-                //        { "x": 196.952261, "y": 370.798667 },
-                //        { "x": 107.358165, "y": 435.15643 },
-                //        { "x": 401.168523, "y": 443.407779 },
-                //        { "x": 508.368779, "y": 386.665811 },
-                //        { "x": 355.93773, "y": 460.158711 },
-                //        { "x": 283.630624, "y": 87.898162 },
-                //        { "x": 194.771218, "y": 436.366028 },
-                //        { "x": 477.520013, "y": 337.547331 },
-                //        { "x": 572.98129, "y": 453.668459 },
-                //        { "x": 106.717817, "y": 235.990363 },
-                //        { "x": 265.064649, "y": 396.904945 },
-                //        { "x": 452.719997, "y": 137.886092 }
-                //    ],
-                //    "links": [{ "target": 11, "source": 0 },
-                //        { "target": 3, "source": 0 },
-                //        { "target": 10, "source": 0 },
-                //        { "target": 16, "source": 0 },
-                //        { "target": 1, "source": 0 },
-                //        { "target": 3, "source": 0 },
-                //        { "target": 9, "source": 0 },
-                //        { "target": 5, "source": 0 },
-                //        { "target": 11, "source": 0 },
-                //        { "target": 13, "source": 0 },
-                //        { "target": 16, "source": 0 },
-                //        { "target": 3, "source": 1 },
-                //        { "target": 9, "source": 1 },
-                //        { "target": 12, "source": 1 },
-                //        { "target": 4, "source": 2 },
-                //        { "target": 6, "source": 2 },
-                //        { "target": 8, "source": 2 },
-                //        { "target": 13, "source": 2 },
-                //        { "target": 10, "source": 3 },
-                //        { "target": 16, "source": 3 },
-                //        { "target": 9, "source": 3 },
-                //        { "target": 7, "source": 3 },
-                //        { "target": 11, "source": 5 },
-                //        { "target": 13, "source": 5 },
-                //        { "target": 12, "source": 5 },
-                //        { "target": 8, "source": 6 },
-                //        { "target": 13, "source": 6 },
-                //        { "target": 10, "source": 7 },
-                //        { "target": 11, "source": 7 },
-                //        { "target": 17, "source": 8 },
-                //        { "target": 13, "source": 8 },
-                //        { "target": 11, "source": 10 },
-                //        { "target": 16, "source": 10 },
-                //        { "target": 13, "source": 11 },
-                //        { "target": 14, "source": 12 },
-                //        { "target": 14, "source": 12 },
-                //        { "target": 14, "source": 12 },
-                //        { "target": 15, "source": 12 },
-                //        { "target": 16, "source": 12 },
-                //        { "target": 15, "source": 14 },
-                //        { "target": 16, "source": 14 },
-                //        { "target": 15, "source": 14 },
-                //        { "target": 16, "source": 15 },
-                //        { "target": 16, "source": 15 },
-                //        { "target": 17, "source": 16 }
-                //    ]
-                //};
-                //return graph;
-                return data;
+            NetworkLens.prototype.AfterExtractData = function () {
             };
             NetworkLens.prototype.DisplayLens = function () {
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
-                var graph = this._extract_data_map_func(this.ExtractData());
+                var graph = this._extract_data_map_func(this._data);
                 var nodes = graph.nodes, links = graph.links;
                 nodes.forEach(function (d) {
                     d.x = d.x * _this.LensRadius;
@@ -1481,9 +1364,7 @@ var ManyLens;
             PieChartLens.prototype.Render = function (color) {
                 _super.prototype.Render.call(this, color);
             };
-            PieChartLens.prototype.ExtractData = function () {
-                var data = _super.prototype.ExtractData.call(this);
-                return data;
+            PieChartLens.prototype.AfterExtractData = function () {
             };
             PieChartLens.prototype.DisplayLens = function () {
                 var _this = this;
@@ -1610,22 +1491,15 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             // data shape {text: size:}
-            WordCloudLens.prototype.ExtractData = function () {
-                var _this = this;
-                var promise;
-                if (promise = _super.prototype.ExtractData.call(this))
-                    promise.done(function () {
-                        console.log("promise done in wordcloud lens");
-                        _this._font_size.range([10, _this._cloud_w / 8]).domain(d3.extent(_this._extract_data_map_func(_this._data), function (d) {
-                            return d.Value;
-                        }));
-                    });
+            WordCloudLens.prototype.AfterExtractData = function () {
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func(this._data), function (d) {
+                    return d.Value;
+                }));
             };
             WordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return null;
-                console.log(this._data);
                 this._cloud.size([this._cloud_w, this._cloud_h]).words(this._extract_data_map_func(this._data)).filter(function (d) {
                     if (d.Value > 3)
                         return true;

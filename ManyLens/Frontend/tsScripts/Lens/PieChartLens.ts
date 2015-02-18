@@ -40,10 +40,9 @@ module ManyLens{
 
             }
 
-            public ExtractData(): Array<any> {
-                var data: Array<any> =  super.ExtractData();
+            protected AfterExtractData(): void {
 
-                return data;
+
             }
 
             public DisplayLens(): any {

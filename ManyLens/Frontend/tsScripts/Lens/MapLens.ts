@@ -58,23 +58,9 @@ module ManyLens {
                     ]);
             }
 
-
-            public ExtractData(): any {
-                var data = super.ExtractData();
+            protected AfterExtractData(): void {
 
 
-                data = [78, 72, 56, 55, 54, 53, 51, 50, 49,
-                    48, 47, 46, 45, 44, 42, 41, 40, 39, 38, 37,
-                    36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26,
-                    25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15,
-                    13, 12, 11, 10, 9, 8, 6, 5, 4, 2, 1];
-
-                var barData = [];
-                data.forEach(function (d) {
-                    barData[d] = Math.random() * 70;
-                });
-
-                return data;
             }
 
             public DisplayLens(): any {

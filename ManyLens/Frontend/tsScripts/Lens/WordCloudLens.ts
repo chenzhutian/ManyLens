@@ -34,27 +34,18 @@ module ManyLens {
             }
 
             // data shape {text: size:}
-            public ExtractData() {
-                var promise;
-                if (promise = super.ExtractData())
-                    promise.done(() => {
-                        console.log("promise done in wordcloud lens");
-                        this._font_size
-                            .range([10, this._cloud_w / 8])
-                            .domain(d3.extent(this._extract_data_map_func(this._data), (d: { Key: any; Value: any }) => {
-                                return d.Value;
-                            }))
-                        ;
-                    });
-
-
-
-
+            protected AfterExtractData(): void {
+                this._font_size
+                    .range([10, this._cloud_w / 8])
+                    .domain(d3.extent(this._extract_data_map_func(this._data), (d: { Key: any; Value: any }) => {
+                        return d.Value;
+                    }))
+                ;
             }
 
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return null;
-                console.log(this._data);
+
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._extract_data_map_func(this._data))
                     .filter((d) => {

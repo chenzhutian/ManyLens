@@ -135,7 +135,11 @@ module ManyLens {
 
             }
 
-            protected ExtractData(): any {
+            protected ExtractData(): void {
+                throw new Error('This method is abstract');
+            }
+
+            protected AfterExtractData(): void {
                 throw new Error('This method is abstract');
             }
 

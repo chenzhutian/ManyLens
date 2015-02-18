@@ -150,22 +150,26 @@ module ManyLens {
                 return this;
             }
 
-            public ExtractData(): any {
+            protected ExtractData(): void {
                 var res = this.GetElementByMouse();
                 if (!res) {
                     this._data = null;
                     return null;
                 }
                 var data = (d3.select(res).data())[0];
-                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "adf");
+                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "test");
                 promise
                     .done((d: UnitsDataForLens) => {
                         console.log("promise done in basesingleLens");
                         this._data = d;
                         this._place = this._data.unitsID[0];
+
+                        this.AfterExtractData();
                         this.DisplayLens();
                     });
-                return promise;
+            }
+
+            protected AfterExtractData(): void {
 
             }
 
