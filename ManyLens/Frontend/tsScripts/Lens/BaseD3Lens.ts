@@ -38,7 +38,6 @@ module ManyLens {
 
             public get ID(): string {
                 return this._id;
-                
             }
             public get MapID(): string {
                 return this._map_id;
@@ -73,10 +72,10 @@ module ManyLens {
             public set LensRadius(radius: number) {
                 this._lens_circle_radius = radius;
             }
-            public get LensGroup(): D3.Selection {
+            public get LensSVGGroup(): D3.Selection {
                 return this._lens_circle_svg;
             }
-            public set LensGroup(lensG: D3.Selection) {
+            public set LensSVGGroup(lensG: D3.Selection) {
                 this._lens_circle_svg = lensG;
             }
             public get IsCompositeLens(): boolean {
@@ -103,7 +102,6 @@ module ManyLens {
             public get UnitsID(): number[] {
                 return this._units_id.sort();
             }
-
 
             constructor(element: D3.Selection, type: string,manyLens:ManyLens) {
                 super(element,manyLens);
@@ -205,7 +203,6 @@ module ManyLens {
 
                 this._lens_circle_svg
                     .transition().duration(duration)
-
                     .attr("opacity", "1")
                     .each("end", function () {
                         d3.select(this).style("pointer-events", "");
@@ -250,7 +247,7 @@ module ManyLens {
 
                 var ele = d3.select(document.elementFromPoint(x, y));
                 while (ele && ele.attr("id") != "mapSvg") {
-                    if (ele.attr("class") == "lens-circle") res.push(ele[0][0]);
+                    if (ele.classed("lens-circle")) res.push(ele[0][0]);
                     eles.push(ele);
                     ele.style("visibility", "hidden");
                     ele = d3.select(document.elementFromPoint(x, y));
@@ -301,9 +298,6 @@ module ManyLens {
                     return;
                 }
 
-                if (d3.event.scale == this._lens_circle_scale) {
-                    return;
-                }
                 if (d3.event.scale == this._lens_circle_scale) {
                     return;
                 }

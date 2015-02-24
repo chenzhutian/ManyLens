@@ -278,6 +278,61 @@ module ManyLens {
                 return this;
             }
 
+            //haven't handle yet
+            //TODO
+            private AddCompositeLens(componentLens: BaseCompositeLens): void {
+                if (componentLens.ComponentsSelectCircle.length != componentLens.ComponentsLens.length)
+                    throw new Error('The length of sc is different from length of lens');
+
+                for (var i = 0, len = componentLens.ComponentsLens.length; i < len; ++i) {
+                    this._components_lens.push(componentLens.ComponentsLens[i]);
+                    this._components_select_circle.push(componentLens.ComponentsSelectCircle[i]);
+                    if (this._components_kind.has(componentLens.ComponentsLens[i].Type)) {
+                        var num: number = this._components_kind.get(componentLens.ComponentsLens[i].Type) + 1;
+                        this._components_kind.set(componentLens.ComponentsLens[i].Type, num);
+                    } else {
+                        this._components_kind.set(componentLens.ComponentsLens[i].Type, 1);
+                    }
+                    componentLens.ComponentsLens[i].ChangeHostTo(this);
+                }
+
+                componentLens.RemoveWholeSVG();
+                this._manyLens.RemoveLens(componentLens);
+                this._new_lens_count = componentLens.ComponentsLens.length;
+            }
+
+            private AddSingleLens(lens: BaseSingleLens): void {
+                lens.HostLens = this;
+                this._components_lens.push(lens);
+                this._components_select_circle.push({
+                    _line: lens.LinkLine,
+                    _sc_cx: lens.SelectCircleCX,
+                    _sc_cy: lens.SelectCircleCY,
+                    _sc_radius: lens.SelectCircleRadius,
+                    _sc_scale: lens.SelectCircleScale
+                });
+
+                //Component kind
+                if (this._components_kind.has(lens.Type)) {
+                    var num: number = this._components_kind.get(lens.Type) + 1;
+                    this._components_kind.set(lens.Type, num);
+                } else {
+                    this._components_kind.set(lens.Type, 1);
+                }
+
+                //Component place
+                lens.UnitsID.forEach((d, i) => {
+                    if (this._components_places.has(d)) {
+                        var num: number = this._components_places.get(d) + 1;
+                        this._components_places.set(d, num);
+                    } else {
+                        this._components_places.set(d, 1);
+                        this._units_id.push(d);
+                    }
+                });
+                this._new_lens_count = 1;
+            }
+
             public RemoveComponentLens(lens: BaseSingleLens): BaseD3Lens {
                 //TODO remove related data here;
                 var index: number = this._components_lens.indexOf(lens);
@@ -350,63 +405,6 @@ module ManyLens {
 
                 }
                 this._new_lens_count = 0;
-            }
-
-            //haven't handle yet
-            //TODO
-            private AddCompositeLens(componentLens: BaseCompositeLens): void {
-                if (componentLens.ComponentsSelectCircle.length != componentLens.ComponentsLens.length)
-                    throw new Error('The length of sc is different from length of lens');
-
-                for (var i = 0, len = componentLens.ComponentsLens.length; i < len; ++i) {
-                    this._components_lens.push(componentLens.ComponentsLens[i]);
-                    this._components_select_circle.push(componentLens.ComponentsSelectCircle[i]);
-                    if (this._components_kind.has(componentLens.ComponentsLens[i].Type)) {
-                        var num: number = this._components_kind.get(componentLens.ComponentsLens[i].Type) + 1;
-                        this._components_kind.set(componentLens.ComponentsLens[i].Type, num);
-                    } else {
-                        this._components_kind.set(componentLens.ComponentsLens[i].Type, 1);
-                    }
-                    componentLens.ComponentsLens[i].ChangeHostTo(this);
-                }
-
-                componentLens.RemoveWholeSVG();
-                this._manyLens.RemoveLens(componentLens);
-                this._new_lens_count = componentLens.ComponentsLens.length;
-            }
-
-            private AddSingleLens(lens: BaseSingleLens): void {
-                lens.HostLens = this;
-                this._components_lens.push(lens);
-                this._components_select_circle.push({
-                    _line: lens.LinkLine,
-                    _sc_cx: lens.SelectCircleCX,
-                    _sc_cy: lens.SelectCircleCY,
-                    _sc_radius: lens.SelectCircleRadius,
-                    _sc_scale: lens.SelectCircleScale
-                });
-
-                //Component kind
-                if (this._components_kind.has(lens.Type)) {
-                    var num: number = this._components_kind.get(lens.Type) + 1;
-                    this._components_kind.set(lens.Type, num);
-                } else {
-                    this._components_kind.set(lens.Type, 1);
-                }
-
-                //Component place
-                lens.UnitsID.forEach((d, i) => {
-                    if (this._components_places.has(d)) {
-                        var num: number = this._components_places.get(d) + 1;
-                        this._components_places.set(d, num);
-                    } else {
-                        this._components_places.set(d, 1);
-                        this._units_id.push(d);
-                    }
-                });
-
-                
-                this._new_lens_count = 1;
             }
 
             private RemoveWholeSVG() {

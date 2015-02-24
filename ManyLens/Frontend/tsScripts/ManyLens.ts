@@ -31,10 +31,10 @@ module ManyLens {
 
         //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
         private _lens: Map<string, Lens.BaseD3Lens> = new Map<string, Lens.BaseD3Lens>();
-        private _lens_count: number = 0;
+        //private _lens_count: number = 0;
 
         public get LensCount(): number {
-            return this._lens_count;
+            return this._lens.size;
         }
 
         constructor() {
@@ -85,7 +85,7 @@ module ManyLens {
 
         public AddLens(lens: Lens.BaseD3Lens): void {
             this._lens.set(lens.ID, lens);
-            this._lens_count++;
+            //this._lens_count++;
 
             this._historyTrees.addNode({
                 color: lens.LensTypeColor,
@@ -110,7 +110,6 @@ module ManyLens {
                 if ((<Lens.BaseCompositeLens>lensC).NeedtoReshape)
                     this._lens.set(hostLens.ID, lensC);
                 lensC.Render("black");
-                lensC.DisplayLens();
             } else {
                 this.RemoveLens(hostLens);
                 lensC.DisplayLens();

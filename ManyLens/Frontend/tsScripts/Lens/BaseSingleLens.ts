@@ -15,8 +15,6 @@ module ManyLens {
             protected _select_circle_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _select_circle_drag: D3.Behavior.Drag = d3.behavior.drag();
 
-
-
             protected _has_put_down: boolean = false;
             protected _has_showed_lens: boolean = false;
 
@@ -275,7 +273,6 @@ module ManyLens {
                     return;
                 }
 
-
                 this._select_circle_scale = d3.event.scale;
                 var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
                 var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
@@ -360,7 +357,7 @@ module ManyLens {
 
             protected GetElementByMouse(): { unitsID: number[]; mapID:string} {
                 var unitsID = [];
-                var mapID;
+                var mapID; 
                 var rect: SVGRect = (<SVGSVGElement>this._element.node()).createSVGRect();
 
                 rect.x = this._select_circle_cx - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
