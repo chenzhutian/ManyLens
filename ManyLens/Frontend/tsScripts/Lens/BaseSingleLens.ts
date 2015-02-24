@@ -355,9 +355,9 @@ module ManyLens {
                 }
             }
 
-            protected GetElementByMouse(): { unitsID: number[]; mapID:string} {
+            protected GetElementByMouse(): { unitsID: number[]; mapID: string } {
                 var unitsID = [];
-                var mapID; 
+                var mapID;
                 var rect: SVGRect = (<SVGSVGElement>this._element.node()).createSVGRect();
 
                 rect.x = this._select_circle_cx - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
@@ -365,23 +365,33 @@ module ManyLens {
                 rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale;
 
                 var ele = (<SVGSVGElement>this._element.node()).getIntersectionList(rect, null);
+                var minDist2 = Number.MAX_VALUE;
+                var minUnitsID = -1;
                 for (var i = 0, len = ele.length; i < len; ++i) {
                     var node = d3.select(ele.item(i));
                     if (node.classed("unit")) {
                         var dx = parseFloat(node.attr("x")) + parseFloat(node.attr("width")) * 0.5 - this._select_circle_cx;
                         var dy = parseFloat(node.attr("y")) + parseFloat(node.attr("height")) * 0.5 - this._select_circle_cy;
-                        if ((dx * dx + dy * dy) < (this._select_circle_radius * this._select_circle_scale * this._select_circle_radius * this._select_circle_scale)) {
-
-                            unitsID.push(node.data()[0]['unitID']);
+                        var dist2 = dx * dx + dy * dy;
+                        if (dist2 < (this._select_circle_radius * this._select_circle_scale * this._select_circle_radius * this._select_circle_scale)) {
+                            var tID = node.data()[0]['unitID'];
+                            unitsID.push(tID);
                             mapID = node.data()[0]['mapID'];
-                            console.log(unitsID);
+                            if (dist2 < minDist2) {
+                                minDist2 = dist2;
+                                minUnitsID = tID;
+                            }
                         }
                     }
                 }
 
                 var res = null;
-                if(unitsID.length >0 && mapID)
+                if (unitsID.length > 0 && mapID){
                     res = { unitsID: unitsID, mapID: mapID };
+                }   else if (unitsID.length == 0) {
+                    res = { unitsID: [minUnitsID], mapID: mapID };
+                }
+
                 return res;
                 //var eles = [];
                 //try {
