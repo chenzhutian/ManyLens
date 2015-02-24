@@ -100,6 +100,9 @@ module ManyLens {
             public get RawData(): any {
                 return this._data;
             }
+            public get UnitsID(): number[] {
+                return this._units_id.sort();
+            }
 
 
             constructor(element: D3.Selection, type: string,manyLens:ManyLens) {

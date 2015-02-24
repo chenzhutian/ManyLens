@@ -43,9 +43,7 @@ module ManyLens {
             public get SelectCircleRadius(): number {
                 return this._select_circle_radius;
             }
-            public get LensPlace(): number[] {
-                return this._units_id.sort();
-            }
+
 
             constructor(element: D3.Selection, attributeName: string, type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
@@ -159,7 +157,7 @@ module ManyLens {
                 console.log(data);
                 this._units_id = data.unitsID.sort();
                 this._map_id = data.mapID;
-                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID,data.unitsID, "test");
+                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
                 promise
                     .done((d: UnitsDataForLens) => {
                         console.log("promise done in basesingleLens");

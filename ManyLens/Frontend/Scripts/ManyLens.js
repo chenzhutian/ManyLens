@@ -672,6 +672,13 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
+            Object.defineProperty(BaseD3Lens.prototype, "UnitsID", {
+                get: function () {
+                    return this._units_id.sort();
+                },
+                enumerable: true,
+                configurable: true
+            });
             BaseD3Lens.prototype.Render = function (color) {
                 this._lens_type_color = color;
                 this._sc_lc_svg = this._element.append("g").attr("class", "lens");
@@ -884,13 +891,6 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
-            Object.defineProperty(BaseSingleLens.prototype, "LensPlace", {
-                get: function () {
-                    return this._units_id.sort();
-                },
-                enumerable: true,
-                configurable: true
-            });
             BaseSingleLens.prototype.Render = function (color) {
                 var _this = this;
                 _super.prototype.Render.call(this, color);
@@ -959,7 +959,7 @@ var ManyLens;
                 console.log(data);
                 this._units_id = data.unitsID.sort();
                 this._map_id = data.mapID;
-                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, data.unitsID, "test");
+                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
                 promise.done(function (d) {
                     console.log("promise done in basesingleLens");
                     _this._data = d;
@@ -1621,11 +1621,11 @@ var ManyLens;
                     //this._components_data.set(firstLens0.LensPlace, firstLens0.RawData);
                     //this._components_places.set(firstLens0.LensPlace, 1);
                     //set the place of this component lens
-                    firstLens0.LensPlace.forEach(function (d, i) {
+                    firstLens0.UnitsID.forEach(function (d, i) {
                         _this._components_places.set(d, 1);
                         _this._units_id.push(d);
                     });
-                    secondLens.LensPlace.forEach(function (d, i) {
+                    secondLens.UnitsID.forEach(function (d, i) {
                         if (_this._components_places.has(d)) {
                             //var num = this._components_places.get(d) + 1;
                             //if this place already exits, add 1 to it(which means it will be 2)
@@ -1709,9 +1709,9 @@ var ManyLens;
             };
             BaseCompositeLens.prototype.ExtractData = function () {
                 var _this = this;
-                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this._units_id, "test");
+                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
                 promise.done(function (d) {
-                    console.log("promise done in basesingleLens");
+                    console.log("promise done in baseCompositeLens");
                     _this._data = d;
                     _this.AfterExtractData();
                     _this.DisplayLens();
@@ -1807,7 +1807,7 @@ var ManyLens;
                 if (-1 != index) {
                     this._components_lens.splice(index, 1);
                     this._components_select_circle.splice(index, 1);
-                    lens.LensPlace.forEach(function (d, i) {
+                    lens.UnitsID.forEach(function (d, i) {
                         var num = _this._components_places.get(d) - 1;
                         if (num > 0) {
                             _this._components_places.set(d, num);
@@ -1905,7 +1905,7 @@ var ManyLens;
                     this._components_kind.set(lens.Type, 1);
                 }
                 //Component place
-                lens.LensPlace.forEach(function (d, i) {
+                lens.UnitsID.forEach(function (d, i) {
                     if (_this._components_places.has(d)) {
                         var num = _this._components_places.get(d) + 1;
                         _this._components_places.set(d, num);

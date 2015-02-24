@@ -93,11 +93,11 @@ module ManyLens {
                     //this._components_places.set(firstLens0.LensPlace, 1);
 
                     //set the place of this component lens
-                    firstLens0.LensPlace.forEach((d, i) => {
+                    firstLens0.UnitsID.forEach((d, i) => {
                         this._components_places.set(d, 1);
                         this._units_id.push(d);
                     });
-                    secondLens.LensPlace.forEach((d, i) => {
+                    secondLens.UnitsID.forEach((d, i) => {
                         if (this._components_places.has(d)) {
                             //var num = this._components_places.get(d) + 1;
                             //if this place already exits, add 1 to it(which means it will be 2)
@@ -163,10 +163,10 @@ module ManyLens {
 
             protected ExtractData(): any {
                 
-                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this._units_id, "test");
+                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
                 promise
                     .done((d: UnitsDataForLens) => {
-                        console.log("promise done in basesingleLens");
+                        console.log("promise done in baseCompositeLens");
                         this._data = d;
 
                         this.AfterExtractData();
@@ -285,7 +285,7 @@ module ManyLens {
                     this._components_lens.splice(index, 1);
                     this._components_select_circle.splice(index, 1);
 
-                    lens.LensPlace.forEach((d, i) => {
+                    lens.UnitsID.forEach((d, i) => {
                         var num: number = this._components_places.get(d) - 1;
                         if (num > 0) {
                             this._components_places.set(d, num);
@@ -395,7 +395,7 @@ module ManyLens {
                 }
 
                 //Component place
-                lens.LensPlace.forEach((d, i) => {
+                lens.UnitsID.forEach((d, i) => {
                     if (this._components_places.has(d)) {
                         var num: number = this._components_places.get(d) + 1;
                         this._components_places.set(d, num);
