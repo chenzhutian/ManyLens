@@ -15,7 +15,7 @@ module ManyLens {
             protected _select_circle_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _select_circle_drag: D3.Behavior.Drag = d3.behavior.drag();
 
-            protected _place: number = null;
+            protected _place: number[] = null;
 
             protected _has_put_down: boolean = false;
             protected _has_showed_lens: boolean = false;
@@ -43,8 +43,8 @@ module ManyLens {
             public get SelectCircleRadius(): number {
                 return this._select_circle_radius;
             }
-            public get LensPlace(): number {
-                return this._place;
+            public get LensPlace(): number[] {
+                return this._place.sort();
             }
 
             constructor(element: D3.Selection, attributeName: string, type: string, manyLens: ManyLens) {
@@ -151,18 +151,18 @@ module ManyLens {
             }
 
             protected ExtractData(): void {
-                var res = this.GetElementByMouse();
-                if (!res) {
+                var data: { unitsID: number[]; mapID:string} = this.GetElementByMouse();
+                if (!data) {
                     this._data = null;
                     return null;
                 }
-                var data = (d3.select(res).data())[0];
-                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "test");
+                console.log(data);
+                this._place = data.unitsID.sort()   ;
+                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, data.unitsID, "test");
                 promise
                     .done((d: UnitsDataForLens) => {
                         console.log("promise done in basesingleLens");
                         this._data = d;
-                        this._place = this._data.unitsID[0];
 
                         this.AfterExtractData();
                         this.DisplayLens();
@@ -254,7 +254,7 @@ module ManyLens {
                     + this._sc_lc_default_dist
                     + this._lens_circle_radius) * sinTheta;
 
-                    this.ExtractData();
+                    this.ExtractData(); //it will invoke display automatically when finishing extractdata
 
 
                     this._has_showed_lens = true;
@@ -360,38 +360,60 @@ module ManyLens {
                 }
             }
 
-            protected GetElementByMouse(): Element {
-                var res;
-                var eles = [];
-                try {
-                    var x = d3.event.sourceEvent.x,
-                        y = d3.event.sourceEvent.y;
-                } catch (e) {
-                    return;
-                }
+            protected GetElementByMouse(): { unitsID: number[]; mapID:string} {
+                var unitsID = [];
+                var mapID;
+                var rect: SVGRect = (<SVGSVGElement>this._element.node()).createSVGRect();
 
-                var p = d3.mouse(this._element.node());
-                if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
-                    return;
+                rect.x = this._select_circle_cx - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
+                rect.y = this._select_circle_cy - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
+                rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale;
 
-                var ele = d3.select(document.elementFromPoint(x, y));
-                while (ele && ele.attr("id") != "mapSvg") {
-                    if (ele.classed("unit")) {
-                        res = ele[0][0];
-                        break;
-                    }
-                    eles.push(ele);
-                    ele.style("visibility", "hidden");
-                    ele = d3.select(document.elementFromPoint(x, y));
-                    if (eles.length > 10) {
-                        throw new Error("what the fuck");
+                var ele = (<SVGSVGElement>this._element.node()).getIntersectionList(rect, null);
+                for (var i = 0, len = ele.length; i < len; ++i) {
+                    var node = d3.select(ele.item(i));
+                    if (node.classed("unit")) {
+                        var dx = parseFloat(node.attr("x")) + parseFloat(node.attr("width")) * 0.5 - this._select_circle_cx;
+                        var dy = parseFloat(node.attr("y")) + parseFloat(node.attr("height")) * 0.5 - this._select_circle_cy;
+                        if ((dx * dx + dy * dy) < (this._select_circle_radius * this._select_circle_scale * this._select_circle_radius * this._select_circle_scale)) {
+
+                            unitsID.push(node.data()[0]['unitID']);
+                            mapID = node.data()[0]['mapID'];
+                            console.log(unitsID);
+                        }
                     }
                 }
-
-                for (var i = 0, len = eles.length; i < len; ++i) {
-                    eles[i].style("visibility", "");
-                }
+                var res = { unitsID: unitsID, mapID: mapID };
                 return res;
+                //var eles = [];
+                //try {
+                //    var x = d3.event.sourceEvent.x,
+                //        y = d3.event.sourceEvent.y;
+                //} catch (e) {
+                //    return;
+                //}
+
+                //var p = d3.mouse(this._element.node());
+                //if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
+                //    return;
+
+                //var ele = d3.select(document.elementFromPoint(x, y));
+                //while (ele && ele.attr("id") != "mapSvg") {
+                //    if (ele.classed("unit")) {
+                //        res = ele[0][0];
+                //        break;
+                //    }
+                //    eles.push(ele);
+                //    ele.style("visibility", "hidden");
+                //    ele = d3.select(document.elementFromPoint(x, y));
+                //    if (eles.length > 10) {
+                //        throw new Error("what the fuck");
+                //    }
+                //}
+
+                //for (var i = 0, len = eles.length; i < len; ++i) {
+                //    eles[i].style("visibility", "");
+                //}
             }
         }
     }

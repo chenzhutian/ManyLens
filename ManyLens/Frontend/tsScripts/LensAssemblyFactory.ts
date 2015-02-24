@@ -35,7 +35,7 @@ module ManyLens {
                 }
                 case Lens.cBoundleLens.Type + "_" + Lens.WordCloudLens.Type:
                 case Lens.cBoundleLens.Type + "_" + Lens.NetworkLens.Type: {
-              //  case Lens.cBoundleLens.Type + "_" + Lens.cBoundleLens.Type: {
+                //  case Lens.cBoundleLens.Type + "_" + Lens.cBoundleLens.Type: {
                     return (<Lens.cBoundleLens>firstLens).AddComponentLens(secondLens);
                 }
 

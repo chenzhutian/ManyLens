@@ -264,7 +264,7 @@ module ManyLens {
 
                     if (lensC) {
                         lensC.Render("black");
-                        lensC.DisplayLens();
+                        //lensC.DisplayLens();
 
                         return true;
                     } else {

@@ -749,7 +749,7 @@ var ManyLens;
                     var lensC = ManyLens.LensAssemblyFactory.CombineLens(this._element, this._manyLens, this._manyLens.GetLens(lensA_id), this._manyLens.GetLens(lensB_id));
                     if (lensC) {
                         lensC.Render("black");
-                        lensC.DisplayLens();
+                        //lensC.DisplayLens();
                         return true;
                     }
                     else {
@@ -877,7 +877,7 @@ var ManyLens;
             });
             Object.defineProperty(BaseSingleLens.prototype, "LensPlace", {
                 get: function () {
-                    return this._place;
+                    return this._place.sort();
                 },
                 enumerable: true,
                 configurable: true
@@ -942,17 +942,17 @@ var ManyLens;
             };
             BaseSingleLens.prototype.ExtractData = function () {
                 var _this = this;
-                var res = this.GetElementByMouse();
-                if (!res) {
+                var data = this.GetElementByMouse();
+                if (!data) {
                     this._data = null;
                     return null;
                 }
-                var data = (d3.select(res).data())[0];
-                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, [data.unitID], "test");
+                console.log(data);
+                this._place = data.unitsID.sort();
+                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, data.unitsID, "test");
                 promise.done(function (d) {
                     console.log("promise done in basesingleLens");
                     _this._data = d;
-                    _this._place = _this._data.unitsID[0];
                     _this.AfterExtractData();
                     _this.DisplayLens();
                 });
@@ -1012,7 +1012,7 @@ var ManyLens;
                     var sinTheta = Math.sin(theta);
                     this._lens_circle_cx = this._select_circle_cx + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist + this._lens_circle_radius) * cosTheta;
                     this._lens_circle_cy = this._select_circle_cy + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist + this._lens_circle_radius) * sinTheta;
-                    this.ExtractData();
+                    this.ExtractData(); //it will invoke display automatically when finishing extractdata
                     this._has_showed_lens = true;
                 }
                 //z-index的问题先不解决
@@ -1078,34 +1078,53 @@ var ManyLens;
                 }
             };
             BaseSingleLens.prototype.GetElementByMouse = function () {
-                var res;
-                var eles = [];
-                try {
-                    var x = d3.event.sourceEvent.x, y = d3.event.sourceEvent.y;
-                }
-                catch (e) {
-                    return;
-                }
-                var p = d3.mouse(this._element.node());
-                if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
-                    return;
-                var ele = d3.select(document.elementFromPoint(x, y));
-                while (ele && ele.attr("id") != "mapSvg") {
-                    if (ele.classed("unit")) {
-                        res = ele[0][0];
-                        break;
-                    }
-                    eles.push(ele);
-                    ele.style("visibility", "hidden");
-                    ele = d3.select(document.elementFromPoint(x, y));
-                    if (eles.length > 10) {
-                        throw new Error("what the fuck");
+                var unitsID = [];
+                var mapID;
+                var rect = this._element.node().createSVGRect();
+                rect.x = this._select_circle_cx - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
+                rect.y = this._select_circle_cy - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
+                rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale;
+                var ele = this._element.node().getIntersectionList(rect, null);
+                for (var i = 0, len = ele.length; i < len; ++i) {
+                    var node = d3.select(ele.item(i));
+                    if (node.classed("unit")) {
+                        var dx = parseFloat(node.attr("x")) + parseFloat(node.attr("width")) * 0.5 - this._select_circle_cx;
+                        var dy = parseFloat(node.attr("y")) + parseFloat(node.attr("height")) * 0.5 - this._select_circle_cy;
+                        if ((dx * dx + dy * dy) < (this._select_circle_radius * this._select_circle_scale * this._select_circle_radius * this._select_circle_scale)) {
+                            unitsID.push(node.data()[0]['unitID']);
+                            mapID = node.data()[0]['mapID'];
+                            console.log(unitsID);
+                        }
                     }
                 }
-                for (var i = 0, len = eles.length; i < len; ++i) {
-                    eles[i].style("visibility", "");
-                }
+                var res = { unitsID: unitsID, mapID: mapID };
                 return res;
+                //var eles = [];
+                //try {
+                //    var x = d3.event.sourceEvent.x,
+                //        y = d3.event.sourceEvent.y;
+                //} catch (e) {
+                //    return;
+                //}
+                //var p = d3.mouse(this._element.node());
+                //if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
+                //    return;
+                //var ele = d3.select(document.elementFromPoint(x, y));
+                //while (ele && ele.attr("id") != "mapSvg") {
+                //    if (ele.classed("unit")) {
+                //        res = ele[0][0];
+                //        break;
+                //    }
+                //    eles.push(ele);
+                //    ele.style("visibility", "hidden");
+                //    ele = d3.select(document.elementFromPoint(x, y));
+                //    if (eles.length > 10) {
+                //        throw new Error("what the fuck");
+                //    }
+                //}
+                //for (var i = 0, len = eles.length; i < len; ++i) {
+                //    eles[i].style("visibility", "");
+                //}
             };
             BaseSingleLens.Type = "BaseSingleLens";
             return BaseSingleLens;
@@ -1560,11 +1579,13 @@ var ManyLens;
                 this._components_data = new Map();
                 this._components_lens = new Array();
                 this._base_component = firstLens;
+                this._base_component.HostLens = this;
                 this._lens_circle_cx = firstLens.LensCX;
                 this._lens_circle_cy = firstLens.LensCY;
                 if (secondLens) {
                     var firstLens0 = firstLens;
                     this._sub_component = secondLens;
+                    this._sub_component.HostLens = this;
                     this._components_lens.push(firstLens0);
                     this._components_select_circle.push({
                         _line: firstLens0.LinkLine,
@@ -1574,8 +1595,6 @@ var ManyLens;
                         _sc_scale: firstLens0.SelectCircleScale
                     });
                     this._components_kind.set(firstLens0.Type, 1);
-                    this._components_data.set(firstLens0.LensPlace, firstLens0.RawData);
-                    this._components_places.set(firstLens0.LensPlace, 1);
                     this._base_accessor_func = firstLens0.DataAccesser();
                     this._components_lens.push(secondLens);
                     this._components_select_circle.push({
@@ -1586,14 +1605,23 @@ var ManyLens;
                         _sc_scale: secondLens.SelectCircleScale
                     });
                     this._components_kind.set(secondLens.Type, 1);
+                    this._components_data.set(firstLens0.LensPlace, firstLens0.RawData);
+                    this._components_places.set(firstLens0.LensPlace, 1);
                     //Check if this two lens are in the same place
-                    if (firstLens0.LensPlace != secondLens.LensPlace) {
-                        this._components_places.set(secondLens.LensPlace, 1);
-                        this._components_data.set(secondLens.LensPlace, secondLens.RawData);
-                    }
-                    else {
+                    var placeFlag = true;
+                    firstLens0.LensPlace.forEach(function (d, i) {
+                        if (d != secondLens.LensPlace[i])
+                            placeFlag = false;
+                    });
+                    if (placeFlag) {
                         var t = this._components_places.get(secondLens.LensPlace) + 1;
                         this._components_places.set(secondLens.LensPlace, t);
+                    }
+                    else {
+                        this._components_places.set(secondLens.LensPlace, 1);
+                        this._components_data.set(secondLens.LensPlace, secondLens.RawData);
+                        console.log(firstLens0.LensPlace);
+                        console.log(secondLens.LensPlace);
                     }
                     this._sub_accessor_func = secondLens.DataAccesser();
                 }
@@ -1647,14 +1675,13 @@ var ManyLens;
                     _super.prototype.Render.call(this, color);
                 }
                 this._base_component.RemoveLens();
-                this._base_component.HostLens = this;
                 if (this._sub_component) {
                     this._sub_component.RemoveLens();
-                    this._sub_component.HostLens = this;
                 }
                 //Update base component and sub component
                 this._base_component = this;
                 this._sub_component = null;
+                this.DisplayLens();
             };
             BaseCompositeLens.prototype.ExtractData = function () {
                 var _this = this;
@@ -1826,6 +1853,7 @@ var ManyLens;
                 this._new_lens_count = componentLens.ComponentsLens.length;
             };
             BaseCompositeLens.prototype.AddSingleLens = function (lens) {
+                lens.HostLens = this;
                 this._components_lens.push(lens);
                 this._components_select_circle.push({
                     _line: lens.LinkLine,

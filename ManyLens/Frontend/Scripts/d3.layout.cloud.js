@@ -114,7 +114,7 @@
                 dxdy,
                 dx,
                 dy;
-            console.log(maxR);
+
             while (dxdy = s(t += dt)) {
                 
                 dx = ~~dxdy[0];

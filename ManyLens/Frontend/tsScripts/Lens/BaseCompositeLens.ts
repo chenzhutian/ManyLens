@@ -57,9 +57,9 @@ module ManyLens {
                 this._components_places = new Map<number, number>();
                 this._components_data = new Map<number, UnitsDataForLens>();
                 this._components_lens = new Array<BaseSingleLens>();
-                
 
                 this._base_component = firstLens;
+                this._base_component.HostLens = this;
 
                 this._lens_circle_cx = firstLens.LensCX;
                 this._lens_circle_cy = firstLens.LensCY;
@@ -67,6 +67,7 @@ module ManyLens {
                 if (secondLens) {
                     var firstLens0: BaseSingleLens = (<BaseSingleLens>firstLens);
                     this._sub_component = secondLens;
+                    this._sub_component.HostLens = this;
 
                     this._components_lens.push(firstLens0);
                     this._components_select_circle.push({
@@ -77,10 +78,8 @@ module ManyLens {
                         _sc_scale: firstLens0.SelectCircleScale
                     })
                     this._components_kind.set(firstLens0.Type, 1);
-                    this._components_data.set(firstLens0.LensPlace, firstLens0.RawData);
-                    this._components_places.set(firstLens0.LensPlace, 1);
-                    this._base_accessor_func = firstLens0.DataAccesser();
 
+                    this._base_accessor_func = firstLens0.DataAccesser();
 
                     this._components_lens.push(secondLens);
                     this._components_select_circle.push({
@@ -92,13 +91,23 @@ module ManyLens {
                     });
                     this._components_kind.set(secondLens.Type, 1);
 
+                    this._components_data.set(firstLens0.LensPlace, firstLens0.RawData);
+                    this._components_places.set(firstLens0.LensPlace, 1);
+
                     //Check if this two lens are in the same place
-                    if (firstLens0.LensPlace != secondLens.LensPlace) {
-                        this._components_places.set(secondLens.LensPlace, 1);
-                        this._components_data.set(secondLens.LensPlace, secondLens.RawData);
-                    } else {
+                    var placeFlag = true;
+                    firstLens0.LensPlace.forEach((d, i) => {
+                        if (d != secondLens.LensPlace[i])
+                            placeFlag = false;
+                    });
+                    if (placeFlag) {
                         var t = this._components_places.get(secondLens.LensPlace) + 1;
                         this._components_places.set(secondLens.LensPlace, t);
+                    } else {
+                        this._components_places.set(secondLens.LensPlace, 1);
+                        this._components_data.set(secondLens.LensPlace, secondLens.RawData);
+                        console.log(firstLens0.LensPlace);
+                        console.log(secondLens.LensPlace);
                     }
                     this._sub_accessor_func = secondLens.DataAccesser();
 
@@ -130,18 +139,16 @@ module ManyLens {
                 }
 
                 this._base_component.RemoveLens();
-                this._base_component.HostLens = this;
-
 
                 if (this._sub_component) {
                     this._sub_component.RemoveLens();
-                    this._sub_component.HostLens = this;
-
                 }
 
                 //Update base component and sub component
                 this._base_component = this;
                 this._sub_component = null;
+
+                this.DisplayLens();
             }
 
             protected ExtractData(): any {
@@ -165,7 +172,6 @@ module ManyLens {
                         if (i == len) {
                             column.push(d);
                         }
-
                     });
                     componentData.keywordsDistribute.forEach((d) => {
                         var key = d.Key;
@@ -242,8 +248,8 @@ module ManyLens {
             }
 
             public AddComponentLens(lens: BaseD3Lens): BaseCompositeLens {
-
                 this._sub_component = lens;
+
                 if (lens.IsCompositeLens) {
                     this.AddCompositeLens(<Lens.BaseCompositeLens>lens);
 
@@ -348,6 +354,7 @@ module ManyLens {
             }
 
             private AddSingleLens(lens: BaseSingleLens): void {
+                lens.HostLens = this;
                 this._components_lens.push(lens);
                 this._components_select_circle.push({
                     _line: lens.LinkLine,

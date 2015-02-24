@@ -19,7 +19,6 @@ namespace ManyLens.SignalR
         private static bool TestMode = true;
         private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 
-        // private readonly TimeSpan MyInterval = TimeSpan.FromMilliseconds(40);
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
@@ -320,7 +319,6 @@ namespace ManyLens.SignalR
         //    Clients.Caller.showVIS(visData);
         //}
         #endregion
-
 
         public void ReOrganize(string visMapID, int[] selectedUnits)
         {
