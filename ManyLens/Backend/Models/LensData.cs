@@ -19,8 +19,6 @@ namespace ManyLens.Models
         private Dictionary<string, User> users;
         private Dictionary<string, int> userTweets;
 
-
-
         private Interval interval;
 
         #region Getter&Setter
@@ -254,6 +252,22 @@ namespace ManyLens.Models
                 }
             }
         
+        }
+
+        public UnitsDataForLens GetDataForVis()
+        {
+
+            return new UnitsDataForLens()
+            {
+                unitsID = this.UnitsID,
+                contents = this.TweetContents,
+                keywordsDistribute = this.KeywordsDistribute,
+                tweetLengthDistribute = this.TweetLengthDistribute,
+                hashTagDistribute = this.HashTagDistribute,
+                userTweetsDistribute = this.UserTweetsDistribute,
+                retweetNetwork = this.RetweetNetwork
+                // tweetIDs = unit.TweetIDs
+            };
         }
     }
 }

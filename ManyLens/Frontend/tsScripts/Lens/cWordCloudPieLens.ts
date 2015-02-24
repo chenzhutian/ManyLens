@@ -49,10 +49,7 @@ module ManyLens {
 
             }
 
-            // data shape {Key: Value:}
-            protected ExtractData() {
-                super.ExtractData();
-
+            protected AfterExtractData() {
                 this._font_size
                     .range([10, this._cloud_w / 8])
                     .domain(d3.extent(this._base_accessor_func(this._data), (d: { Key: any; Value: any }) => {
@@ -63,7 +60,6 @@ module ManyLens {
 
             public DisplayLens(): void {
                 super.DisplayLens();
-                this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._base_accessor_func(this._data))

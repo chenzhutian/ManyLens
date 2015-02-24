@@ -15,7 +15,7 @@ module ManyLens {
             protected _select_circle_zoom: D3.Behavior.Zoom = d3.behavior.zoom();
             protected _select_circle_drag: D3.Behavior.Drag = d3.behavior.drag();
 
-            protected _place: number[] = null;
+
 
             protected _has_put_down: boolean = false;
             protected _has_showed_lens: boolean = false;
@@ -44,7 +44,7 @@ module ManyLens {
                 return this._select_circle_radius;
             }
             public get LensPlace(): number[] {
-                return this._place.sort();
+                return this._units_id.sort();
             }
 
             constructor(element: D3.Selection, attributeName: string, type: string, manyLens: ManyLens) {
@@ -157,8 +157,9 @@ module ManyLens {
                     return null;
                 }
                 console.log(data);
-                this._place = data.unitsID.sort()   ;
-                var promise = this._manyLens.ManyLensHubServerGetLensData(data.mapID, data.unitsID, "test");
+                this._units_id = data.unitsID.sort();
+                this._map_id = data.mapID;
+                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID,data.unitsID, "test");
                 promise
                     .done((d: UnitsDataForLens) => {
                         console.log("promise done in basesingleLens");
@@ -255,7 +256,6 @@ module ManyLens {
                     + this._lens_circle_radius) * sinTheta;
 
                     this.ExtractData(); //it will invoke display automatically when finishing extractdata
-
 
                     this._has_showed_lens = true;
                 }
@@ -383,7 +383,10 @@ module ManyLens {
                         }
                     }
                 }
-                var res = { unitsID: unitsID, mapID: mapID };
+
+                var res = null;
+                if(unitsID.length >0 && mapID)
+                    res = { unitsID: unitsID, mapID: mapID };
                 return res;
                 //var eles = [];
                 //try {

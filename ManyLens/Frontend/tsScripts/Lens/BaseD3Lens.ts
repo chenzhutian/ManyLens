@@ -14,8 +14,10 @@ module ManyLens {
             protected _id: string;
             protected _type: string;
             protected _lens_type_color: string;
+            protected _map_id: string;
             protected _combine_failure_rebound_duration = 800;
             protected _data: UnitsDataForLens;
+            protected _units_id: number[] = null;
 
             protected _sc_lc_svg: D3.Selection = null;
 
@@ -37,6 +39,9 @@ module ManyLens {
             public get ID(): string {
                 return this._id;
                 
+            }
+            public get MapID(): string {
+                return this._map_id;
             }
             public get Type(): string {
                 return this._type;
@@ -100,6 +105,8 @@ module ManyLens {
             constructor(element: D3.Selection, type: string,manyLens:ManyLens) {
                 super(element,manyLens);
                 this._type = type;
+                this._id = "lens_" + this._manyLens.LensCount;
+                this._units_id = [];
 
                 this._lens_circle_zoom
                     .scaleExtent([1, 2])
@@ -148,7 +155,7 @@ module ManyLens {
 
                 this._lens_circle_svg = this._sc_lc_svg.append("g")
                     .data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }])
-                    .attr("id","lens_"+this._manyLens.LensCount)
+                    .attr("id",this.ID)
                     .attr("class", "lens-circle-g " + this._type)
                     .attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")")
                     .attr("opacity", "1e-6")

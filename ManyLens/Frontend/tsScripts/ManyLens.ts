@@ -6,9 +6,6 @@
 
 module ManyLens {
 
-
-
-
     export class ManyLens {
         public static TestMode: boolean = false;
 
@@ -87,7 +84,7 @@ module ManyLens {
         }
 
         public AddLens(lens: Lens.BaseD3Lens): void {
-            this._lens.set("lens_" + this._lens_count, lens);
+            this._lens.set(lens.ID, lens);
             this._lens_count++;
 
             this._historyTrees.addNode({
@@ -164,12 +161,12 @@ module ManyLens {
             return this._manyLens_hub.server.testPullInterval(id);
         }
 
-        public ManyLensHubServerGetLensData(visMapID:string, unitsID: number[],whichData:string): Hub.IPromise<void> {
+        public ManyLensHubServerGetLensData(visMapID:string,lensID:string, unitsID: number[],whichData:string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.getLensData(visMapID, unitsID, whichData);
+            return this._manyLens_hub.server.getLensData(visMapID,lensID, unitsID, whichData);
         }
 
     }

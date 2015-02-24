@@ -153,7 +153,7 @@
             testPullPoint(): IPromise<void>;
             pullInterval(intervalID: string): IPromise<void>;
             testPullInterval(intervalID: string): IPromise<void>;
-            getLensData(visMapID: string, unitsID: number[], whichData: string):IPromise<void>;
+            getLensData(visMapID: string,lensID:string, unitsID: number[], whichData: string):IPromise<void>;
 
 
             reOrganize(visMapID: string, selectedUnits: Array<any>): IPromise<void>;

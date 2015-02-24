@@ -22,6 +22,7 @@ namespace ManyLens.SignalR
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
+        private static Dictionary<string, LensData> lensdatas = new Dictionary<string, LensData>();
 
         private Random rnd = new Random();
 
@@ -29,7 +30,7 @@ namespace ManyLens.SignalR
         {
             //clear the static data
             interals.Clear();
-
+            lensdatas.Clear();
             //string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
             string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
             Debug.WriteLine(tweetFile);
@@ -266,8 +267,9 @@ namespace ManyLens.SignalR
 
         }
 
-        public async Task<UnitsDataForLens> GetLensData(string visMapID, int[] unitsID, string whichData)
+        public async Task<UnitsDataForLens> GetLensData(string visMapID,string lensID, int[] unitsID, string whichData)
         {
+
             UnitsDataForLens data = null;
             await Task.Run(() =>
             {
@@ -277,19 +279,19 @@ namespace ManyLens.SignalR
                 {
                     newUnit.MergeUnit(visMap.GetUnitAt(unitsID[i]));
                 }
+
+                data = newUnit.GetDataForVis();
                 
-                data = new UnitsDataForLens(){
-                    unitsID = newUnit.UnitsID,
-                    contents = newUnit.TweetContents,
-                    keywordsDistribute = newUnit.KeywordsDistribute,
-                    tweetLengthDistribute = newUnit.TweetLengthDistribute,
-                    hashTagDistribute = newUnit.HashTagDistribute,
-                    userTweetsDistribute = newUnit.UserTweetsDistribute,
-                    retweetNetwork = newUnit.RetweetNetwork
-                    // tweetIDs = unit.TweetIDs
-                };
-                
+                if (lensdatas.ContainsKey(lensID))
+                {
+                    lensdatas[lensID] = newUnit;
+                }
+                else
+                {
+                    lensdatas.Add(lensID, newUnit);
+                }
             });
+
             return data;
         }
 
