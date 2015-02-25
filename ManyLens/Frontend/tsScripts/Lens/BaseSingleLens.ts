@@ -42,7 +42,6 @@ module ManyLens {
                 return this._select_circle_radius;
             }
 
-
             constructor(element: D3.Selection, attributeName: string, type: string, manyLens: ManyLens) {
                 super(element, type, manyLens);
                 this._is_composite_lens = false;
@@ -59,7 +58,7 @@ module ManyLens {
                     .scaleExtent([1, 4])
                     .on("zoom", () => {
                         this.SelectCircleZoomFunc();
-                        console.log("sc_zoom " + this._type);
+                        //console.log("sc_zoom " + this._type);
                     })
                 ;
 
@@ -68,7 +67,7 @@ module ManyLens {
                     .on("dragstart", () => {
                         //this._sc_drag_event_flag = false;
 
-                        console.log("sc_dragstart " + this._type);
+                        //console.log("sc_dragstart " + this._type);
                     })
                     .on("drag", () => {
                         //if (this._sc_drag_event_flag) {
@@ -76,11 +75,11 @@ module ManyLens {
                         //} else {
                         //    this._sc_drag_event_flag = true;
                         //}
-                        console.log("sc_drag " + this._type);
+                        //console.log("sc_drag " + this._type);
                     })
                     .on("dragend", (d) => {
                         this.SelectCircleDragendFunc(d);
-                        console.log("sc_dragend " + this._type);
+                        //console.log("sc_dragend " + this._type);
                     })
                 ;
 
@@ -118,6 +117,8 @@ module ManyLens {
                     })
                     .on("contextmenu", () => {
                         this._sc_lc_svg.remove();
+                        this._manyLens.RemoveLens(this);
+
                         var hostLens: BaseCompositeLens = this.DetachHostLens()
                         if (hostLens) {
                             this._manyLens.DetachCompositeLens(this._element, hostLens, this);
@@ -147,14 +148,16 @@ module ManyLens {
             }
 
             protected ExtractData(): void {
-                var data: { unitsID: number[]; mapID:string} = this.GetElementByMouse();
+                var data: { unitsID: number[]; mapID: string } = this.GetElementByMouse();
                 if (!data) {
                     this._data = null;
                     return null;
                 }
-                console.log(data);
+                console.log(data.unitsID);
+                console.log(data.mapID);
                 this._units_id = data.unitsID.sort();
                 this._map_id = data.mapID;
+                
                 var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
                 promise
                     .done((d: UnitsDataForLens) => {
@@ -167,7 +170,7 @@ module ManyLens {
             }
 
             protected AfterExtractData(): void {
-
+                //Do nothing in this abstract method
             }
 
             public DisplayLens(): boolean {
@@ -228,6 +231,7 @@ module ManyLens {
                 }
             }
 
+            //The entrance of new data
             protected SelectCircleDragendFunc(selectCircle): void {
                 if (!this._has_put_down) return;
                 if (d3.event.sourceEvent.button != 0) return;
@@ -256,11 +260,6 @@ module ManyLens {
                     this._has_showed_lens = true;
                 }
 
-                //z-index的问题先不解决
-                ////re-order the g elements so the paneG could on the toppest
-                //var tempGs = d3.select("#mapView").selectAll("svg > g");
-                //tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
-                //tempGs.order();
             }
 
             protected SelectCircleZoomFunc(): void {
@@ -377,19 +376,22 @@ module ManyLens {
                             var tID = node.data()[0]['unitID'];
                             unitsID.push(tID);
                             mapID = node.data()[0]['mapID'];
-                            if (dist2 < minDist2) {
-                                minDist2 = dist2;
-                                minUnitsID = tID;
-                            }
+                        } else if (dist2 < minDist2) {
+                            mapID = node.data()[0]['mapID'];
+                            minDist2 = dist2;
+                            minUnitsID = node.data()[0]['unitID'];
                         }
+
                     }
                 }
 
                 var res = null;
-                if (unitsID.length > 0 && mapID){
+                if (unitsID.length > 0 && mapID) {
                     res = { unitsID: unitsID, mapID: mapID };
-                }   else if (unitsID.length == 0) {
+                } else if (unitsID.length == 0 && mapID) {
                     res = { unitsID: [minUnitsID], mapID: mapID };
+                } else {
+                    console.log("there is a bug here "+ unitsID);
                 }
 
                 return res;

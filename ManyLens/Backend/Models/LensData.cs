@@ -7,45 +7,45 @@ namespace ManyLens.Models
 {
     public class LensData
     {
-        private List<int> unitsID;
+        private String mapID;
 
 
+        //private List<int> unitsID;
+        private List<Unit> units;
         private List<Tweet> tweets = null;
 
-       // private List<Dictionary<string, int>> sparseVector = null;
-        private Vocabulary vocabulary = null;
+        //private List<Dictionary<string, int>> sparseVector = null;
+        //private Vocabulary vocabulary = null;
 
         private Dictionary<string, int> keywords = null;
         private Dictionary<string, User> users;
-        private Dictionary<string, int> userTweets;
+        private Dictionary<string, int> usersCount; // the occurence time of each user in each unit
+        private Dictionary<string, int> userTweets; // the tweets number of each user
 
         private Interval interval;
 
         #region Getter&Setter
-        public List<int> UnitsID
+        //public List<int> UnitsID
+        //{
+        //    get { return unitsID; }
+        //    set { unitsID = value; }
+        //}
+        public String MapID
         {
-            get { return unitsID; }
-            set { unitsID = value; }
+            get { return mapID; }
+            set { mapID = value; }
         }
-
         public virtual List<Tweet> Tweets
         {
-            get
-            {
-                return this.tweets;
-            }
-            protected set
-            {
-                this.tweets = value;
-            }
+            get { return this.tweets; }
+            protected set { this.tweets = value; }
         }
+
         public int TweetsCount
         {
-            get
-            {
-                return this.tweets.Count;
-            }
+            get { return this.tweets.Count; }
         }
+
         public List<string> TweetIDs
         {
             get
@@ -58,6 +58,7 @@ namespace ManyLens.Models
                 return ids;
             }
         }
+        
         public List<string> TweetContents
         {
             get
@@ -68,36 +69,6 @@ namespace ManyLens.Models
                     content.Add(this.Tweets[i].OriginalContent);
                 }
                 return content;
-            }
-        }
-
-        //public List<Dictionary<string, int>> SparseVector
-        //{
-        //    get
-        //    {
-        //        return this.sparseVector;
-        //    }
-        //    set
-        //    {
-        //        this.sparseVector = value;
-        //    }
-        //}
-        public Vocabulary Vocabulary
-        {
-            get
-            {
-                return this.vocabulary;
-            }
-            set
-            {
-                this.vocabulary = value;
-            }
-        }
-        public int Dimension
-        {
-            get
-            {
-                return this.Vocabulary.Dimension;
             }
         }
 
@@ -197,48 +168,145 @@ namespace ManyLens.Models
             }
 
         }
+        //public List<Dictionary<string, int>> SparseVector
+        //{
+        //    get
+        //    {
+        //        return this.sparseVector;
+        //    }
+        //    set
+        //    {
+        //        this.sparseVector = value;
+        //    }
+        //}
+        //public Vocabulary Vocabulary
+        //{
+        //    get { return this.vocabulary; }
+        //    set { this.vocabulary = value; }
+        //}
+        //public int Dimension
+        //{
+        //    get { return this.Vocabulary.Dimension; }
+        //}
+
         #endregion
 
-        public LensData(Unit unit)
+        private void InitialLensData()
         {
-            this.unitsID = new List<int>();
-            this.Vocabulary = unit.Vocabulary;
-            this.interval = unit.Interval;
+            //this.unitsID = new List<int>();
+            this.units = new List<Unit>();
+            this.Tweets = new List<Tweet>();
+            this.usersCount = new Dictionary<string, int>();
 
-            this.unitsID.Add(unit.UnitID);
+            this.users = new Dictionary<string, User>();
+            this.keywords = new Dictionary<string, int>();
+            this.userTweets = new Dictionary<string, int>();
+        }
+
+        private void InitialLensData(Unit unit)
+        {
+           
+            this.units = new List<Unit>();
+            this.units.Add(unit);
+            //this.unitsID = new List<int>();
+            //this.unitsID.Add(unit.UnitID);
+            //this.Vocabulary = unit.Vocabulary;
+            //this.interval = unit.Interval;
 
             this.Tweets = new List<Tweet>(unit.Tweets);
-            //this.SparseVector = new List<Dictionary<string, int>>(unit.SparseVector);
+            this.usersCount = new Dictionary<string, int>();
+            foreach (KeyValuePair<string, User> item in unit.Users)
+            {
+                this.usersCount.Add(item.Key, 1);
+            }
+
             this.users = new Dictionary<string, User>(unit.Users);
             this.keywords = new Dictionary<string, int>(unit.WordLabels);
             this.userTweets = new Dictionary<string, int>(unit.UserTweets);
         }
 
-        public void MergeUnit(Unit unit)
+        public LensData()
         {
-            this.UnitsID.Add(unit.UnitID);
+            this.InitialLensData();
+        }
+
+        public LensData(Unit unit)
+        {
+            this.InitialLensData(unit);
+        }
+
+        private void DetechUnit(Unit unit)
+        {
+            if (!this.units.Contains(unit))
+                return;
+            this.units.Remove(unit);
+            //if (!this.UnitsID.Contains(unit.UnitID))
+            //    return;
+            //this.UnitsID.Remove(unit.UnitID);
+            
+            for (int i = 0, len = unit.TweetsCount; i < len; ++i)
+            {
+                this.Tweets.Remove(unit.Tweets[i]);
+            }
+            //Remove user
+            foreach (KeyValuePair<string, User> item in unit.Users)
+            {
+                if (--this.usersCount[item.Key] == 0)
+                {
+                    this.usersCount.Remove(item.Key);
+                    this.Users.Remove(item.Key);
+                    this.userTweets.Remove(item.Key);
+                }
+            }
+            //Remove tweets of users
+            foreach (KeyValuePair<string, int> item in unit.UserTweets)
+            {
+
+                if (this.userTweets.ContainsKey(item.Key))
+                {
+                    this.userTweets[item.Key] -= item.Value;
+                    if (this.userTweets[item.Key] == 0)
+                    {
+                        this.userTweets.Remove(item.Key);
+                    }
+                }
+
+            }
+            //Remove keyword size
+            foreach (KeyValuePair<string, int> item in unit.WordLabels)
+            {
+                if (this.keywords.ContainsKey(item.Key))
+                {
+                    this.keywords[item.Key] -= item.Value;
+                    if (this.keywords[item.Key] == 0)
+                    {
+                        this.keywords.Remove(item.Key);
+                    }
+                }
+            }
+
+        }
+
+        private void MergeUnit(Unit unit)
+        {
+            this.units.Add(unit);
+            //this.UnitsID.Add(unit.UnitID);
             this.Tweets.AddRange(unit.Tweets);
 
-            //this.SparseVector.AddRange(unit.SparseVector);
-
+            //Add the user to this lens
             foreach (KeyValuePair<string, User> item in unit.Users)
             {
                 if (!this.Users.ContainsKey(item.Key))
                 {
                     this.Users.Add(item.Key, item.Value);
-                }
-            }
-            foreach (KeyValuePair<string, int> item in unit.WordLabels)
-            {
-                if (this.keywords.ContainsKey(item.Key))
-                {
-                    this.keywords[item.Key] += item.Value;
+                    this.usersCount.Add(item.Key, 1);
                 }
                 else
                 {
-                    this.keywords.Add(item.Key, item.Value);
+                    this.usersCount[item.Key]++;
                 }
             }
+            //Add the tweets number of each user to this lens
             foreach (KeyValuePair<string, int> item in unit.UserTweets)
             {
                 if (this.userTweets.ContainsKey(item.Key))
@@ -251,7 +319,67 @@ namespace ManyLens.Models
                     this.userTweets.Add(item.Key, item.Value);
                 }
             }
-        
+            //Add the keyword size of each keyword to this lens
+            foreach (KeyValuePair<string, int> item in unit.WordLabels)
+            {
+                if (this.keywords.ContainsKey(item.Key))
+                {
+                    this.keywords[item.Key] += item.Value;
+                }
+                else
+                {
+                    this.keywords.Add(item.Key, item.Value);
+                }
+            }
+        }
+
+        public void BindUnits(List<Unit> newUnits)
+        {
+
+            //List<int> newUnitsID = new List<int>();
+            List<Unit> enter = new List<Unit>();
+            List<Unit> exit = new List<Unit>();
+            int originalNum = this.units.Count;
+
+            //get the exit unit
+            for (int i = 0, len = this.units.Count; i < len; ++i)
+            {
+                if (!newUnits.Contains(this.units[i]))
+                {
+                    exit.Add(this.units[i]);
+                }
+            }
+
+            //if all unit exit, reConstruct this lensData then return
+            if (exit.Count == originalNum)
+            {
+                this.InitialLensData(newUnits[0]);
+                for (int i = 1, len = newUnits.Count; i < len; ++i )
+                {
+                    this.MergeUnit(newUnits[i]);
+                }
+                return;
+            }
+
+            //Get exnter unit
+            for (int i = 0, len = newUnits.Count; i < len; ++i)
+            {
+                if (!this.units.Contains(newUnits[i]))
+                {
+                    enter.Add(newUnits[i]);
+                }
+            }
+            
+            //Detech the exit unit
+            for(int i = 0, len = exit.Count; i < len; ++i)
+            {
+                this.DetechUnit(exit[i]);
+            }
+            for (int i = 0, len = enter.Count; i < len; ++i)
+            {
+                this.MergeUnit(enter[i]);
+            }
+
         }
 
         public UnitsDataForLens GetDataForVis()
@@ -259,7 +387,7 @@ namespace ManyLens.Models
 
             return new UnitsDataForLens()
             {
-                unitsID = this.UnitsID,
+                //unitsID = this.UnitsID,
                 contents = this.TweetContents,
                 keywordsDistribute = this.KeywordsDistribute,
                 tweetLengthDistribute = this.TweetLengthDistribute,

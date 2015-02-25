@@ -154,7 +154,7 @@
             pullInterval(intervalID: string): IPromise<void>;
             testPullInterval(intervalID: string): IPromise<void>;
             getLensData(visMapID: string,lensID:string, unitsID: number[], whichData: string):IPromise<void>;
-
+            removeLensData(visMapID: string, lensID: string): IPromise<void>;
 
             reOrganize(visMapID: string, selectedUnits: Array<any>): IPromise<void>;
             moveTweets(visMapID: string, fromUnitsID: Array<any>, toUnitsID: Array<any>): IPromise<void>;

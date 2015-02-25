@@ -269,30 +269,41 @@ namespace ManyLens.SignalR
 
         public async Task<UnitsDataForLens> GetLensData(string visMapID,string lensID, int[] unitsID, string whichData)
         {
-
             UnitsDataForLens data = null;
             await Task.Run(() =>
             {
                 VisMap visMap = visMaps[visMapID];
-                LensData newUnit = new LensData(visMap.GetUnitAt(unitsID[0]));
-                for (int i = 1, len = unitsID.Length; i < len; ++i)
+                LensData lens;
+                List<Unit> units = new List<Unit>();
+                for (int i = 0, len = unitsID.Length; i < len; ++i)
                 {
-                    newUnit.MergeUnit(visMap.GetUnitAt(unitsID[i]));
+                    units.Add(visMap.GetUnitAt(unitsID[i]));
                 }
 
-                data = newUnit.GetDataForVis();
-                
                 if (lensdatas.ContainsKey(lensID))
                 {
-                    lensdatas[lensID] = newUnit;
+                    lens = lensdatas[lensID];
                 }
                 else
                 {
-                    lensdatas.Add(lensID, newUnit);
+                    lens = new LensData();
+                    lensdatas.Add(lensID, lens);
                 }
+
+                lens.BindUnits(units);
+                lens.MapID = visMapID;
+                data = lens.GetDataForVis();
             });
 
             return data;
+        }
+
+        public async Task RemoveLensData(string visMapID, string lensID)
+        {
+            await Task.Run(() => {
+                lensdatas.Remove(lensID);
+            });
+            
         }
 
         #region some code for test

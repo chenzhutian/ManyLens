@@ -85,20 +85,20 @@ module ManyLens {
 
         public AddLens(lens: Lens.BaseD3Lens): void {
             this._lens.set(lens.ID, lens);
-            //this._lens_count++;
+        }
 
+        public AddLensToHistoryTree(lens: Lens.BaseD3Lens): void {
             this._historyTrees.addNode({
                 color: lens.LensTypeColor,
                 lensType: lens.Type,
                 tree_id: 0
             });
-
         }
 
         //TODO need to implementation
         public RemoveLens(lens: Lens.BaseD3Lens): Lens.BaseD3Lens {
-            var lens: Lens.BaseD3Lens;
             this._lens.delete(lens.ID);
+            this.ManyLensServerRemoveLensData(lens.MapID, lens.ID);
             return lens;
         }
 
@@ -166,6 +166,14 @@ module ManyLens {
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
             return this._manyLens_hub.server.getLensData(visMapID,lensID, unitsID, whichData);
+        }
+
+        public ManyLensServerRemoveLensData(visMapID: string, lensID: string): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.removeLensData(visMapID, lensID);
         }
 
     }

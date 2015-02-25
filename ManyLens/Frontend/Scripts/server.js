@@ -86,9 +86,10 @@
                 return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["DoLongRunningThing"], $.makeArray(arguments)));
              },
 
-            getLensData: function (visMapID, unitsID, whichData) {
+            getLensData: function (visMapID, lensID, unitsID, whichData) {
             /// <summary>Calls the GetLensData method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
             /// <param name=\"visMapID\" type=\"String\">Server side type is System.String</param>
+            /// <param name=\"lensID\" type=\"String\">Server side type is System.String</param>
             /// <param name=\"unitsID\" type=\"Object\">Server side type is System.Int32[]</param>
             /// <param name=\"whichData\" type=\"String\">Server side type is System.String</param>
                 return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["GetLensData"], $.makeArray(arguments)));
@@ -117,6 +118,13 @@
             /// <summary>Calls the PullPoint method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
             /// <param name=\"start\" type=\"String\">Server side type is System.String</param>
                 return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["PullPoint"], $.makeArray(arguments)));
+             },
+
+            removeLensData: function (visMapID, lensID) {
+            /// <summary>Calls the RemoveLensData method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
+            /// <param name=\"visMapID\" type=\"String\">Server side type is System.String</param>
+            /// <param name=\"lensID\" type=\"String\">Server side type is System.String</param>
+                return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["RemoveLensData"], $.makeArray(arguments)));
              },
 
             reOrganize: function (visMapID, selectedUnits) {

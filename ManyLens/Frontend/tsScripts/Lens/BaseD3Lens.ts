@@ -2,7 +2,7 @@
 module ManyLens {
     export module Lens {
         export interface UnitsDataForLens {
-            unitsID: Array<number>;
+            //unitsID: Array<number>;
             keywordsDistribute: Array<{ Key: string; Value: number }>;
             tweetLengthDistribute: Array<{ Key: number; Value: number }>;
             contents: Array<string>;
@@ -17,7 +17,7 @@ module ManyLens {
             protected _map_id: string;
             protected _combine_failure_rebound_duration = 800;
             protected _data: UnitsDataForLens;
-            protected _units_id: number[] = null;
+            protected _units_id: number[] = [];
 
             protected _sc_lc_svg: D3.Selection = null;
 
@@ -107,7 +107,6 @@ module ManyLens {
                 super(element,manyLens);
                 this._type = type;
                 this._id = "lens_" + this._manyLens.LensCount;
-                this._units_id = [];
 
                 this._lens_circle_zoom
                     .scaleExtent([1, 2])
@@ -139,8 +138,11 @@ module ManyLens {
                 this._sc_lc_svg = this._element
                     .append("g")
                     .attr("class", "lens")
+                    .attr("id", this.ID)
                 ;
 
+                //Add this lens to the app class
+                this._manyLens.AddLens(this);
             }
 
             protected ExtractData(): void {
@@ -156,7 +158,7 @@ module ManyLens {
 
                 this._lens_circle_svg = this._sc_lc_svg.append("g")
                     .data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }])
-                    .attr("id",this.ID)
+                    //.attr("id",this.ID)
                     .attr("class", "lens-circle-g " + this._type)
                     .attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")")
                     .attr("opacity", "1e-6")
@@ -166,15 +168,15 @@ module ManyLens {
                     })
                     .on("mousedown", () => {
 
-                        console.log("lc_mousedown " + this._type);
+                        //console.log("lc_mousedown " + this._type);
                     })
                     .on("mouseup", () => {
 
-                        console.log("lc_mouseup " + this._type);
+                        //console.log("lc_mouseup " + this._type);
                     })
                     .on("click", () => {
 
-                        console.log("lc_click " + this._type)
+                        //console.log("lc_click " + this._type)
                     })
                     .call(this._lens_circle_zoom)
                     .on("dblclick.zoom", null)
@@ -191,15 +193,7 @@ module ManyLens {
                     .attr("stroke-width", 1)
                 ;
 
-                //re-order the line, select-circle and lens-circle
-                //var tempChildren = d3.selectAll(this._sc_lc_svg[0][0].children);
-                //var tt = tempChildren[0][0];
-                //tempChildren[0][0] = tempChildren[0][1];
-                //tempChildren[0][1] = tt;
-                //tempChildren.order();
-
-                //Add this lens to the app class
-                this._manyLens.AddLens(this);
+                this._manyLens.AddLensToHistoryTree(this);
 
                 this._lens_circle_svg
                     .transition().duration(duration)
@@ -261,8 +255,8 @@ module ManyLens {
                 }
 
                 if (res.length == 2) {
-                    var lensA_id: string = d3.select(res[0].parentNode).attr("id");
-                    var lensB_id: string = d3.select(res[1].parentNode).attr("id");
+                    var lensA_id: string = d3.select(res[0].parentNode.parentNode).attr("id");
+                    var lensB_id: string = d3.select(res[1].parentNode.parentNode).attr("id");
                     var lensC:BaseCompositeLens = LensAssemblyFactory.CombineLens(
                         this._element,
                         this._manyLens,

@@ -529,7 +529,7 @@ var ManyLens;
                 var _this = this;
                 _super.call(this, element, manyLens);
                 this._combine_failure_rebound_duration = 800;
-                this._units_id = null;
+                this._units_id = [];
                 this._sc_lc_svg = null;
                 this._lens_circle_radius = 100;
                 this._lens_circle_scale = 1;
@@ -539,7 +539,6 @@ var ManyLens;
                 this._is_composite_lens = null;
                 this._type = type;
                 this._id = "lens_" + this._manyLens.LensCount;
-                this._units_id = [];
                 this._lens_circle_zoom.scaleExtent([1, 2]).on("zoom", function () {
                     _this.LensCircleZoomFunc();
                 });
@@ -681,7 +680,9 @@ var ManyLens;
             });
             BaseD3Lens.prototype.Render = function (color) {
                 this._lens_type_color = color;
-                this._sc_lc_svg = this._element.append("g").attr("class", "lens");
+                this._sc_lc_svg = this._element.append("g").attr("class", "lens").attr("id", this.ID);
+                //Add this lens to the app class
+                this._manyLens.AddLens(this);
             };
             BaseD3Lens.prototype.ExtractData = function () {
                 throw new Error('This method is abstract');
@@ -690,27 +691,19 @@ var ManyLens;
                 throw new Error('This method is abstract');
             };
             BaseD3Lens.prototype.DisplayLens = function (any) {
-                var _this = this;
                 if (any === void 0) { any = null; }
                 var duration = 300;
-                this._lens_circle_svg = this._sc_lc_svg.append("g").data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }]).attr("id", this.ID).attr("class", "lens-circle-g " + this._type).attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")").attr("opacity", "1e-6").style("pointer-events", "none").on("contextmenu", function () {
+                this._lens_circle_svg = this._sc_lc_svg.append("g").data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }]).attr("class", "lens-circle-g " + this._type).attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")").attr("opacity", "1e-6").style("pointer-events", "none").on("contextmenu", function () {
                     //d3.event.preventDefault();
                 }).on("mousedown", function () {
-                    console.log("lc_mousedown " + _this._type);
+                    //console.log("lc_mousedown " + this._type);
                 }).on("mouseup", function () {
-                    console.log("lc_mouseup " + _this._type);
+                    //console.log("lc_mouseup " + this._type);
                 }).on("click", function () {
-                    console.log("lc_click " + _this._type);
+                    //console.log("lc_click " + this._type)
                 }).call(this._lens_circle_zoom).on("dblclick.zoom", null).call(this._lens_circle_drag);
                 this._lens_circle = this._lens_circle_svg.append("circle").attr("class", "lens-circle").attr("cx", 0).attr("cy", 0).attr("r", this._lens_circle_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
-                //re-order the line, select-circle and lens-circle
-                //var tempChildren = d3.selectAll(this._sc_lc_svg[0][0].children);
-                //var tt = tempChildren[0][0];
-                //tempChildren[0][0] = tempChildren[0][1];
-                //tempChildren[0][1] = tt;
-                //tempChildren.order();
-                //Add this lens to the app class
-                this._manyLens.AddLens(this);
+                this._manyLens.AddLensToHistoryTree(this);
                 this._lens_circle_svg.transition().duration(duration).attr("opacity", "1").each("end", function () {
                     d3.select(this).style("pointer-events", "");
                 });
@@ -761,8 +754,8 @@ var ManyLens;
                     eles[i].style("visibility", "");
                 }
                 if (res.length == 2) {
-                    var lensA_id = d3.select(res[0].parentNode).attr("id");
-                    var lensB_id = d3.select(res[1].parentNode).attr("id");
+                    var lensA_id = d3.select(res[0].parentNode.parentNode).attr("id");
+                    var lensB_id = d3.select(res[1].parentNode.parentNode).attr("id");
                     var lensC = ManyLens.LensAssemblyFactory.CombineLens(this._element, this._manyLens, this._manyLens.GetLens(lensA_id), this._manyLens.GetLens(lensB_id));
                     if (lensC) {
                         lensC.Render("black");
@@ -895,23 +888,23 @@ var ManyLens;
                 var hasShow = false;
                 this._select_circle_zoom.scaleExtent([1, 4]).on("zoom", function () {
                     _this.SelectCircleZoomFunc();
-                    console.log("sc_zoom " + _this._type);
+                    //console.log("sc_zoom " + this._type);
                 });
                 this._select_circle_drag.origin(function (d) {
                     return d;
                 }).on("dragstart", function () {
                     //this._sc_drag_event_flag = false;
-                    console.log("sc_dragstart " + _this._type);
+                    //console.log("sc_dragstart " + this._type);
                 }).on("drag", function () {
                     //if (this._sc_drag_event_flag) {
                     _this.SelectCircleDragFunc();
                     //} else {
                     //    this._sc_drag_event_flag = true;
                     //}
-                    console.log("sc_drag " + _this._type);
+                    //console.log("sc_drag " + this._type);
                 }).on("dragend", function (d) {
                     _this.SelectCircleDragendFunc(d);
-                    console.log("sc_dragend " + _this._type);
+                    //console.log("sc_dragend " + this._type);
                 });
                 this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
                 this._select_circle_svg = this._sc_lc_svg.append("g").attr("class", "select-circle");
@@ -928,6 +921,7 @@ var ManyLens;
                     }
                 }).on("contextmenu", function () {
                     _this._sc_lc_svg.remove();
+                    _this._manyLens.RemoveLens(_this);
                     var hostLens = _this.DetachHostLens();
                     if (hostLens) {
                         _this._manyLens.DetachCompositeLens(_this._element, hostLens, _this);
@@ -953,7 +947,8 @@ var ManyLens;
                     this._data = null;
                     return null;
                 }
-                console.log(data);
+                console.log(data.unitsID);
+                console.log(data.mapID);
                 this._units_id = data.unitsID.sort();
                 this._map_id = data.mapID;
                 var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
@@ -965,6 +960,7 @@ var ManyLens;
                 });
             };
             BaseSingleLens.prototype.AfterExtractData = function () {
+                //Do nothing in this abstract method
             };
             BaseSingleLens.prototype.DisplayLens = function () {
                 var _this = this;
@@ -1005,6 +1001,7 @@ var ManyLens;
                     this._manyLens.DetachCompositeLens(this._element, hostLens, this);
                 }
             };
+            //The entrance of new data
             BaseSingleLens.prototype.SelectCircleDragendFunc = function (selectCircle) {
                 if (!this._has_put_down)
                     return;
@@ -1022,11 +1019,6 @@ var ManyLens;
                     this.ExtractData(); //it will invoke display automatically when finishing extractdata
                     this._has_showed_lens = true;
                 }
-                //z-index的问题先不解决
-                ////re-order the g elements so the paneG could on the toppest
-                //var tempGs = d3.select("#mapView").selectAll("svg > g");
-                //tempGs[0].splice(tempGs[0].length - 2, 0, tempGs[0].pop());
-                //tempGs.order();
             };
             BaseSingleLens.prototype.SelectCircleZoomFunc = function () {
                 if (d3.event.sourceEvent.type != "wheel") {
@@ -1104,10 +1096,11 @@ var ManyLens;
                             var tID = node.data()[0]['unitID'];
                             unitsID.push(tID);
                             mapID = node.data()[0]['mapID'];
-                            if (dist2 < minDist2) {
-                                minDist2 = dist2;
-                                minUnitsID = tID;
-                            }
+                        }
+                        else if (dist2 < minDist2) {
+                            mapID = node.data()[0]['mapID'];
+                            minDist2 = dist2;
+                            minUnitsID = node.data()[0]['unitID'];
                         }
                     }
                 }
@@ -1115,8 +1108,11 @@ var ManyLens;
                 if (unitsID.length > 0 && mapID) {
                     res = { unitsID: unitsID, mapID: mapID };
                 }
-                else if (unitsID.length == 0) {
+                else if (unitsID.length == 0 && mapID) {
                     res = { unitsID: [minUnitsID], mapID: mapID };
+                }
+                else {
+                    console.log("there is a bug here " + unitsID);
                 }
                 return res;
                 //var eles = [];
@@ -1596,8 +1592,7 @@ var ManyLens;
                 this._is_composite_lens = true;
                 this._components_select_circle = new Array();
                 this._components_kind = new Map();
-                this._components_places = new Map();
-                //this._components_data = new Map<number, UnitsDataForLens>();
+                this._components_units = new Map();
                 this._components_lens = new Array();
                 this._base_component = firstLens;
                 this._base_component.HostLens = this;
@@ -1625,34 +1620,27 @@ var ManyLens;
                         _sc_radius: secondLens.SelectCircleRadius,
                         _sc_scale: secondLens.SelectCircleScale
                     });
-                    this._components_kind.set(secondLens.Type, 1);
-                    //this._components_data.set(firstLens0.LensPlace, firstLens0.RawData);
-                    //this._components_places.set(firstLens0.LensPlace, 1);
+                    if (firstLens0.Type == secondLens.Type) {
+                        this._components_kind.set(firstLens0.Type, 2);
+                    }
+                    else {
+                        this._components_kind.set(secondLens.Type, 1);
+                    }
                     //set the place of this component lens
                     firstLens0.UnitsID.forEach(function (d, i) {
-                        _this._components_places.set(d, 1);
+                        _this._components_units.set(d, 1);
                         _this._units_id.push(d);
                     });
                     secondLens.UnitsID.forEach(function (d, i) {
-                        if (_this._components_places.has(d)) {
-                            //var num = this._components_places.get(d) + 1;
+                        if (_this._components_units.has(d)) {
                             //if this place already exits, add 1 to it(which means it will be 2)
-                            _this._components_places.set(d, 2);
+                            _this._components_units.set(d, 2);
                         }
                         else {
-                            _this._components_places.set(d, 1);
+                            _this._components_units.set(d, 1);
                             _this._units_id.push(d);
                         }
                     });
-                    //if (placeFlag) {
-                    //    var t = this._components_places.get(secondLens.LensPlace) + 1;
-                    //    this._components_places.set(secondLens.LensPlace, t);
-                    //} else {
-                    //    this._components_places.set(secondLens.LensPlace, 1);
-                    //    this._components_data.set(secondLens.LensPlace, secondLens.RawData);
-                    //    console.log(firstLens0.LensPlace);
-                    //    console.log(secondLens.LensPlace);
-                    //}
                     this._base_accessor_func = firstLens0.DataAccesser();
                     this._sub_accessor_func = secondLens.DataAccesser();
                 }
@@ -1687,9 +1675,9 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
-            Object.defineProperty(BaseCompositeLens.prototype, "ComponentsPlace", {
+            Object.defineProperty(BaseCompositeLens.prototype, "ComponentsUnits", {
                 get: function () {
-                    return this._components_places;
+                    return this._components_units;
                 },
                 enumerable: true,
                 configurable: true
@@ -1850,12 +1838,12 @@ var ManyLens;
                 }
                 //Component place
                 lens.UnitsID.forEach(function (d, i) {
-                    if (_this._components_places.has(d)) {
-                        var num = _this._components_places.get(d) + 1;
-                        _this._components_places.set(d, num);
+                    if (_this._components_units.has(d)) {
+                        var num = _this._components_units.get(d) + 1;
+                        _this._components_units.set(d, num);
                     }
                     else {
-                        _this._components_places.set(d, 1);
+                        _this._components_units.set(d, 1);
                         _this._units_id.push(d);
                     }
                 });
@@ -1869,12 +1857,12 @@ var ManyLens;
                     this._components_lens.splice(index, 1);
                     this._components_select_circle.splice(index, 1);
                     lens.UnitsID.forEach(function (d, i) {
-                        var num = _this._components_places.get(d) - 1;
+                        var num = _this._components_units.get(d) - 1;
                         if (num > 0) {
-                            _this._components_places.set(d, num);
+                            _this._components_units.set(d, num);
                         }
                         else if (num == 0) {
-                            _this._components_places.delete(d);
+                            _this._components_units.delete(d);
                             _this._units_id.splice(_this._units_id.indexOf(d), 1);
                         }
                         else {
@@ -3335,7 +3323,8 @@ var ManyLens;
         };
         ManyLens.prototype.AddLens = function (lens) {
             this._lens.set(lens.ID, lens);
-            //this._lens_count++;
+        };
+        ManyLens.prototype.AddLensToHistoryTree = function (lens) {
             this._historyTrees.addNode({
                 color: lens.LensTypeColor,
                 lensType: lens.Type,
@@ -3344,8 +3333,8 @@ var ManyLens;
         };
         //TODO need to implementation
         ManyLens.prototype.RemoveLens = function (lens) {
-            var lens;
             this._lens.delete(lens.ID);
+            this.ManyLensServerRemoveLensData(lens.MapID, lens.ID);
             return lens;
         };
         ManyLens.prototype.DetachCompositeLens = function (element, hostLens, componentLens) {
@@ -3404,6 +3393,13 @@ var ManyLens;
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
             return this._manyLens_hub.server.getLensData(visMapID, lensID, unitsID, whichData);
+        };
+        ManyLens.prototype.ManyLensServerRemoveLensData = function (visMapID, lensID) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.removeLensData(visMapID, lensID);
         };
         ManyLens.TestMode = false;
         return ManyLens;

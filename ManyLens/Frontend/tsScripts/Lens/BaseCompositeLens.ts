@@ -17,7 +17,7 @@ module ManyLens {
             protected _components_select_circle: Array<selectCircle>;
             protected _components_lens: Array<BaseSingleLens>;
             protected _components_kind: Map<string, number>;
-            protected _components_places: Map<number, number>;
+            protected _components_units: Map<number, number>;
             //protected _components_data: Map<number,UnitsDataForLens>;
 
             protected _base_component: BaseD3Lens;
@@ -40,8 +40,8 @@ module ManyLens {
             public get ComponentsKind(): Map<string, number> {
                 return this._components_kind;
             }
-            public get ComponentsPlace(): Map<number,number>{
-                return this._components_places;
+            public get ComponentsUnits(): Map<number,number>{
+                return this._components_units;
             }
             public get NeedtoReshape(): boolean {
                 return this._need_to_reshape;
@@ -53,8 +53,7 @@ module ManyLens {
 
                 this._components_select_circle = new Array<selectCircle>();
                 this._components_kind = new Map<string, number>();
-                this._components_places = new Map<number, number>();
-                //this._components_data = new Map<number, UnitsDataForLens>();
+                this._components_units = new Map<number, number>();
                 this._components_lens = new Array<BaseSingleLens>();
 
                 this._base_component = firstLens;
@@ -87,36 +86,28 @@ module ManyLens {
                         _sc_radius: secondLens.SelectCircleRadius,
                         _sc_scale: secondLens.SelectCircleScale
                     });
-                    this._components_kind.set(secondLens.Type, 1);
-
-                    //this._components_data.set(firstLens0.LensPlace, firstLens0.RawData);
-                    //this._components_places.set(firstLens0.LensPlace, 1);
-
+                    if (firstLens0.Type == secondLens.Type) {
+                        this._components_kind.set(firstLens0.Type, 2);
+                    } else {
+                        this._components_kind.set(secondLens.Type, 1);
+                    }
+                    
                     //set the place of this component lens
                     firstLens0.UnitsID.forEach((d, i) => {
-                        this._components_places.set(d, 1);
+                        this._components_units.set(d, 1);
                         this._units_id.push(d);
                     });
                     secondLens.UnitsID.forEach((d, i) => {
-                        if (this._components_places.has(d)) {
-                            //var num = this._components_places.get(d) + 1;
+                        if (this._components_units.has(d)) {
                             //if this place already exits, add 1 to it(which means it will be 2)
-                            this._components_places.set(d, 2);
+                            this._components_units.set(d, 2);
                         } else {
-                            this._components_places.set(d, 1);
+                            this._components_units.set(d, 1);
                             this._units_id.push(d);
                         }
 
                     });
-                    //if (placeFlag) {
-                    //    var t = this._components_places.get(secondLens.LensPlace) + 1;
-                    //    this._components_places.set(secondLens.LensPlace, t);
-                    //} else {
-                    //    this._components_places.set(secondLens.LensPlace, 1);
-                    //    this._components_data.set(secondLens.LensPlace, secondLens.RawData);
-                    //    console.log(firstLens0.LensPlace);
-                    //    console.log(secondLens.LensPlace);
-                    //}
+
                     this._base_accessor_func = firstLens0.DataAccesser();
                     this._sub_accessor_func = secondLens.DataAccesser();
 
@@ -322,11 +313,11 @@ module ManyLens {
 
                 //Component place
                 lens.UnitsID.forEach((d, i) => {
-                    if (this._components_places.has(d)) {
-                        var num: number = this._components_places.get(d) + 1;
-                        this._components_places.set(d, num);
+                    if (this._components_units.has(d)) {
+                        var num: number = this._components_units.get(d) + 1;
+                        this._components_units.set(d, num);
                     } else {
-                        this._components_places.set(d, 1);
+                        this._components_units.set(d, 1);
                         this._units_id.push(d);
                     }
                 });
@@ -341,11 +332,11 @@ module ManyLens {
                     this._components_select_circle.splice(index, 1);
 
                     lens.UnitsID.forEach((d, i) => {
-                        var num: number = this._components_places.get(d) - 1;
+                        var num: number = this._components_units.get(d) - 1;
                         if (num > 0) {
-                            this._components_places.set(d, num);
+                            this._components_units.set(d, num);
                         } else if(num == 0){
-                            this._components_places.delete(d);
+                            this._components_units.delete(d);
                             this._units_id.splice(this._units_id.indexOf(d), 1);
                         }else{
                             throw new Error("The number of this places of component is less than 0!!");
