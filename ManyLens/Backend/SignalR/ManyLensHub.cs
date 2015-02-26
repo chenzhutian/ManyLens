@@ -309,10 +309,10 @@ namespace ManyLens.SignalR
         //Interactive for lens
         public async Task cPieWordCloudLens(string lensID, string pieKey,string whichData)
         {
+            HashSet<string> words = new HashSet<string>();
             await Task.Run(() => {
                 LensData lens = lensdatas[lensID];
                 List<Tweet> tweets = lens.GetTweetsAtLengthOf(int.Parse(pieKey));
-                HashSet<string> words = new HashSet<string>();
                 for (int i = 0, len = tweets.Count; i < len; ++i)
                 {
                     Tweet tweet = tweets[i];
@@ -324,6 +324,8 @@ namespace ManyLens.SignalR
                 }
                 
             });
+
+            Clients.Caller
         }
 
         #region some code for test
