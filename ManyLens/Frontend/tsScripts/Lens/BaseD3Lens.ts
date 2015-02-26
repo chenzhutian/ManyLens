@@ -329,13 +329,15 @@ module ManyLens {
             //}
 
             public RemoveLens() {
-                this._lens_circle_svg
-                    .attr("opacity", "1")
-                    .style("pointer-events", "none")
-                    .transition()
-                    .duration(200)  //this is hard code, should be optimize
-                    .attr("opacity", "1e-6")
-                    .remove();
+                if(this._lens_circle_svg)
+                    this._lens_circle_svg
+                        .attr("opacity", "1")
+                        .style("pointer-events", "none")
+                        .transition()
+                        .duration(200)  //this is hard code, should be optimize
+                        .attr("opacity", "1e-6")
+                        .remove();
+                
             }
         }
 

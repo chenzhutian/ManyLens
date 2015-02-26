@@ -47,12 +47,6 @@ module ManyLens {
                 this._is_composite_lens = false;
                 this._select_circle_radius = 10;
                 this._attribute_name = attributeName;
-            }
-
-            public Render(color: string): void {
-                super.Render(color);
-                var container = this._element;
-                var hasShow = false;
 
                 this._select_circle_zoom
                     .scaleExtent([1, 4])
@@ -83,10 +77,13 @@ module ManyLens {
                     })
                 ;
 
-                this._sc_lc_svg.append("line")
-                    .attr("stoke-width", 2)
-                    .attr("stroke", "red")
-                ;
+
+            }
+
+            public Render(color: string): void {
+                super.Render(color);
+                var container = this._element;
+                var hasShow = false;
 
                 this._select_circle_svg = this._sc_lc_svg.append("g")
                     .attr("class", "select-circle")
@@ -130,6 +127,11 @@ module ManyLens {
                     .on("mousedown.zoom", null)
                     .call(this._select_circle_drag)
                 ;
+                this._sc_lc_svg.append("line")
+                    .attr("stoke-width", 2)
+                    .attr("stroke", "red")
+                ;
+
 
                 container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 function moveSelectCircle() {

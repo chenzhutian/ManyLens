@@ -808,7 +808,8 @@ var ManyLens;
             //        .style("visibility", "visible");
             //}
             BaseD3Lens.prototype.RemoveLens = function () {
-                this._lens_circle_svg.attr("opacity", "1").style("pointer-events", "none").transition().duration(200).attr("opacity", "1e-6").remove();
+                if (this._lens_circle_svg)
+                    this._lens_circle_svg.attr("opacity", "1").style("pointer-events", "none").transition().duration(200).attr("opacity", "1e-6").remove();
             };
             return BaseD3Lens;
         })(ManyLens.D3ChartObject);
@@ -823,6 +824,7 @@ var ManyLens;
         var BaseSingleLens = (function (_super) {
             __extends(BaseSingleLens, _super);
             function BaseSingleLens(element, attributeName, type, manyLens) {
+                var _this = this;
                 _super.call(this, element, type, manyLens);
                 this._select_circle_radius = 0;
                 this._select_circle_cx = -10;
@@ -838,6 +840,26 @@ var ManyLens;
                 this._is_composite_lens = false;
                 this._select_circle_radius = 10;
                 this._attribute_name = attributeName;
+                this._select_circle_zoom.scaleExtent([1, 4]).on("zoom", function () {
+                    _this.SelectCircleZoomFunc();
+                    //console.log("sc_zoom " + this._type);
+                });
+                this._select_circle_drag.origin(function (d) {
+                    return d;
+                }).on("dragstart", function () {
+                    //this._sc_drag_event_flag = false;
+                    //console.log("sc_dragstart " + this._type);
+                }).on("drag", function () {
+                    //if (this._sc_drag_event_flag) {
+                    _this.SelectCircleDragFunc();
+                    //} else {
+                    //    this._sc_drag_event_flag = true;
+                    //}
+                    //console.log("sc_drag " + this._type);
+                }).on("dragend", function (d) {
+                    _this.SelectCircleDragendFunc(d);
+                    //console.log("sc_dragend " + this._type);
+                });
             }
             Object.defineProperty(BaseSingleLens.prototype, "AttributeName", {
                 get: function () {
@@ -886,27 +908,6 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
                 var container = this._element;
                 var hasShow = false;
-                this._select_circle_zoom.scaleExtent([1, 4]).on("zoom", function () {
-                    _this.SelectCircleZoomFunc();
-                    //console.log("sc_zoom " + this._type);
-                });
-                this._select_circle_drag.origin(function (d) {
-                    return d;
-                }).on("dragstart", function () {
-                    //this._sc_drag_event_flag = false;
-                    //console.log("sc_dragstart " + this._type);
-                }).on("drag", function () {
-                    //if (this._sc_drag_event_flag) {
-                    _this.SelectCircleDragFunc();
-                    //} else {
-                    //    this._sc_drag_event_flag = true;
-                    //}
-                    //console.log("sc_drag " + this._type);
-                }).on("dragend", function (d) {
-                    _this.SelectCircleDragendFunc(d);
-                    //console.log("sc_dragend " + this._type);
-                });
-                this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
                 this._select_circle_svg = this._sc_lc_svg.append("g").attr("class", "select-circle");
                 var selectCircle = this._select_circle = this._select_circle_svg.append("circle").data([{ x: this._select_circle_cx, y: this._select_circle_cy }]);
                 selectCircle.attr("r", this._select_circle_radius).attr("fill", color).attr("fill-opacity", 0.7).attr("stroke", "black").attr("stroke-width", 1).attr({
@@ -928,6 +929,7 @@ var ManyLens;
                     }
                     d3.event.preventDefault();
                 }).call(this._select_circle_zoom).on("dblclick.zoom", null).on("mousedown.zoom", null).call(this._select_circle_drag);
+                this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
                 container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 function moveSelectCircle() {
                     var p = d3.mouse(container[0][0]);
@@ -1590,10 +1592,10 @@ var ManyLens;
                 this._new_lens_count = 1;
                 this._need_to_reshape = false;
                 this._is_composite_lens = true;
+                this._components_lens = new Array();
                 this._components_select_circle = new Array();
                 this._components_kind = new Map();
                 this._components_units = new Map();
-                this._components_lens = new Array();
                 this._base_component = firstLens;
                 this._base_component.HostLens = this;
                 this._map_id = firstLens.MapID;

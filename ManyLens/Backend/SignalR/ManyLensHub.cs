@@ -254,7 +254,7 @@ namespace ManyLens.SignalR
                 //    jser.WriteObject(sw.BaseStream, visData);
                 //    sw.Close();
                 //    Debug.Write("finish json");
-                //}
+                //
                 //catch (Exception e)
                 //{
                 //    Debug.WriteLine(e.InnerException.Message);

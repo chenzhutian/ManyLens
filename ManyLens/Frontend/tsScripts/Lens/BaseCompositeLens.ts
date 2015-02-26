@@ -51,10 +51,10 @@ module ManyLens {
                 super(element, type, manyLens);
                 this._is_composite_lens = true;
 
+                this._components_lens = new Array<BaseSingleLens>();
                 this._components_select_circle = new Array<selectCircle>();
                 this._components_kind = new Map<string, number>();
                 this._components_units = new Map<number, number>();
-                this._components_lens = new Array<BaseSingleLens>();
 
                 this._base_component = firstLens;
                 this._base_component.HostLens = this;
@@ -86,6 +86,7 @@ module ManyLens {
                         _sc_radius: secondLens.SelectCircleRadius,
                         _sc_scale: secondLens.SelectCircleScale
                     });
+
                     if (firstLens0.Type == secondLens.Type) {
                         this._components_kind.set(firstLens0.Type, 2);
                     } else {
@@ -105,7 +106,6 @@ module ManyLens {
                             this._components_units.set(d, 1);
                             this._units_id.push(d);
                         }
-
                     });
 
                     this._base_accessor_func = firstLens0.DataAccesser();
