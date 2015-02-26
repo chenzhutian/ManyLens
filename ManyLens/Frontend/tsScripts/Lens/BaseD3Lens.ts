@@ -120,15 +120,15 @@ module ManyLens {
                     .on("dragstart", () => {
                         
                         this.LensCircleDragstartFunc();
-                        console.log("lc_dragstart " + this._type);
+                        //console.log("lc_dragstart " + this._type);
                     })
                     .on("drag", () => {
                         this.LensCircleDragFunc();
-                        console.log("lc_drag " + this._type);
+                        //console.log("lc_drag " + this._type);
                     })
                     .on("dragend", () => {
                         this.LensCircleDragendFunc();
-                        console.log("lc_dragend " + this._type);
+                        //console.log("lc_dragend " + this._type);
                     })
                 ;
             }
@@ -337,7 +337,6 @@ module ManyLens {
                         .duration(200)  //this is hard code, should be optimize
                         .attr("opacity", "1e-6")
                         .remove();
-                
             }
         }
 

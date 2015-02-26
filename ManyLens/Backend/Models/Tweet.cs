@@ -65,6 +65,13 @@ namespace ManyLens.Models
                 this.length = this.derivedContent.Split(' ').Length;
             }
         }
+        public string[] ContentWords
+        {
+            get
+            {
+                return this.derivedContent.Split(' ');
+            }
+        }
         public DateTime PostDate
         {
             get
@@ -90,7 +97,7 @@ namespace ManyLens.Models
                 return this.hashTag;
             }
         }
-
+        
         public User User
         {
             get

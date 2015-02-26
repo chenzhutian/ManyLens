@@ -79,12 +79,17 @@ module ManyLens {
                 ;
                 this._cloud.start();
 
-                this._lens_circle_svg.selectAll(".innerPie")
+                this._lens_circle_svg.selectAll(".outterPie")
                     .data(this._pie(this._sub_accessor_func(this._data)))
                     .enter().append("path")
+                    .attr("class","outterPie")
                     .attr("d", this._arc)
                     .style("fill", (d) => { return this._cloud_text_color(d.data.Key); })
-                    .style("fill-rule", "evenodd")
+                    .on("mouseover", function(d){
+                        console.log(d3.select(this).data());
+                        console.log(d);
+                        console.log(d.data.Key);
+                    })
                 ;
             }
 

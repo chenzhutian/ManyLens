@@ -9,20 +9,20 @@ namespace ManyLens.Models
     {
         private String mapID;
 
-
         //private List<int> unitsID;
         private List<Unit> units;
         private List<Tweet> tweets = null;
 
+        private Dictionary<string, int> keywords = null;
+        private Dictionary<string, User> users = null;
+        private Dictionary<string, int> usersCount = null; // the occurence time of each user in each unit
+        private Dictionary<string, int> userTweets = null; // the tweets number of each user
+
+        private Dictionary<int, List<Tweet>> tweetsLengthDistribute = null;
+
         //private List<Dictionary<string, int>> sparseVector = null;
         //private Vocabulary vocabulary = null;
-
-        private Dictionary<string, int> keywords = null;
-        private Dictionary<string, User> users;
-        private Dictionary<string, int> usersCount; // the occurence time of each user in each unit
-        private Dictionary<string, int> userTweets; // the tweets number of each user
-
-        private Interval interval;
+        //private Interval interval;
 
         #region Getter&Setter
         //public List<int> UnitsID
@@ -89,15 +89,30 @@ namespace ManyLens.Models
             get
             {
                 Dictionary<int, int> lengthDistribute = new Dictionary<int, int>();
-                int len = this.TweetsCount;
-                for (int i = 0; i < len; ++i)
+                if (this.tweetsLengthDistribute != null)
                 {
-                    int index = this.Tweets[i].Length;
-                    if (lengthDistribute.ContainsKey(index))
-                        lengthDistribute[index]++;
-                    else
+                    foreach(KeyValuePair<int,List<Tweet>> item in this.tweetsLengthDistribute)
                     {
-                        lengthDistribute.Add(index, 1);
+                        lengthDistribute.Add(item.Key, item.Value.Count);
+                    }
+                }
+                else
+                {
+                    this.tweetsLengthDistribute = new Dictionary<int, List<Tweet>>();
+                    int len = this.TweetsCount;
+                    for (int i = 0; i < len; ++i)
+                    {
+                        int index = this.Tweets[i].Length;
+                        if (lengthDistribute.ContainsKey(index))
+                        {
+                            lengthDistribute[index]++;
+                        }
+                        else
+                        {
+                            lengthDistribute.Add(index, 1);
+                            this.tweetsLengthDistribute.Add(index,new List<Tweet>());
+                        }
+                        this.tweetsLengthDistribute[index].Add(this.Tweets[i]);
                     }
                 }
                 return lengthDistribute.ToList();
@@ -380,6 +395,11 @@ namespace ManyLens.Models
                 this.MergeUnit(enter[i]);
             }
 
+        }
+
+        public List<Tweet> GetTweetsAtLengthOf(int length)
+        {
+            return this.tweetsLengthDistribute[length];
         }
 
         public UnitsDataForLens GetDataForVis()

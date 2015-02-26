@@ -546,13 +546,13 @@ var ManyLens;
                     return d;
                 }).on("dragstart", function () {
                     _this.LensCircleDragstartFunc();
-                    console.log("lc_dragstart " + _this._type);
+                    //console.log("lc_dragstart " + this._type);
                 }).on("drag", function () {
                     _this.LensCircleDragFunc();
-                    console.log("lc_drag " + _this._type);
+                    //console.log("lc_drag " + this._type);
                 }).on("dragend", function () {
                     _this.LensCircleDragendFunc();
-                    console.log("lc_dragend " + _this._type);
+                    //console.log("lc_dragend " + this._type);
                 });
             }
             Object.defineProperty(BaseD3Lens.prototype, "ID", {
@@ -2830,9 +2830,13 @@ var ManyLens;
                     _this.DrawCloud(words, bounds);
                 });
                 this._cloud.start();
-                this._lens_circle_svg.selectAll(".innerPie").data(this._pie(this._sub_accessor_func(this._data))).enter().append("path").attr("d", this._arc).style("fill", function (d) {
+                this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d) {
                     return _this._cloud_text_color(d.data.Key);
-                }).style("fill-rule", "evenodd");
+                }).on("mouseover", function (d) {
+                    console.log(d3.select(this).data());
+                    console.log(d);
+                    console.log(d.data.Key);
+                });
             };
             cWordCloudPieLens.prototype.DrawCloud = function (words, bounds) {
                 var _this = this;
