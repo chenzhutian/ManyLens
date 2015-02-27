@@ -2807,6 +2807,7 @@ var ManyLens;
                 }).outerRadius(function (d) {
                     return _this._lens_circle_radius + 20;
                 });
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
             }
             cWordCloudPieLens.prototype.Render = function (color) {
                 if (color === void 0) { color = "red"; }
@@ -2833,10 +2834,13 @@ var ManyLens;
                 this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d) {
                     return _this._cloud_text_color(d.data.Key);
                 }).on("mouseover", function (d) {
-                    console.log(d3.select(this).data());
                     console.log(d);
                     console.log(d.data.Key);
+                    _this._manyLens.ManyLensServercWordCloudPieLens(_this.ID, d.data.Key, "test");
                 });
+            };
+            cWordCloudPieLens.prototype.HightLightWordsOfTweetsAtLengthOf = function (words) {
+                console.log(words);
             };
             cWordCloudPieLens.prototype.DrawCloud = function (words, bounds) {
                 var _this = this;
@@ -3356,13 +3360,13 @@ var ManyLens;
             }
         };
         /* -------------------- Hub related Function -----------------------*/
-        ManyLens.prototype.ManyLensHubRegisterClientFunction = function (obj, funcName, func) {
+        ManyLens.prototype.ManyLensHubRegisterClientFunction = function (registerObj, funcName, func) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
             this._manyLens_hub.client[funcName] = function () {
-                func.apply(obj, arguments);
+                func.apply(registerObj, arguments);
             };
         };
         ManyLens.prototype.ManyLensHubServerPullPoint = function (start) {
@@ -3406,6 +3410,13 @@ var ManyLens;
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
             return this._manyLens_hub.server.removeLensData(visMapID, lensID);
+        };
+        ManyLens.prototype.ManyLensServercWordCloudPieLens = function (lensID, pieKey, whichData) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.cPieWordCloudLens(lensID, pieKey, whichData);
         };
         ManyLens.TestMode = false;
         return ManyLens;

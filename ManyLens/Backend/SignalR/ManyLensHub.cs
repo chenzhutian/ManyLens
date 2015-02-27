@@ -322,10 +322,10 @@ namespace ManyLens.SignalR
                         words.Add(contentWords[j]);
                     }
                 }
-                
+                Clients.Caller.hightLightWordsOfTweetsAtLengthOf(words.ToList());
             });
 
-            Clients.Caller
+            
         }
 
         #region some code for test

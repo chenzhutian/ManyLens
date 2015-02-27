@@ -118,13 +118,13 @@ module ManyLens {
         }
 
         /* -------------------- Hub related Function -----------------------*/
-        public ManyLensHubRegisterClientFunction(obj: any, funcName: string, func: (...any) => any) {
+        public ManyLensHubRegisterClientFunction(registerObj: any, funcName: string, func: (...any) => any) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
             this._manyLens_hub.client[funcName] = function () {
-                func.apply(obj, arguments);
+                func.apply(registerObj, arguments);
             }
         }
 
@@ -174,6 +174,14 @@ module ManyLens {
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
             return this._manyLens_hub.server.removeLensData(visMapID, lensID);
+        }
+
+        public ManyLensServercWordCloudPieLens(lensID: string, pieKey: string, whichData: string): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.server.cPieWordCloudLens(lensID, pieKey, whichData);
         }
 
     }

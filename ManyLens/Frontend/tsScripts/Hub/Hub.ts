@@ -156,6 +156,9 @@
             getLensData(visMapID: string,lensID:string, unitsID: number[], whichData: string):IPromise<void>;
             removeLensData(visMapID: string, lensID: string): IPromise<void>;
 
+            cPieWordCloudLens(lensID: string, pieKey: string, whichData: string): IPromise<void>;
+
+
             reOrganize(visMapID: string, selectedUnits: Array<any>): IPromise<void>;
             moveTweets(visMapID: string, fromUnitsID: Array<any>, toUnitsID: Array<any>): IPromise<void>;
             doLongRunningThing(): IPromise<void>;

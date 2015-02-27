@@ -81,6 +81,14 @@
         proxies['manyLensHub'] = this.createHubProxy('manyLensHub'); 
         proxies['manyLensHub'].client = { };
         proxies['manyLensHub'].server = {
+            cPieWordCloudLens: function (lensID, pieKey, whichData) {
+            /// <summary>Calls the cPieWordCloudLens method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
+            /// <param name=\"lensID\" type=\"String\">Server side type is System.String</param>
+            /// <param name=\"pieKey\" type=\"String\">Server side type is System.String</param>
+            /// <param name=\"whichData\" type=\"String\">Server side type is System.String</param>
+                return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["cPieWordCloudLens"], $.makeArray(arguments)));
+             },
+
             doLongRunningThing: function () {
             /// <summary>Calls the DoLongRunningThing method on the server-side ManyLensHub hub.&#10;Returns a jQuery.Deferred() promise.</summary>
                 return proxies['manyLensHub'].invoke.apply(proxies['manyLensHub'], $.merge(["DoLongRunningThing"], $.makeArray(arguments)));

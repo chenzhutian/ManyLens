@@ -41,7 +41,7 @@ module ManyLens {
                         return this._lens_circle_radius + 20;
                     })
                 ;
-
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
             }
 
             public Render(color = "red"): void {
@@ -85,12 +85,16 @@ module ManyLens {
                     .attr("class","outterPie")
                     .attr("d", this._arc)
                     .style("fill", (d) => { return this._cloud_text_color(d.data.Key); })
-                    .on("mouseover", function(d){
-                        console.log(d3.select(this).data());
+                    .on("mouseover", (d)=>{
                         console.log(d);
                         console.log(d.data.Key);
+                        this._manyLens.ManyLensServercWordCloudPieLens(this.ID, d.data.Key, "test");
                     })
                 ;
+            }
+
+            private HightLightWordsOfTweetsAtLengthOf(words: string[]):void {
+                console.log(words);
             }
 
             private DrawCloud(words: any[], bounds: any[]) {
