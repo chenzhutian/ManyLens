@@ -37,7 +37,7 @@ module ManyLens {
             protected AfterExtractData(): void {
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(this._extract_data_map_func(this._data), (d: { Key: any; Value: any }) => {
+                    .domain(d3.extent(this._extract_data_map_func.Extract(this._data), (d: { Key: any; Value: any }) => {
                         return d.Value;
                     }))
                 ;
@@ -47,7 +47,7 @@ module ManyLens {
                 if (!super.DisplayLens()) return null;
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(this._extract_data_map_func(this._data))
+                    .words(this._extract_data_map_func.Extract(this._data))
                     .filter((d) => {
                         if (d.Value > 3)
                             return true;

@@ -1,12 +1,29 @@
 ﻿///<reference path = "../D3ChartObject.ts" />
 module ManyLens {
     export module Lens {
+
         export interface UnitsDataForLens {
             //unitsID: Array<number>;
             keywordsDistribute: Array<{ Key: string; Value: number }>;
             tweetLengthDistribute: Array<{ Key: number; Value: number }>;
             contents: Array<string>;
             hashTagDistribute: Array<{ Key: string; Value: number }>;
+        }
+
+        export class ExtractDataFunc {
+            private targetAttribute: string;
+
+            public get TargetAttribute(): string {
+                return this.targetAttribute;
+            }
+
+            constructor(att: string) {
+                this.targetAttribute = att;
+            }
+
+            public Extract(d?: any): any {
+                return d[this.targetAttribute];
+            }
         }
 
         export class BaseD3Lens extends D3ChartObject {
@@ -158,7 +175,7 @@ module ManyLens {
 
                 this._lens_circle_svg = this._sc_lc_svg.append("g")
                     .data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }])
-                    //.attr("id",this.ID)
+
                     .attr("class", "lens-circle-g " + this._type)
                     .attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")")
                     .attr("opacity", "1e-6")
@@ -183,11 +200,13 @@ module ManyLens {
                     .call(this._lens_circle_drag)
                 ;
 
-                this._lens_circle = this._lens_circle_svg.append("circle")
+                this._lens_circle = this._lens_circle_svg.append("path")
                     .attr("class", "lens-circle")
-                    .attr("cx", 0)
-                    .attr("cy", 0)
-                    .attr("r", this._lens_circle_radius)
+                    .attr("id", "lens-circle-" + this.ID)
+                    //.attr("cx", 0)
+                    //.attr("cy", 0)
+                    //.attr("r", this._lens_circle_radius)
+                    .attr("d",d3.svg.arc().startAngle(0).endAngle(2*Math.PI).innerRadius(0).outerRadius(this._lens_circle_radius))
                     .attr("fill", "#fff")
                     .attr("stroke", "black")
                     .attr("stroke-width", 1)

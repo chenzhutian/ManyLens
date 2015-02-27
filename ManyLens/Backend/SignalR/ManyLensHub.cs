@@ -313,17 +313,7 @@ namespace ManyLens.SignalR
             HashSet<string> words = new HashSet<string>();
             await Task.Run(() => {
                 LensData lens = lensdatas[lensID];
-                List<Tweet> tweets = lens.GetTweetsAtLengthOf(int.Parse(pieKey));
-                for (int i = 0, len = tweets.Count; i < len; ++i)
-                {
-                    Tweet tweet = tweets[i];
-                    string[] contentWords = tweet.ContentWords;
-                    for (int j = 0, lenj = contentWords.Length; j < lenj; ++j)
-                    {
-                        words.Add(contentWords[j]);
-                    }
-                }
-                
+                words = lens.GetWordsOfTweetsAtLengthOf(int.Parse(pieKey));
             });
             Clients.Caller.interactiveOnLens(lensID,words.ToList());
             

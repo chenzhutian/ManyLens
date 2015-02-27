@@ -39,7 +39,7 @@ module ManyLens {
 
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(this._base_accessor_func(this._data), (d: { Key: any; Value: any }) => {
+                    .domain(d3.extent(this._base_accessor_func.Extract(this._data), (d: { Key: any; Value: any }) => {
                         return d.Value;
                     }))
                 ;
@@ -51,7 +51,7 @@ module ManyLens {
                 this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(this._base_accessor_func(this._data))
+                    .words(this._base_accessor_func.Extract(this._data))
                     .filter((d) => {
                         if (d.Value > 3)
                             return true;

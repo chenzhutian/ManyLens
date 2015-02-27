@@ -59,8 +59,6 @@ module ManyLens {
             //Add a new tree here, actually the tree should not be add here
             this._historyTrees.addTree();
 
-
-
             this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
             /*-------------------------Start the hub-------------------------------------------*/
             this._manyLens_hub.connection.start().done(() => {

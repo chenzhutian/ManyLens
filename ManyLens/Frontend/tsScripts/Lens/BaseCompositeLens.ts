@@ -21,9 +21,9 @@ module ManyLens {
             //protected _components_data: Map<number,UnitsDataForLens>;
 
             protected _base_component: BaseD3Lens;
-            protected _base_accessor_func: (d: any,newData?:any) => any = null;
+            protected _base_accessor_func: ExtractDataFunc = null;
             protected _sub_component: BaseD3Lens;
-            protected _sub_accessor_func: (d: any,newData?:any) => any = null;
+            protected _sub_accessor_func: ExtractDataFunc = null;
 
             protected _new_lens_count: number = 1;
             protected _need_to_reshape: boolean = false;

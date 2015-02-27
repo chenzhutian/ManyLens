@@ -11,14 +11,15 @@ namespace ManyLens.Models
 
         //private List<int> unitsID;
         private List<Unit> units;
-        private List<Tweet> tweets = null;
+        private List<Tweet> tweets;
 
-        private Dictionary<string, int> keywords = null;
-        private Dictionary<string, User> users = null;
-        private Dictionary<string, int> usersCount = null; // the occurence time of each user in each unit
-        private Dictionary<string, int> userTweets = null; // the tweets number of each user
+        private Dictionary<string, int> keywords;
+        private Dictionary<string, User> users;
+        private Dictionary<string, int> usersCount; // the occurence time of each user in each unit
+        private Dictionary<string, int> userTweets; // the tweets number of each user
 
-        private Dictionary<int, List<Tweet>> tweetsLengthDistribute = null;
+        private Dictionary<int, List<Tweet>> tweetsLengthDistribute;
+        private Dictionary<int, HashSet<string>> wordsOfTweetsAtSpecificLength;
 
         //private List<Dictionary<string, int>> sparseVector = null;
         //private Vocabulary vocabulary = null;
@@ -58,7 +59,7 @@ namespace ManyLens.Models
                 return ids;
             }
         }
-        
+
         public List<string> TweetContents
         {
             get
@@ -89,31 +90,9 @@ namespace ManyLens.Models
             get
             {
                 Dictionary<int, int> lengthDistribute = new Dictionary<int, int>();
-                if (this.tweetsLengthDistribute != null)
+                foreach (KeyValuePair<int, List<Tweet>> item in this.tweetsLengthDistribute)
                 {
-                    foreach(KeyValuePair<int,List<Tweet>> item in this.tweetsLengthDistribute)
-                    {
-                        lengthDistribute.Add(item.Key, item.Value.Count);
-                    }
-                }
-                else
-                {
-                    this.tweetsLengthDistribute = new Dictionary<int, List<Tweet>>();
-                    int len = this.TweetsCount;
-                    for (int i = 0; i < len; ++i)
-                    {
-                        int index = this.Tweets[i].Length;
-                        if (lengthDistribute.ContainsKey(index))
-                        {
-                            lengthDistribute[index]++;
-                        }
-                        else
-                        {
-                            lengthDistribute.Add(index, 1);
-                            this.tweetsLengthDistribute.Add(index,new List<Tweet>());
-                        }
-                        this.tweetsLengthDistribute[index].Add(this.Tweets[i]);
-                    }
+                    lengthDistribute.Add(item.Key, item.Value.Count);
                 }
                 return lengthDistribute.ToList();
             }
@@ -211,44 +190,50 @@ namespace ManyLens.Models
             //this.unitsID = new List<int>();
             this.units = new List<Unit>();
             this.Tweets = new List<Tweet>();
-            this.usersCount = new Dictionary<string, int>();
 
-            this.users = new Dictionary<string, User>();
+
             this.keywords = new Dictionary<string, int>();
-            this.userTweets = new Dictionary<string, int>();
-        }
-
-        private void InitialLensData(Unit unit)
-        {
-           
-            this.units = new List<Unit>();
-            this.units.Add(unit);
-            //this.unitsID = new List<int>();
-            //this.unitsID.Add(unit.UnitID);
-            //this.Vocabulary = unit.Vocabulary;
-            //this.interval = unit.Interval;
-
-            this.Tweets = new List<Tweet>(unit.Tweets);
+            this.users = new Dictionary<string, User>();
             this.usersCount = new Dictionary<string, int>();
-            foreach (KeyValuePair<string, User> item in unit.Users)
-            {
-                this.usersCount.Add(item.Key, 1);
-            }
+            this.userTweets = new Dictionary<string, int>();
 
-            this.users = new Dictionary<string, User>(unit.Users);
-            this.keywords = new Dictionary<string, int>(unit.WordLabels);
-            this.userTweets = new Dictionary<string, int>(unit.UserTweets);
+            this.wordsOfTweetsAtSpecificLength = new Dictionary<int, HashSet<string>>();
+            this.tweetsLengthDistribute = new Dictionary<int,List<Tweet>>();
         }
+
+        //private void InitialLensData(Unit unit)
+        //{
+            
+        //    this.units = new List<Unit>();
+        //    this.units.Add(unit);
+        //    this.Tweets = new List<Tweet>(unit.Tweets);
+
+        //    this.keywords = new Dictionary<string, int>(unit.WordLabels);
+        //    this.users = new Dictionary<string, User>(unit.Users);
+        //    this.usersCount = new Dictionary<string, int>();
+        //    foreach (KeyValuePair<string, User> item in unit.Users)
+        //    {
+        //        this.usersCount.Add(item.Key, 1);
+        //    }
+        //    this.userTweets = new Dictionary<string, int>(unit.UserTweets);
+
+        //    this.wordsOfTweetsAtSpecificLength = new Dictionary<int, HashSet<string>>();
+        //    this.tweetsLengthDistribute = null;
+        //    //this.unitsID = new List<int>();
+        //    //this.unitsID.Add(unit.UnitID);
+        //    //this.Vocabulary = unit.Vocabulary;
+        //    //this.interval = unit.Interval;
+        //}
 
         public LensData()
         {
             this.InitialLensData();
         }
 
-        public LensData(Unit unit)
-        {
-            this.InitialLensData(unit);
-        }
+        //public LensData(Unit unit)
+        //{
+        //    this.InitialLensData(unit);
+        //}
 
         private void DetechUnit(Unit unit)
         {
@@ -258,10 +243,16 @@ namespace ManyLens.Models
             //if (!this.UnitsID.Contains(unit.UnitID))
             //    return;
             //this.UnitsID.Remove(unit.UnitID);
-            
+
             for (int i = 0, len = unit.TweetsCount; i < len; ++i)
             {
-                this.Tweets.Remove(unit.Tweets[i]);
+                Tweet tweet = unit.Tweets[i];
+                this.Tweets.Remove(tweet);
+                int length = tweet.Length;
+                this.tweetsLengthDistribute[length].Remove(tweet);
+                if (this.tweetsLengthDistribute[length].Count == 0)
+                    this.tweetsLengthDistribute.Remove(length);
+
             }
             //Remove user
             foreach (KeyValuePair<string, User> item in unit.Users)
@@ -307,6 +298,27 @@ namespace ManyLens.Models
             this.units.Add(unit);
             //this.UnitsID.Add(unit.UnitID);
             this.Tweets.AddRange(unit.Tweets);
+            for (int i = 0, len = unit.Tweets.Count; i < len; ++i)
+            {
+                Tweet tweet = unit.Tweets[i];
+                int length = tweet.Length;
+                if (!this.tweetsLengthDistribute.ContainsKey(length))
+                {
+                    this.tweetsLengthDistribute.Add(length, new List<Tweet>()); 
+                }
+                this.tweetsLengthDistribute[length].Add(tweet);
+
+                //Can not do this, we need to record the count of each word if we generated wordsOfTweetsAtSpecificLength here
+                //if(!this.wordsOfTweetsAtSpecificLength.ContainsKey(length))
+                //{
+                //    this.wordsOfTweetsAtSpecificLength.Add(length,new HashSet<string>());
+                //}
+                //string[] words = tweet.ContentWords;
+                //for(int j = 0, lenj = words.Length; j < lenj; ++j)
+                //{
+                //    this.wordsOfTweetsAtSpecificLength[length].Add(words[j]);
+                //}
+            }
 
             //Add the user to this lens
             foreach (KeyValuePair<string, User> item in unit.Users)
@@ -368,8 +380,8 @@ namespace ManyLens.Models
             //if all unit exit, reConstruct this lensData then return
             if (exit.Count == originalNum)
             {
-                this.InitialLensData(newUnits[0]);
-                for (int i = 1, len = newUnits.Count; i < len; ++i )
+                this.InitialLensData();
+                for (int i = 0, len = newUnits.Count; i < len; ++i)
                 {
                     this.MergeUnit(newUnits[i]);
                 }
@@ -384,9 +396,9 @@ namespace ManyLens.Models
                     enter.Add(newUnits[i]);
                 }
             }
-            
+
             //Detech the exit unit
-            for(int i = 0, len = exit.Count; i < len; ++i)
+            for (int i = 0, len = exit.Count; i < len; ++i)
             {
                 this.DetechUnit(exit[i]);
             }
@@ -395,11 +407,38 @@ namespace ManyLens.Models
                 this.MergeUnit(enter[i]);
             }
 
+            //Re-initial some collection
+            this.wordsOfTweetsAtSpecificLength = new Dictionary<int, HashSet<string>>();
+
         }
 
         public List<Tweet> GetTweetsAtLengthOf(int length)
         {
             return this.tweetsLengthDistribute[length];
+        }
+
+        public HashSet<String> GetWordsOfTweetsAtLengthOf(int length)
+        {
+            if (this.wordsOfTweetsAtSpecificLength.ContainsKey(length))
+            {
+                return this.wordsOfTweetsAtSpecificLength[length];
+            }
+            else
+            {
+                HashSet<string> words = new HashSet<string>();
+                List<Tweet> tweets = this.GetTweetsAtLengthOf(length);
+                for (int i = 0, len = tweets.Count; i < len; ++i)
+                {
+                    Tweet tweet = tweets[i];
+                    string[] contentWords = tweet.ContentWords;
+                    for (int j = 0, lenj = contentWords.Length; j < lenj; ++j)
+                    {
+                        words.Add(contentWords[j]);
+                    }
+                }
+                this.wordsOfTweetsAtSpecificLength.Add(length, words);
+                return words;
+            }
         }
 
         public UnitsDataForLens GetDataForVis()

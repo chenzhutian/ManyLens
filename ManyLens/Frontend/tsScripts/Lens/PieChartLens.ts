@@ -6,8 +6,8 @@ module ManyLens{
 
             public static Type: string = "PieChartLens";
 
-            private _innerRadius: number = this._lens_circle_radius - 20;
-            private _outterRadius: number = this._lens_circle_radius - 0;
+            private _pie_innerRadius: number = 0;
+            private _pie_outterRadius: number = this._lens_circle_radius - 0;
             private _pie: D3.Layout.PieLayout = d3.layout.pie();
             private _arc: D3.Svg.Arc = d3.svg.arc();
 
@@ -20,8 +20,8 @@ module ManyLens{
             constructor(element: D3.Selection,attributeName:string, manyLens: ManyLens) {
                 super(element,attributeName, PieChartLens.Type,manyLens);
                 this._arc
-                    .innerRadius(this._innerRadius)
-                    .outerRadius(this._outterRadius)
+                    .innerRadius(this._pie_innerRadius)
+                    .outerRadius(this._pie_outterRadius)
                 //    .startAngle(0)
                 ;
 
@@ -30,6 +30,7 @@ module ManyLens{
                         return d.Value;
                     })
                     .sort(null)
+                .startAngle(0)
                    // .padAngle(.02)
                 ;
 
@@ -48,26 +49,92 @@ module ManyLens{
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
 
-                this._lens_circle_svg.selectAll("path")
-                    .data(this._pie(this._extract_data_map_func(this._data)))
+                
+                this._lens_circle_svg.selectAll(".pie")
+                    .data(this._pie(this._extract_data_map_func.Extract(this._data)))
                     .enter().append("path")
+                    .attr("id", "pie-" + this.ID)
+                    .attr("class","pie")
                     .attr("fill", (d) => {
                         return this._color(d.data.Key);
                     })
                     .attr("d", this._arc)
+                    .on("mouseover", (d) => {
+                        this.ShowLabel(d);
+                    })
+                    .on("mouseout", () => {
+                        this.ShowLabel(null);
+                    })
                 ;
 
+                var r = this._lens_circle_radius;
                 this._lens_circle_svg
                     .append("text")
                     .text(this._attribute_name)
-                    .attr("y", function () {
-                        return 0;//- this.getBBox().height / 2;
+                    .attr("dx", function (d) {
+                        var bbox = this.getBBox();
+                        return r * Math.PI - bbox.width / 2;
                     })
-                    .attr("x", function () {
-                        return - this.getBBox().width / 2;
-                    })
+                    .attr("dy", "-5")
+                    .text("")
+                    .append("textPath")
+                    .attr("xlink:href", "#lens-circle-"+this.ID)
+                    .text(this._attribute_name)
                 ;
             }
+
+            private ShowLabel(d: any): void {
+                if (d) {
+                    this._lens_circle_svg.selectAll("text.mylabel")
+                        .data([d])
+                        .enter().append("text")
+                        .attr("class", "mylabel")
+                        .attr("text-anchor", "middle")
+                        .attr("x", (d) => {
+                            var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                            d.cx = Math.cos(a) * (this._pie_innerRadius + (this._pie_outterRadius - this._pie_innerRadius) / 2);
+                            return d.x = Math.cos(a) * (this._pie_outterRadius + 20);
+                        })
+                        .attr("y", (d) => {
+                            var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                            d.cy = Math.sin(a) * (this._pie_innerRadius + (this._pie_outterRadius - this._pie_innerRadius) / 2);
+                            return d.y = Math.sin(a) * (this._pie_outterRadius + 20);
+                        })
+                        .text(function (d) { return d.data.Key; })
+                        .each(function (d) {
+                            var bbox = this.getBBox();
+                            d.sx = d.x - bbox.width / 2 - 2;
+                            d.ox = d.x + bbox.width / 2 + 2;
+                            d.sy = d.oy = d.y + 5;
+                        });
+
+                    this._lens_circle_svg.selectAll("path.mylabel")
+                        .data([d])
+                        .enter().append("path")
+                        .attr("class", "mylabel")
+                        .style("fill", "none")
+                        .style("stroke", "black")
+                        .attr("d", function (d) {
+                            if (d.cx > d.ox) {
+                                return "M" + d.sx + "," + d.sy + "L" + d.sx + "," + d.sy;
+                            } else {
+                                return "M" + d.ox + "," + d.oy + "L" + d.ox + "," + d.oy;
+                            }
+                        })
+                        .transition().duration(200)
+                        .attr("d", function (d) {
+                            if (d.cx > d.ox) {
+                                return "M" + d.sx + "," + d.sy + "L" + d.ox + "," + d.oy + " " + d.cx + "," + d.cy;
+                            } else {
+                                return "M" + d.ox + "," + d.oy + "L" + d.sx + "," + d.sy + " " + d.cx + "," + d.cy;
+                            }
+                        });
+                } else {
+                    this._lens_circle_svg.selectAll(".mylabel").remove();
+                }
+            }
         }
+
+
     }
 } 

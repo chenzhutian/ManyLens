@@ -6,9 +6,12 @@
             name: string;
             icon?: string;
             lensConstructFunc?: (element: D3.Selection,attributeName:string, manyLens: ManyLens) => void;
-            extractDataFunc?: (d?: any) => any;
+            extractDataFunc?: Lens.ExtractDataFunc;
             children?: Array<MenuListData>;
         }
+
+
+
         export class SideBarNavigation {
 
             private _element: D3.Selection;
@@ -73,29 +76,32 @@
                                 {
                                     name: "Tweet Length",
                                     lensConstructFunc: Lens.PieChartLens,
-                                    extractDataFunc: (d, newData?: any) => {
-                                        if (newData)
-                                            d.tweetLengthDistribute = newData;
-                                        return d.tweetLengthDistribute;
-                                    }
+                                    extractDataFunc: new Lens.ExtractDataFunc("tweetLengthDistribute")
+                                    //(d, newData?: any) => {
+                                    //if (newData)
+                                    //    d.tweetLengthDistribute = newData;
+                                    //return d.tweetLengthDistribute;
+                                    //}
                                 },
                                 {
                                     name: "Hashtag Count",
                                     lensConstructFunc: Lens.PieChartLens,
-                                    extractDataFunc: (d, newData?: any) => {
-                                        if (newData)
-                                            d.hashTagDistribute = newData;
-                                        return d.hashTagDistribute;
-                                    }
+                                    extractDataFunc: new Lens.ExtractDataFunc("hashTagDistribute")
+                                    //(d, newData?: any) => {
+                                    //    if (newData)
+                                    //        d.hashTagDistribute = newData;
+                                    //    return d.hashTagDistribute;
+                                    //}
                                 },
                                 {
                                     name: "User Tweets",
                                     lensConstructFunc: Lens.PieChartLens,
-                                    extractDataFunc: (d, newData?: any) => {
-                                        if (newData)
-                                            d.userTweetsDistribute = newData;
-                                        return d.userTweetsDistribute;
-                                    }
+                                    extractDataFunc: new Lens.ExtractDataFunc("userTweetsDistribute")
+                                    //(d, newData?: any) => {
+                                    //    if (newData)
+                                    //        d.userTweetsDistribute = newData;
+                                    //    return d.userTweetsDistribute;
+                                    //}
                                 },
                                 {
                                     name: "@Mention Count",
@@ -111,20 +117,22 @@
                                 {
                                     name: "Keywords",
                                     lensConstructFunc: Lens.WordCloudLens,
-                                    extractDataFunc: (d,newData?:any) => {
-                                        if (newData)
-                                            d.keywordsDistribute = newData;
-                                        return d.keywordsDistribute;
-                                    }
+                                    extractDataFunc: new Lens.ExtractDataFunc("keywordsDistribute")
+                                    //(d, newData?: any) => {
+                                    //    if (newData)
+                                    //        d.keywordsDistribute = newData;
+                                    //    return d.keywordsDistribute;
+                                    //}
                                 },
                                 {
                                     name: "Hashtag",
                                     lensConstructFunc: Lens.WordCloudLens,
-                                    extractDataFunc: (d, newData?: any) => {
-                                        if (newData)
-                                            d.hashTagDistribute = newData;
-                                        return d.hashTagDistribute;
-                                    }
+                                    extractDataFunc: new Lens.ExtractDataFunc("hashTagDistribute")
+                                    //(d, newData?: any) => {
+                                    //    if (newData)
+                                    //        d.hashTagDistribute = newData;
+                                    //    return d.hashTagDistribute;
+                                    //}
                                 }
                             ]
                         },
@@ -135,11 +143,12 @@
                                 {
                                     name: "Retweet Network",
                                     lensConstructFunc: Lens.NetworkLens,
-                                    extractDataFunc: (d, newData?: any) => {
-                                        if (newData)
-                                            d.retweetNetwork = newData;
-                                        return d.retweetNetwork;
-                                    }
+                                    extractDataFunc: new Lens.ExtractDataFunc("retweetNetwork")
+                                    //(d, newData?: any) => {
+                                    //    if (newData)
+                                    //        d.retweetNetwork = newData;
+                                    //    return d.retweetNetwork;
+                                    //}
                                 }
                             ]
                         },
@@ -150,9 +159,10 @@
                                 {
                                     name: "New New 1",
                                     lensConstructFunc: Lens.MapLens,
-                                    extractDataFunc: (d) => {
-                                        return d.j;
-                                    }
+                                    //extractDataFunc:
+                                    //(d) => {
+                                    //    return d.j;
+                                    //}
                                 },
                                 { name: "New New 2" },
                                 { name: "New New 3" }

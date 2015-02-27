@@ -21,7 +21,7 @@ module ManyLens {
             //protected _sc_drag_event_flag: boolean = false;
             protected _sc_lc_default_dist = 100;
 
-            protected _extract_data_map_func: (d: any, newData?: any) => any = null;
+            protected _extract_data_map_func: ExtractDataFunc = null;
 
             public get AttributeName(): string {
                 return this._attribute_name;
@@ -143,7 +143,7 @@ module ManyLens {
                 }
             }
 
-            public DataAccesser(map?: (d: any, newData?: any) => any): any {
+            public DataAccesser(map?: ExtractDataFunc): any {
                 if (map == null) return this._extract_data_map_func;
                 this._extract_data_map_func = map;
                 return this;
@@ -164,8 +164,9 @@ module ManyLens {
                 promise
                     .done((d: UnitsDataForLens) => {
                         console.log("promise done in basesingleLens");
+                        console.log(this._extract_data_map_func.Extract(d));
                         this._data = d;
-
+                        
                         this.AfterExtractData();
                         this.DisplayLens();
                     });

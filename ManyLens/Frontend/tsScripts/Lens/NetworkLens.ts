@@ -47,7 +47,7 @@ module ManyLens {
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
 
-                var graph = this._extract_data_map_func(this._data);
+                var graph = this._extract_data_map_func.Extract(this._data);
            
                 var nodes = graph.nodes,
                     links = graph.links

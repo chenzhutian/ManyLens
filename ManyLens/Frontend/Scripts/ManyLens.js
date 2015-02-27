@@ -58,29 +58,17 @@ var ManyLens;
                                 {
                                     name: "Tweet Length",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
-                                    extractDataFunc: function (d, newData) {
-                                        if (newData)
-                                            d.tweetLengthDistribute = newData;
-                                        return d.tweetLengthDistribute;
-                                    }
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetLengthDistribute")
                                 },
                                 {
                                     name: "Hashtag Count",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
-                                    extractDataFunc: function (d, newData) {
-                                        if (newData)
-                                            d.hashTagDistribute = newData;
-                                        return d.hashTagDistribute;
-                                    }
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagDistribute")
                                 },
                                 {
                                     name: "User Tweets",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
-                                    extractDataFunc: function (d, newData) {
-                                        if (newData)
-                                            d.userTweetsDistribute = newData;
-                                        return d.userTweetsDistribute;
-                                    }
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("userTweetsDistribute")
                                 },
                                 {
                                     name: "@Mention Count",
@@ -95,20 +83,12 @@ var ManyLens;
                                 {
                                     name: "Keywords",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
-                                    extractDataFunc: function (d, newData) {
-                                        if (newData)
-                                            d.keywordsDistribute = newData;
-                                        return d.keywordsDistribute;
-                                    }
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("keywordsDistribute")
                                 },
                                 {
                                     name: "Hashtag",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
-                                    extractDataFunc: function (d, newData) {
-                                        if (newData)
-                                            d.hashTagDistribute = newData;
-                                        return d.hashTagDistribute;
-                                    }
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagDistribute")
                                 }
                             ]
                         },
@@ -119,11 +99,7 @@ var ManyLens;
                                 {
                                     name: "Retweet Network",
                                     lensConstructFunc: ManyLens.Lens.NetworkLens,
-                                    extractDataFunc: function (d, newData) {
-                                        if (newData)
-                                            d.retweetNetwork = newData;
-                                        return d.retweetNetwork;
-                                    }
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("retweetNetwork")
                                 }
                             ]
                         },
@@ -134,9 +110,6 @@ var ManyLens;
                                 {
                                     name: "New New 1",
                                     lensConstructFunc: ManyLens.Lens.MapLens,
-                                    extractDataFunc: function (d) {
-                                        return d.j;
-                                    }
                                 },
                                 { name: "New New 2" },
                                 { name: "New New 3" }
@@ -523,6 +496,23 @@ var ManyLens;
 (function (ManyLens) {
     var Lens;
     (function (Lens) {
+        var ExtractDataFunc = (function () {
+            function ExtractDataFunc(att) {
+                this.targetAttribute = att;
+            }
+            Object.defineProperty(ExtractDataFunc.prototype, "TargetAttribute", {
+                get: function () {
+                    return this.targetAttribute;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            ExtractDataFunc.prototype.Extract = function (d) {
+                return d[this.targetAttribute];
+            };
+            return ExtractDataFunc;
+        })();
+        Lens.ExtractDataFunc = ExtractDataFunc;
         var BaseD3Lens = (function (_super) {
             __extends(BaseD3Lens, _super);
             function BaseD3Lens(element, type, manyLens) {
@@ -702,7 +692,7 @@ var ManyLens;
                 }).on("click", function () {
                     //console.log("lc_click " + this._type)
                 }).call(this._lens_circle_zoom).on("dblclick.zoom", null).call(this._lens_circle_drag);
-                this._lens_circle = this._lens_circle_svg.append("circle").attr("class", "lens-circle").attr("cx", 0).attr("cy", 0).attr("r", this._lens_circle_radius).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
+                this._lens_circle = this._lens_circle_svg.append("path").attr("class", "lens-circle").attr("id", "lens-circle-" + this.ID).attr("d", d3.svg.arc().startAngle(0).endAngle(2 * Math.PI).innerRadius(0).outerRadius(this._lens_circle_radius)).attr("fill", "#fff").attr("stroke", "black").attr("stroke-width", 1);
                 this._manyLens.AddLensToHistoryTree(this);
                 this._lens_circle_svg.transition().duration(duration).attr("opacity", "1").each("end", function () {
                     d3.select(this).style("pointer-events", "");
@@ -956,6 +946,7 @@ var ManyLens;
                 var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
                 promise.done(function (d) {
                     console.log("promise done in basesingleLens");
+                    console.log(_this._extract_data_map_func.Extract(d));
                     _this._data = d;
                     _this.AfterExtractData();
                     _this.DisplayLens();
@@ -1317,7 +1308,7 @@ var ManyLens;
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
-                var graph = this._extract_data_map_func(this._data);
+                var graph = this._extract_data_map_func.Extract(this._data);
                 var nodes = graph.nodes, links = graph.links;
                 nodes.forEach(function (d) {
                     d.x = d.x * _this.LensRadius;
@@ -1381,15 +1372,15 @@ var ManyLens;
             __extends(PieChartLens, _super);
             function PieChartLens(element, attributeName, manyLens) {
                 _super.call(this, element, attributeName, PieChartLens.Type, manyLens);
-                this._innerRadius = this._lens_circle_radius - 20;
-                this._outterRadius = this._lens_circle_radius - 0;
+                this._pie_innerRadius = 0;
+                this._pie_outterRadius = this._lens_circle_radius - 0;
                 this._pie = d3.layout.pie();
                 this._arc = d3.svg.arc();
                 this._color = d3.scale.category20();
-                this._arc.innerRadius(this._innerRadius).outerRadius(this._outterRadius);
+                this._arc.innerRadius(this._pie_innerRadius).outerRadius(this._pie_outterRadius);
                 this._pie.value(function (d) {
                     return d.Value;
-                }).sort(null);
+                }).sort(null).startAngle(0);
             }
             Object.defineProperty(PieChartLens.prototype, "Color", {
                 get: function () {
@@ -1407,14 +1398,57 @@ var ManyLens;
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
-                this._lens_circle_svg.selectAll("path").data(this._pie(this._extract_data_map_func(this._data))).enter().append("path").attr("fill", function (d) {
+                this._lens_circle_svg.selectAll(".pie").data(this._pie(this._extract_data_map_func.Extract(this._data))).enter().append("path").attr("id", "pie-" + this.ID).attr("class", "pie").attr("fill", function (d) {
                     return _this._color(d.data.Key);
-                }).attr("d", this._arc);
-                this._lens_circle_svg.append("text").text(this._attribute_name).attr("y", function () {
-                    return 0; //- this.getBBox().height / 2;
-                }).attr("x", function () {
-                    return -this.getBBox().width / 2;
+                }).attr("d", this._arc).on("mouseover", function (d) {
+                    _this.ShowLabel(d);
+                }).on("mouseout", function () {
+                    _this.ShowLabel(null);
                 });
+                var r = this._lens_circle_radius;
+                this._lens_circle_svg.append("text").text(this._attribute_name).attr("dx", function (d) {
+                    var bbox = this.getBBox();
+                    return r * Math.PI - bbox.width / 2;
+                }).attr("dy", "-5").text("").append("textPath").attr("xlink:href", "#lens-circle-" + this.ID).text(this._attribute_name);
+            };
+            PieChartLens.prototype.ShowLabel = function (d) {
+                var _this = this;
+                if (d) {
+                    this._lens_circle_svg.selectAll("text.mylabel").data([d]).enter().append("text").attr("class", "mylabel").attr("text-anchor", "middle").attr("x", function (d) {
+                        var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                        d.cx = Math.cos(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
+                        return d.x = Math.cos(a) * (_this._pie_outterRadius + 20);
+                    }).attr("y", function (d) {
+                        var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                        d.cy = Math.sin(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
+                        return d.y = Math.sin(a) * (_this._pie_outterRadius + 20);
+                    }).text(function (d) {
+                        return d.data.Key;
+                    }).each(function (d) {
+                        var bbox = this.getBBox();
+                        d.sx = d.x - bbox.width / 2 - 2;
+                        d.ox = d.x + bbox.width / 2 + 2;
+                        d.sy = d.oy = d.y + 5;
+                    });
+                    this._lens_circle_svg.selectAll("path.mylabel").data([d]).enter().append("path").attr("class", "mylabel").style("fill", "none").style("stroke", "black").attr("d", function (d) {
+                        if (d.cx > d.ox) {
+                            return "M" + d.sx + "," + d.sy + "L" + d.sx + "," + d.sy;
+                        }
+                        else {
+                            return "M" + d.ox + "," + d.oy + "L" + d.ox + "," + d.oy;
+                        }
+                    }).transition().duration(200).attr("d", function (d) {
+                        if (d.cx > d.ox) {
+                            return "M" + d.sx + "," + d.sy + "L" + d.ox + "," + d.oy + " " + d.cx + "," + d.cy;
+                        }
+                        else {
+                            return "M" + d.ox + "," + d.oy + "L" + d.sx + "," + d.sy + " " + d.cx + "," + d.cy;
+                        }
+                    });
+                }
+                else {
+                    this._lens_circle_svg.selectAll(".mylabel").remove();
+                }
             };
             PieChartLens.Type = "PieChartLens";
             return PieChartLens;
@@ -1529,7 +1563,7 @@ var ManyLens;
             };
             // data shape {text: size:}
             WordCloudLens.prototype.AfterExtractData = function () {
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func(this._data), function (d) {
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) {
                     return d.Value;
                 }));
             };
@@ -1537,7 +1571,7 @@ var ManyLens;
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return null;
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._extract_data_map_func(this._data)).filter(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._extract_data_map_func.Extract(this._data)).filter(function (d) {
                     if (d.Value > 3)
                         return true;
                     return false;
@@ -2631,7 +2665,7 @@ var ManyLens;
             // data shape {text: size:}
             cWordCloudLens.prototype.ExtractData = function () {
                 _super.prototype.ExtractData.call(this);
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._base_accessor_func(this._data), function (d) {
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._base_accessor_func.Extract(this._data), function (d) {
                     return d.Value;
                 }));
             };
@@ -2639,7 +2673,7 @@ var ManyLens;
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
                 this.ExtractData();
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func(this._data)).filter(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func.Extract(this._data)).filter(function (d) {
                     if (d.Value > 3)
                         return true;
                     return false;
@@ -2787,7 +2821,6 @@ var ManyLens;
         var cWordCloudPieLens = (function (_super) {
             __extends(cWordCloudPieLens, _super);
             function cWordCloudPieLens(element, manyLens, firstLens, secondLens) {
-                var _this = this;
                 _super.call(this, element, cWordCloudPieLens.Type, manyLens, firstLens, secondLens);
                 this._font_size = d3.scale.sqrt();
                 this._cloud = d3.layout.cloud();
@@ -2798,15 +2831,13 @@ var ManyLens;
                 this._cloud_font_weight = "normal";
                 this._pie = d3.layout.pie();
                 this._arc = d3.svg.arc();
+                this._pie_innerRadius = this._lens_circle_radius;
+                this._pie_outterRadius = this._lens_circle_radius + 20;
                 this._cloud_text_color = d3.scale.category10();
                 this._pie.value(function (d) {
                     return d.Value;
                 }).sort(null);
-                this._arc.innerRadius(function (d) {
-                    return _this._lens_circle_radius;
-                }).outerRadius(function (d) {
-                    return _this._lens_circle_radius + 20;
-                });
+                this._arc.innerRadius(this._pie_innerRadius).outerRadius(this._pie_outterRadius);
                 //this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
             }
             cWordCloudPieLens.prototype.Render = function (color) {
@@ -2814,14 +2845,14 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             cWordCloudPieLens.prototype.AfterExtractData = function () {
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._base_accessor_func(this._data), function (d) {
+                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._base_accessor_func.Extract(this._data), function (d) {
                     return d.Value;
                 }));
             };
             cWordCloudPieLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func(this._data)).filter(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func.Extract(this._data)).filter(function (d) {
                     if (d.Value > 3)
                         return true;
                     return false;
@@ -2831,20 +2862,20 @@ var ManyLens;
                     _this.DrawCloud(words, bounds);
                 });
                 this._cloud.start();
-                this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d) {
+                this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func.Extract(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d) {
                     return _this._cloud_text_color(d.data.Key);
                 }).on("mouseover", function (d) {
                     _this._manyLens.ManyLensHubServercWordCloudPieLens(_this.ID, d.data.Key, "test");
+                    _this.ShowLabel(d);
                 }).on("mouseout", function (d) {
-                    _this._lens_circle_svg.selectAll("text").style("opacity", function (p) {
-                        return 1;
-                    });
+                    _this._lens_circle_svg.selectAll("text.wordCloudText").transition().style("opacity", 1);
+                    _this.ShowLabel(null);
                 });
             };
             cWordCloudPieLens.prototype.HightLightWordsOfTweetsAtLengthOf = function (words) {
-                console.log("here");
-                console.log(words);
-                this._lens_circle_svg.selectAll("text").transition().duration(500).style("opacity", function (p) {
+                //console.log("here");
+                //console.log(words);
+                this._lens_circle_svg.selectAll("text.wordCloudText").transition().style("opacity", function (p) {
                     if (words.indexOf(p.text) == -1)
                         return 0.1;
                 });
@@ -2858,7 +2889,7 @@ var ManyLens;
                 var text = this._lens_circle_svg.selectAll("text").data(words, function (d) {
                     return d.text;
                 }).enter().append("text");
-                text.attr("text-anchor", "middle").style("font-size", function (d) {
+                text.attr("text-anchor", "middle").attr("class", "wordCloudText").style("font-size", function (d) {
                     return d.size + "px";
                 }).style("font-weight", function (d) {
                     return d.weight;
@@ -2871,6 +2902,45 @@ var ManyLens;
                 }).text(function (d) {
                     return d.text;
                 }).transition().duration(200).style("opacity", 1);
+            };
+            cWordCloudPieLens.prototype.ShowLabel = function (d) {
+                var _this = this;
+                if (d) {
+                    this._lens_circle_svg.selectAll("text.mylabel").data([d]).enter().append("text").attr("class", "mylabel").attr("text-anchor", "middle").attr("x", function (d) {
+                        var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                        d.cx = Math.cos(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
+                        return d.x = Math.cos(a) * (_this._pie_outterRadius + 20);
+                    }).attr("y", function (d) {
+                        var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                        d.cy = Math.sin(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
+                        return d.y = Math.sin(a) * (_this._pie_outterRadius + 20);
+                    }).text(function (d) {
+                        return d.data.Key;
+                    }).each(function (d) {
+                        var bbox = this.getBBox();
+                        d.sx = d.x - bbox.width / 2 - 2;
+                        d.ox = d.x + bbox.width / 2 + 2;
+                        d.sy = d.oy = d.y + 5;
+                    });
+                    this._lens_circle_svg.selectAll("path.mylabel").data([d]).enter().append("path").attr("class", "mylabel").style("fill", "none").style("stroke", "black").attr("d", function (d) {
+                        if (d.cx > d.ox) {
+                            return "M" + d.sx + "," + d.sy + "L" + d.sx + "," + d.sy;
+                        }
+                        else {
+                            return "M" + d.ox + "," + d.oy + "L" + d.ox + "," + d.oy;
+                        }
+                    }).transition().duration(200).attr("d", function (d) {
+                        if (d.cx > d.ox) {
+                            return "M" + d.sx + "," + d.sy + "L" + d.ox + "," + d.oy + " " + d.cx + "," + d.cy;
+                        }
+                        else {
+                            return "M" + d.ox + "," + d.oy + "L" + d.sx + "," + d.sy + " " + d.cx + "," + d.cy;
+                        }
+                    });
+                }
+                else {
+                    this._lens_circle_svg.selectAll(".mylabel").remove();
+                }
             };
             cWordCloudPieLens.Type = "cWordCloudPieLens";
             return cWordCloudPieLens;

@@ -18,6 +18,9 @@ module ManyLens {
 
             private _pie: D3.Layout.PieLayout = d3.layout.pie();
             private _arc: D3.Svg.Arc = d3.svg.arc();
+            private _pie_innerRadius: number = this._lens_circle_radius;
+            private _pie_outterRadius: number = this._lens_circle_radius + 20;
+
 
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseCompositeLens);
             constructor(element: D3.Selection, manyLens: ManyLens, firstLens: BaseSingleLens, secondLens: BaseSingleLens);
@@ -34,12 +37,8 @@ module ManyLens {
                 ;
 
                 this._arc
-                    .innerRadius((d) => {
-                        return this._lens_circle_radius;
-                    })
-                    .outerRadius((d) => {
-                        return this._lens_circle_radius + 20;
-                    })
+                    .innerRadius(this._pie_innerRadius)
+                    .outerRadius(this._pie_outterRadius)
                 ;
 
                 //this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
@@ -53,7 +52,7 @@ module ManyLens {
             protected AfterExtractData() {
                 this._font_size
                     .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(this._base_accessor_func(this._data), (d: { Key: any; Value: any }) => {
+                    .domain(d3.extent(this._base_accessor_func.Extract(this._data), (d: { Key: any; Value: any }) => {
                         return d.Value;
                     }))
                 ;
@@ -63,7 +62,7 @@ module ManyLens {
                 super.DisplayLens();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(this._base_accessor_func(this._data))
+                    .words(this._base_accessor_func.Extract(this._data))
                     .filter((d)=>{
                         if (d.Value > 3)
                             return true;
@@ -81,36 +80,38 @@ module ManyLens {
                 this._cloud.start();
 
                 this._lens_circle_svg.selectAll(".outterPie")
-                    .data(this._pie(this._sub_accessor_func(this._data)))
+                    .data(this._pie(this._sub_accessor_func.Extract(this._data)))
                     .enter().append("path")
                     .attr("class","outterPie")
                     .attr("d", this._arc)
                     .style("fill", (d) => { return this._cloud_text_color(d.data.Key); })
                     .on("mouseover", (d) => {
                         this._manyLens.ManyLensHubServercWordCloudPieLens(this.ID, d.data.Key, "test");
+                        this.ShowLabel(d);
+
                     })
                     .on("mouseout", (d) => {
-                        this._lens_circle_svg.selectAll("text")
-                            .style("opacity", function (p) {
-                                return 1;
-                            })
+                        this._lens_circle_svg.selectAll("text.wordCloudText")
+                            .transition()
+                            .style("opacity", 1)
                         ;
+                        this.ShowLabel(null);
                     })
                 ;
             }
 
             public HightLightWordsOfTweetsAtLengthOf(words: string[]): void {
-                console.log("here");
-                console.log(words);
-               
-                this._lens_circle_svg.selectAll("text")
-                    .transition().duration(500)
+                //console.log("here");
+                //console.log(words);
+                
+                this._lens_circle_svg.selectAll("text.wordCloudText")
+                    .transition()
                     .style("opacity", function (p) {
                         if (words.indexOf(p.text) == -1)
                             return 0.1;
                     })
                 ;
-               
+                
             }
 
             private DrawCloud(words: any[], bounds: any[]) {
@@ -129,6 +130,7 @@ module ManyLens {
                     .enter().append("text");
 
                 text.attr("text-anchor", "middle")
+                    .attr("class","wordCloudText")
                     .style("font-size", function (d) { return d.size + "px"; })
                     .style("font-weight", function (d) { return d.weight; })
                     .style("font-family", function (d) { return d.font })
@@ -142,6 +144,57 @@ module ManyLens {
                     .transition().duration(200)
                     .style("opacity", 1)
                 ;
+            }
+
+            private ShowLabel(d: any): void {
+                if (d) {
+                    this._lens_circle_svg.selectAll("text.mylabel")
+                        .data([d])
+                        .enter().append("text")
+                        .attr("class", "mylabel")
+                        .attr("text-anchor", "middle")
+                        .attr("x", (d) => {
+                            var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                            d.cx = Math.cos(a) * (this._pie_innerRadius + (this._pie_outterRadius - this._pie_innerRadius)/2);
+                            return d.x = Math.cos(a) * (this._pie_outterRadius + 20);
+                        })
+                        .attr("y", (d) => {
+                            var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                            d.cy = Math.sin(a) * (this._pie_innerRadius + (this._pie_outterRadius - this._pie_innerRadius) / 2);
+                            return d.y = Math.sin(a) * (this._pie_outterRadius + 20);
+                        })
+                        .text(function (d) { return d.data.Key; })
+                        .each(function (d) {
+                            var bbox = this.getBBox();
+                            d.sx = d.x - bbox.width / 2 - 2;
+                            d.ox = d.x + bbox.width / 2 + 2;
+                            d.sy = d.oy = d.y + 5;
+                        });
+
+                    this._lens_circle_svg.selectAll("path.mylabel")
+                        .data([d])
+                        .enter().append("path")
+                        .attr("class", "mylabel")
+                        .style("fill", "none")
+                        .style("stroke", "black")
+                        .attr("d", function (d) {
+                            if (d.cx > d.ox) {
+                                return "M" + d.sx + "," + d.sy + "L" + d.sx + "," + d.sy;
+                            } else {
+                                return "M" + d.ox + "," + d.oy + "L" + d.ox + "," + d.oy;
+                            }
+                        })
+                        .transition().duration(200)
+                        .attr("d", function (d) {
+                            if (d.cx > d.ox) {
+                                return "M" + d.sx + "," + d.sy + "L" + d.ox + "," + d.oy + " " + d.cx + "," + d.cy;
+                            } else {
+                                return "M" + d.ox + "," + d.oy + "L" + d.sx + "," + d.sy + " " + d.cx + "," + d.cy;
+                            }
+                        });
+                } else {
+                    this._lens_circle_svg.selectAll(".mylabel").remove();
+                }
             }
         }
     }
