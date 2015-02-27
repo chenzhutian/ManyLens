@@ -42,7 +42,7 @@ module ManyLens {
                     })
                 ;
 
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
+                //this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
             }
 
             public Render(color = "red"): void {
@@ -86,17 +86,31 @@ module ManyLens {
                     .attr("class","outterPie")
                     .attr("d", this._arc)
                     .style("fill", (d) => { return this._cloud_text_color(d.data.Key); })
-                    .on("mouseover", (d)=>{
-                        console.log(d);
-                        console.log(d.data.Key);
+                    .on("mouseover", (d) => {
                         this._manyLens.ManyLensHubServercWordCloudPieLens(this.ID, d.data.Key, "test");
+                    })
+                    .on("mouseout", (d) => {
+                        this._lens_circle_svg.selectAll("text")
+                            .style("opacity", function (p) {
+                                return 1;
+                            })
+                        ;
                     })
                 ;
             }
 
-            public HightLightWordsOfTweetsAtLengthOf(words: string): void {
+            public HightLightWordsOfTweetsAtLengthOf(words: string[]): void {
                 console.log("here");
                 console.log(words);
+               
+                this._lens_circle_svg.selectAll("text")
+                    .transition().duration(500)
+                    .style("opacity", function (p) {
+                        if (words.indexOf(p.text) == -1)
+                            return 0.1;
+                    })
+                ;
+               
             }
 
             private DrawCloud(words: any[], bounds: any[]) {

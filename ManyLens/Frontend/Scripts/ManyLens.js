@@ -2807,7 +2807,7 @@ var ManyLens;
                 }).outerRadius(function (d) {
                     return _this._lens_circle_radius + 20;
                 });
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
+                //this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
             }
             cWordCloudPieLens.prototype.Render = function (color) {
                 if (color === void 0) { color = "red"; }
@@ -2834,14 +2834,20 @@ var ManyLens;
                 this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d) {
                     return _this._cloud_text_color(d.data.Key);
                 }).on("mouseover", function (d) {
-                    console.log(d);
-                    console.log(d.data.Key);
                     _this._manyLens.ManyLensHubServercWordCloudPieLens(_this.ID, d.data.Key, "test");
+                }).on("mouseout", function (d) {
+                    _this._lens_circle_svg.selectAll("text").style("opacity", function (p) {
+                        return 1;
+                    });
                 });
             };
             cWordCloudPieLens.prototype.HightLightWordsOfTweetsAtLengthOf = function (words) {
                 console.log("here");
                 console.log(words);
+                this._lens_circle_svg.selectAll("text").transition().duration(500).style("opacity", function (p) {
+                    if (words.indexOf(p.text) == -1)
+                        return 0.1;
+                });
             };
             cWordCloudPieLens.prototype.DrawCloud = function (words, bounds) {
                 var _this = this;
@@ -3304,6 +3310,7 @@ var ManyLens;
             this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg, this);
             //Add a new tree here, actually the tree should not be add here
             this._historyTrees.addTree();
+            this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
             /*-------------------------Start the hub-------------------------------------------*/
             this._manyLens_hub.connection.start().done(function () {
                 console.log("start connection");
@@ -3358,6 +3365,18 @@ var ManyLens;
             else {
                 this.RemoveLens(hostLens);
                 lensC.DisplayLens();
+            }
+        };
+        ManyLens.prototype.InteractiveOnLens = function (lensID) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            var lens = this._lens.get(lensID);
+            if (lens.Type == "cWordCloudPieLens") {
+                lens.HightLightWordsOfTweetsAtLengthOf(args[0]);
+            }
+            else {
             }
         };
         /* -------------------- Hub related Function -----------------------*/
@@ -3427,7 +3446,7 @@ var ManyLens;
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
             return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, whichData);
-            //return this._manyLens_hub.server.cPieWordCloudLens(lensID, pieKey, whichData);
+            //return this._manyLens_hub.server.cWordCloudPieLens(lensID, pieKey, whichData);
         };
         ManyLens.TestMode = false;
         return ManyLens;

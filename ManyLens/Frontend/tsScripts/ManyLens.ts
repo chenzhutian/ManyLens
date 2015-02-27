@@ -41,7 +41,6 @@ module ManyLens {
             /*--------------------------Initial all the hub------------------------------*/
             this._manyLens_hub = new Hub.ManyLensHub();
 
-
             /*------------------------Initial other Component--------------------------------*/
             this._mapSvg = d3.select("#" + this._mapSvg_id);
             this._mapArea = new MapArea.SOMMap(this._mapSvg, this);
@@ -60,23 +59,26 @@ module ManyLens {
             //Add a new tree here, actually the tree should not be add here
             this._historyTrees.addTree();
 
+
+
+            this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
             /*-------------------------Start the hub-------------------------------------------*/
             this._manyLens_hub.connection.start().done(() => {
                 console.log("start connection");
                 if (ManyLens.TestMode) {
                     this._nav_sidebar.FinishLoadData();
                 } else {
-                    this._manyLens_hub.proxy.invoke("loadData").done(() => {
-                        console.log("Load data success");
-                        this._nav_sidebar.FinishLoadData();
-                    }).fail(() => {
+                    this._manyLens_hub.proxy.invoke("loadData")
+                        .done(() => {
+                            console.log("Load data success");
+                            this._nav_sidebar.FinishLoadData();
+                        })
+                        .fail(() => {
                             console.log("load data fail");
                         });
                 }
             });
-
         }
-
 
         /* -------------------- Lens related Function -----------------------*/
         public GetLens(id: string): Lens.BaseD3Lens {
@@ -112,6 +114,15 @@ module ManyLens {
                 lensC.DisplayLens();
             }
 
+        }
+
+        public InteractiveOnLens(lensID: string, ...args: Array<any>) {
+            var lens: Lens.BaseD3Lens = this._lens.get(lensID);
+            if (lens.Type == "cWordCloudPieLens") {
+                (<Lens.cWordCloudPieLens>lens).HightLightWordsOfTweetsAtLengthOf(args[0]);
+            } else {
+
+            }
         }
 
         /* -------------------- Hub related Function -----------------------*/
@@ -182,14 +193,15 @@ module ManyLens {
             //return this._manyLens_hub.server.removeLensData(visMapID, lensID);
         }
 
-        public ManyLensHubServercWordCloudPieLens(lensID: string, pieKey: string, whichData: string): Hub.IPromise<void> {
+        public ManyLensHubServercWordCloudPieLens(lensID: string, pieKey: string, whichData: any): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
             return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, whichData);
-            //return this._manyLens_hub.server.cPieWordCloudLens(lensID, pieKey, whichData);
+            //return this._manyLens_hub.server.cWordCloudPieLens(lensID, pieKey, whichData);
         }
+
 
     }
 } 
