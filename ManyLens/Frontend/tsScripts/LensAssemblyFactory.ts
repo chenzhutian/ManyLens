@@ -18,7 +18,7 @@ module ManyLens {
 
                 /*--------------------------------cBoundle Lens------------------------------*/
                 //single + single = composite
-                case Lens.WordCloudLens.Type + "_" + Lens.NetworkLens.Type:{
+                case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type:{
                     return new Lens.cBoundleLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
@@ -41,7 +41,7 @@ module ManyLens {
 
 
                 /*--------------------------------cWordCloudNetwork Digram Lens------------------------------*/
-                case Lens.NetworkLens.Type + "_" + Lens.WordCloudLens.Type: {
+                case Lens.WordCloudLens.Type + "_" + Lens.NetworkLens.Type: {
                     return new Lens.cWordCloudNetworkLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,

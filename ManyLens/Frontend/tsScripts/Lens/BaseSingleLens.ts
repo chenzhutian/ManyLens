@@ -164,7 +164,7 @@ module ManyLens {
                 promise
                     .done((d: UnitsDataForLens) => {
                         console.log("promise done in basesingleLens");
-                        console.log(this._extract_data_map_func.Extract(d));
+
                         this._data = d;
                         
                         this.AfterExtractData();
