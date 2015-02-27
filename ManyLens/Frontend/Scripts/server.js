@@ -21,6 +21,8 @@
     var signalR = $.signalR;
 
     function makeProxyCallback(hub, callback) {
+        console.log("Call the client hub method");
+        console.log(hub);
         return function () {
             // Call the client hub method
             callback.apply(hub, $.makeArray(arguments));

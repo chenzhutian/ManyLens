@@ -41,6 +41,7 @@ module ManyLens {
                         return this._lens_circle_radius + 20;
                     })
                 ;
+
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
             }
 
@@ -88,12 +89,13 @@ module ManyLens {
                     .on("mouseover", (d)=>{
                         console.log(d);
                         console.log(d.data.Key);
-                        this._manyLens.ManyLensServercWordCloudPieLens(this.ID, d.data.Key, "test");
+                        this._manyLens.ManyLensHubServercWordCloudPieLens(this.ID, d.data.Key, "test");
                     })
                 ;
             }
 
-            private HightLightWordsOfTweetsAtLengthOf(words: string[]):void {
+            public HightLightWordsOfTweetsAtLengthOf(words: string): void {
+                console.log("here");
                 console.log(words);
             }
 

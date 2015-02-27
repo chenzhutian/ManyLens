@@ -12,8 +12,8 @@ var ManyLens;
         Hub.SignalRHub = SignalRHub;
         var ManyLensHub = (function () {
             function ManyLensHub() {
-                this.server = $.connection.manyLensHub.server;
-                this.client = $.connection.manyLensHub.client;
+                this.connection = $.hubConnection();
+                this.proxy = this.connection.createHubProxy("manyLensHub");
             }
             return ManyLensHub;
         })();
@@ -2836,10 +2836,11 @@ var ManyLens;
                 }).on("mouseover", function (d) {
                     console.log(d);
                     console.log(d.data.Key);
-                    _this._manyLens.ManyLensServercWordCloudPieLens(_this.ID, d.data.Key, "test");
+                    _this._manyLens.ManyLensHubServercWordCloudPieLens(_this.ID, d.data.Key, "test");
                 });
             };
             cWordCloudPieLens.prototype.HightLightWordsOfTweetsAtLengthOf = function (words) {
+                console.log("here");
                 console.log(words);
             };
             cWordCloudPieLens.prototype.DrawCloud = function (words, bounds) {
@@ -3304,13 +3305,13 @@ var ManyLens;
             //Add a new tree here, actually the tree should not be add here
             this._historyTrees.addTree();
             /*-------------------------Start the hub-------------------------------------------*/
-            _ManyLens.Hub.SignalRHub.HubConnection.start().done(function () {
+            this._manyLens_hub.connection.start().done(function () {
                 console.log("start connection");
                 if (ManyLens.TestMode) {
                     _this._nav_sidebar.FinishLoadData();
                 }
                 else {
-                    _this._manyLens_hub.server.loadData().done(function () {
+                    _this._manyLens_hub.proxy.invoke("loadData").done(function () {
                         console.log("Load data success");
                         _this._nav_sidebar.FinishLoadData();
                     }).fail(function () {
@@ -3344,7 +3345,7 @@ var ManyLens;
         //TODO need to implementation
         ManyLens.prototype.RemoveLens = function (lens) {
             this._lens.delete(lens.ID);
-            this.ManyLensServerRemoveLensData(lens.MapID, lens.ID);
+            this.ManyLensHubServerRemoveLensData(lens.MapID, lens.ID);
             return lens;
         };
         ManyLens.prototype.DetachCompositeLens = function (element, hostLens, componentLens) {
@@ -3365,58 +3366,68 @@ var ManyLens;
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            this._manyLens_hub.client[funcName] = function () {
+            this._manyLens_hub.proxy.on(funcName, function () {
                 func.apply(registerObj, arguments);
-            };
+            });
+            //this._manyLens_hub.client[funcName] = function () {
+            //    func.apply(registerObj, arguments);
+            //}
         };
         ManyLens.prototype.ManyLensHubServerPullPoint = function (start) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.pullPoint(start);
+            return this._manyLens_hub.proxy.invoke("pullPoint", start);
+            //return this._manyLens_hub.server.pullPoint(start);
         };
         ManyLens.prototype.ManyLensHubServerTestPullPoint = function () {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.testPullPoint();
+            return this._manyLens_hub.proxy.invoke("testPullPoint");
+            //return this._manyLens_hub.server.testPullPoint();
         };
         ManyLens.prototype.ManyLensHubServerPullInterval = function (id) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.pullInterval(id);
+            return this._manyLens_hub.proxy.invoke("pullInterval", id);
+            //return this._manyLens_hub.server.pullInterval(id);
         };
         ManyLens.prototype.ManyLensHubServerTestPullInterval = function (id) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.testPullInterval(id);
+            return this._manyLens_hub.proxy.invoke("testPullInterval", id);
+            //return this._manyLens_hub.server.testPullInterval(id);
         };
         ManyLens.prototype.ManyLensHubServerGetLensData = function (visMapID, lensID, unitsID, whichData) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.getLensData(visMapID, lensID, unitsID, whichData);
+            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, whichData);
+            //return this._manyLens_hub.server.getLensData(visMapID,lensID, unitsID, whichData);
         };
-        ManyLens.prototype.ManyLensServerRemoveLensData = function (visMapID, lensID) {
+        ManyLens.prototype.ManyLensHubServerRemoveLensData = function (visMapID, lensID) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.removeLensData(visMapID, lensID);
+            return this._manyLens_hub.proxy.invoke("removeLensData", visMapID, lensID);
+            //return this._manyLens_hub.server.removeLensData(visMapID, lensID);
         };
-        ManyLens.prototype.ManyLensServercWordCloudPieLens = function (lensID, pieKey, whichData) {
+        ManyLens.prototype.ManyLensHubServercWordCloudPieLens = function (lensID, pieKey, whichData) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.server.cPieWordCloudLens(lensID, pieKey, whichData);
+            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, whichData);
+            //return this._manyLens_hub.server.cPieWordCloudLens(lensID, pieKey, whichData);
         };
         ManyLens.TestMode = false;
         return ManyLens;
