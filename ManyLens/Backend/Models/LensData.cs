@@ -26,11 +26,6 @@ namespace ManyLens.Models
         //private Interval interval;
 
         #region Getter&Setter
-        //public List<int> UnitsID
-        //{
-        //    get { return unitsID; }
-        //    set { unitsID = value; }
-        //}
         public String MapID
         {
             get { return mapID; }

@@ -18,7 +18,6 @@
             private _manyLens: ManyLens;
             /*-----------------Data menu-----------------*/
             private _isLoaded: boolean = false;
-            //private _signalLight: D3.Selection;
             private _launchDataBtn: D3.Selection;
 
             /*--------------Attribute menu---------------*/

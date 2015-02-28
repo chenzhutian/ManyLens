@@ -173,12 +173,12 @@ module ManyLens {
             //return this._manyLens_hub.server.testPullInterval(id);
         }
 
-        public ManyLensHubServerGetLensData(visMapID:string,lensID:string, unitsID: number[],whichData:string): Hub.IPromise<void> {
+        public ManyLensHubServerGetLensData(visMapID:string,lensID:string, unitsID: number[],baseData:string,subData?:string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, whichData);
+            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, baseData,subData);
             //return this._manyLens_hub.server.getLensData(visMapID,lensID, unitsID, whichData);
         }
 

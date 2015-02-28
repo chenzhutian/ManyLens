@@ -943,7 +943,7 @@ var ManyLens;
                 console.log(data.mapID);
                 this._units_id = data.unitsID.sort();
                 this._map_id = data.mapID;
-                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
+                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, this._extract_data_map_func.TargetAttribute);
                 promise.done(function (d) {
                     console.log("promise done in basesingleLens");
                     _this._data = d;
@@ -1215,7 +1215,7 @@ var ManyLens;
                     })).attr("id", "state-borders").attr("d", this._path);
                 }
                 else {
-                    d3.json("./testData/world.json", function (error, mapData) {
+                    d3.json("./testData/countries.topo.json", function (error, mapData) {
                         //  this._color.domain(d3.extent(this._extract_data_map_func(this._data)));
                         _this._map_data = {
                             raw: mapData,
@@ -1740,7 +1740,7 @@ var ManyLens;
             };
             BaseCompositeLens.prototype.ExtractData = function () {
                 var _this = this;
-                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, "test");
+                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, this._base_accessor_func.TargetAttribute, this._sub_accessor_func.TargetAttribute);
                 promise.done(function (d) {
                     console.log("promise done in baseCompositeLens");
                     _this._data = d;
@@ -2673,6 +2673,8 @@ var ManyLens;
                 if (color === void 0) { color = "red"; }
                 _super.prototype.Render.call(this, color);
             };
+            cWordCloudNetworkLens.prototype.AfterExtractData = function () {
+            };
             // data shape {text: size:}
             cWordCloudNetworkLens.prototype.ExtractData = function () {
                 var data;
@@ -3422,12 +3424,12 @@ var ManyLens;
             return this._manyLens_hub.proxy.invoke("testPullInterval", id);
             //return this._manyLens_hub.server.testPullInterval(id);
         };
-        ManyLens.prototype.ManyLensHubServerGetLensData = function (visMapID, lensID, unitsID, whichData) {
+        ManyLens.prototype.ManyLensHubServerGetLensData = function (visMapID, lensID, unitsID, baseData, subData) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, whichData);
+            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, baseData, subData);
             //return this._manyLens_hub.server.getLensData(visMapID,lensID, unitsID, whichData);
         };
         ManyLens.prototype.ManyLensHubServerRemoveLensData = function (visMapID, lensID) {

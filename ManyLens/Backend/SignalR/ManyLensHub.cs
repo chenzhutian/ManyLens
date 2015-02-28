@@ -267,9 +267,11 @@ namespace ManyLens.SignalR
 
         }
 
-        public async Task<UnitsDataForLens> GetLensData(string visMapID,string lensID, int[] unitsID, string whichData)
+        public async Task<UnitsDataForLens> GetLensData(string visMapID,string lensID, int[] unitsID, string baseData,string subData = null)
         {
             UnitsDataForLens data = null;
+            Debug.WriteLine("baseData here is " + baseData);
+            Debug.WriteLine("subData here is " + subData);
             await Task.Run(() =>
             {
                 VisMap visMap = visMaps[visMapID];

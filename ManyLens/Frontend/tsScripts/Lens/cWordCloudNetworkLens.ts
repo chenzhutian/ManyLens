@@ -58,6 +58,10 @@ module ManyLens {
 
             }
 
+            protected AfterExtractData(): void {
+
+            }
+
             // data shape {text: size:}
             protected ExtractData(): Array<D3.Layout.ICloudData> {
                 var data: Array<D3.Layout.ICloudData>

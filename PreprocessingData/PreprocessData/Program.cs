@@ -22,9 +22,53 @@ namespace PreprocessingData
 
         static void Main(string[] args)
         {
+            List<string[]> cities1000 = new List<string[]>();
+            string cities1000File = "C:\\Users\\xiaot_000\\Documents\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Frontend\\testData\\cities1000.txt";
+            foreach(string line in File.ReadLines(cities1000File))
+            {
+                // /4lon or lat /5lon or lat /8country name
+                string[] s = line.Split('\t');
+                cities1000.Add(new string[] { s[4],s[5],s[8]});
+            }
 
-            Program pg = new Program();
-          
+
+            string ROOT_DIR = "D:\\Data\\";
+            string inputFile = ROOT_DIR + "FIFAShortAttributes";
+            string outputFile = inputFile + "withCountry";
+            StreamWriter sw = new StreamWriter(outputFile);
+            //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
+            //\t 8follower \9 13V \t 10gpsA \t 11gpsB
+            foreach (string currentLine in File.ReadLines(inputFile))
+            {
+                string[] tweetsAttribute = currentLine.Split('\t');
+                string a = tweetsAttribute[10];
+                string b = tweetsAttribute[11];
+                Object obj = new Object();
+                double minDist = double.MaxValue;
+                string countryName = "";
+                Parallel.For(0, cities1000.Count, (i) => {
+                    double dx = double.Parse(a) - double.Parse(cities1000[i][0]);
+                    double dy = double.Parse(b) - double.Parse(cities1000[i][1]);
+                    dx = dx * dx;
+                    dy = dy * dy;
+                    lock (obj) 
+                    {
+                        if (dx + dy < minDist)
+                        {
+                            minDist = dx + dy;
+                            countryName = cities1000[i][2];
+                        }
+                    }
+                });
+                sw.WriteLine(currentLine + "\t" + countryName);
+            }
+            sw.Flush();
+            sw.Close();
+
+        }
+
+        public void ExtractRetweetNetwork()
+        {
             string ROOT_DIR = "D:\\Data\\";
             string sampleFile = ROOT_DIR + "FIFAShortAttributesSample";
             List<Node> nodes = new List<Node>();
@@ -61,7 +105,6 @@ namespace PreprocessingData
             jser.WriteObject(sw.BaseStream, nodes);
             sw.Flush();
             sw.Close();
-
         }
 
         public void FilterTheAttribute(string clearFile)
