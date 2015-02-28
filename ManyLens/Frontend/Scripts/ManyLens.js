@@ -1197,17 +1197,23 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             MapLens.prototype.AfterExtractData = function () {
-                console.log(this._extract_data_map_func.Extract(this._data));
+                var data = {};
+                this._color.domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) {
+                    return d.Value;
+                }));
+                this._extract_data_map_func.Extract(this._data).forEach(function (d) {
+                    data[d.Key] = d.Value;
+                });
+                this._data = data;
             };
             MapLens.prototype.DisplayLens = function () {
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
-                console.log(this._data);
                 if (this._map_data) {
                     this._map_data.color = [];
-                    this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
-                        var color = _this._color(_this._data[d.id]);
+                    this._lens_circle_svg.append("g").attr("id", "country").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
+                        var color = _this._color(_this._data[d.id] || 0);
                         _this._map_data.color.push(color);
                         return color;
                     }).on("click", function (d) {
@@ -1219,14 +1225,14 @@ var ManyLens;
                     })).attr("id", "state-borders").attr("d", this._path);
                 }
                 else {
-                    d3.json("./testData/countries.topo.json", function (error, mapData) {
+                    d3.json("./testData/countriesAlpha2.topo.json", function (error, mapData) {
                         //  this._color.domain(d3.extent(this._extract_data_map_func(this._data)));
                         _this._map_data = {
                             raw: mapData,
                             color: []
                         };
                         _this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(mapData, mapData.objects.countries).features).enter().append("path").attr("d", _this._path).attr("fill", function (d) {
-                            var color = _this._color(3);
+                            var color = _this._color(_this._data[d.id] || 0);
                             _this._map_data.color.push(color);
                             return color;
                         }).on("click", function (d) {

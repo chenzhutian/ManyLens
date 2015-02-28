@@ -63,23 +63,27 @@ module ManyLens {
             }
 
             protected AfterExtractData(): void {
-                console.log(this._extract_data_map_func.Extract(this._data));
+                var data = {};
+                this._color.domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) { return d.Value; }));
+                this._extract_data_map_func.Extract(this._data).forEach((d) => {
+                    data[d.Key] = d.Value;
+                });
+                this._data = data;
             }
 
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
-                console.log(this._data);
                 if (this._map_data) {
                     this._map_data.color = [];
 
                     this._lens_circle_svg.append("g")
-                        .attr("id", "states")
+                        .attr("id", "country")
                         .selectAll("path")
                         .data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features)
                         .enter().append("path")
                         .attr("d", this._path)
                         .attr("fill", (d) => {
-                            var color = this._color(this._data[d.id]);
+                            var color = this._color(this._data[d.id]||0);
                             this._map_data.color.push(color)
                             return color;
                         })
@@ -96,7 +100,7 @@ module ManyLens {
                     ;
 
                 } else {
-                    d3.json("./testData/countries.topo.json", (error, mapData) => {
+                    d3.json("./testData/countriesAlpha2.topo.json", (error, mapData) => {
                       //  this._color.domain(d3.extent(this._extract_data_map_func(this._data)));
                         this._map_data = {
                             raw: mapData,
@@ -110,7 +114,7 @@ module ManyLens {
                             .enter().append("path")
                             .attr("d", this._path)
                             .attr("fill", (d) => {
-                                var color = this._color(3);
+                                var color = this._color(this._data[d.id]||0);
                                 this._map_data.color.push(color)
                                 return color;
                             })
