@@ -436,20 +436,55 @@ namespace ManyLens.Models
             }
         }
 
-        public UnitsDataForLens GetDataForVis()
+        public Dictionary<string,object> GetDataForVis(string baseData,string subData = null)
         {
+            string[] t = new string[]{baseData,subData};
 
-            return new UnitsDataForLens()
+
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            for (int i = 0, len = t.Length; i < len; ++i)
             {
-                //unitsID = this.UnitsID,
-                contents = this.TweetContents,
-                keywordsDistribute = this.KeywordsDistribute,
-                tweetLengthDistribute = this.TweetLengthDistribute,
-                hashTagDistribute = this.HashTagDistribute,
-                userTweetsDistribute = this.UserTweetsDistribute,
-                retweetNetwork = this.RetweetNetwork
-                //tweetIDs = unit.TweetIDs
-            };
+                switch (t[i])
+                {
+                    case "keywordsDistribute":
+                        {
+                            data.Add("keywordsDistribute", this.KeywordsDistribute);
+                            break;
+                        }
+                    case "tweetLengthDistribute":
+                        {
+                            data.Add("tweetLengthDistribute", this.TweetLengthDistribute);
+                            break;
+                        }
+                    case "hashTagDistribute":
+                        {
+                            data.Add("hashTagDistribute", this.HashTagDistribute);
+                            break;
+                        }
+                    case "userTweetsDistribute":
+                        {
+                            data.Add("userTweetsDistribute", this.UserTweetsDistribute);
+                            break;
+                        }
+                    case "retweetNetwork":
+                        {
+                            data.Add("retweetNetwork", this.RetweetNetwork);
+                            break;
+                        }
+                }
+            }
+            return data;
+            //return new UnitsDataForLens()
+            //{
+            //    //unitsID = this.UnitsID,
+            //    contents = this.TweetContents,
+            //    keywordsDistribute = this.KeywordsDistribute,
+            //    tweetLengthDistribute = this.TweetLengthDistribute,
+            //    hashTagDistribute = this.HashTagDistribute,
+            //    userTweetsDistribute = this.UserTweetsDistribute,
+            //    retweetNetwork = this.RetweetNetwork
+            //    //tweetIDs = unit.TweetIDs
+            //};
         }
     }
 }

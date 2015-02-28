@@ -162,7 +162,7 @@ module ManyLens {
                 
                 var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, this._extract_data_map_func.TargetAttribute);
                 promise
-                    .done((d: UnitsDataForLens) => {
+                    .done((d) => {
                         console.log("promise done in basesingleLens");
 
                         this._data = d;

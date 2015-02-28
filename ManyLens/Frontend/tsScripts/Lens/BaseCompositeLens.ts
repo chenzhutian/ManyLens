@@ -156,7 +156,7 @@ module ManyLens {
                 
                 var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, this._base_accessor_func.TargetAttribute,this._sub_accessor_func.TargetAttribute);
                 promise
-                    .done((d: UnitsDataForLens) => {
+                    .done((d) => {
                         console.log("promise done in baseCompositeLens");
                         this._data = d;
 

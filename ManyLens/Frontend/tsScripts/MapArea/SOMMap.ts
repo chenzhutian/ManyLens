@@ -7,7 +7,7 @@
             count: number;
             x: number;
             y: number;
-            lensData: Array<Lens.UnitsDataForLens>;
+            mapID: string;
         }
 
         interface MapData {

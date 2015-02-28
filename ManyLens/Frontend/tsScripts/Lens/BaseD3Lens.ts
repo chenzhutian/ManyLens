@@ -2,14 +2,6 @@
 module ManyLens {
     export module Lens {
 
-        export interface UnitsDataForLens {
-            //unitsID: Array<number>;
-            keywordsDistribute: Array<{ Key: string; Value: number }>;
-            tweetLengthDistribute: Array<{ Key: number; Value: number }>;
-            contents: Array<string>;
-            hashTagDistribute: Array<{ Key: string; Value: number }>;
-        }
-
         export class ExtractDataFunc {
             private targetAttribute: string;
 
@@ -33,7 +25,7 @@ module ManyLens {
             protected _lens_type_color: string;
             protected _map_id: string;
             protected _combine_failure_rebound_duration = 800;
-            protected _data: UnitsDataForLens;
+            protected _data: {};
             protected _units_id: number[] = [];
 
             protected _sc_lc_svg: D3.Selection = null;

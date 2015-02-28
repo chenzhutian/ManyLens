@@ -116,6 +116,7 @@ module ManyLens {
 
         public InteractiveOnLens(lensID: string, ...args: Array<any>) {
             var lens: Lens.BaseD3Lens = this._lens.get(lensID);
+            console.log(args);
             if (lens.Type == "cWordCloudPieLens") {
                 (<Lens.cWordCloudPieLens>lens).HightLightWordsOfTweetsAtLengthOf(args[0]);
             } else {

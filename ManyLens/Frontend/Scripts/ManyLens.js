@@ -3373,6 +3373,7 @@ var ManyLens;
                 args[_i - 1] = arguments[_i];
             }
             var lens = this._lens.get(lensID);
+            console.log(args);
             if (lens.Type == "cWordCloudPieLens") {
                 lens.HightLightWordsOfTweetsAtLengthOf(args[0]);
             }

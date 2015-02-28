@@ -267,9 +267,9 @@ namespace ManyLens.SignalR
 
         }
 
-        public async Task<UnitsDataForLens> GetLensData(string visMapID,string lensID, int[] unitsID, string baseData,string subData = null)
+        public async Task<Dictionary<string,object>> GetLensData(string visMapID,string lensID, int[] unitsID, string baseData,string subData = null)
         {
-            UnitsDataForLens data = null;
+            Dictionary<string,object> data = null;
             Debug.WriteLine("baseData here is " + baseData);
             Debug.WriteLine("subData here is " + subData);
             await Task.Run(() =>
@@ -294,7 +294,7 @@ namespace ManyLens.SignalR
 
                 lens.BindUnits(units);
                 lens.MapID = visMapID;
-                data = lens.GetDataForVis();
+                data = lens.GetDataForVis(baseData,subData);
             });
 
             return data;
@@ -317,6 +317,8 @@ namespace ManyLens.SignalR
                 LensData lens = lensdatas[lensID];
                 words = lens.GetWordsOfTweetsAtLengthOf(int.Parse(pieKey));
             });
+
+
             Clients.Caller.interactiveOnLens(lensID,words.ToList());
             
         }
