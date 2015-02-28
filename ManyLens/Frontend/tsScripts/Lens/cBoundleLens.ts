@@ -74,16 +74,32 @@ module ManyLens {
                 function buildTree(graph) {
                     var nodes = graph.nodes;
                     var links = graph.links;
-                    var tree = {};
+                    var treeRoot = {name:"root",parent:null,children:[]};
 
                     function find() {
                         //TODO here
                         asdf
                     }
 
+                    links.forEach(function (d) {
+                        if (nodes[d.source].children) {
+                            nodes[d.source].children.push(nodes[d.target]);
+                        } else {
+                            nodes[d.source].children = [nodes[d.target]];
+                        }
+                        if (nodes[d.target].parent) {
+                            nodes[d.target].parent.push(nodes[d.source]);
+                        } else {
+                            nodes[d.target].parent = [nodes[d.source]];
+                        }
+                    });
 
-                    nodes.forEach(function (d) {
 
+                    nodes.forEach(function (d,i) {
+                        if (!d.parent) {
+                            d.parent = treeRoot;
+                            treeRoot.children.push(d);
+                        }
                     });
                 }
 
