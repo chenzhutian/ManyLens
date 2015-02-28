@@ -43,8 +43,10 @@ module ManyLens {
                 var graph = this._base_accessor_func.Extract(this._data);
 
                 console.log(graph);
+                buildLinks(graph);
+                console.log(graph);
                 var nodes = this._cluster.nodes(graph),
-                    links = buildLinks(graph.links)
+                    links = buildLinks(graph)
                 ;
 
                 this._lens_circle_svg.selectAll(".link")
@@ -72,14 +74,15 @@ module ManyLens {
                 ;
 
                 function buildTree(graph) {
+                    console.log("here build tree");
                     var nodes = graph.nodes;
                     var links = graph.links;
                     var treeRoot = {name:"root",parent:null,children:[]};
 
-                    function find() {
-                        //TODO here
-                        asdf
-                    }
+                    //function find() {
+                    //    //TODO here
+                    //    asdf
+                    //}
 
                     links.forEach(function (d) {
                         if (nodes[d.source].children) {
@@ -100,6 +103,7 @@ module ManyLens {
                             d.parent = treeRoot;
                             treeRoot.children.push(d);
                         }
+                        console.log(d);
                     });
                 }
 
