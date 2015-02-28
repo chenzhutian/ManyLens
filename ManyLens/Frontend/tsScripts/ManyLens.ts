@@ -192,12 +192,12 @@ module ManyLens {
             //return this._manyLens_hub.server.removeLensData(visMapID, lensID);
         }
 
-        public ManyLensHubServercWordCloudPieLens(lensID: string, pieKey: string, whichData: any): Hub.IPromise<void> {
+        public ManyLensHubServercWordCloudPieLens(lensID: string, pieKey: string, baseData: string, subData:string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, whichData);
+            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, baseData,subData);
             //return this._manyLens_hub.server.cWordCloudPieLens(lensID, pieKey, whichData);
         }
 

@@ -15,6 +15,12 @@ namespace ManyLens.Models
         private string originalContent = null;
         private string derivedContent = null;
         private List<string> hashTag = null;
+        private double lon;
+        private double lat;
+        private string countryName = null; // will be add later 
+
+
+
 
         private User user;
         private string sourceUserName;
@@ -117,15 +123,32 @@ namespace ManyLens.Models
                 return this.sourceUserName;
             }
         }
+        public double Lat
+        {
+            get { return lat; }
+            set { lat = value; }
+        }
+        public double Lon
+        {
+            get { return lon; }
+            set { lon = value; }
+        }
+        public string CountryName
+        {
+            get { return countryName; }
+            set { countryName = value; }
+        }
         #endregion
 
-        private Tweet(string tweetID, string originalContent, User user)
+        private Tweet(string tweetID, string originalContent,double lon, double lat, User user)
         {
             this.hashTag = new List<string>();
             this.TweetID = tweetID;
             this.OriginalContent = originalContent.Replace("\"", "\\\"");
             this.User = user;
             this.PostUserName = user.UserName;
+            this.Lon = lon;
+            this.Lat = lat;
 
             Regex RTreg = new Regex(@"^[Rr][Tt] ?@(\w+\b)");
             MatchCollection rts = RTreg.Matches(this.OriginalContent);
@@ -139,15 +162,15 @@ namespace ManyLens.Models
             }
         }
 
-        public Tweet(string tweetID, string originalContent, string postDate, User user)
-            : this(tweetID,originalContent, user)
+        public Tweet(string tweetID, string originalContent, string postDate, string lon, string lat, User user)
+            : this(tweetID,originalContent,double.Parse(lon),double.Parse(lat),user)
         {
             this.PostDate = DateTime.Parse(postDate);
             
         }
 
-        public Tweet(string tweetID, string originalContent, DateTime postDate, User user)
-            : this(tweetID, originalContent, user)
+        public Tweet(string tweetID, string originalContent, DateTime postDate,double lon,double lat, User user)
+            : this(tweetID, originalContent,lon,lat,user)
         {
             this.PostDate = postDate;
         }

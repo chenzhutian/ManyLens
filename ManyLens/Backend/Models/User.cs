@@ -14,7 +14,9 @@ namespace ManyLens.Models
         private int following;
         private int follower;
         private bool isV;
-        private double[] location;
+        private double lon;
+        private double lat;
+
 
         #region Getter & Setter
         public string UserName
@@ -94,20 +96,15 @@ namespace ManyLens.Models
                 this.isV = value;
             }
         }
-        public double[] Location
+        public double Lon
         {
-            get
-            {
-                if (this.location.Length != 2)
-                    throw new Exception("The coordination format of this user is not (x,y)");
-                return this.location;
-            }
-            private set
-            {
-                if (value.Length != 2)
-                    throw new Exception("The coordination format of this user is not (x,y)");
-                this.location = value;
-            }
+            get { return lon; }
+            set { lon = value; }
+        }
+        public double Lat
+        {
+            get { return lat; }
+            set { lat = value; }
         }
         #endregion
 
@@ -121,8 +118,8 @@ namespace ManyLens.Models
             this.Following = int.Parse(following);
             this.Follower = int.Parse(follower);
             this.IsV = bool.Parse(V);
-            this.Location = new double[2] { double.Parse(gpsA), double.Parse(gpsB) };
-
+            this.Lon =  double.Parse(gpsA);
+            this.Lat = double.Parse(gpsB);
         }
 
 

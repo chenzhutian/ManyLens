@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Linq;
 using System.Web;
 
@@ -20,7 +21,7 @@ namespace ManyLens.Models
 
         private Dictionary<int, List<Tweet>> tweetsLengthDistribute;
         private Dictionary<int, HashSet<string>> wordsOfTweetsAtSpecificLength;
-
+        private Dictionary<string, List<Tweet>> tweetsLocationDistribute;
         //private List<Dictionary<string, int>> sparseVector = null;
         //private Vocabulary vocabulary = null;
         //private Interval interval;
@@ -121,6 +122,18 @@ namespace ManyLens.Models
                 return this.userTweets.ToList();
             }
         }
+        public List<KeyValuePair<string, int>> TweetsLocationDistribute
+        {
+            get
+            {
+                Dictionary<string, int> distribute = new Dictionary<string, int>();
+                foreach(KeyValuePair<string,List<Tweet>> item in this.tweetsLocationDistribute)
+                {
+                    distribute.Add(item.Key, item.Value.Count);
+                }
+                return distribute.ToList();
+            }
+        }
         public Network RetweetNetwork
         {
             get
@@ -192,8 +205,9 @@ namespace ManyLens.Models
             this.usersCount = new Dictionary<string, int>();
             this.userTweets = new Dictionary<string, int>();
 
+            this.tweetsLengthDistribute = new Dictionary<int, List<Tweet>>();
             this.wordsOfTweetsAtSpecificLength = new Dictionary<int, HashSet<string>>();
-            this.tweetsLengthDistribute = new Dictionary<int,List<Tweet>>();
+            this.tweetsLocationDistribute = new Dictionary<string, List<Tweet>>();
         }
 
         //private void InitialLensData(Unit unit)
@@ -247,7 +261,13 @@ namespace ManyLens.Models
                 this.tweetsLengthDistribute[length].Remove(tweet);
                 if (this.tweetsLengthDistribute[length].Count == 0)
                     this.tweetsLengthDistribute.Remove(length);
-
+                string countryName = tweet.CountryName;
+                if (countryName != null)
+                {
+                    this.tweetsLocationDistribute[countryName].Remove(tweet);
+                    if (this.tweetsLocationDistribute[countryName].Count == 0)
+                        this.tweetsLocationDistribute.Remove(countryName);
+                }
             }
             //Remove user
             foreach (KeyValuePair<string, User> item in unit.Users)
@@ -302,6 +322,34 @@ namespace ManyLens.Models
                     this.tweetsLengthDistribute.Add(length, new List<Tweet>()); 
                 }
                 this.tweetsLengthDistribute[length].Add(tweet);
+
+                Object obj = new Object();
+                int lenj = ManyLens.SignalR.ManyLensHub.cities1000.Count;
+                double minDist = double.MaxValue;
+                string countryName = "";
+                Parallel.For(0, lenj, (j) => {
+                    ManyLens.IO.TweetsIO.CityStruct city = ManyLens.SignalR.ManyLensHub.cities1000[j];
+                    double dx = tweet.Lon - city.lon;
+                    double dy = tweet.Lat - city.lat;
+                    dx = dx * dx;
+                    dy = dy * dy;
+                    double dist = dx + dy;
+                    lock (obj)
+                    {
+                        if (dist < minDist)
+                        {
+                            minDist = dist;
+                            countryName = city.country;
+                        }
+                    }
+                });
+                tweet.CountryName = countryName;
+                if (!this.tweetsLocationDistribute.ContainsKey(countryName))
+                {
+                    this.tweetsLocationDistribute.Add(countryName, new List<Tweet>());
+                }
+                this.tweetsLocationDistribute[countryName].Add(tweet);
+
 
                 //Can not do this, we need to record the count of each word if we generated wordsOfTweetsAtSpecificLength here
                 //if(!this.wordsOfTweetsAtSpecificLength.ContainsKey(length))
@@ -404,7 +452,7 @@ namespace ManyLens.Models
 
             //Re-initial some collection
             this.wordsOfTweetsAtSpecificLength = new Dictionary<int, HashSet<string>>();
-
+            
         }
 
         public List<Tweet> GetTweetsAtLengthOf(int length)
@@ -469,6 +517,11 @@ namespace ManyLens.Models
                     case "retweetNetwork":
                         {
                             data.Add("retweetNetwork", this.RetweetNetwork);
+                            break;
+                        }
+                    case "tweetsLocationDistribute":
+                        { 
+                            data.Add("tweetsLocationDistribute",this.TweetsLocationDistribute);
                             break;
                         }
                 }

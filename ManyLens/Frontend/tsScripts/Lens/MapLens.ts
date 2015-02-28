@@ -9,7 +9,9 @@ module ManyLens {
 
             public static Type: string = "MapLens";
 
-            private _projection: D3.Geo.Projection = d3.geo.mercator();
+            private _projection: D3.Geo.Projection = d3.geo.azimuthalEqualArea();
+
+            //d3.geo.mercator();
             private _path: D3.Geo.Path = d3.geo.path();
             private _color: D3.Scale.QuantizeScale = d3.scale.quantize();
             private _centered_state: Object;
@@ -40,8 +42,10 @@ module ManyLens {
                 super(element,attributeName, MapLens.Type, manyLens);
 
                 this._projection
-                    .scale(35)
-                    .translate([0, 30]);
+                    .clipAngle(180 - 1e-3)
+                    .precision(.1)
+                    .scale(55)
+                    .translate([-6, 0]);
 
                 this._path
                     .projection(this._projection);
@@ -59,14 +63,12 @@ module ManyLens {
             }
 
             protected AfterExtractData(): void {
-
-
+                console.log(this._extract_data_map_func.Extract(this._data));
             }
 
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
-
-
+                console.log(this._data);
                 if (this._map_data) {
                     this._map_data.color = [];
 

@@ -23,6 +23,7 @@ namespace ManyLens.SignalR
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
         private static Dictionary<string, LensData> lensdatas = new Dictionary<string, LensData>();
+        public static List<TweetsIO.CityStruct> cities1000;
 
         private Random rnd = new Random();
 
@@ -33,11 +34,14 @@ namespace ManyLens.SignalR
             lensdatas.Clear();
             //string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
             string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
+            string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
             Debug.WriteLine(tweetFile);
             await Task.Run(() =>
             {
                 if (dateTweetsFreq == null)
                     dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
+                if (cities1000 == null)
+                    cities1000 = TweetsIO.LoadCities1000(cities1000File);
             });
 
         }
@@ -309,15 +313,28 @@ namespace ManyLens.SignalR
         }
 
         //Interactive for lens
-        public async Task cWordCloudPieLens(string lensID, string pieKey,string whichData)
+        public async Task cWordCloudPieLens(string lensID, string pieKey,string baseData,string subData)
         {
-            Debug.WriteLine(whichData);
+            
             HashSet<string> words = new HashSet<string>();
+            LensData lens = lensdatas[lensID];
             await Task.Run(() => {
-                LensData lens = lensdatas[lensID];
-                words = lens.GetWordsOfTweetsAtLengthOf(int.Parse(pieKey));
-            });
+                string t = baseData + "_" + subData;
+                switch(t)
+                {
+                    case "keywordsDistribute_tweetLengthDistribute":
+                        {
+                            words = lens.GetWordsOfTweetsAtLengthOf(int.Parse(pieKey));
+                            break;
+                        }
+                    case "hashTagDistribute_tweetLengthDistribute":
+                        {
 
+                            break;
+                        }
+                }
+                
+            });
 
             Clients.Caller.interactiveOnLens(lensID,words.ToList());
             

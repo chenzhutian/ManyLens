@@ -49,16 +49,16 @@ namespace ManyLens.Models
         public string end { get; set; }
     }
 
-    public class UnitsDataForLens
-    {
-        //public List<int> unitsID { set; get; }
-        public List<KeyValuePair<string, int>> keywordsDistribute { set; get; }
-        public List<KeyValuePair<int, int>> tweetLengthDistribute { set; get; }
-        public List<string> contents { set; get; }
-        public List<KeyValuePair<string, int>> hashTagDistribute { set; get; }
-        public Network retweetNetwork { set; get; }
-        public List<KeyValuePair<string, int>> userTweetsDistribute { set; get; }
-    }
+    //public class UnitsDataForLens
+    //{
+    //    //public List<int> unitsID { set; get; }
+    //    public List<KeyValuePair<string, int>> keywordsDistribute { set; get; }
+    //    public List<KeyValuePair<int, int>> tweetLengthDistribute { set; get; }
+    //    public List<string> contents { set; get; }
+    //    public List<KeyValuePair<string, int>> hashTagDistribute { set; get; }
+    //    public Network retweetNetwork { set; get; }
+    //    public List<KeyValuePair<string, int>> userTweetsDistribute { set; get; }
+    //}
 
     public class UnitsData
     {

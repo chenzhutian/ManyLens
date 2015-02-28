@@ -13,6 +13,7 @@ namespace ManyLens.IO
         public static SortedDictionary<DateTime, Term> LoadTweetsAsTermsSortedByDate(string tweetFile)
         {
             SortedDictionary<DateTime, Term> sortedTerm = new SortedDictionary<DateTime, Term>();
+            Dictionary<string, User> users = new Dictionary<string, User>();
             StreamReader sr;
             bool isCache = false;
             if (File.Exists(tweetFile + "CACHE"))
@@ -44,15 +45,33 @@ namespace ManyLens.IO
 
                 if (isCache)
                 {
-                    User user = new User(tweetAttributes[4], tweetAttributes[5], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
-                    tweet = new Tweet(tweetAttributes[1], tweetAttributes[2], tweetAttributes[3], user);
+                    User user;
+                    if (users.ContainsKey(tweetAttributes[4]))
+                    {
+                        user = users[tweetAttributes[4]];
+                    }
+                    else
+                    {
+                        user = new User(tweetAttributes[4], tweetAttributes[5], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
+                        users.Add(tweetAttributes[4], user);
+                    }
+                    tweet = new Tweet(tweetAttributes[1], tweetAttributes[2], tweetAttributes[3], tweetAttributes[10], tweetAttributes[11], user);
                 }
                 else
                 {
                     //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
                     //\t 8follower \9 13V \t 10gpsA \t 11gpsB
-                    User user = new User(tweetAttributes[2], tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
-                    tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], user);
+                    User user;
+                    if (users.ContainsKey(tweetAttributes[2]))
+                    {
+                        user = users[tweetAttributes[2]];
+                    }
+                    else
+                    {
+                        user = new User(tweetAttributes[2], tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
+                        users.Add(tweetAttributes[2], user);
+                    }
+                    tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], tweetAttributes[10], tweetAttributes[11], user);
                 }
 
                 if (tweet == null)
@@ -64,12 +83,12 @@ namespace ManyLens.IO
 
                 if (sortedTerm.ContainsKey(date))
                 {
-                    sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.User);
+                    sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate,tweet.Lon,tweet.Lat, tweet.User);
                 }
                 else
                 {
                     Term t = new Term(date);
-                    t.AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.User);
+                    t.AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.Lon,tweet.Lat,tweet.User);
                     sortedTerm.Add(date, t);
                 }
             }
@@ -88,7 +107,7 @@ namespace ManyLens.IO
                         Tweet tweet = term.Tweets[i];
                         User user = tweet.User;
                         sw.WriteLine(dateTime + "\t" + tweet.TweetID + "\t" + tweet.OriginalContent + "\t" + tweet.PostDate + '\t'
-                            + user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + user.Following + '\t' + user.Follower + '\t'+ user.IsV + '\t' + user.Location[0] + '\t' + user.Location[1]);
+                            + user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + user.Following + '\t' + user.Follower + '\t'+ user.IsV + '\t' + tweet.Lon + '\t' + tweet.Lat);
                     }
 
                 }
@@ -98,6 +117,31 @@ namespace ManyLens.IO
             return sortedTerm;
         }
 
+        public struct CityStruct 
+        {
+            public double lon;
+            public double lat;
+            public string country;
+            public CityStruct(double lon, double lat, string country)
+            {
+                this.lon = lon;
+                this.lat = lat;
+                this.country = country;
+            }
+        }
+
+        public static List<CityStruct> LoadCities1000(string cities1000File)
+        {
+            StreamReader sr = new StreamReader(cities1000File);
+            List<CityStruct> cities1000 = new List<CityStruct>();
+            while (!sr.EndOfStream)
+            { 
+                string[] s = sr.ReadLine().Split('\t');
+                CityStruct city = new CityStruct(double.Parse(s[0]),double.Parse(s[1]),s[2]);
+                cities1000.Add(city);
+            }
+            return cities1000;
+        }
         //public static bool SaveTweetsDistributionByDate(SortedDictionary<DateTime, Term> dateTweetsFreq)
         //{
         //    StreamWriter sw = new StreamWriter("..//..//tweetsdistributionbydate");

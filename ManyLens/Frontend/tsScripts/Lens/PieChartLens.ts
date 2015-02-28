@@ -43,12 +43,11 @@ module ManyLens{
 
             protected AfterExtractData(): void {
 
-
             }
 
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
-
+                console.log()
                 
                 this._lens_circle_svg.selectAll(".pie")
                     .data(this._pie(this._extract_data_map_func.Extract(this._data)))
@@ -93,12 +92,12 @@ module ManyLens{
                         .attr("x", (d) => {
                             var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
                             d.cx = Math.cos(a) * (this._pie_innerRadius + (this._pie_outterRadius - this._pie_innerRadius) / 2);
-                            return d.x = Math.cos(a) * (this._pie_outterRadius + 20);
+                            return d.x = Math.cos(a) * (this._pie_outterRadius + 40);
                         })
                         .attr("y", (d) => {
                             var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
                             d.cy = Math.sin(a) * (this._pie_innerRadius + (this._pie_outterRadius - this._pie_innerRadius) / 2);
-                            return d.y = Math.sin(a) * (this._pie_outterRadius + 20);
+                            return d.y = Math.sin(a) * (this._pie_outterRadius + 40);
                         })
                         .text(function (d) { return d.data.Key; })
                         .each(function (d) {

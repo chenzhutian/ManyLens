@@ -158,10 +158,7 @@
                                 {
                                     name: "New New 1",
                                     lensConstructFunc: Lens.MapLens,
-                                    //extractDataFunc:
-                                    //(d) => {
-                                    //    return d.j;
-                                    //}
+                                    extractDataFunc:new Lens.ExtractDataFunc("tweetsLocationDistribute")
                                 },
                                 { name: "New New 2" },
                                 { name: "New New 3" }

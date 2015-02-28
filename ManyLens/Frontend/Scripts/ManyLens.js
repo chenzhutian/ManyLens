@@ -110,6 +110,7 @@ var ManyLens;
                                 {
                                     name: "New New 1",
                                     lensConstructFunc: ManyLens.Lens.MapLens,
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetsLocationDistribute")
                                 },
                                 { name: "New New 2" },
                                 { name: "New New 3" }
@@ -1150,10 +1151,11 @@ var ManyLens;
             __extends(MapLens, _super);
             function MapLens(element, attributeName, manyLens) {
                 _super.call(this, element, attributeName, MapLens.Type, manyLens);
-                this._projection = d3.geo.mercator();
+                this._projection = d3.geo.azimuthalEqualArea();
+                //d3.geo.mercator();
                 this._path = d3.geo.path();
                 this._color = d3.scale.quantize();
-                this._projection.scale(35).translate([0, 30]);
+                this._projection.clipAngle(180 - 1e-3).precision(.1).scale(55).translate([-6, 0]);
                 this._path.projection(this._projection);
                 this._color.range([
                     "rgb(198,219,239)",
@@ -1195,11 +1197,13 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             MapLens.prototype.AfterExtractData = function () {
+                console.log(this._extract_data_map_func.Extract(this._data));
             };
             MapLens.prototype.DisplayLens = function () {
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
+                console.log(this._data);
                 if (this._map_data) {
                     this._map_data.color = [];
                     this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
@@ -1397,6 +1401,7 @@ var ManyLens;
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
+                console.log();
                 this._lens_circle_svg.selectAll(".pie").data(this._pie(this._extract_data_map_func.Extract(this._data))).enter().append("path").attr("id", "pie-" + this.ID).attr("class", "pie").attr("fill", function (d) {
                     return _this._color(d.data.Key);
                 }).attr("d", this._arc).on("mouseover", function (d) {
@@ -1416,11 +1421,11 @@ var ManyLens;
                     this._lens_circle_svg.selectAll("text.mylabel").data([d]).enter().append("text").attr("class", "mylabel").attr("text-anchor", "middle").attr("x", function (d) {
                         var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
                         d.cx = Math.cos(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
-                        return d.x = Math.cos(a) * (_this._pie_outterRadius + 20);
+                        return d.x = Math.cos(a) * (_this._pie_outterRadius + 40);
                     }).attr("y", function (d) {
                         var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
                         d.cy = Math.sin(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
-                        return d.y = Math.sin(a) * (_this._pie_outterRadius + 20);
+                        return d.y = Math.sin(a) * (_this._pie_outterRadius + 40);
                     }).text(function (d) {
                         return d.data.Key;
                     }).each(function (d) {
@@ -2795,7 +2800,7 @@ var ManyLens;
                 this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func.Extract(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d) {
                     return _this._cloud_text_color(d.data.Key);
                 }).on("mouseover", function (d) {
-                    _this._manyLens.ManyLensHubServercWordCloudPieLens(_this.ID, d.data.Key, "test");
+                    _this._manyLens.ManyLensHubServercWordCloudPieLens(_this.ID, d.data.Key, _this._base_accessor_func.TargetAttribute, _this._sub_accessor_func.TargetAttribute);
                     _this.ShowLabel(d);
                 }).on("mouseout", function (d) {
                     _this._lens_circle_svg.selectAll("text.wordCloudText").transition().style("opacity", 1);
@@ -2839,11 +2844,11 @@ var ManyLens;
                     this._lens_circle_svg.selectAll("text.mylabel").data([d]).enter().append("text").attr("class", "mylabel").attr("text-anchor", "middle").attr("x", function (d) {
                         var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
                         d.cx = Math.cos(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
-                        return d.x = Math.cos(a) * (_this._pie_outterRadius + 20);
+                        return d.x = Math.cos(a) * (_this._pie_outterRadius + 40);
                     }).attr("y", function (d) {
                         var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
                         d.cy = Math.sin(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
-                        return d.y = Math.sin(a) * (_this._pie_outterRadius + 20);
+                        return d.y = Math.sin(a) * (_this._pie_outterRadius + 40);
                     }).text(function (d) {
                         return d.data.Key;
                     }).each(function (d) {
@@ -3441,12 +3446,12 @@ var ManyLens;
             return this._manyLens_hub.proxy.invoke("removeLensData", visMapID, lensID);
             //return this._manyLens_hub.server.removeLensData(visMapID, lensID);
         };
-        ManyLens.prototype.ManyLensHubServercWordCloudPieLens = function (lensID, pieKey, whichData) {
+        ManyLens.prototype.ManyLensHubServercWordCloudPieLens = function (lensID, pieKey, baseData, subData) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, whichData);
+            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, baseData, subData);
             //return this._manyLens_hub.server.cWordCloudPieLens(lensID, pieKey, whichData);
         };
         ManyLens.TestMode = false;

@@ -86,7 +86,7 @@ module ManyLens {
                     .attr("d", this._arc)
                     .style("fill", (d) => { return this._cloud_text_color(d.data.Key); })
                     .on("mouseover", (d) => {
-                        this._manyLens.ManyLensHubServercWordCloudPieLens(this.ID, d.data.Key, "test");
+                        this._manyLens.ManyLensHubServercWordCloudPieLens(this.ID, d.data.Key, this._base_accessor_func.TargetAttribute,this._sub_accessor_func.TargetAttribute);
                         this.ShowLabel(d);
 
                     })
@@ -156,12 +156,12 @@ module ManyLens {
                         .attr("x", (d) => {
                             var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
                             d.cx = Math.cos(a) * (this._pie_innerRadius + (this._pie_outterRadius - this._pie_innerRadius)/2);
-                            return d.x = Math.cos(a) * (this._pie_outterRadius + 20);
+                            return d.x = Math.cos(a) * (this._pie_outterRadius + 40);
                         })
                         .attr("y", (d) => {
                             var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
                             d.cy = Math.sin(a) * (this._pie_innerRadius + (this._pie_outterRadius - this._pie_innerRadius) / 2);
-                            return d.y = Math.sin(a) * (this._pie_outterRadius + 20);
+                            return d.y = Math.sin(a) * (this._pie_outterRadius + 40);
                         })
                         .text(function (d) { return d.data.Key; })
                         .each(function (d) {
