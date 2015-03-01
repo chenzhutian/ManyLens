@@ -64,15 +64,6 @@ var ManyLens;
                                     name: "Hashtag Count",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagDistribute")
-                                },
-                                {
-                                    name: "User Tweets",
-                                    lensConstructFunc: ManyLens.Lens.PieChartLens,
-                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("userTweetsDistribute")
-                                },
-                                {
-                                    name: "@Mention Count",
-                                    lensConstructFunc: ManyLens.Lens.PieChartLens
                                 }
                             ]
                         },
@@ -86,9 +77,9 @@ var ManyLens;
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("keywordsDistribute")
                                 },
                                 {
-                                    name: "Hashtag",
+                                    name: "Hashtags",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
-                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagDistribute")
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagsDistribute")
                                 }
                             ]
                         },
@@ -108,12 +99,10 @@ var ManyLens;
                             icon: "fui-mail",
                             children: [
                                 {
-                                    name: "New New 1",
+                                    name: "Tweets Count",
                                     lensConstructFunc: ManyLens.Lens.MapLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetsLocationDistribute")
-                                },
-                                { name: "New New 2" },
-                                { name: "New New 3" }
+                                }
                             ]
                         }
                     ]
@@ -1199,7 +1188,7 @@ var ManyLens;
             MapLens.prototype.AfterExtractData = function () {
                 var data = {};
                 this._color.domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) {
-                    return d.Value;
+                    return d['Value'];
                 }));
                 this._extract_data_map_func.Extract(this._data).forEach(function (d) {
                     data[d.Key] = d.Value;

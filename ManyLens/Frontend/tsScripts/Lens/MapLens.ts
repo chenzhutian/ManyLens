@@ -64,7 +64,7 @@ module ManyLens {
 
             protected AfterExtractData(): void {
                 var data = {};
-                this._color.domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) { return d.Value; }));
+                this._color.domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) { return d['Value']; }));
                 this._extract_data_map_func.Extract(this._data).forEach((d) => {
                     data[d.Key] = d.Value;
                 });

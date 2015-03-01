@@ -207,7 +207,7 @@
     <Compile Include="Backend\Models\DerivedTweetSet.cs" />
     <Compile Include="Backend\Models\Interval.cs" />
     <Compile Include="Backend\Models\JSONModels.cs" />
-    <Compile Include="Backend\Models\LensData.cs" />
+    <Compile Include="Backend\Models\Lens.cs" />
     <Compile Include="Backend\Models\Term.cs" />
     <Compile Include="Backend\Models\Tweet.cs" />
     <Compile Include="Backend\Models\TweetSet.cs" />

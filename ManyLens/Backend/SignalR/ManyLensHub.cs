@@ -22,7 +22,7 @@ namespace ManyLens.SignalR
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
-        private static Dictionary<string, LensData> lensdatas = new Dictionary<string, LensData>();
+        private static Dictionary<string, Lens> lensdatas = new Dictionary<string, Lens>();
         public static List<TweetsIO.CityStruct> cities1000;
 
         private Random rnd = new Random();
@@ -279,7 +279,7 @@ namespace ManyLens.SignalR
             await Task.Run(() =>
             {
                 VisMap visMap = visMaps[visMapID];
-                LensData lens;
+                Lens lens;
                 List<Unit> units = new List<Unit>();
                 for (int i = 0, len = unitsID.Length; i < len; ++i)
                 {
@@ -292,7 +292,7 @@ namespace ManyLens.SignalR
                 }
                 else
                 {
-                    lens = new LensData();
+                    lens = new Lens();
                     lensdatas.Add(lensID, lens);
                 }
 
@@ -317,7 +317,7 @@ namespace ManyLens.SignalR
         {
             
             HashSet<string> words = new HashSet<string>();
-            LensData lens = lensdatas[lensID];
+            Lens lens = lensdatas[lensID];
             await Task.Run(() => {
                 string t = baseData + "_" + subData;
                 switch(t)
@@ -327,7 +327,7 @@ namespace ManyLens.SignalR
                             words = lens.GetWordsOfTweetsAtLengthOf(int.Parse(pieKey));
                             break;
                         }
-                    case "hashTagDistribute_tweetLengthDistribute":
+                    case "hashTagsDistribute_tweetLengthDistribute":
                         {
 
                             break;
