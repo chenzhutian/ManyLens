@@ -3189,58 +3189,66 @@ var ManyLens;
                 if (color === void 0) { color = "red"; }
                 _super.prototype.Render.call(this, color);
             };
-            // data shape {text: size:}
-            cMapNetworkLens.prototype.ExtractData = function () {
-                var data = [
-                    [38.991621, -76.852587],
-                    [28.524963, -80.650813],
-                    [34.200463, -118.176008],
-                    [34.613714, -118.076790],
-                    [41.415891, -81.861774],
-                    [34.646554, -86.674368],
-                    [37.409574, -122.064292],
-                    [37.092123, -76.376230],
-                    [29.551508, -95.092256],
-                    [30.363692, -89.600036]
-                ];
-                var links = [];
-                for (var i = 0, len = data.length + 5; i < len; i++) {
-                    if (i >= data.length - 1) {
-                        var index = Math.ceil(Math.random() * (data.length - 1));
-                        var nextIndex = Math.ceil(Math.random() * (data.length - 1));
-                        links.push({
-                            type: "LineString",
-                            coordinates: [
-                                [data[index][1], data[index][0]],
-                                [data[nextIndex][1], data[nextIndex][0]]
-                            ]
-                        });
-                    }
-                    else {
-                        links.push({
-                            type: "LineString",
-                            coordinates: [
-                                [data[i][1], data[i][0]],
-                                [data[i + 1][1], data[i + 1][0]]
-                            ]
-                        });
-                    }
-                }
-                return links;
+            cMapNetworkLens.prototype.AfterExtractData = function () {
+                var _this = this;
+                _super.prototype.ExtractData.call(this);
+                this._sub_accessor_func.Extract(this._data).nodes.forEach(function (d) {
+                    var p = _this._projection([d.x, d.y]);
+                    d.x = p[0];
+                    d.y = p[1];
+                });
             };
+            //// data shape {text: size:}
+            //protected ExtractData(): any {
+            //    var data = [
+            //        [38.991621, -76.852587],
+            //        [28.524963, -80.650813],
+            //        [34.200463, -118.176008],
+            //        [34.613714, -118.076790],
+            //        [41.415891, -81.861774],
+            //        [34.646554, -86.674368],
+            //        [37.409574, -122.064292],
+            //        [37.092123, -76.376230],
+            //        [29.551508, -95.092256],
+            //        [30.363692, -89.600036]
+            //    ];
+            //    var links = [];
+            //    for (var i = 0, len = data.length + 5; i < len; i++) {
+            //        if (i >= data.length - 1) {
+            //            var index = Math.ceil(Math.random() * (data.length - 1));
+            //            var nextIndex = Math.ceil(Math.random() * (data.length - 1));
+            //            links.push({
+            //                type: "LineString",
+            //                coordinates: [
+            //                    [data[index][1], data[index][0]],
+            //                    [data[nextIndex][1], data[nextIndex][0]]
+            //                ]
+            //            });
+            //        }
+            //        else {
+            //            links.push({
+            //                type: "LineString",
+            //                coordinates: [
+            //                    [data[i][1], data[i][0]],
+            //                    [data[i + 1][1], data[i + 1][0]]
+            //                ]
+            //            });
+            //        }
+            //    }
+            //    return links;
+            //}
             cMapNetworkLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                var networkData = this.ExtractData();
                 var networkG = this._lens_circle_svg.append("g").attr("id", "network");
-                var pathArcs = networkG.selectAll(".cMapPath").data(networkData);
+                var pathArcs = networkG.selectAll(".cMapPath").data(this._sub_accessor_func.Extract(this._data).links);
                 pathArcs.enter().append("path").attr("class", "cMapPath").style({
                     "fill": "none"
                 });
-                var networkNode = networkG.selectAll(".cMapNode").data(networkData).enter().append("circle").attr("class", "cMapNode").attr("cx", function (d) {
-                    return _this._projection(d.coordinates[0])[0];
+                var networkNode = networkG.selectAll(".cMapNode").data(this._sub_accessor_func.Extract(this._data).nodes).enter().append("circle").attr("class", "cMapNode").attr("cx", function (d) {
+                    return d.x;
                 }).attr("cy", function (d) {
-                    return _this._projection(d.coordinates[0])[1];
+                    return d.y;
                 }).attr("r", 4).style({
                     "stroke": "steelblue",
                     "fill": "#fff",
