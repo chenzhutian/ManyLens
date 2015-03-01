@@ -13,7 +13,9 @@ module ManyLens {
                 this.targetAttribute = att;
             }
 
-            public Extract(d?: any): any {
+            public Extract(d: any, newData?: any): any {
+                if (newData)
+                    d[this.targetAttribute] = newData;
                 return d[this.targetAttribute];
             }
         }

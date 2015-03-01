@@ -166,24 +166,31 @@ module ManyLens {
                 //single + single = composite
                 case Lens.MapLens.Type + "_" + Lens.PieChartLens.Type:
                 case Lens.PieChartLens.Type + "_" + Lens.MapLens.Type: {
-                    return new Lens.cMapBarLens(element,
+
+                    if (firstLens.Type != Lens.MapLens.Type) {
+                        var tempLens = firstLens;
+                        firstLens = secondLens;
+                        secondLens = tempLens;
+                    }
+
+                    return new Lens.cMapPieLens(element,
                         manyLens,
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);
                 }
                 //composite + single||composite = composite
-                case Lens.MapLens.Type + "_" + Lens.cMapBarLens.Type:
-                case Lens.PieChartLens.Type + "_" + Lens.cMapBarLens.Type: {
-                    if (firstLens.Type != Lens.cMapBarLens.Type) {
+                case Lens.MapLens.Type + "_" + Lens.cMapPieLens.Type:
+                case Lens.PieChartLens.Type + "_" + Lens.cMapPieLens.Type: {
+                    if (firstLens.Type != Lens.cMapPieLens.Type) {
                         var tempLens = firstLens;
                         firstLens = secondLens;
                         secondLens = tempLens;
                     }
                 }
-                case Lens.cMapBarLens.Type + "_" + Lens.MapLens.Type:
-                case Lens.cMapBarLens.Type + "_" + Lens.PieChartLens.Type:{
+                case Lens.cMapPieLens.Type + "_" + Lens.MapLens.Type:
+                case Lens.cMapPieLens.Type + "_" + Lens.PieChartLens.Type:{
               //  case Lens.cMapBarLens.Type + "_" + Lens.cMapBarLens.Type: {
-                    return (<Lens.cMapBarLens>firstLens).AddComponentLens(secondLens);
+                    return (<Lens.cMapPieLens>firstLens).AddComponentLens(secondLens);
                 }
 
                 /*-----------------------------cMapWordCloud Diagram Lens--------------------------*/

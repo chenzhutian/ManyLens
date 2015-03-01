@@ -509,7 +509,9 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
-            ExtractDataFunc.prototype.Extract = function (d) {
+            ExtractDataFunc.prototype.Extract = function (d, newData) {
+                if (newData)
+                    d[this.targetAttribute] = newData;
                 return d[this.targetAttribute];
             };
             return ExtractDataFunc;
@@ -1216,10 +1218,8 @@ var ManyLens;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
                 if (this._map_data) {
-                    this._map_data.color = [];
                     this._lens_circle_svg.append("g").attr("id", "country").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
                         var color = _this._color(_this._data[d.id] || 0);
-                        _this._map_data.color.push(color);
                         return color;
                     }).on("click", function (d) {
                         if (!d3.event.defaultPrevented)
@@ -1233,11 +1233,9 @@ var ManyLens;
                     d3.json("./testData/countriesAlpha2.topo.json", function (error, mapData) {
                         _this._map_data = {
                             raw: mapData,
-                            color: []
                         };
                         _this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(mapData, mapData.objects.countries).features).enter().append("path").attr("d", _this._path).attr("fill", function (d) {
                             var color = _this._color(_this._data[d.id] || 0);
-                            _this._map_data.color.push(color);
                             return color;
                         }).on("click", function (d) {
                             _this.ClickedMap(d);
@@ -2972,16 +2970,26 @@ var ManyLens;
                 if (color === void 0) { color = "red"; }
                 _super.prototype.Render.call(this, color);
             };
+            cBaseMapLens.prototype.AfterExtractData = function () {
+                var data = {};
+                this._color.domain(d3.extent(this._base_accessor_func.Extract(this._data), function (d) {
+                    return d['Value'];
+                }));
+                this._base_accessor_func.Extract(this._data).forEach(function (d) {
+                    data[d.Key] = d.Value;
+                });
+                this._base_accessor_func.Extract(this._data, data);
+            };
             cBaseMapLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.states).features).enter().append("path").attr("d", this._path).attr("fill", function (d, i) {
-                    return _this._map_data.color[i];
+                this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d, i) {
+                    return _this._color(_this._base_accessor_func.Extract(_this._data)[d.id] || 0);
                 }).on("click", function (d) {
                     if (!d3.event.defaultPrevented)
                         _this.ClickedMap(d);
                 });
-                this._lens_circle_svg.append("g").attr("id", "state-borders").append("path").datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.states, function (a, b) {
+                this._lens_circle_svg.append("g").attr("id", "state-borders").append("path").datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.countries, function (a, b) {
                     return a !== b;
                 })).attr("d", this._path);
             };
@@ -3038,46 +3046,95 @@ var ManyLens;
 (function (ManyLens) {
     var Lens;
     (function (Lens) {
-        var cMapBarLens = (function (_super) {
-            __extends(cMapBarLens, _super);
-            function cMapBarLens(element, manyLens, firstLens, secondLens) {
-                var _this = this;
-                _super.call(this, element, cMapBarLens.Type, manyLens, firstLens, secondLens);
+        var cMapPieLens = (function (_super) {
+            __extends(cMapPieLens, _super);
+            function cMapPieLens(element, manyLens, firstLens, secondLens) {
+                _super.call(this, element, cMapPieLens.Type, manyLens, firstLens, secondLens);
                 this._pie = d3.layout.pie();
                 this._arc = d3.svg.arc();
-                this._pie_color = d3.scale.category20();
+                this._pie_color = d3.scale.quantize();
+                this._pie_innerRadius = this._lens_circle_radius;
+                this._pie_outterRadius = this._lens_circle_radius + 20;
                 this._pie.value(function (d) {
-                    return d;
+                    return d.Value;
                 }).sort(null);
-                this._arc.innerRadius(function (d) {
-                    return _this._lens_circle_radius;
-                }).outerRadius(function (d) {
-                    return _this._lens_circle_radius + 20;
-                });
+                this._pie_color.range([
+                    "rgb(198,219,239)",
+                    "rgb(158,202,225)",
+                    "rgb(107, 174, 214)",
+                    "rgb(66, 146, 198)",
+                    "rgb(33, 113, 181)"
+                ]);
+                this._arc.innerRadius(this._pie_innerRadius).outerRadius(this._pie_outterRadius);
             }
-            cMapBarLens.prototype.Render = function (color) {
+            cMapPieLens.prototype.Render = function (color) {
                 if (color === void 0) { color = "red"; }
                 _super.prototype.Render.call(this, color);
             };
-            // data shape {text: size:}
-            cMapBarLens.prototype.ExtractData = function () {
-                var data = d3.range(6).map(function () {
-                    return Math.random() * 60;
-                });
-                return data;
+            cMapPieLens.prototype.AfterExtractData = function () {
+                _super.prototype.AfterExtractData.call(this);
+                this._pie_color.domain(d3.extent(this._sub_accessor_func.Extract(this._data), function (d) {
+                    return d['Value'];
+                }));
             };
-            cMapBarLens.prototype.DisplayLens = function () {
+            cMapPieLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                var barData = this.ExtractData();
-                this._lens_circle_svg.selectAll(".innerPie").data(this._pie(barData)).enter().append("path").attr("d", this._arc).style("fill", function (d, i) {
-                    return _this._pie_color(i);
-                }).style("fill-rule", "evenodd");
+                this._lens_circle.style({
+                    "stroke": null,
+                    "stroke-width": null
+                });
+                this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func.Extract(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d, i) {
+                    return _this._pie_color(d.value) || "rgb(158,202,225)";
+                }).on("mouseover", function (d) {
+                    _this.ShowLabel(d);
+                }).on("mouseout", function (d) {
+                    _this.ShowLabel(null);
+                });
             };
-            cMapBarLens.Type = "cMapBarLens";
-            return cMapBarLens;
+            cMapPieLens.prototype.ShowLabel = function (d) {
+                var _this = this;
+                if (d) {
+                    this._lens_circle_svg.selectAll("text.mylabel").data([d]).enter().append("text").attr("class", "mylabel").attr("text-anchor", "middle").attr("x", function (d) {
+                        var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                        d.cx = Math.cos(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
+                        return d.x = Math.cos(a) * (_this._pie_outterRadius + 40);
+                    }).attr("y", function (d) {
+                        var a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+                        d.cy = Math.sin(a) * (_this._pie_innerRadius + (_this._pie_outterRadius - _this._pie_innerRadius) / 2);
+                        return d.y = Math.sin(a) * (_this._pie_outterRadius + 40);
+                    }).text(function (d) {
+                        return d.data.Key;
+                    }).each(function (d) {
+                        var bbox = this.getBBox();
+                        d.sx = d.x - bbox.width / 2 - 2;
+                        d.ox = d.x + bbox.width / 2 + 2;
+                        d.sy = d.oy = d.y + 5;
+                    });
+                    this._lens_circle_svg.selectAll("path.mylabel").data([d]).enter().append("path").attr("class", "mylabel").style("fill", "none").style("stroke", "black").attr("d", function (d) {
+                        if (d.cx > d.ox) {
+                            return "M" + d.sx + "," + d.sy + "L" + d.sx + "," + d.sy;
+                        }
+                        else {
+                            return "M" + d.ox + "," + d.oy + "L" + d.ox + "," + d.oy;
+                        }
+                    }).transition().duration(200).attr("d", function (d) {
+                        if (d.cx > d.ox) {
+                            return "M" + d.sx + "," + d.sy + "L" + d.ox + "," + d.oy + " " + d.cx + "," + d.cy;
+                        }
+                        else {
+                            return "M" + d.ox + "," + d.oy + "L" + d.sx + "," + d.sy + " " + d.cx + "," + d.cy;
+                        }
+                    });
+                }
+                else {
+                    this._lens_circle_svg.selectAll(".mylabel").remove();
+                }
+            };
+            cMapPieLens.Type = "cMapBarLens";
+            return cMapPieLens;
         })(Lens.cBaseMapLens);
-        Lens.cMapBarLens = cMapBarLens;
+        Lens.cMapPieLens = cMapPieLens;
     })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "./cBaseMapLens.ts" />
@@ -3306,7 +3363,7 @@ var ManyLens;
 ///<reference path = "../Lens/cWordCloudNetworkLens.ts" />
 ///<reference path = "../Lens/cWordCloudPieLens.ts" />
 ///<reference path = "../Lens/cBaseMapLens.ts" />
-///<reference path = "../Lens/cMapBarLens.ts" />
+///<reference path = "../Lens/cMapPieLens.ts" />
 ///<reference path = "../Lens/cMapLens.ts" />
 ///<reference path = "../Lens/cMapNetworkLens.ts" />
 ///<reference path = "../Lens/cMapWordCloudLens.ts" />
@@ -3638,19 +3695,24 @@ var ManyLens;
                 case ManyLens.Lens.MapLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                 case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.MapLens.Type:
                     {
-                        return new ManyLens.Lens.cMapBarLens(element, manyLens, firstLens, secondLens);
+                        if (firstLens.Type != ManyLens.Lens.MapLens.Type) {
+                            var tempLens = firstLens;
+                            firstLens = secondLens;
+                            secondLens = tempLens;
+                        }
+                        return new ManyLens.Lens.cMapPieLens(element, manyLens, firstLens, secondLens);
                     }
-                case ManyLens.Lens.MapLens.Type + "_" + ManyLens.Lens.cMapBarLens.Type:
-                case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.cMapBarLens.Type:
+                case ManyLens.Lens.MapLens.Type + "_" + ManyLens.Lens.cMapPieLens.Type:
+                case ManyLens.Lens.PieChartLens.Type + "_" + ManyLens.Lens.cMapPieLens.Type:
                     {
-                        if (firstLens.Type != ManyLens.Lens.cMapBarLens.Type) {
+                        if (firstLens.Type != ManyLens.Lens.cMapPieLens.Type) {
                             var tempLens = firstLens;
                             firstLens = secondLens;
                             secondLens = tempLens;
                         }
                     }
-                case ManyLens.Lens.cMapBarLens.Type + "_" + ManyLens.Lens.MapLens.Type:
-                case ManyLens.Lens.cMapBarLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
+                case ManyLens.Lens.cMapPieLens.Type + "_" + ManyLens.Lens.MapLens.Type:
+                case ManyLens.Lens.cMapPieLens.Type + "_" + ManyLens.Lens.PieChartLens.Type:
                     {
                         //  case Lens.cMapBarLens.Type + "_" + Lens.cMapBarLens.Type: {
                         return firstLens.AddComponentLens(secondLens);

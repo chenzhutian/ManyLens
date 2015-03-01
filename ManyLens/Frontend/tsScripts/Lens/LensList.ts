@@ -15,7 +15,7 @@
 ///<reference path = "../Lens/cWordCloudNetworkLens.ts" />
 ///<reference path = "../Lens/cWordCloudPieLens.ts" />
 ///<reference path = "../Lens/cBaseMapLens.ts" />
-///<reference path = "../Lens/cMapBarLens.ts" />
+///<reference path = "../Lens/cMapPieLens.ts" />
 ///<reference path = "../Lens/cMapLens.ts" />
 ///<reference path = "../Lens/cMapNetworkLens.ts" />
 ///<reference path = "../Lens/cMapWordCloudLens.ts" />

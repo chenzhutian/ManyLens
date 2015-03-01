@@ -10,10 +10,10 @@ module ManyLens {
             protected _path: D3.Geo.Path = d3.geo.path();
             protected _color: D3.Scale.QuantizeScale = d3.scale.quantize();
             protected _centered_state: Object;
+            
 
             private _map_data: {
                 raw: any;
-                color: string[]
             };
 
             public get Projection(): D3.Geo.Projection {
@@ -50,17 +50,25 @@ module ManyLens {
 
             }
 
+            protected AfterExtractData(): void {
+                var data = {};
+                this._color.domain(d3.extent(this._base_accessor_func.Extract(this._data), function (d) { return d['Value']; }));
+                this._base_accessor_func.Extract(this._data).forEach((d) => {
+                    data[d.Key] = d.Value;
+                });
+                this._base_accessor_func.Extract(this._data, data);
+            }
 
             public DisplayLens(): void {
                 super.DisplayLens();
                 this._lens_circle_svg.append("g")
                     .attr("id", "states")
                     .selectAll("path")
-                    .data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.states).features)
+                    .data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features)
                     .enter().append("path")
                     .attr("d", this._path)
                     .attr("fill", (d, i) => {
-                        return this._map_data.color[i];
+                        return this._color(this._base_accessor_func.Extract(this._data)[d.id] || 0);
                     })
                     .on("click", (d) => {
                         if (!d3.event.defaultPrevented)
@@ -71,7 +79,7 @@ module ManyLens {
                 this._lens_circle_svg.append("g")
                     .attr("id", "state-borders")
                     .append("path")
-                    .datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.states, function (a, b) { return a !== b; }))
+                    .datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.countries, function (a, b) { return a !== b; }))
                     .attr("d", this._path);
 
             }

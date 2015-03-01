@@ -18,7 +18,6 @@ module ManyLens {
 
             private _map_data: {
                 raw: any;
-                color: string[]
             };
 
             public get Projection(): D3.Geo.Projection {
@@ -77,7 +76,6 @@ module ManyLens {
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
                 if (this._map_data) {
-                    this._map_data.color = [];
 
                     this._lens_circle_svg.append("g")
                         .attr("id", "country")
@@ -86,8 +84,7 @@ module ManyLens {
                         .enter().append("path")
                         .attr("d", this._path)
                         .attr("fill", (d) => {
-                            var color = this._color(this._data[d.id]||0);
-                            this._map_data.color.push(color)
+                            var color = this._color(this._data[d.id] || 0);
                             return color;
                         })
                         .on("click", (d) => {
@@ -106,7 +103,6 @@ module ManyLens {
                     d3.json("./testData/countriesAlpha2.topo.json", (error, mapData) => {
                         this._map_data = {
                             raw: mapData,
-                            color: []
                         };
 
                         this._lens_circle_svg.append("g")
@@ -117,7 +113,6 @@ module ManyLens {
                             .attr("d", this._path)
                             .attr("fill", (d) => {
                                 var color = this._color(this._data[d.id]||0);
-                                this._map_data.color.push(color)
                                 return color;
                             })
                             .on("click", (d) => {

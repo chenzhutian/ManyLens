@@ -476,6 +476,8 @@ namespace ManyLens.Models
 
         public Dictionary<string, object> GetDataForVis(string baseData, string subData = null)
         {
+            if (baseData == subData)
+                subData = null;
             string[] t = new string[] { baseData, subData };
 
             Dictionary<string, object> data = new Dictionary<string, object>();

@@ -243,7 +243,7 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cBaseMapLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cBoundleLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cChordDiagramLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapBarLens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapPieLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapNetworkLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapWordCloudLens.ts" />
