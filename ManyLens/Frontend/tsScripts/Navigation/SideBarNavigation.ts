@@ -4,6 +4,7 @@
 
         interface MenuListData {
             name?: string;
+            attributeName?: string;
             icon?: string;
             lensConstructFunc?:  new (element: D3.Selection, attributeName: string, manyLens: ManyLens)=> Lens.BaseSingleLens ;
             extractDataFunc?: Lens.ExtractDataFunc;
@@ -66,54 +67,66 @@
                     icon: null,
                     children: [
                         {
-                            name: "Annulus Chart",
+                            name: "Tweet Length",
                             icon: "fui-html5",
                             children: [
                                 {
-                                    name: "Tweet Length",
+                                    name: "Pie Chart",
+                                    attributeName: "Tweet Length",
                                     lensConstructFunc: Lens.PieChartLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("tweetLengthDistribute")
-                                },
-                                {
-                                    name: "Hashtag Count",
-                                    lensConstructFunc: Lens.PieChartLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc("hashTagDistribute")
                                 }
                             ]
                         },
                         {
-                            name: "Text",
-                            icon: "fui-foursquare",
+                            name: "Hashtag Count",
+                            icon: "fui-html5",
                             children: [
                                 {
-                                    name: "Keywords",
-                                    lensConstructFunc: Lens.WordCloudLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc("keywordsDistribute")
+                                    name: "Pie Chart",
+                                    attributeName: "Hashtag Count",
+                                    lensConstructFunc: Lens.PieChartLens,
+                                    extractDataFunc: new Lens.ExtractDataFunc("hashTagsDistribute")
                                 },
                                 {
-                                    name: "Hashtags",
+                                    name: "Words Cloud",
+                                    attributeName: "Hashtag Count",
                                     lensConstructFunc: Lens.WordCloudLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("hashTagsDistribute")
                                 }
                             ]
                         },
                         {
-                            name: "Network",
+                            name: "Keywords",
+                            icon: "fui-foursquare",
+                            children: [
+                                {
+                                    name: "Words Cloud",
+                                    attributeName: "Keywords",
+                                    lensConstructFunc: Lens.WordCloudLens,
+                                    extractDataFunc: new Lens.ExtractDataFunc("keywordsDistribute")
+                                }
+                            ]
+                        },
+                        {
+                            name: "Retweet Network",
                             icon: "fui-windows-8",
                             children: [
                                 {
-                                    name: "Retweet Network",
+                                    name: "Network",
+                                    attributeName: "Retweet Network",
                                     lensConstructFunc: Lens.NetworkLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("retweetNetwork")
                                 }
                             ]
                         },
                         {
-                            name: "Map",
+                            name: "Tweets Count",
                             icon: "fui-mail",
                             children: [
                                 {
-                                    name: "Tweets Count",
+                                    name: "Map",
+                                    attributeName: "Tweets Count",
                                     lensConstructFunc: Lens.MapLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("tweetsLocationDistribute")
                                 }
@@ -139,6 +152,7 @@
                         .attr("class", "panel")
                         .html('<div data-target=#' + menuList[i].name.replace(" ", "-") + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed"><i class="' + menuList[i].icon + '"></i>' + menuList[i].name + '</div>')
                     ;
+
                     //add high light function
                     li.select("div")
                         .on("click", function () {
@@ -151,8 +165,10 @@
                             }
                         });
 
+
                     if (sub_menu) {
                         li.select("div").append("span").attr("class", "arrow fui-triangle-down")
+
                         var ul = li.append("ul")
                             .attr("class", "sub-menu collapse")
                             .attr("id", menuList[i].name.replace(" ", "-"));
@@ -162,7 +178,7 @@
                             .enter().append("li")
                             .text(function (d) { return d.name })
                             .on("click", (d: MenuListData) => {
-                                var lens: Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg,d.name, this._manyLens);
+                                var lens: Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg,d.attributeName, this._manyLens);
                                 lens
                                     .DataAccesser(d.extractDataFunc)
                                     .Render("red")

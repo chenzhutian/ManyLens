@@ -38,7 +38,6 @@
   <body>
     <div id="map"></div>
     <script src="//d3js.org/d3.v3.min.js"></script>
-    <script src="//d3js.org/topojson.v1.min.js"></script>
     <script>
     var m_width = $("#map").width(),
         width = 938,
@@ -67,7 +66,7 @@
 
     var g = svg.append("g");
 
-    d3.json("/json/countries.topo.json", function(error, us) {
+    d3.json("/countriesAlpha2.topo.json", function(error, us) {
       g.append("g")
         .attr("id", "countries")
         .selectAll("path")

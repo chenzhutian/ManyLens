@@ -52,54 +52,66 @@ var ManyLens;
                     icon: null,
                     children: [
                         {
-                            name: "Annulus Chart",
+                            name: "Tweet Length",
                             icon: "fui-html5",
                             children: [
                                 {
-                                    name: "Tweet Length",
+                                    name: "Pie Chart",
+                                    attributeName: "Tweet Length",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetLengthDistribute")
-                                },
-                                {
-                                    name: "Hashtag Count",
-                                    lensConstructFunc: ManyLens.Lens.PieChartLens,
-                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagDistribute")
                                 }
                             ]
                         },
                         {
-                            name: "Text",
-                            icon: "fui-foursquare",
+                            name: "Hashtag Count",
+                            icon: "fui-html5",
                             children: [
                                 {
-                                    name: "Keywords",
-                                    lensConstructFunc: ManyLens.Lens.WordCloudLens,
-                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("keywordsDistribute")
+                                    name: "Pie Chart",
+                                    attributeName: "Hashtag Count",
+                                    lensConstructFunc: ManyLens.Lens.PieChartLens,
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagsDistribute")
                                 },
                                 {
-                                    name: "Hashtags",
+                                    name: "Words Cloud",
+                                    attributeName: "Hashtag Count",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagsDistribute")
                                 }
                             ]
                         },
                         {
-                            name: "Network",
+                            name: "Keywords",
+                            icon: "fui-foursquare",
+                            children: [
+                                {
+                                    name: "Words Cloud",
+                                    attributeName: "Keywords",
+                                    lensConstructFunc: ManyLens.Lens.WordCloudLens,
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("keywordsDistribute")
+                                }
+                            ]
+                        },
+                        {
+                            name: "Retweet Network",
                             icon: "fui-windows-8",
                             children: [
                                 {
-                                    name: "Retweet Network",
+                                    name: "Network",
+                                    attributeName: "Retweet Network",
                                     lensConstructFunc: ManyLens.Lens.NetworkLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("retweetNetwork")
                                 }
                             ]
                         },
                         {
-                            name: "Map",
+                            name: "Tweets Count",
                             icon: "fui-mail",
                             children: [
                                 {
-                                    name: "Tweets Count",
+                                    name: "Map",
+                                    attributeName: "Tweets Count",
                                     lensConstructFunc: ManyLens.Lens.MapLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetsLocationDistribute")
                                 }
@@ -136,7 +148,7 @@ var ManyLens;
                         ul.selectAll("li").data(sub_menu).enter().append("li").text(function (d) {
                             return d.name;
                         }).on("click", function (d) {
-                            var lens = new d.lensConstructFunc(_this._map_Svg, d.name, _this._manyLens);
+                            var lens = new d.lensConstructFunc(_this._map_Svg, d.attributeName, _this._manyLens);
                             lens.DataAccesser(d.extractDataFunc).Render("red");
                         });
                     }
@@ -1144,7 +1156,7 @@ var ManyLens;
                 //d3.geo.mercator();
                 this._path = d3.geo.path();
                 this._color = d3.scale.quantize();
-                this._projection.clipAngle(180 - 1e-3).precision(.1).scale(55).translate([-6, 0]);
+                this._projection.clipAngle(180 - 1e-3).precision(.1).scale(55).rotate([96, 0]).translate([0, 0]);
                 this._path.projection(this._projection);
                 this._color.range([
                     "rgb(198,219,239)",

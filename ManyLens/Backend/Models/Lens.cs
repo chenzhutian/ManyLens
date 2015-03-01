@@ -193,7 +193,7 @@ namespace ManyLens.Models
                     for (int i = 0, len = this.exit.Count; i < len; ++i)
                     {
                         Unit unit = this.exit[i];
-                        for (int j = 0, lenj = unit.TweetsCount; j < lenj; ++i)
+                        for (int j = 0, lenj = unit.TweetsCount; j < lenj; ++j)
                         {
                             List<string> hts = unit.Tweets[j].HashTag;
                             foreach (string ht in hts)
@@ -209,7 +209,7 @@ namespace ManyLens.Models
                     for (int i = 0, len = this.enter.Count; i < len; ++i)
                     {
                         Unit unit = this.enter[i];
-                        for (int j = 0, lenj = unit.TweetsCount; j < lenj; ++i)
+                        for (int j = 0, lenj = unit.TweetsCount; j < lenj; ++j)
                         {
                             List<string> hts = unit.Tweets[j].HashTag;
                             foreach (string ht in hts)
@@ -494,7 +494,7 @@ namespace ManyLens.Models
                             data.Add("tweetLengthDistribute", this.TweetsLengthDistribute);
                             break;
                         }
-                    case "hashTagDistribute":
+                    case "hashTagsDistribute":
                         {
                             data.Add("hashTagsDistribute", this.HashTagDistribute);
                             break;

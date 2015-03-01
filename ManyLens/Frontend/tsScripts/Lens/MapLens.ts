@@ -45,7 +45,10 @@ module ManyLens {
                     .clipAngle(180 - 1e-3)
                     .precision(.1)
                     .scale(55)
-                    .translate([-6, 0]);
+                    .rotate([96, 0])
+                  //  .center([-0.6, 38.7])
+                 .translate([0, 0])
+                ;
 
                 this._path
                     .projection(this._projection);
