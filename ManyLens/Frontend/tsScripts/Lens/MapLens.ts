@@ -9,7 +9,7 @@ module ManyLens {
 
             public static Type: string = "MapLens";
 
-            private _projection: D3.Geo.Projection = d3.geo.azimuthalEqualArea();
+            private _projection: D3.Geo.Projection = d3.geo.orthographic();
 
             //d3.geo.mercator();
             private _path: D3.Geo.Path = d3.geo.path();
@@ -42,10 +42,10 @@ module ManyLens {
                 super(element,attributeName, MapLens.Type, manyLens);
 
                 this._projection
-                    .clipAngle(180 - 1e-3)
+                    .clipAngle(90)
                     .precision(.1)
-                    .scale(55)
-                    .rotate([96, 0])
+                    .scale(100)
+                    .rotate([96, -20])
                   //  .center([-0.6, 38.7])
                  .translate([0, 0])
                 ;
@@ -104,7 +104,6 @@ module ManyLens {
 
                 } else {
                     d3.json("./testData/countriesAlpha2.topo.json", (error, mapData) => {
-                      //  this._color.domain(d3.extent(this._extract_data_map_func(this._data)));
                         this._map_data = {
                             raw: mapData,
                             color: []

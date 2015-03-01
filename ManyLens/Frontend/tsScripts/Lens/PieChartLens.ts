@@ -11,11 +11,11 @@ module ManyLens{
             private _pie: D3.Layout.PieLayout = d3.layout.pie();
             private _arc: D3.Svg.Arc = d3.svg.arc();
 
-            private _color: D3.Scale.OrdinalScale = d3.scale.category20();
+            private _color: D3.Scale.QuantizeScale = d3.scale.quantize();
 
-            public get Color(): D3.Scale.OrdinalScale {
-                return this._color;
-            }
+            //public get Color(): D3.Scale.OrdinalScale {
+            //    return this._color;
+            //}
 
             constructor(element: D3.Selection,attributeName:string, manyLens: ManyLens) {
                 super(element,attributeName, PieChartLens.Type,manyLens);
@@ -34,6 +34,17 @@ module ManyLens{
                    // .padAngle(.02)
                 ;
 
+                this._color
+                    .range([
+                        "rgb(198,219,239)",
+                        "rgb(158,202,225)",
+                        "rgb(107, 174, 214)",
+                        "rgb(66, 146, 198)",
+                        "rgb(33, 113, 181)"
+                        // "rgb(8, 81, 156)"
+                        // "rgb(8, 48, 107)"
+                    ]);
+
             }
 
             public Render(color: string): void {
@@ -42,12 +53,16 @@ module ManyLens{
             }
 
             protected AfterExtractData(): void {
-
+                this._color.domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) { return d['Value']; }));
             }
 
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
-                console.log()
+
+                this._lens_circle.style({
+                    "stroke": null,
+                    "stroke-width":null
+                });
                 
                 this._lens_circle_svg.selectAll(".pie")
                     .data(this._pie(this._extract_data_map_func.Extract(this._data)))
@@ -55,8 +70,9 @@ module ManyLens{
                     .attr("id", "pie-" + this.ID)
                     .attr("class","pie")
                     .attr("fill", (d) => {
-                        return this._color(d.data.Key);
+                        return this._color(d.value) || "rgb(158,202,225)";
                     })
+                    .attr("stroke","#fff")
                     .attr("d", this._arc)
                     .on("mouseover", (d) => {
                         this.ShowLabel(d);

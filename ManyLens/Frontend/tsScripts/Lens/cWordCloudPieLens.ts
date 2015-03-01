@@ -6,6 +6,8 @@ module ManyLens {
 
             public static Type: string = "cWordCloudPieLens";
 
+            private _color: D3.Scale.QuantizeScale = d3.scale.quantize();
+            
             private _font_size: D3.Scale.SqrtScale = d3.scale.sqrt();
             private _cloud: D3.Layout.CloudLayout = d3.layout.cloud();
 
@@ -41,6 +43,16 @@ module ManyLens {
                     .outerRadius(this._pie_outterRadius)
                 ;
 
+                this._color
+                    .range([
+                        "rgb(198,219,239)",
+                        "rgb(158,202,225)",
+                        "rgb(107, 174, 214)",
+                        "rgb(66, 146, 198)",
+                        "rgb(33, 113, 181)"
+                        // "rgb(8, 81, 156)"
+                        // "rgb(8, 48, 107)"
+                    ]);
                 //this._manyLens.ManyLensHubRegisterClientFunction(this, "hightLightWordsOfTweetsAtLengthOf", this.HightLightWordsOfTweetsAtLengthOf);
             }
 
@@ -56,10 +68,16 @@ module ManyLens {
                         return d.Value;
                     }))
                 ;
+                this._color.domain(d3.extent(this._sub_accessor_func.Extract(this._data), function (d) { return d['Value']; }));
             }
 
             public DisplayLens(): void {
                 super.DisplayLens();
+
+                this._lens_circle.style({
+                    "stroke": null,
+                    "stroke-width":null
+                });
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._base_accessor_func.Extract(this._data))
@@ -84,7 +102,9 @@ module ManyLens {
                     .enter().append("path")
                     .attr("class","outterPie")
                     .attr("d", this._arc)
-                    .style("fill", (d) => { return this._cloud_text_color(d.data.Key); })
+                    .style("fill", (d) => {
+                        return this._color(d.value) || "rgb(158,202,225)";
+                    })
                     .on("mouseover", (d) => {
                         this._manyLens.ManyLensHubServercWordCloudPieLens(this.ID, d.data.Key, this._base_accessor_func.TargetAttribute,this._sub_accessor_func.TargetAttribute);
                         this.ShowLabel(d);

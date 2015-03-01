@@ -115,7 +115,7 @@ module ManyLens {
             constructor(element: D3.Selection, type: string,manyLens:ManyLens) {
                 super(element,manyLens);
                 this._type = type;
-                this._id = "lens_" + this._manyLens.LensCount;
+                this._id = "lens_" + this._manyLens.LensIDGenerator;
 
                 this._lens_circle_zoom
                     .scaleExtent([1, 2])
@@ -195,13 +195,15 @@ module ManyLens {
                 this._lens_circle = this._lens_circle_svg.append("path")
                     .attr("class", "lens-circle")
                     .attr("id", "lens-circle-" + this.ID)
-                    //.attr("cx", 0)
-                    //.attr("cy", 0)
-                    //.attr("r", this._lens_circle_radius)
-                    .attr("d",d3.svg.arc().startAngle(0).endAngle(2*Math.PI).innerRadius(0).outerRadius(this._lens_circle_radius))
-                    .attr("fill", "#fff")
-                    .attr("stroke", "black")
-                    .attr("stroke-width", 1)
+                //.attr("cx", 0)
+                //.attr("cy", 0)
+                //.attr("r", this._lens_circle_radius)
+                    .attr("d", d3.svg.arc().startAngle(0).endAngle(2 * Math.PI).innerRadius(0).outerRadius(this._lens_circle_radius))
+                    .style({
+                        "fill": "#fff",
+                        "stroke": "black",
+                        "stroke-width": 1
+                    })
                 ;
 
                 this._manyLens.AddLensToHistoryTree(this);

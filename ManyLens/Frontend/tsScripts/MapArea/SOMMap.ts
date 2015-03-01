@@ -23,7 +23,15 @@
         export class SOMMap extends D3ChartObject {
 
            // private _lensPane: Pane.ClassicLensPane;
-            private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
+            //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
+            private _colorPalettes: string[] = ["rgb(198,219,239)",
+                                                                    "rgb(158,202,225)",
+                                                                    "rgb(107, 174, 214)",
+                                                                    "rgb(66, 146, 198)",
+                                                                    "rgb(33, 113, 181)",
+                                                                    "rgb(8, 81, 156)",
+                                                                    "rgb(8, 81, 156)"
+                                                                ];
 
             constructor(element: D3.Selection, manyLens: ManyLens) {
                 super(element, manyLens);

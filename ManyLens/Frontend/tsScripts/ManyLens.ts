@@ -31,8 +31,12 @@ module ManyLens {
 
         //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
         private _lens: Map<string, Lens.BaseD3Lens> = new Map<string, Lens.BaseD3Lens>();
+        private _lens_id_generator: number = 0;
         //private _lens_count: number = 0;
 
+        public get LensIDGenerator(): number {
+            return this._lens_id_generator++;
+        }
         public get LensCount(): number {
             return this._lens.size;
         }

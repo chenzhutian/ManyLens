@@ -6,7 +6,7 @@ module ManyLens {
             public static Type: string = "cPieChartLens";
 
 
-            private _color: D3.Scale.OrdinalScale = d3.scale.category20();
+            private _color: D3.Scale.QuantizeScale = d3.scale.quantize();
             private _pie: D3.Layout.PieLayout = d3.layout.pie();
             private _arc: D3.Svg.Arc = d3.svg.arc();
 
@@ -39,6 +39,17 @@ module ManyLens {
                     })
                 ;
 
+                this._color
+                    .range([
+                        "rgb(198,219,239)",
+                        "rgb(158,202,225)",
+                        "rgb(107, 174, 214)",
+                        "rgb(66, 146, 198)",
+                        "rgb(33, 113, 181)"
+                        // "rgb(8, 81, 156)"
+                        // "rgb(8, 48, 107)"
+                    ]);
+
             }
 
             public Render(color = "pupple"): void {
@@ -46,17 +57,8 @@ module ManyLens {
 
             }
 
-            protected ExtractData(): any {
-                var data: Array<any>;
+            protected AfterExtractData(): void {
 
-                data = d3.range(6).map((d,i)=> {
-                    return {
-                        host: this._data[i],
-                        sub: Math.random() * this._data[i]
-                    };
-                });
-
-                return data;
             }
 
             public DisplayLens(): void {
@@ -67,7 +69,9 @@ module ManyLens {
                     .data(this._pie(data))
                     .enter().append("path")
                     .attr("d", this._arc)
-                    .style("fill", (d,i) =>{ return this._color(i); })
+                    .style("fill", (d, i) => {
+                        return this._color(i);
+                    })
                     .style("fill-rule", "evenodd")
                 ;
 
@@ -80,7 +84,9 @@ module ManyLens {
                 this._lens_circle_svg.selectAll(".outerPie")
                     .data(this._pie(data))
                     .enter().append("path")
-                    .attr("fill", (d, i)=>{ return this._color(i); })
+                    .attr("fill", (d, i) => {
+                        return this._color(i);
+                    })
                     .attr("d", this._arc)
                 ;
             }

@@ -43,7 +43,7 @@ namespace ManyLens.Models
                     for (int i = 0, len = this.exit.Count; i < len; ++i)
                     { 
                         Unit unit = this.exit[i];
-                        for (int j = 0, lenj = unit.TweetsCount; j < lenj; ++j)
+                        for (int j = unit.TweetsCount - 1; j >= 0 ; --j)
                         {
                             this.tweets.Remove(unit.Tweets[j]);
                         }
@@ -106,7 +106,6 @@ namespace ManyLens.Models
                             {
                                 this.usersCount.Remove(item.Key);
                                 this.users.Remove(item.Key);
-                                //this.userTweets.Remove(item.Key);
                             }
                         }
                     }
@@ -445,7 +444,7 @@ namespace ManyLens.Models
             this.enter = new List<Unit>();
             this.exit = new List<Unit>();
             //get the exit unit
-            for (int i = 0, len = this.units.Count; i < len; ++i)
+            for (int i =  this.units.Count - 1; i >= 0; --i)
             {
                 if (!newUnits.Contains(this.units[i]))
                 {
@@ -455,7 +454,7 @@ namespace ManyLens.Models
             }
 
             //Get exnter unit
-            for (int i = 0, len = newUnits.Count; i < len; ++i)
+            for (int i = newUnits.Count - 1; i  >= 0 ; --i)
             {
                 if (!this.units.Contains(newUnits[i]))
                 {
