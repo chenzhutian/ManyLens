@@ -162,7 +162,7 @@ module ManyLens {
                     return (<Lens.cMapNetworkLens>firstLens).AddComponentLens(secondLens);
                 }
 
-                /*-----------------------------cMapBar Diagram Lens--------------------------*/
+                /*-----------------------------cMapPie Diagram Lens--------------------------*/
                 //single + single = composite
                 case Lens.MapLens.Type + "_" + Lens.PieChartLens.Type:
                 case Lens.PieChartLens.Type + "_" + Lens.MapLens.Type: {

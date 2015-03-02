@@ -31,39 +31,12 @@ module ManyLens {
 
             }
 
-            // data shape {text: size:}
-            protected ExtractData(): any {
-                var data: Array<D3.Layout.ICloudData>
-                data = [
-              
-                    { Key: "lxzcvk", Value: 7 },
-                    { Key: "tyu", Value: 7 },
-
-                ]
-                ;
-
-                data.forEach( (d, i) => {
-                    d.Value -= 3;
-                    d["group"] = (i % 2) + 1;
-                    d["coordinates"] = d["group"] == 1 ? this._projection([-86.674368, 34.646554]) : this._projection([-118.176008, 34.200463]);
-                });
-
-                this._font_size
-                    .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.Value; }))
-                ;
-
-                return data;
-            }
-
             public DisplayLens(): void {
                 super.DisplayLens();
-                var barData = this.ExtractData();
 
-                var data = this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(data)
+                    .words(this._sub_accessor_func.Extract(this._data))
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)

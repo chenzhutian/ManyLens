@@ -1394,7 +1394,11 @@ var ManyLens;
                 this._arc.innerRadius(this._pie_innerRadius).outerRadius(this._pie_outterRadius);
                 this._pie.value(function (d) {
                     return d.Value;
-                }).sort(null).startAngle(0);
+                }).sort(function (a, b) {
+                    if (a.Value > b.Value)
+                        return -1;
+                    return 1;
+                }).startAngle(0);
                 this._color.range([
                     "rgb(198,219,239)",
                     "rgb(158,202,225)",
@@ -2080,21 +2084,9 @@ var ManyLens;
                 if (color === void 0) { color = "green"; }
                 _super.prototype.Render.call(this, color);
             };
-            cChordDiagramLens.prototype.ExtractData = function () {
-                var matrix = [
-                    [11975, 5871, 8916, 2868, 5550],
-                    [1951, 10048, 2060, 6171, 2043],
-                    [8010, 16145, 8090, 8045, 1028],
-                    [3034, 9564, 983, 4203, 7022],
-                    [1013, 990, 940, 6907, 2303]
-                ];
-                return matrix;
-            };
             cChordDiagramLens.prototype.DisplayLens = function () {
                 var _this = this;
-                _super.prototype.DisplayLens.call(this);
-                var data = this.ExtractData();
-                this._chord.matrix(data);
+                this._chord.matrix(this._base_accessor_func.Extract(this._data));
                 var svg = this._lens_circle_svg;
                 this._lens_circle_svg.append("g").selectAll("path").data(this._chord.groups).enter().append("path").style("fill", function (d, i) {
                     return _this._fill(i);
@@ -2182,14 +2174,13 @@ var ManyLens;
             cPieChartLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                var data = this.ExtractData();
-                this._lens_circle_svg.selectAll(".innerPie").data(this._pie(data)).enter().append("path").attr("d", this._arc).style("fill", function (d, i) {
+                this._lens_circle_svg.selectAll(".innerPie").data(this._pie(this._base_accessor_func.Extract(this._data))).enter().append("path").attr("d", this._arc).style("fill", function (d, i) {
                     return _this._color(i);
                 }).style("fill-rule", "evenodd");
                 this._arc.innerRadius(this._lens_circle_radius).outerRadius(this._lens_circle_radius + 20).endAngle(function (d, i) {
                     return d.startAngle + (d.endAngle - d.startAngle) * (d.data.sub / d.value);
                 });
-                this._lens_circle_svg.selectAll(".outerPie").data(this._pie(data)).enter().append("path").attr("fill", function (d, i) {
+                this._lens_circle_svg.selectAll(".outerPie").data(this._pie(this._sub_accessor_func.Extract(this._data))).enter().append("path").attr("fill", function (d, i) {
                     return _this._color(i);
                 }).attr("d", this._arc);
             };
@@ -2527,47 +2518,46 @@ var ManyLens;
                 if (color === void 0) { color = "red"; }
                 _super.prototype.Render.call(this, color);
             };
-            cTreeNetworkLens.prototype.ExtractData = function () {
-                var data = {
-                    "name": "flare",
-                    "children": [
-                        {
-                            "name": "analytics",
-                            "children": [
-                                {
-                                    "name": "cluster",
-                                    "children": [
-                                        { "name": "AgglomerativeCluster", "size": 3938 },
-                                        { "name": "CommunityStructure", "size": 3812 },
-                                        { "name": "HierarchicalCluster", "size": 6714 },
-                                        { "name": "MergeEdge", "size": 743 }
-                                    ]
-                                },
-                                {
-                                    "name": "graph",
-                                    "children": [
-                                        { "name": "BetweennessCentrality", "size": 3534 },
-                                        { "name": "LinkDistance", "size": 5731 },
-                                        { "name": "MaxFlowMinCut", "size": 7840 },
-                                        { "name": "ShortestPaths", "size": 5914 },
-                                        { "name": "SpanningTree", "size": 3416 }
-                                    ]
-                                },
-                                {
-                                    "name": "optimization",
-                                    "children": [
-                                        { "name": "AspectRatioBanker", "size": 7074 }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                };
-                return data;
-            };
+            //protected ExtractData(): any {
+            //    var data: D3.Layout.GraphNode = {
+            //        "name": "flare",
+            //        "children": [
+            //            {
+            //                "name": "analytics",
+            //                "children": [
+            //                    {
+            //                        "name": "cluster",
+            //                        "children": [
+            //                            { "name": "AgglomerativeCluster", "size": 3938 },
+            //                            { "name": "CommunityStructure", "size": 3812 },
+            //                            { "name": "HierarchicalCluster", "size": 6714 },
+            //                            { "name": "MergeEdge", "size": 743 }
+            //                        ]
+            //                    },
+            //                    {
+            //                        "name": "graph",
+            //                        "children": [
+            //                            { "name": "BetweennessCentrality", "size": 3534 },
+            //                            { "name": "LinkDistance", "size": 5731 },
+            //                            { "name": "MaxFlowMinCut", "size": 7840 },
+            //                            { "name": "ShortestPaths", "size": 5914 },
+            //                            { "name": "SpanningTree", "size": 3416 }
+            //                        ]
+            //                    },
+            //                    {
+            //                        "name": "optimization",
+            //                        "children": [
+            //                            { "name": "AspectRatioBanker", "size": 7074 }
+            //                        ]
+            //                    }
+            //                ]
+            //            }
+            //        ]
+            //    };
+            //    return data;
+            //}
             cTreeNetworkLens.prototype.DisplayLens = function () {
                 _super.prototype.DisplayLens.call(this);
-                var data = this.ExtractData();
                 var nodeRadius = 4.5;
                 var diagonal = d3.svg.diagonal.radial().projection(function (d) {
                     return [d.y, d.x / 180 * Math.PI];
@@ -2575,7 +2565,7 @@ var ManyLens;
                 this._tree.size([this._theta, this._lens_circle_radius - nodeRadius]).separation(function (a, b) {
                     return (a.parent == b.parent ? 1 : 2) / a.depth;
                 });
-                var nodes = this._tree.nodes(data), links = this._tree.links(nodes);
+                var nodes = this._tree.nodes(this._base_accessor_func.Extract(this._data)), links = this._tree.links(nodes);
                 var link = this._lens_circle_svg.selectAll("path").data(links).enter().append("path").attr("fill", "none").attr("stroke", "#ccc").attr("stroke-width", 1.5).attr("d", diagonal);
                 var node = this._lens_circle_svg.selectAll(".node").data(nodes).enter().append("g").attr("class", "node").attr("transform", function (d) {
                     return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
@@ -2611,8 +2601,7 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             // data shape {text: size:}
-            cWordCloudLens.prototype.ExtractData = function () {
-                _super.prototype.ExtractData.call(this);
+            cWordCloudLens.prototype.AfterExtractData = function () {
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._base_accessor_func.Extract(this._data), function (d) {
                     return d.Value;
                 }));
@@ -2620,7 +2609,6 @@ var ManyLens;
             cWordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                this.ExtractData();
                 this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func.Extract(this._data)).filter(function (d) {
                     if (d.Value > 3)
                         return true;
@@ -2694,38 +2682,34 @@ var ManyLens;
                 _super.prototype.Render.call(this, color);
             };
             cWordCloudNetworkLens.prototype.AfterExtractData = function () {
-            };
-            // data shape {text: size:}
-            cWordCloudNetworkLens.prototype.ExtractData = function () {
-                var data;
-                data.forEach(function (d, i) {
-                    d["group"] = (i % 3) + 1; //Math.ceil(Math.random()*3);
-                });
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
-                    return d.Value;
-                }));
-                return data;
+                //data.forEach(function (d,i) {
+                //    d["group"] = (i%3)+1;//Math.ceil(Math.random()*3);
+                //});
+                //this._font_size
+                //    .range([10, this._cloud_w / 8])
+                //    .domain(d3.extent(data, function (d) { return d.Value; }))
+                //;
+                //return data;
             };
             cWordCloudNetworkLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                var data = this.ExtractData();
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._base_accessor_func.Extract(this._data)).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                     return _this._font_size(d.value);
                 }).on("end", function (words, bound) {
                     _this.DrawCloud(words, bound);
                 });
                 this._cloud.start();
-                var groups = [];
-                for (var i = 0, len = data.length; i < len; ++i) {
-                    if (groups[parseInt(data[i]['group']) - 1] != null) {
-                        var group = parseInt(data[i]['group']);
-                        groups[group - 1]++;
-                    }
-                    else {
-                        groups[parseInt(data[i]['group']) - 1] = 0;
-                    }
-                }
+                //var groups = [];
+                //for (var i = 0, len = data.length; i < len; ++i) {
+                //    if (groups[parseInt(data[i]['group']) - 1] != null) {
+                //        var group = parseInt(data[i]['group']);
+                //        groups[group - 1]++;
+                //    }
+                //    else {
+                //        groups[parseInt(data[i]['group']) - 1] = 0;
+                //    }
+                //}
                 this._chord.matrix([
                     [2000, 2300, 2100],
                     [1951, 2100, 2000],
@@ -2838,8 +2822,6 @@ var ManyLens;
                 });
             };
             cWordCloudPieLens.prototype.HightLightWordsOfTweetsAtLengthOf = function (words) {
-                //console.log("here");
-                //console.log(words);
                 this._lens_circle_svg.selectAll("text.wordCloudText").transition().style("opacity", function (p) {
                     if (words.indexOf(p.text) == -1)
                         return 0.1;
@@ -3087,6 +3069,7 @@ var ManyLens;
                 this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func.Extract(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d, i) {
                     return _this._pie_color(d.value) || "rgb(158,202,225)";
                 }).on("mouseover", function (d) {
+                    _this._manyLens.ManyLensHubServercMapPieLens(_this.ID, d.data.Key, _this._base_accessor_func.TargetAttribute, _this._sub_accessor_func.TargetAttribute);
                     _this.ShowLabel(d);
                 }).on("mouseout", function (d) {
                     _this.ShowLabel(null);
@@ -3130,6 +3113,9 @@ var ManyLens;
                 else {
                     this._lens_circle_svg.selectAll(".mylabel").remove();
                 }
+            };
+            cMapPieLens.prototype.HightLightCountry = function (countryName) {
+                console.log(countryName);
             };
             cMapPieLens.Type = "cMapBarLens";
             return cMapPieLens;
@@ -3191,7 +3177,6 @@ var ManyLens;
             };
             cMapNetworkLens.prototype.AfterExtractData = function () {
                 var _this = this;
-                _super.prototype.ExtractData.call(this);
                 this._sub_accessor_func.Extract(this._data).nodes.forEach(function (d) {
                     var p = _this._projection([d.x, d.y]);
                     d.x = p[0];
@@ -3299,30 +3284,10 @@ var ManyLens;
                 if (color === void 0) { color = "red"; }
                 _super.prototype.Render.call(this, color);
             };
-            // data shape {text: size:}
-            cMapWordCloudLens.prototype.ExtractData = function () {
-                var _this = this;
-                var data;
-                data = [
-                    { Key: "lxzcvk", Value: 7 },
-                    { Key: "tyu", Value: 7 },
-                ];
-                data.forEach(function (d, i) {
-                    d.Value -= 3;
-                    d["group"] = (i % 2) + 1;
-                    d["coordinates"] = d["group"] == 1 ? _this._projection([-86.674368, 34.646554]) : _this._projection([-118.176008, 34.200463]);
-                });
-                this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(data, function (d) {
-                    return d.Value;
-                }));
-                return data;
-            };
             cMapWordCloudLens.prototype.DisplayLens = function () {
                 var _this = this;
                 _super.prototype.DisplayLens.call(this);
-                var barData = this.ExtractData();
-                var data = this.ExtractData();
-                this._cloud.size([this._cloud_w, this._cloud_h]).words(data).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
+                this._cloud.size([this._cloud_w, this._cloud_h]).words(this._sub_accessor_func.Extract(this._data)).padding(this._cloud_padding).rotate(0).font(this._cloud_font).fontWeight(this._cloud_font_weight).fontSize(function (d) {
                     return _this._font_size(d.value);
                 }).on("end", function (words, bound) {
                     _this.DrawCloud(words, bound);
@@ -3477,19 +3442,6 @@ var ManyLens;
                 lensC.DisplayLens();
             }
         };
-        ManyLens.prototype.InteractiveOnLens = function (lensID) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
-            var lens = this._lens.get(lensID);
-            console.log(args);
-            if (lens.Type == "cWordCloudPieLens") {
-                lens.HightLightWordsOfTweetsAtLengthOf(args[0]);
-            }
-            else {
-            }
-        };
         /* -------------------- Hub related Function -----------------------*/
         ManyLens.prototype.ManyLensHubRegisterClientFunction = function (registerObj, funcName, func) {
             if (!this._manyLens_hub) {
@@ -3551,13 +3503,34 @@ var ManyLens;
             return this._manyLens_hub.proxy.invoke("removeLensData", visMapID, lensID);
             //return this._manyLens_hub.server.removeLensData(visMapID, lensID);
         };
+        /*-------------Lens interactivation method-------------*/
+        ManyLens.prototype.InteractiveOnLens = function (lensID) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            var lens = this._lens.get(lensID);
+            console.log(args);
+            if (lens.Type == "cWordCloudPieLens") {
+                lens.HightLightWordsOfTweetsAtLengthOf(args[0]);
+            }
+            else if (lens.Type == "cMapPieLens") {
+                lens.HightLightCountry(args[0]);
+            }
+        };
         ManyLens.prototype.ManyLensHubServercWordCloudPieLens = function (lensID, pieKey, baseData, subData) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
             return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, baseData, subData);
-            //return this._manyLens_hub.server.cWordCloudPieLens(lensID, pieKey, whichData);
+        };
+        ManyLens.prototype.ManyLensHubServercMapPieLens = function (lensID, pieKey, baseData, subData) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("cMapPieLens", lensID, pieKey, baseData, subData);
         };
         ManyLens.TestMode = false;
         return ManyLens;

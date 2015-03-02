@@ -315,7 +315,6 @@ namespace ManyLens.SignalR
         //Interactive for lens
         public async Task cWordCloudPieLens(string lensID, string pieKey,string baseData,string subData)
         {
-            
             HashSet<string> words = new HashSet<string>();
             Lens lens = lensdatas[lensID];
             await Task.Run(() => {
@@ -338,6 +337,32 @@ namespace ManyLens.SignalR
 
             Clients.Caller.interactiveOnLens(lensID,words.ToList());
             
+        }
+
+        public async Task cMapPieLens(string lensID, string pieKey, string baseData, string subData)
+        {
+            Lens lens = lensdatas[lensID];
+            string countryName = null;
+            await Task.Run(() =>
+            {
+                string t = baseData + "_" + subData;
+                switch (t)
+                {
+                    case "tweetsLocationDistribute_tweetLengthDistribute":
+                        {
+                            countryName = lens.GetCountryWithMostTweetsAtLengthOf(int.Parse(pieKey));
+                            break;
+                        }
+                    //case "hashTagsDistribute_tweetLengthDistribute":
+                    //    {
+
+                    //        break;
+                    //    }
+                }
+
+            });
+
+            Clients.Caller.interactiveOnLens(lensID, countryName);
         }
 
         #region some code for test

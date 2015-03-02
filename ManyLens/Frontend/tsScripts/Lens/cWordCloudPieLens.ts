@@ -121,8 +121,6 @@ module ManyLens {
             }
 
             public HightLightWordsOfTweetsAtLengthOf(words: string[]): void {
-                //console.log("here");
-                //console.log(words);
                 
                 this._lens_circle_svg.selectAll("text.wordCloudText")
                     .transition()

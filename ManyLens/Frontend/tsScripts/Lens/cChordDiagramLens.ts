@@ -40,21 +40,9 @@ module ManyLens {
 
             }
 
-            protected ExtractData(): any {
-                var matrix = [
-                    [11975, 5871, 8916, 2868,5550],
-                    [1951, 10048, 2060, 6171,2043],
-                    [8010, 16145, 8090, 8045,1028],
-                    [3034,9564,983,4203,7022],
-                    [1013, 990, 940, 6907,2303]
-                ];
-                return matrix;
-            }
 
             public DisplayLens() {
-                super.DisplayLens();
-                var data = this.ExtractData();
-                this._chord.matrix(data);
+                this._chord.matrix(this._base_accessor_func.Extract(this._data));
 
                 var svg = this._lens_circle_svg;
                 

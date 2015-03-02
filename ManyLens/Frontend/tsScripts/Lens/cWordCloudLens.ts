@@ -33,8 +33,7 @@ module ManyLens {
             }
 
             // data shape {text: size:}
-            protected ExtractData(): any {
-                super.ExtractData();
+            protected AfterExtractData(): any {
                
 
                 this._font_size
@@ -48,7 +47,6 @@ module ManyLens {
 
             public DisplayLens():void {
                 super.DisplayLens();
-                this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._base_accessor_func.Extract(this._data))

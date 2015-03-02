@@ -29,7 +29,11 @@ module ManyLens{
                     .value((d) => {
                         return d.Value;
                     })
-                    .sort(null)
+                    .sort(function (a, b) {
+                        if (a.Value > b.Value)
+                            return -1;
+                        return 1;
+                    })
                 .startAngle(0)
                    // .padAngle(.02)
                 ;

@@ -36,7 +36,6 @@ module ManyLens {
             }
 
             protected AfterExtractData(): void {
-                super.ExtractData();
                 this._sub_accessor_func.Extract(this._data).nodes.forEach((d) => {
                     var p = this._projection([d.x, d.y]);
                     d.x = p[0];

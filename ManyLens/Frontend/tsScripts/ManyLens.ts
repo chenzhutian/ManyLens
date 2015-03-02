@@ -118,15 +118,7 @@ module ManyLens {
 
         }
 
-        public InteractiveOnLens(lensID: string, ...args: Array<any>) {
-            var lens: Lens.BaseD3Lens = this._lens.get(lensID);
-            console.log(args);
-            if (lens.Type == "cWordCloudPieLens") {
-                (<Lens.cWordCloudPieLens>lens).HightLightWordsOfTweetsAtLengthOf(args[0]);
-            } else {
 
-            }
-        }
 
         /* -------------------- Hub related Function -----------------------*/
         public ManyLensHubRegisterClientFunction(registerObj: any, funcName: string, func: (...any) => any) {
@@ -196,13 +188,30 @@ module ManyLens {
             //return this._manyLens_hub.server.removeLensData(visMapID, lensID);
         }
 
+        /*-------------Lens interactivation method-------------*/
+        public InteractiveOnLens(lensID: string, ...args: Array<any>) {
+            var lens: Lens.BaseD3Lens = this._lens.get(lensID);
+            console.log(args);
+            if (lens.Type == "cWordCloudPieLens") {
+                (<Lens.cWordCloudPieLens>lens).HightLightWordsOfTweetsAtLengthOf(args[0]);
+            } else if(lens.Type == "cMapPieLens"){
+                (<Lens.cMapPieLens>lens).HightLightCountry(args[0]);
+            }
+        }
+
         public ManyLensHubServercWordCloudPieLens(lensID: string, pieKey: string, baseData: string, subData:string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
             return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, baseData,subData);
-            //return this._manyLens_hub.server.cWordCloudPieLens(lensID, pieKey, whichData);
+        }
+        public ManyLensHubServercMapPieLens(lensID: string, pieKey: string, baseData: string, subData: string): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("cMapPieLens", lensID, pieKey, baseData, subData);
         }
 
 

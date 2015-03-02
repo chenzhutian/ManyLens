@@ -545,5 +545,27 @@ namespace ManyLens.Models
             }
         }
 
+        public string GetCountryWithMostTweetsAtLengthOf(int length)
+        {
+            List<Tweet> tweets = this.GetTweetsAtLengthOf(length);
+            Dictionary<string, int> dict = new Dictionary<string, int>();
+            for (int i = 0, len = tweets.Count; i < len; ++i)
+            {
+                Tweet tweet = tweets[i];
+                if (tweet.CountryName == null)
+                    continue;
+                if (dict.ContainsKey(tweet.CountryName))
+                {
+                    dict[tweet.CountryName]++;
+                }
+                else
+                {
+                    dict.Add(tweet.CountryName, 1);
+                }
+            }
+            var dicSort = from objDic in dict orderby objDic.Value descending select objDic;
+            return dict.First().Key;
+        }
+
     }
 }

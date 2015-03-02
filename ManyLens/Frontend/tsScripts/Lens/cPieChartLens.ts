@@ -63,10 +63,9 @@ module ManyLens {
 
             public DisplayLens(): void {
                 super.DisplayLens();
-                var data = this.ExtractData();
 
                 this._lens_circle_svg.selectAll(".innerPie")
-                    .data(this._pie(data))
+                    .data(this._pie(this._base_accessor_func.Extract(this._data)))
                     .enter().append("path")
                     .attr("d", this._arc)
                     .style("fill", (d, i) => {
@@ -82,7 +81,7 @@ module ManyLens {
                     });
 
                 this._lens_circle_svg.selectAll(".outerPie")
-                    .data(this._pie(data))
+                    .data(this._pie(this._sub_accessor_func.Extract(this._data)))
                     .enter().append("path")
                     .attr("fill", (d, i) => {
                         return this._color(i);

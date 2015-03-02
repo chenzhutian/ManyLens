@@ -60,31 +60,24 @@ module ManyLens {
 
             protected AfterExtractData(): void {
 
-            }
+               
+                //data.forEach(function (d,i) {
+                //    d["group"] = (i%3)+1;//Math.ceil(Math.random()*3);
+                //});
 
-            // data shape {text: size:}
-            protected ExtractData(): Array<D3.Layout.ICloudData> {
-                var data: Array<D3.Layout.ICloudData>
-                
+                //this._font_size
+                //    .range([10, this._cloud_w / 8])
+                //    .domain(d3.extent(data, function (d) { return d.Value; }))
+                //;
 
-                data.forEach(function (d,i) {
-                    d["group"] = (i%3)+1;//Math.ceil(Math.random()*3);
-                });
-
-                this._font_size
-                    .range([10, this._cloud_w / 8])
-                    .domain(d3.extent(data, function (d) { return d.Value; }))
-                ;
-
-                return data;
+                //return data;
             }
 
             public DisplayLens(): void {
                 super.DisplayLens();
-                var data = this.ExtractData();
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
-                    .words(data)
+                    .words(this._base_accessor_func.Extract(this._data))
                     .padding(this._cloud_padding)
                     .rotate(0)
                     .font(this._cloud_font)
@@ -97,17 +90,17 @@ module ManyLens {
                 this._cloud.start();
 
 
-                var groups = [];
-                for (var i = 0, len = data.length; i < len; ++i) {
+                //var groups = [];
+                //for (var i = 0, len = data.length; i < len; ++i) {
 
-                    if (groups[parseInt(data[i]['group']) - 1] != null) {
-                        var group = parseInt(data[i]['group']);
-                        groups[group - 1]++;
-                    }
-                    else {
-                        groups[parseInt(data[i]['group']) - 1] = 0;
-                    }
-                }
+                //    if (groups[parseInt(data[i]['group']) - 1] != null) {
+                //        var group = parseInt(data[i]['group']);
+                //        groups[group - 1]++;
+                //    }
+                //    else {
+                //        groups[parseInt(data[i]['group']) - 1] = 0;
+                //    }
+                //}
 
 
                 this._chord.matrix([

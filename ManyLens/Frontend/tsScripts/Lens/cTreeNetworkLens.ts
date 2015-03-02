@@ -21,50 +21,49 @@ module ManyLens {
 
             }
 
-            protected ExtractData(): any {
-                var data: D3.Layout.GraphNode = {
-                    "name": "flare",
-                    "children": [
-                        {
-                            "name": "analytics",
-                            "children": [
-                                {
-                                    "name": "cluster",
-                                    "children": [
-                                        { "name": "AgglomerativeCluster", "size": 3938 },
-                                        { "name": "CommunityStructure", "size": 3812 },
-                                        { "name": "HierarchicalCluster", "size": 6714 },
-                                        { "name": "MergeEdge", "size": 743 }
-                                    ]
-                                },
-                                {
-                                    "name": "graph",
-                                    "children": [
-                                        { "name": "BetweennessCentrality", "size": 3534 },
-                                        { "name": "LinkDistance", "size": 5731 },
-                                        { "name": "MaxFlowMinCut", "size": 7840 },
-                                        { "name": "ShortestPaths", "size": 5914 },
-                                        { "name": "SpanningTree", "size": 3416 }
-                                    ]
-                                },
-                                {
-                                    "name": "optimization",
-                                    "children": [
-                                        { "name": "AspectRatioBanker", "size": 7074 }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                };
+            //protected ExtractData(): any {
+            //    var data: D3.Layout.GraphNode = {
+            //        "name": "flare",
+            //        "children": [
+            //            {
+            //                "name": "analytics",
+            //                "children": [
+            //                    {
+            //                        "name": "cluster",
+            //                        "children": [
+            //                            { "name": "AgglomerativeCluster", "size": 3938 },
+            //                            { "name": "CommunityStructure", "size": 3812 },
+            //                            { "name": "HierarchicalCluster", "size": 6714 },
+            //                            { "name": "MergeEdge", "size": 743 }
+            //                        ]
+            //                    },
+            //                    {
+            //                        "name": "graph",
+            //                        "children": [
+            //                            { "name": "BetweennessCentrality", "size": 3534 },
+            //                            { "name": "LinkDistance", "size": 5731 },
+            //                            { "name": "MaxFlowMinCut", "size": 7840 },
+            //                            { "name": "ShortestPaths", "size": 5914 },
+            //                            { "name": "SpanningTree", "size": 3416 }
+            //                        ]
+            //                    },
+            //                    {
+            //                        "name": "optimization",
+            //                        "children": [
+            //                            { "name": "AspectRatioBanker", "size": 7074 }
+            //                        ]
+            //                    }
+            //                ]
+            //            }
+            //        ]
+            //    };
 
 
-                return data;
-            }
+            //    return data;
+            //}
 
             public DisplayLens(): void {
                 super.DisplayLens();
-                var data = this.ExtractData();
 
                 var nodeRadius = 4.5;
                 var diagonal = d3.svg.diagonal.radial()
@@ -76,7 +75,7 @@ module ManyLens {
                         return (a.parent == b.parent ? 1 : 2) / a.depth;
                     });
 
-                var nodes = this._tree.nodes(data),
+                var nodes = this._tree.nodes(this._base_accessor_func.Extract(this._data)),
                     links = this._tree.links(nodes);
 
                 var link = this._lens_circle_svg.selectAll("path")

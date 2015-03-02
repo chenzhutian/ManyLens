@@ -68,6 +68,7 @@ module ManyLens {
                         return this._pie_color(d.value) || "rgb(158,202,225)";
                     })
                     .on("mouseover", (d) => {
+                        this._manyLens.ManyLensHubServercMapPieLens(this.ID, d.data.Key, this._base_accessor_func.TargetAttribute,this._sub_accessor_func.TargetAttribute);
                         this.ShowLabel(d);
                     })
                     .on("mouseout", (d) => {
@@ -128,6 +129,9 @@ module ManyLens {
                 }
             }
 
+            public HightLightCountry(countryName: string): void {
+                console.log(countryName);
+            }
         }
     }
 } 
