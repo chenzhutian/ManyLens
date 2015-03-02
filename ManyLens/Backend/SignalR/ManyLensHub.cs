@@ -23,7 +23,9 @@ namespace ManyLens.SignalR
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
         private static Dictionary<string, Lens> lensdatas = new Dictionary<string, Lens>();
+        
         public static List<TweetsIO.CityStruct> cities1000;
+        public static HashSet<string> stopWords;
 
         private Random rnd = new Random();
 
@@ -35,6 +37,7 @@ namespace ManyLens.SignalR
             //string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
             string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
             string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
+            string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
             Debug.WriteLine(tweetFile);
             await Task.Run(() =>
             {
@@ -42,6 +45,8 @@ namespace ManyLens.SignalR
                     dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
                 if (cities1000 == null)
                     cities1000 = TweetsIO.LoadCities1000(cities1000File);
+                if(stopWords == null)
+                    stopWords = TweetsIO.LoadStopWord(stopwordFile);
             });
 
         }
@@ -59,6 +64,7 @@ namespace ManyLens.SignalR
 
             await Task.Run(() =>
             {
+                Debug.WriteLine("Thread id of pull point " + Thread.CurrentThread.ManagedThreadId);
                 //Peak Detection
                 //This version of Peak Detection is not the real streaming one.
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
@@ -86,9 +92,9 @@ namespace ManyLens.SignalR
                 //System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
                 //var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
                 //List<Point> points = new List<Point>();
-
                 for (int i = p, t = 0; t < tp.Length; i++, t++)
                 {
+
                     if (i < tp.Length)
                     {
                         cutoff = variance * beta;
@@ -127,14 +133,15 @@ namespace ManyLens.SignalR
                             tp[begin].BeginPoint = tp[begin].ID;
                             tp[begin].EndPoint = tp[end].ID;
                             tp[begin].PointType += 1;
-                            Interval interal = new Interval(tp[begin].TermDate, tp[begin]);
-                            interals.Add(interal.ID, interal);
 
                             tp[end].BeginPoint = tp[begin].ID;
                             tp[end].EndPoint = tp[end].ID;
                             tp[end].PointType += 2;
-                            interal.EndDate = tp[end].TermDate;
 
+                            ArraySegment<Term> oldTerm = new ArraySegment<Term>(tp, 0, begin);
+                            Interval interal = new Interval(tp[begin].TermDate, tp[begin], oldTerm.ToArray());
+                            interals.Add(interal.ID, interal);
+                            
                             for (int k = begin + 1; k < end; ++k)
                             {
                                 tp[k].BeginPoint = tp[begin].ID;
@@ -143,6 +150,9 @@ namespace ManyLens.SignalR
                                 interal.AddTerm(tp[k]);
                             }
 
+                            interal.SetEndDateAsync(tp[end].TermDate);
+
+                            
                         }
                         else
                         {
@@ -207,7 +217,6 @@ namespace ManyLens.SignalR
 
                     Clients.Caller.addPoint(point);
                     Thread.Sleep(50);
-
                 }
                
                 ////Output the json data
@@ -229,10 +238,10 @@ namespace ManyLens.SignalR
                     visMap = visMaps[mapID];
                 else
                 {
-                    string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+                   
                     Interval interal = interals[interalID];
 
-                    TweetsPreprocessor.ProcessTweetAsync(interal, stopwordFile, progress);
+                    TweetsPreprocessor.ProcessTweetAsync(interal, progress);
                     TweetsVectorizer.VectorizeEachTweet(interal, progress);
 
                     //Test
@@ -245,6 +254,7 @@ namespace ManyLens.SignalR
                         visMap = GPUSOM.TweetSOM(interal, rootFolder);
                     }
 
+                    Debug.WriteLine(interal.Entropy);
                     visMaps.Add(visMap.VisMapID, visMap);
                 }
 
@@ -264,7 +274,7 @@ namespace ManyLens.SignalR
                 //    Debug.WriteLine(e.InnerException.Message);
                 //    Debug.WriteLine(e.Message);
                 //}
-
+                
                 Clients.Caller.showVIS(visMap.GetVisData());
 
             });

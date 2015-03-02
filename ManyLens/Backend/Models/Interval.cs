@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace ManyLens.Models
@@ -12,9 +15,16 @@ namespace ManyLens.Models
         private DateTime endDate;
         private float[] rmMatrix;
 
+        private bool isPackage = false;
         private bool hasVectorized = false;
         private bool hasPreprocessed = false;
+        private double entropy = -1;
+        private double conditionalEntropy = -1;
+        private int termsCount = 0;
 
+
+        private Term[] oldTerm;
+        private Interval package;
         #region Getter & Setter
         public string ID
         {
@@ -40,9 +50,12 @@ namespace ManyLens.Models
             {
                 return this.endDate;
             }
-            set
+        }
+        public int TermsCount
+        {
+            get
             {
-                this.endDate = value;
+                return this.termsCount;
             }
         }
         public float[] RMMatrix
@@ -122,20 +135,66 @@ namespace ManyLens.Models
                 return this.tfidfVectors;
             }
         }
+        public double Entropy
+        {
+            get
+            {
+                if (!this.HasVectorized)
+                    return -1;
+                if (this.entropy == -1)
+                {
+                    double sum = 0;
+                    double entropy = 0;
+                    List<int> values = this.Vocabulary.FrequenceOfWords.Values.ToList();
+                    for (int i = 0, len = values.Count; i < len; ++i)
+                    {
+                        sum += values[i];
+                    }
+                    for (int i = 0, len = values.Count; i < len; ++i)
+                    {
+                        double pi = (double)values[i] / sum;
+                        entropy += pi * Math.Log(pi);
+                    }
+                    this.entropy = -entropy;
+                }
+                return this.entropy;
+            }
+        }
+        public double ConditionalEntropy
+        {
+            get
+            {
+                if (!this.HasVectorized)
+                    return -1;
+                if (this.conditionalEntropy == -1)
+                {
 
+                }
+                return this.conditionalEntropy;
+            }
+        }
         #endregion
 
-        public Interval(DateTime beginDate, Term term)
-            :base()
+        public Interval(List<Tweet> tweets, int termsCount)
+            : base()
+        {
+            this.Tweets = tweets;
+            this.termsCount = termsCount;
+            this.isPackage = true;
+        }
+
+        public Interval(DateTime beginDate, Term term, Term[] oldTerm)
+            : base()
         {
             this.id = beginDate.ToString("yyyyMMddHHmmss");
             this.BeginDate = beginDate;
             this.Tweets.AddRange(term.Tweets);
+            this.oldTerm = oldTerm;
         }
 
         public void AddTerm(Term term)
         {
-
+            this.termsCount++;
             this.Tweets.AddRange(term.Tweets);
         }
 
@@ -190,5 +249,37 @@ namespace ManyLens.Models
             return tfidfVector;
         }
 
+        public async Task SetEndDateAsync(DateTime endDate)
+        {
+            this.endDate = endDate;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            await Task.Run(() =>
+            {
+                Stopwatch s = new Stopwatch();
+                s.Start();
+                List<Tweet> tweets = new List<Tweet>();
+                int begin = this.oldTerm.Length - this.TermsCount;
+                begin = begin > 0 ? begin : 0;
+                int end = this.oldTerm.Length;
+                for (int i = begin; i < end; ++i)
+                {
+                    tweets.AddRange(oldTerm[i].Tweets);
+                }
+                this.package = new Interval(tweets, this.TermsCount);
+                IProgress<double> progress = new Progress<double>();
+                ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweetAsync(this.package, progress);
+                ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this.package, progress);
+
+                //Thread.Sleep(5000);
+
+                s.Stop();
+                Debug.WriteLine("ID inside Task is " + Thread.CurrentThread.ManagedThreadId);
+                Debug.WriteLine("Tiem inside a Task is " + s.Elapsed);
+            });
+            stopwatch.Stop();
+            Debug.WriteLine("ID outside Task is " + Thread.CurrentThread.ManagedThreadId);
+            Debug.WriteLine("Time outside Task is " + stopwatch.Elapsed);
+        }
     }
 }

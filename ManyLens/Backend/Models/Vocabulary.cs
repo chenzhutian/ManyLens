@@ -9,6 +9,9 @@ namespace ManyLens.Models
     {
         private Dictionary<string, int> idOfWords = null;
         private Dictionary<string, int> dfOfWords = null;
+        private Dictionary<string, int> frequenceOfWords = null;
+
+
 
         #region Getter&Setter
         public Dictionary<string, int> IdOfWords
@@ -33,6 +36,11 @@ namespace ManyLens.Models
                 this.dfOfWords = value;
             }
         }
+        public Dictionary<string, int> FrequenceOfWords
+        {
+            get { return frequenceOfWords; }
+            private set { frequenceOfWords = value; }
+        }
         public int Dimension
         {
             get
@@ -44,23 +52,23 @@ namespace ManyLens.Models
         }
         #endregion
 
-        public Vocabulary(Dictionary<string, int> idOfWrods, Dictionary<string, int> dfOfWords)
+        public Vocabulary(Dictionary<string, int> idOfWrods, Dictionary<string, int> dfOfWords,Dictionary<string,int> frequenceOfWords)
         {
             this.IdOfWords = idOfWrods;
             this.DfOfWords = dfOfWords;
-
+            this.FrequenceOfWords = frequenceOfWords;
         }
         public int GetIDofWord(string word)
         {
-            if (this.idOfWords == null)
+            if (this.IdOfWords == null)
                 return -1;
-            return this.idOfWords[word];
+            return this.IdOfWords[word];
         }
         public int GetDFofWord(string word)
         {
-            if (this.dfOfWords == null)
+            if (this.DfOfWords == null)
                 return -1;
-            return this.dfOfWords[word];
+            return this.DfOfWords[word];
         }
     }
 }

@@ -13,8 +13,8 @@ namespace ManyLens.Preprocessing
 {
     public class TweetsPreprocessor
     {
-     
-        public static void ProcessTweetAsync(Interval interval, String stopwordFile,IProgress<double> progress)
+
+        public static void ProcessTweetAsync(Interval interval, IProgress<double> progress)
         {
             if (interval.HasPreprocessed)
                 return;
@@ -25,122 +25,74 @@ namespace ManyLens.Preprocessing
             Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
             IStemmer stemmer = new EnglishStemmer();
             //load stopwords
-            HashSet<string> stopWords = LoadStopWord(stopwordFile);
+            HashSet<string> stopWords = ManyLens.SignalR.ManyLensHub.stopWords;
 
-            //await Task.Run(() => 
+            //int percent = 0;
+            //int tweetsCount = interval.TweetsCount - 1;
+            ////Remove the repeat tweets
+            //for (int i = tweetsCount; i >= 0; --i)
             //{
-                int percent = 0;
-                int tweetsCount = interval.TweetsCount - 1;
-                
-                //Remove the repeat tweets
-                for (int i = tweetsCount; i >= 0; --i)
-                {
-                    if (tweetsDict.ContainsKey(interval.GetTweetIDAt(i)))
-                        interval.RemoveTweetAt(i);
-                    else
-                        tweetsDict.Add(interval.GetTweetIDAt(i), true);
+            //    if (tweetsDict.ContainsKey(interval.GetTweetIDAt(i)))
+            //        interval.RemoveTweetAt(i);
+            //    else
+            //        tweetsDict.Add(interval.GetTweetIDAt(i), true);
 
-                    if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 10.0)
+            //    if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 10.0)
+            //    {
+            //        progress.Report((double)percent / 100.0);
+            //        ++percent;
+            //    }
+            //}
+
+            int percent = 0;
+            int tweetsCount = interval.TweetsCount - 1;
+            //clear the tweets content
+            Parallel.ForEach(interval.Tweets, tweet =>
+            {
+                string derivedContent = FilterSpecialToken(tweet.OriginalContent);
+                string newContent = "";
+                //match words in tweet content
+                MatchCollection words = wordreg.Matches(derivedContent);
+
+                for (int j = 0,lenj = words.Count; j < lenj; ++j)
+                {
+                    string originalWord = words[j].Value.Trim();
+                    if (originalWord.IndexOf("#") == 0)
                     {
-                        progress.Report((double)percent / 100.0);
-                        ++percent;
+                        tweet.AddHashTag(originalWord);
+                        originalWord = originalWord.Substring(1, originalWord.Length - 1);
                     }
+                    string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
+                    newContent = newContent + " " + deriveWord;
                 }
 
-                percent = 0;
-                //clear the tweets content
-                Parallel.ForEach(interval.Tweets, tweet => {
-                    string derivedContent = FilterSpecialToken(tweet.OriginalContent);
-                    string newContent = "";
-                    //match words in tweet content
-                    MatchCollection words = wordreg.Matches(derivedContent);
-
-                    for (int j = 0; j < words.Count; ++j)
-                    {
-                        string originalWord = words[j].Value.Trim();
-                        if (originalWord.IndexOf("#") == 0)
-                        {
-                            tweet.AddHashTag(originalWord);
-                            originalWord = originalWord.Substring(1, originalWord.Length - 1);
-                        }
-                        string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
-                        newContent = newContent + " " + deriveWord;
-                    }
-
-                    if (newContent != null && newContent.Length > 2)
-                    {
-                        tweet.DerivedContent = newContent.Trim();
-                    }
-                    System.Threading.Interlocked.Increment(ref percent);
-                    if (percent % 10 == 0)
-                    { 
-                        double report = ((double)percent/tweetsCount) * 0.7+0.1;
-                        progress.Report(report);
-                    }
-                });
-
-                percent = 0;
-                tweetsCount = interval.TweetsCount - 1;
-                for (int i = tweetsCount; i >= 0; --i)
+                if (newContent != null && newContent.Length > 2)
                 {
-                    if (interval.GetTweetDerivedContentAt(i) == null)
-                        interval.RemoveTweetAt(i);
-
-                    if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 10.0)
-                    {
-                        progress.Report((double)(percent+90) / 100.0);
-                        ++percent;
-                    }
+                    tweet.DerivedContent = newContent.Trim();
                 }
-
-                #region sequential execution
-                /*
-                for (int i = tweetsCount, percent = 0; i >= 0; --i)
+                System.Threading.Interlocked.Increment(ref percent);
+                if (percent % 10 == 0)
                 {
-                    if (tweetsDict.ContainsKey(tweets.ElementAt(i).TweetID))
-                    {
-                        tweets.RemoveAt(i);
-                    }
-                    else
-                    {
-                        tweetsDict.Add(tweets.ElementAt(i).TweetID, true);
-                        Tweet tweet = tweets[i];
-                        string derivedContent = FilterSpecialToken(tweet.OriginalContent);
-                        string newContent = null;
-                        //match words in tweet content
-                        MatchCollection words = wordreg.Matches(derivedContent);
+                    double report = ((double)percent / tweetsCount) * 0.7 + 0.1;
+                    progress.Report(report);
+                }
+            });
 
-                        for (int j = 0; j < words.Count; ++j)
-                        {
-                            string originalWord = words[j].Value.Trim();
-                            string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
-                            if (deriveWord != null)
-                            {
-                                newContent = newContent + " " + deriveWord;
-                            }
-                        }
+            percent = 0;
+            tweetsCount = interval.TweetsCount - 1;
+            for (int i = tweetsCount; i >= 0; --i)
+            {
+                if (interval.GetTweetDerivedContentAt(i) == null)
+                    interval.RemoveTweetAt(i);
 
-                        if (newContent != null && newContent.Length > 2)
-                        {
-                            tweet.DerivedContent = newContent.Substring(1);
-                            //tweets[i] = tweet;
-                        }
-                        else
-                        {
-                            tweets.RemoveAt(i);
-                        }
-                    }
+                if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 10.0)
+                {
+                    progress.Report((double)(percent + 90) / 100.0);
+                    ++percent;
+                }
+            }
 
-                    if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 100.0)
-                    {
-                        progress.Report((double)percent / 100.0);
-                        ++percent;
-                    }
-
-                }*/
-#endregion
-          //  });
-            interval.HasPreprocessed = true; 
+            interval.HasPreprocessed = true;
         }
 
         private static string WordFilterWithStemmer(string word, HashSet<string> stopWords, IStemmer stemmer)
@@ -269,19 +221,6 @@ namespace ManyLens.Preprocessing
             return tweetContent.Trim();
         }
 
-        private static HashSet<string> LoadStopWord(string StopWordDictFile)
-        {
-            if (StopWordDictFile == null)
-                return null;
 
-            HashSet<string> _stop_word_dict = new HashSet<string>(StringComparer.OrdinalIgnoreCase);//ignore lowercae or uppercase
-            using (StreamReader reader = new StreamReader(StopWordDictFile))
-            {
-                while (!reader.EndOfStream)
-                    _stop_word_dict.Add(reader.ReadLine());
-            }
-
-            return _stop_word_dict;
-        }
     }
 }

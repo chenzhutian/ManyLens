@@ -154,5 +154,21 @@ namespace ManyLens.IO
         //    sw.Close();
         //    return true;
         //}
+
+        public static HashSet<string> LoadStopWord(string StopWordDictFile)
+        {
+            if (StopWordDictFile == null)
+                return null;
+
+            HashSet<string> _stop_word_dict = new HashSet<string>(StringComparer.OrdinalIgnoreCase);//ignore lowercae or uppercase
+            using (StreamReader reader = new StreamReader(StopWordDictFile))
+            {
+                while (!reader.EndOfStream)
+                    _stop_word_dict.Add(reader.ReadLine());
+            }
+
+            return _stop_word_dict;
+        }
+
     }
 }
