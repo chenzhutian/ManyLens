@@ -6,6 +6,7 @@ module ManyLens {
 
         interface Point {
             value: number;
+            trueValue: number;
             isPeak: boolean;
             id: string;
             type: number;
@@ -19,7 +20,8 @@ module ManyLens {
             id: string;
             pathPoints: [{
                 index: number;
-                value: number
+                value: number;
+                trueValue: number;
             }];
         }
 
@@ -159,7 +161,11 @@ module ManyLens {
             }
 
             private RefreshGraph(point: Point) {
-                this._y_scale.domain([0, d3.max(this._data, function (d) { return d.value; })]);
+                this._y_scale.domain([0, d3.max([
+                                    d3.max(this._data, function (d) { return d.trueValue; }),
+                                    d3.max(this._data, function (d) { return d.value; })
+                                ])
+                            ]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
 
@@ -174,24 +180,24 @@ module ManyLens {
                             id: this._data[i].beg,
                             beg: i,
                             end: 0,
-                            pathPoints: [{ index: i, value: this._data[i].value }]
+                            pathPoints: [{ index: i, value: this._data[i].value,trueValue : this._data[i].trueValue }]
                         };
                         nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
 
                         while (this._data[++i] && this._data[i].beg == section.id) {
-                            section.pathPoints.push({ index: i, value: this._data[i].value });
+                            section.pathPoints.push({ index: i, value: this._data[i].value, trueValue:this._data[i].trueValue });
                             nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         }
 
                         if (this._data[i] && this._data[i].type == 3) {
                             section.end = i;
-                            section.pathPoints.push({ index: i, value: this._data[i].value });
+                            section.pathPoints.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
                         } else if (this._data[i] && this._data[i].type == 1) {
 
                             section.end = i - 1;
                             var sectionRestPath = [];
-                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value });
-                            sectionRestPath.push({ index: i, value: this._data[i].value });
+                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value,trueValue:this._data[i-1].trueValue });
+                            sectionRestPath.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
                             restPathData.push(sectionRestPath);
                         } else {
                             section.end = i - 1;
@@ -202,15 +208,15 @@ module ManyLens {
                     } else {
                         var sectionRestPath = [];
                         if (this._data[i - 1])
-                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value });
-                        sectionRestPath.push({ index: i, value: this._data[i].value });
+                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value,trueValue:this._data[i-1].trueValue });
+                        sectionRestPath.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
 
                         while (this._data[++i] && !this._data[i].beg) {
-                            sectionRestPath.push({ index: i, value: this._data[i].value });
+                            sectionRestPath.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
                         }
 
                         if (this._data[i])
-                            sectionRestPath.push({ index: i, value: this._data[i].value });
+                            sectionRestPath.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
 
                         restPathData.push(sectionRestPath);
                     }
@@ -236,7 +242,9 @@ module ManyLens {
                     .attr("height", this._view_height + this._view_top_padding)
                     .attr("class", "curve seg")
                     .style({
-                        fill: 'rgb(31, 145, 189)'
+                        fill: 'rgb(31, 145, 189)',
+                        stroke: "#fff",
+                        "stroke-width":0.5
                     })
                     .on("click", (d: Section) => {
                         this.SelectSegment(d);
@@ -253,6 +261,16 @@ module ManyLens {
                     })
                     .interpolate("linear")
                 ;
+                var truelineFunc = d3.svg.line()
+                    .x((d, i) => {
+                        return this._x_scale(d.index);
+                    })
+                    .y((d, i) => {
+                        return this._y_scale(d.trueValue);
+                    })
+                    .interpolate("linear")
+                ;
+
 
                 var path = this._mainView.selectAll(".curve.section.path").data(sectionData, function (d) { return d.id; });
                 path.attr("d", function (d) {
@@ -261,7 +279,7 @@ module ManyLens {
                 path
                     .enter().append("path")
                     .style({
-                        'stroke': '#fff',
+                        'stroke': '#F6BB42',
                         'stroke-width': 3,
                         'fill': 'none'
                     })
@@ -270,6 +288,21 @@ module ManyLens {
                 ;
                 path.exit().remove();
 
+                var truepath = this._mainView.selectAll(".curve.section.true.path").data(sectionData, function (d) { return d.id; });
+                truepath.attr("d", function (d) {
+                    return truelineFunc(d.pathPoints);
+                });
+                truepath
+                    .enter().append("path")
+                    .style({
+                        'stroke': '#fff',
+                        'stroke-width': 3,
+                        'fill': 'none'
+                    })
+                    .attr("d", function (d) { return truelineFunc(d.pathPoints); })
+                    .attr("class", "curve section true path")
+                ;
+                truepath.exit().remove();
 
                 var restPath = this._mainView.selectAll(".curve.rest.path").data(restPathData);
                 restPath.attr("d", function (d) {
@@ -286,6 +319,23 @@ module ManyLens {
                     .attr("class", "curve rest path")
                 ;
                 restPath.exit().remove();
+                
+                var trueRestPath = this._mainView.selectAll(".curve.rest.true.path").data(restPathData);
+                trueRestPath.attr("d", function (d) {
+                    return truelineFunc(d);
+                })
+                trueRestPath
+                    .enter().append("path")
+                    .style({
+                        'stroke': 'rgb(31, 145, 189)',
+                        'stroke-width': 3,
+                        'fill': 'none'
+                    })
+                    .attr("d", function (d) { return truelineFunc(d); })
+                    .attr("class", "curve rest path")
+                ;
+                trueRestPath.exit().remove();
+
 
                 //handle the seg node
                 var nodes = this._mainView.selectAll(".curve.node").data(nodesData, function (d) { return d.index; });

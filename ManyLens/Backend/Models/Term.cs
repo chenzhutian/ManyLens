@@ -17,6 +17,8 @@ namespace ManyLens.Models
         private string begPoint;
         private string endPoint;
         private bool isPeak = false;
+        private double virtualCount = -1;
+        private double tempVirtualCount = 0;
 
         #region Getter & Setter
         public String ID
@@ -24,6 +26,26 @@ namespace ManyLens.Models
             get
             {
                 return this.id;
+            }
+        }
+        public double VirtualCount
+        {
+            get
+            {
+                if (virtualCount == -1)
+                    return this.TweetsCount;
+                return this.virtualCount;
+            }
+        }
+        public double TempVirtualCount
+        {
+            get
+            {
+                return this.tempVirtualCount;
+            }
+            set
+            {
+                this.tempVirtualCount = value;
             }
         }
         public DateTime TermDate
@@ -118,5 +140,13 @@ namespace ManyLens.Models
         {
             base.AddTweet(id, content,date,lon, lat,user);
         }
+
+        public void GaussinBlurDone()
+        {
+            
+            this.virtualCount = this.tempVirtualCount;
+            this.tempVirtualCount = 0;
+        }
+
     }
 }

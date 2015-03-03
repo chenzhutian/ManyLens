@@ -22,7 +22,6 @@ namespace ManyLens.Models
         private double conditionalEntropy = -1;
         private int termsCount = 0;
 
-
         private Term[] oldTerm;
         private Interval package;
         #region Getter & Setter
@@ -249,37 +248,26 @@ namespace ManyLens.Models
             return tfidfVector;
         }
 
-        public async Task SetEndDateAsync(DateTime endDate)
+        public void SetEndDate(DateTime endDate)
         {
             this.endDate = endDate;
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            await Task.Run(() =>
+        }
+
+        public void Preproccessing()
+        {
+            List<Tweet> tweets = new List<Tweet>();
+            int begin = this.oldTerm.Length - this.TermsCount;
+            begin = begin > 0 ? begin : 0;
+            int end = this.oldTerm.Length;
+            for (int i = begin; i < end; ++i)
             {
-                Stopwatch s = new Stopwatch();
-                s.Start();
-                List<Tweet> tweets = new List<Tweet>();
-                int begin = this.oldTerm.Length - this.TermsCount;
-                begin = begin > 0 ? begin : 0;
-                int end = this.oldTerm.Length;
-                for (int i = begin; i < end; ++i)
-                {
-                    tweets.AddRange(oldTerm[i].Tweets);
-                }
-                this.package = new Interval(tweets, this.TermsCount);
-                IProgress<double> progress = new Progress<double>();
-                ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweetAsync(this.package, progress);
-                ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this.package, progress);
+                tweets.AddRange(oldTerm[i].Tweets);
+            }
+            this.package = new Interval(tweets, this.TermsCount);
+            IProgress<double> progress = new Progress<double>();
+            ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this.package, progress);
+            ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this.package, progress);
 
-                //Thread.Sleep(5000);
-
-                s.Stop();
-                Debug.WriteLine("ID inside Task is " + Thread.CurrentThread.ManagedThreadId);
-                Debug.WriteLine("Tiem inside a Task is " + s.Elapsed);
-            });
-            stopwatch.Stop();
-            Debug.WriteLine("ID outside Task is " + Thread.CurrentThread.ManagedThreadId);
-            Debug.WriteLine("Time outside Task is " + stopwatch.Elapsed);
         }
     }
 }
