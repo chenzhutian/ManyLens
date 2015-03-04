@@ -25,10 +25,18 @@ module ManyLens {
             }];
         }
 
+        interface StackRect {
+            width: number;
+            id: string;
+            x: number;
+            fill: string;
+        }
+
         export class Curve extends D3ChartObject {
 
             private _curveSvg: D3.Selection;
             private _mainView: D3.Selection;
+            private _subView: D3.Selection;
 
             private _x_scale: D3.Scale.LinearScale = d3.scale.linear();
             private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
@@ -44,8 +52,11 @@ module ManyLens {
             private _view_botton_padding: number = 5;
             private _view_left_padding: number = 50;
             private _view_right_padding: number = 50;
+            private _coordinate_margin_left: number = 150;
 
+            private _intervals: Array<StackRect>;
             protected _data: Array<Point>;
+            private _stackrect_width: number = 0;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -60,12 +71,13 @@ module ManyLens {
                 super(element, manyLens);
 
                 this._data = new Array<Point>();
+                this._intervals = new Array<StackRect>();
 
                 this._view_width = parseFloat(this._element.style("width"));
 
                 this._x_scale
                     .domain([0, this._section_num])
-                    .range([this._view_left_padding, this._view_width - this._view_right_padding])
+                    .range([this._view_left_padding+this._coordinate_margin_left, this._view_width - this._view_right_padding])
                 ;
                 this._y_scale
                     .domain([0, 20])
@@ -91,6 +103,7 @@ module ManyLens {
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
+
                 this._curveSvg = this._element.insert("svg", ":first-child")
                     .attr("width", this._view_width)
                     .attr("height", this._view_height)
@@ -98,33 +111,50 @@ module ManyLens {
                 ;
 
                 this._curveSvg.append("defs").append("clipPath")
-                    .attr("id", "clip")
+                    .attr("id", "stackRectClip")
                     .append("rect")
-                    .attr("width", coordinate_view_width)
+                    .attr("width", this._coordinate_margin_left + this._view_left_padding)
                     .attr("height", this._view_height - this._view_botton_padding)
-                    .attr("x", this._view_left_padding)
+                    .attr("x", 0)
                     .attr("y", 0)
+                ;
+
+                this._subView = this._curveSvg.append("g")
+                    .attr("clip-path", "url(#stackRectClip)")
+                    .append("g")
+                    .attr("id", "curve.subView")
                 ;
 
                 this._x_axis = this._curveSvg.append("g")
                     .attr("class", "curve x axis")
-                    .attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")")
+                    .attr("transform", "translate(" +[0, (this._view_height - this._view_botton_padding)] + ")")
                     .call(this._x_axis_gen)
                 ;
 
                 this._y_axis = this._curveSvg.append("g")
                     .attr("class", "curve y axis")
-                    .attr("transform", "translate(" + this._view_left_padding + ",0)")
+                    .attr("transform", "translate(" + (this._coordinate_margin_left+this._view_left_padding) + ",0)")
                     .call(this._y_axis_gen)
                 ;
 
+                this._curveSvg.append("defs").append("clipPath")
+                    .attr("id", "curveClip")
+                    .append("rect")
+                    .attr("width", coordinate_view_width)
+                    .attr("height", this._view_height - this._view_botton_padding)
+                    .attr("x", this._view_left_padding + this._coordinate_margin_left)
+                    .attr("y", 0)
+                ;
+
                 this._mainView = this._curveSvg.append("g")
-                    .attr("clip-path", "url(#clip)")
+                    .attr("clip-path", "url(#curveClip)")
                     .append("g")
                     .attr("id", "curve.mainView")
                 ;
-            }
 
+
+               
+            }
 
             public PullInterval(interalID: string): void {
                 if (ManyLens.TestMode)
@@ -156,6 +186,71 @@ module ManyLens {
             }
 
             private RefreshGraph(point: Point) {
+                
+                //Refresh the stack rect view
+                if (this._data[0].type == 1 || this._data[0].type == 3) {
+                    var width: number = 0;
+                    var totalWidth: number = this._coordinate_margin_left + this._view_left_padding;
+                    var newWidth: number = 20;
+                    var stackRect: StackRect = {
+                        id: this._data[0].beg,
+                        x: this._coordinate_margin_left + this._view_left_padding,
+                        width: newWidth,
+                        fill: "#2A9CC8"
+                    }
+                    this._intervals.push(stackRect);
+                    this._stackrect_width += stackRect.width;
+
+                    var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
+                    var scale = d3.scale.linear().domain([0, totalWidth]).range([0, totalWidth - newWidth]);
+                    var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9","#2A9CC8"]);
+
+                    rect.transition()
+                        .attr("width", (d, i) => {
+                            if (this._stackrect_width > totalWidth)
+                                d.width = scale(d.width);
+                            width += d.width;
+                            return d.width;
+                        })
+                        .attr("x", (d, i) => {
+                            if (this._stackrect_width > totalWidth)
+                                d.x = scale(d.x);
+                            else
+                                d.x = d.x - d.width;
+                            return d.x;
+                        })
+                        .style("fill", (d,i) => {
+                            if (this._stackrect_width > totalWidth)
+                                d.fill = colorScale(i);
+                            return d.fill;
+                        })
+                    ;
+
+                    rect.enter().append("rect")
+                        .attr("class", "stackRect")
+                        .attr("y", 0)
+                        .attr("x", (d) => {
+                            return d.x - d.width;
+                        })
+                        .attr("width", (d) => {
+                            width += d.width;
+                            return d.width;
+                        })
+                        .attr("height", this._view_height + this._view_top_padding)
+                        .style("fill", (d) => {
+                            return d.fill;
+                        })
+                        .style({
+                            stroke: "#fff",
+                            "stroke-width":0.5
+                        })
+                    ;
+                    rect.exit().remove();
+
+                    this._stackrect_width = width;
+                }
+
+                //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
                                     d3.max(this._data, function (d) { return d.trueValue; }),
                                     d3.max(this._data, function (d) { return d.value; })
@@ -175,7 +270,9 @@ module ManyLens {
                             id: this._data[i].beg,
                             beg: i,
                             end: 0,
-                            pathPoints: [{ index: i, value: this._data[i].value,trueValue : this._data[i].trueValue }]
+                            pathPoints: [
+                                { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue }
+                            ]
                         };
                         nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
 
@@ -188,18 +285,15 @@ module ManyLens {
                             section.end = i;
                             section.pathPoints.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
                         } else if (this._data[i] && this._data[i].type == 1) {
-
                             section.end = i - 1;
                             var sectionRestPath = [];
                             sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value,trueValue:this._data[i-1].trueValue });
-                            sectionRestPath.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
+                            sectionRestPath.push({ index: i, value: this._data[i].value,trueValue: this._data[i].trueValue });
                             restPathData.push(sectionRestPath);
                         } else {
                             section.end = i - 1;
                         }
-
                         sectionData.push(section);
-
                     } else {
                         var sectionRestPath = [];
                         if (this._data[i - 1])
@@ -237,7 +331,7 @@ module ManyLens {
                     .attr("height", this._view_height + this._view_top_padding)
                     .attr("class", "curve seg")
                     .style({
-                        fill: 'rgb(31, 145, 189)',
+                        fill: '#2A9CC8',
                         stroke: "#fff",
                         "stroke-width":0.5
                     })

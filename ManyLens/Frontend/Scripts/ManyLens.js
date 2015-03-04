@@ -216,9 +216,12 @@ var ManyLens;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
+                this._coordinate_margin_left = 150;
+                this._stackrect_width = 0;
                 this._data = new Array();
+                this._intervals = new Array();
                 this._view_width = parseFloat(this._element.style("width"));
-                this._x_scale.domain([0, this._section_num]).range([this._view_left_padding, this._view_width - this._view_right_padding]);
+                this._x_scale.domain([0, this._section_num]).range([this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
                 this._x_axis_gen.scale(this._x_scale).ticks(0).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
@@ -243,10 +246,12 @@ var ManyLens;
                 // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
-                this._curveSvg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding).attr("y", 0);
-                this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(0," + (this._view_height - this._view_botton_padding) + ")").call(this._x_axis_gen);
-                this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + this._view_left_padding + ",0)").call(this._y_axis_gen);
-                this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#clip)").append("g").attr("id", "curve.mainView");
+                this._curveSvg.append("defs").append("clipPath").attr("id", "stackRectClip").append("rect").attr("width", this._coordinate_margin_left + this._view_left_padding).attr("height", this._view_height - this._view_botton_padding).attr("x", 0).attr("y", 0);
+                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView");
+                this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")").call(this._x_axis_gen);
+                this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + (this._coordinate_margin_left + this._view_left_padding) + ",0)").call(this._y_axis_gen);
+                this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
+                this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
             };
             Curve.prototype.PullInterval = function (interalID) {
                 var _this = this;
@@ -271,6 +276,53 @@ var ManyLens;
             };
             Curve.prototype.RefreshGraph = function (point) {
                 var _this = this;
+                //Refresh the stack rect view
+                if (this._data[0].type == 1 || this._data[0].type == 3) {
+                    var width = 0;
+                    var totalWidth = this._coordinate_margin_left + this._view_left_padding;
+                    var newWidth = 20;
+                    var stackRect = {
+                        id: this._data[0].beg,
+                        x: this._coordinate_margin_left + this._view_left_padding,
+                        width: newWidth,
+                        fill: "#2A9CC8"
+                    };
+                    this._intervals.push(stackRect);
+                    this._stackrect_width += stackRect.width;
+                    var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
+                    var scale = d3.scale.linear().domain([0, totalWidth]).range([0, totalWidth - newWidth]);
+                    var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
+                    rect.transition().attr("width", function (d, i) {
+                        if (_this._stackrect_width > totalWidth)
+                            d.width = scale(d.width);
+                        width += d.width;
+                        return d.width;
+                    }).attr("x", function (d, i) {
+                        if (_this._stackrect_width > totalWidth)
+                            d.x = scale(d.x);
+                        else
+                            d.x = d.x - d.width;
+                        return d.x;
+                    }).style("fill", function (d, i) {
+                        if (_this._stackrect_width > totalWidth)
+                            d.fill = colorScale(i);
+                        return d.fill;
+                    });
+                    rect.enter().append("rect").attr("class", "stackRect").attr("y", 0).attr("x", function (d) {
+                        return d.x - d.width;
+                    }).attr("width", function (d) {
+                        width += d.width;
+                        return d.width;
+                    }).attr("height", this._view_height + this._view_top_padding).style("fill", function (d) {
+                        return d.fill;
+                    }).style({
+                        stroke: "#fff",
+                        "stroke-width": 0.5
+                    });
+                    rect.exit().remove();
+                    this._stackrect_width = width;
+                }
+                //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
                     d3.max(this._data, function (d) {
                         return d.trueValue;
@@ -291,7 +343,9 @@ var ManyLens;
                             id: this._data[i].beg,
                             beg: i,
                             end: 0,
-                            pathPoints: [{ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue }]
+                            pathPoints: [
+                                { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue }
+                            ]
                         };
                         nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         while (this._data[++i] && this._data[i].beg == section.id) {
@@ -339,7 +393,7 @@ var ManyLens;
                 }).attr("y", 0).attr("width", function (d, i) {
                     return _this._x_scale(d.end) - _this._x_scale(d.beg);
                 }).attr("height", this._view_height + this._view_top_padding).attr("class", "curve seg").style({
-                    fill: 'rgb(31, 145, 189)',
+                    fill: '#2A9CC8',
                     stroke: "#fff",
                     "stroke-width": 0.5
                 }).on("click", function (d) {

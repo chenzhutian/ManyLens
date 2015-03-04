@@ -130,7 +130,8 @@ div#tweetsView {
 
 /*-----------curve view------------*/
 div#curveView {
-    background-color: #3BAFDA;
+    background-color:rgba(255, 255, 255, 0.8);"/*#3BAFDA;*/
+
 }
 
 .progress {
@@ -144,12 +145,12 @@ div#curveView {
 .curve.axis path,
 .curve.axis line {
     fill: none;
-    stroke: #fff;
+    stroke: #000;
     shape-rendering: crispEdges;
 }
 
 .curve.axis text {
-    fill:#fff;
+    fill:#000;
     font-size: 12px;
 }
 

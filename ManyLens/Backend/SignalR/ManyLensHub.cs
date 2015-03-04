@@ -123,7 +123,7 @@ namespace ManyLens.SignalR
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;
-                int timeWindow = 10;
+                int timeWindow = 0;
                 int stepSize = timeWindow;
                 int stepCount = p;
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
@@ -424,7 +424,7 @@ namespace ManyLens.SignalR
             for (int i = 0, len = points.Count; i < len; ++i)
             {
                 Clients.Caller.addPoint(points[i]);
-                Thread.Sleep(300);
+                Thread.Sleep(50);
             }
         }
 
