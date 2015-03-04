@@ -16,7 +16,7 @@ namespace ManyLens.SignalR
 {
     public class ManyLensHub : Hub
     {
-        private static bool TestMode = true;
+        private static bool TestMode = false;
         private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
@@ -51,21 +51,23 @@ namespace ManyLens.SignalR
 
         }
 
+
         private static List<Interval> taskList = new List<Interval>();
-        private static void DoLongRun()
+        private static void PreprocesInterval()
         {
-            while(taskList.Count > 0)
+            while (taskList.Count > 0)
             {
                 Interval interval = taskList[0];
                 Debug.WriteLine("TID　of this DOLONGRUN is " + Thread.CurrentThread.ManagedThreadId);
                 Debug.WriteLine("ON interval " + interval.ID);
-                interval.Preproccessing();
-                
+                IProgress<double> p = new Progress<double>();
+                interval.Preproccessing(p);
+                Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
+                Debug.WriteLine("Entropy of " + interval.ID + " is " + interval.Entropy);
                 taskList.RemoveAt(0);
             }
         }
-
-        private static Task task = new Task(DoLongRun);
+        private static Task task = new Task(PreprocesInterval);
         private static void LazyThreadForConditionalEntropy(Interval interval)
         {
 
@@ -74,7 +76,7 @@ namespace ManyLens.SignalR
                 task.Start();
             if (task.IsCompleted)
             {
-                task = new Task(DoLongRun);
+                task = new Task(PreprocesInterval);
                 task.Start();
             }
         }
@@ -111,7 +113,6 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
             //set the parameter
-            //int lastMarkType = 2;
             double alpha = 0.125;
             double beta = 2.0;
             Parameter.timeSpan = 2;
@@ -148,20 +149,16 @@ namespace ManyLens.SignalR
                 variance = Math.Sqrt(variance / p);
 
                 //output the point json data
-                //System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
-                //var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
-                //List<Point> points = new List<Point>();
+                System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
+                var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
+                List<Point> points = new List<Point>();
                 for (int i = p, t = 0; t < tp.Length; i++,stepCount--, t++)
                 {
+                    //Gaussin smoothing
                     if (stepCount == 0)
                     {
                         GaussinFilterTerm(i, i + timeWindow, tp);
                         stepCount = stepSize;
-                    }
-
-                    if (t == tp.Length - 6)
-                    {
-                        Debug.WriteLine(stepCount);
                     }
 
                     if (i < tp.Length)
@@ -172,6 +169,7 @@ namespace ManyLens.SignalR
                             int begin = i - 1;
                             while (i < tp.Length && tp[i].VirtualCount > tp[i - 1].VirtualCount)
                             {
+                                //Gaussin smoothing
                                 if (stepCount == 0)
                                 {
                                     GaussinFilterTerm(i, i + timeWindow, tp);
@@ -188,6 +186,7 @@ namespace ManyLens.SignalR
                             tp[i - 1].IsPeak = true;
                             while (i < tp.Length && tp[i].VirtualCount > tp[begin].VirtualCount)
                             {
+                                //Gaussin smoothing
                                 if (stepCount == 0)
                                 {
                                     GaussinFilterTerm(i, i + timeWindow, tp);
@@ -222,6 +221,9 @@ namespace ManyLens.SignalR
 
                             ArraySegment<Term> oldTerm = new ArraySegment<Term>(tp, 0, begin);
                             Interval interal = new Interval(tp[begin].TermDate, tp[begin], oldTerm.ToArray());
+                            //Set the last interval
+                            if(interals.Count > 0)
+                                interal.LastInterval = interals.Last().Value;
                             interals.Add(interal.ID, interal);
                             
                             for (int k = begin + 1; k < end; ++k)
@@ -232,7 +234,7 @@ namespace ManyLens.SignalR
                                 interal.AddTerm(tp[k]);
                             }
                             interal.SetEndDate(tp[end].TermDate);
-
+                            
                             LazyThreadForConditionalEntropy(interal);
                         }
                         else
@@ -294,24 +296,25 @@ namespace ManyLens.SignalR
                     //}
                     #endregion
 
-                    ////Output the json data
-                    //points.Add(point);
+                    //Output the json data
+                    points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(1000);
+                    Thread.Sleep(50);
 
+                    //Gaussin smoothing
                     if (stepCount == 0)
                     {
                         GaussinFilterTerm(i, i + timeWindow, tp);
                         stepCount = stepSize;
                     }
                 }
-               
-                ////Output the json data
-                //Debug.Write("Let's cache the point data as json");
-                //jser.WriteObject(sw.BaseStream, points);
-                //sw.Close();
-                //Debug.Write("finish json");
+
+                //Output the json data
+                Debug.Write("Let's cache the point data as json");
+                jser.WriteObject(sw.BaseStream, points);
+                sw.Close();
+                Debug.Write("finish json");
             });
         }
 
@@ -329,8 +332,7 @@ namespace ManyLens.SignalR
                    
                     Interval interal = interals[interalID];
 
-                    TweetsPreprocessor.ProcessTweetParallel(interal, progress);
-                    TweetsVectorizer.VectorizeEachTweet(interal, progress);
+                    interal.PreproccessingParallel(progress);
 
                     //Test
                     if (TestMode)
@@ -409,6 +411,33 @@ namespace ManyLens.SignalR
             });
             
         }
+
+        #region some code for test
+        //Just for test
+        public void testPullPoint()
+        {
+            //load the point json data
+            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\pointData_test.json");
+            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
+            List<Point> points = (List<Point>)jser.ReadObject(sr.BaseStream);
+            sr.Close();
+            for (int i = 0, len = points.Count; i < len; ++i)
+            {
+                Clients.Caller.addPoint(points[i]);
+                Thread.Sleep(300);
+            }
+        }
+
+        public void testPullInterval(string interalID)
+        {
+            //load the point json data
+            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\visData_test.json");
+            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
+            VISData visData = (VISData)jser.ReadObject(sr.BaseStream);
+            sr.Close();
+            Clients.Caller.showVIS(visData);
+        }
+        #endregion
 
         //Interactive for lens
         public async Task cWordCloudPieLens(string lensID, string pieKey,string baseData,string subData)

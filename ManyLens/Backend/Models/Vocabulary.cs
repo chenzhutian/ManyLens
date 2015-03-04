@@ -10,8 +10,7 @@ namespace ManyLens.Models
         private Dictionary<string, int> idOfWords = null;
         private Dictionary<string, int> dfOfWords = null;
         private Dictionary<string, int> frequenceOfWords = null;
-
-
+        private Dictionary<string, double> pOfWords = null;
 
         #region Getter&Setter
         public Dictionary<string, int> IdOfWords
@@ -48,6 +47,27 @@ namespace ManyLens.Models
                 if (idOfWords != null)
                     return idOfWords.Count;
                 return -1;
+            }
+        }
+        public Dictionary<string, double> PofWords
+        {
+            get
+            {
+                if (this.pOfWords == null)
+                {
+                    this.pOfWords = new Dictionary<string, double>();
+                    double sum = 0;
+                    List<int> values = this.FrequenceOfWords.Values.ToList();
+                    for (int i = 0, len = values.Count; i < len; ++i)
+                    {
+                        sum += values[i];
+                    }
+                    foreach (KeyValuePair<string, int> item in this.FrequenceOfWords)
+                    {
+                        this.pOfWords.Add(item.Key, (double)item.Value / sum);
+                    }
+                }
+                return this.pOfWords;
             }
         }
         #endregion

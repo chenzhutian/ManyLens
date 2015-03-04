@@ -131,8 +131,6 @@ namespace ManyLens.SOM
         
         }
 
-
-
         public static VisMap TweetReOrganizeSOM(VisMap visMap,int[] selectedUnits)
         {
             InitializeCUDA();

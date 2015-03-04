@@ -217,11 +217,6 @@ var ManyLens;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
                 this._data = new Array();
-                //this._markData = new Array<Mark>();
-                //this._lastMark = {
-                //    id: null,
-                //    type: 2
-                //};
                 this._view_width = parseFloat(this._element.style("width"));
                 this._x_scale.domain([0, this._section_num]).range([this._view_left_padding, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
@@ -2849,7 +2844,7 @@ var ManyLens;
                     _this.DrawCloud(words, bounds);
                 });
                 this._cloud.start();
-                this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func.Extract(this._data))).enter().append("path").attr("class", "outterPie").attr("d", this._arc).style("fill", function (d) {
+                this._lens_circle_svg.selectAll(".outterPie").data(this._pie(this._sub_accessor_func.Extract(this._data))).enter().append("path").attr("class", "outterPie").style("fill", function (d) {
                     return _this._color(d.value) || "rgb(158,202,225)";
                 }).on("mouseover", function (d) {
                     _this._manyLens.ManyLensHubServercWordCloudPieLens(_this.ID, d.data.Key, _this._base_accessor_func.TargetAttribute, _this._sub_accessor_func.TargetAttribute);
@@ -2858,6 +2853,9 @@ var ManyLens;
                     _this._lens_circle_svg.selectAll("text.wordCloudText").transition().style("opacity", 1);
                     _this.ShowLabel(null);
                 });
+                this._lens_circle_svg.selectAll(".outterPie").attr("d", function (d) {
+                    return d3.svg.arc().innerRadius(0).outerRadius(_this._pie_outterRadius);
+                }).transition().duration(300).attr("d", this._arc);
             };
             cWordCloudPieLens.prototype.HightLightWordsOfTweetsAtLengthOf = function (words) {
                 this._lens_circle_svg.selectAll("text.wordCloudText").transition().style("opacity", function (p) {
@@ -3570,7 +3568,7 @@ var ManyLens;
             }
             return this._manyLens_hub.proxy.invoke("cMapPieLens", lensID, pieKey, baseData, subData);
         };
-        ManyLens.TestMode = false;
+        ManyLens.TestMode = true;
         return ManyLens;
     })();
     _ManyLens.ManyLens = ManyLens;

@@ -24,6 +24,8 @@ namespace ManyLens.Models
 
         private Term[] oldTerm;
         private Interval package;
+        private Interval lastInterval = null;
+        private double HXY = -1;
         #region Getter & Setter
         public string ID
         {
@@ -142,32 +144,47 @@ namespace ManyLens.Models
                     return -1;
                 if (this.entropy == -1)
                 {
-                    double sum = 0;
                     double entropy = 0;
-                    List<int> values = this.Vocabulary.FrequenceOfWords.Values.ToList();
-                    for (int i = 0, len = values.Count; i < len; ++i)
+                    foreach (KeyValuePair<string, double> item in this.Vocabulary.PofWords)
                     {
-                        sum += values[i];
-                    }
-                    for (int i = 0, len = values.Count; i < len; ++i)
-                    {
-                        double pi = (double)values[i] / sum;
-                        entropy += pi * Math.Log(pi);
+                        entropy += item.Value * Math.Log(item.Value);
                     }
                     this.entropy = -entropy;
                 }
                 return this.entropy;
             }
         }
+        public Interval LastInterval
+        {
+            get { return this.lastInterval; }
+            set { this.lastInterval = value; }
+        }
         public double ConditionalEntropy
         {
             get
             {
+                if (this.LastInterval == null)
+                    return -1;
                 if (!this.HasVectorized)
                     return -1;
                 if (this.conditionalEntropy == -1)
                 {
-
+                    if (this.HXY == -1)
+                    {
+                        double hxy = 0;
+                        foreach (KeyValuePair<string, double> item1 in this.Vocabulary.PofWords)
+                        {
+                            double p1 = item1.Value;
+                            foreach (KeyValuePair<string, double> item2 in this.LastInterval.Vocabulary.PofWords)
+                            {
+                                double p2 = item2.Value;
+                                double p = p1 * p2;
+                                hxy += p * Math.Log(p);
+                            }
+                        }
+                        this.HXY = -hxy;
+                    }
+                    this.conditionalEntropy = this.HXY - this.LastInterval.Entropy;
                 }
                 return this.conditionalEntropy;
             }
@@ -253,21 +270,29 @@ namespace ManyLens.Models
             this.endDate = endDate;
         }
 
-        public void Preproccessing()
+        public void Preproccessing(IProgress<double> progress)
         {
-            List<Tweet> tweets = new List<Tweet>();
-            int begin = this.oldTerm.Length - this.TermsCount;
-            begin = begin > 0 ? begin : 0;
-            int end = this.oldTerm.Length;
-            for (int i = begin; i < end; ++i)
-            {
-                tweets.AddRange(oldTerm[i].Tweets);
-            }
-            this.package = new Interval(tweets, this.TermsCount);
-            IProgress<double> progress = new Progress<double>();
-            ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this.package, progress);
-            ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this.package, progress);
+            //List<Tweet> tweets = new List<Tweet>();
+            //int begin = this.oldTerm.Length - this.TermsCount;
+            //begin = begin > 0 ? begin : 0;
+            //int end = this.oldTerm.Length;
+            //for (int i = begin; i < end; ++i)
+            //{
+            //    tweets.AddRange(oldTerm[i].Tweets);
+            //}
+            //this.package = new Interval(tweets, this.TermsCount);
+            //ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this.package, progress);
+            //ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this.package, progress);
+            //this.LastInterval = this.package;
 
+            ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this, progress);
+            ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this, progress);
+        }
+        public void PreproccessingParallel(IProgress<double> progress)
+        {
+            
+            ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweetParallel(this, progress);
+            ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this, progress);
         }
     }
 }

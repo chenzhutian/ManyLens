@@ -100,8 +100,8 @@ module ManyLens {
                 this._lens_circle_svg.selectAll(".outterPie")
                     .data(this._pie(this._sub_accessor_func.Extract(this._data)))
                     .enter().append("path")
-                    .attr("class","outterPie")
-                    .attr("d", this._arc)
+                    .attr("class", "outterPie")
+
                     .style("fill", (d) => {
                         return this._color(d.value) || "rgb(158,202,225)";
                     })
@@ -117,6 +117,13 @@ module ManyLens {
                         ;
                         this.ShowLabel(null);
                     })
+                ;
+                this._lens_circle_svg.selectAll(".outterPie")
+                    .attr("d", (d) => {
+                        return d3.svg.arc().innerRadius(0).outerRadius(this._pie_outterRadius);
+                    })
+                    .transition().duration(300)
+                    .attr("d", this._arc)
                 ;
             }
 

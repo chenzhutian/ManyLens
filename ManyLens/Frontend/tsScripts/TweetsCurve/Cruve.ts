@@ -60,11 +60,6 @@ module ManyLens {
                 super(element, manyLens);
 
                 this._data = new Array<Point>();
-                //this._markData = new Array<Mark>();
-                //this._lastMark = {
-                //    id: null,
-                //    type: 2
-                //};
 
                 this._view_width = parseFloat(this._element.style("width"));
 

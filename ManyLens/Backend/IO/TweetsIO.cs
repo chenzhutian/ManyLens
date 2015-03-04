@@ -40,7 +40,7 @@ namespace ManyLens.IO
                 Tweet tweet = null;
                 
                 //Filter old date tweet
-                if (!isCache && (DateTime.Parse(tweetAttributes[4]).Month < 6 || DateTime.Parse(tweetAttributes[4]).Year < 2014))
+                if (!isCache && (DateTime.Parse(tweetAttributes[4]).Month < 7 || DateTime.Parse(tweetAttributes[4]).Year < 2014))
                     continue;
 
                 if (isCache)
@@ -78,7 +78,24 @@ namespace ManyLens.IO
                     continue;
 
                 DateTime postDate = tweet.PostDate;
-                DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, (postDate.Hour > 12 ? 12 : 0) * mode[2], postDate.Minute * mode[3], 0);
+                int hour = 0;
+                if (postDate.Hour > 18)
+                {
+                    hour = 18;
+                }
+                else if (postDate.Hour > 12)
+                {
+                    hour = 12;
+                }
+                else if (postDate.Hour > 6)
+                {
+                    hour = 6;
+                }
+                else if (postDate.Hour > 0)
+                {
+                    hour = 0;
+                }
+                DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], 0);
 
 
                 if (sortedTerm.ContainsKey(date))
