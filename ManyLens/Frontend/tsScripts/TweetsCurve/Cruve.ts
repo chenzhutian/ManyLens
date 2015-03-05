@@ -44,6 +44,7 @@ module ManyLens {
             private _y_scale: D3.Scale.LinearScale = d3.scale.linear();
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _y_axis: D3.Selection;
+            private _fisheye_scale: D3.FishEyeOrdinalScale = d3.fisheye.ordinal();
 
             private _section_num: number = 50;
             private _view_height: number = 130;
@@ -77,7 +78,7 @@ module ManyLens {
 
                 this._x_scale
                     .domain([0, this._section_num])
-                    .range([this._view_left_padding+this._coordinate_margin_left, this._view_width - this._view_right_padding])
+                    .range([this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding])
                 ;
                 this._y_scale
                     .domain([0, 20])
@@ -94,6 +95,11 @@ module ManyLens {
                     .orient("left")
                 ;
 
+                this._fisheye_scale
+                    .rangeRoundBands([0, this._coordinate_margin_left + this._view_left_padding])
+                    .focus(this._coordinate_margin_left + this._view_left_padding)
+                ;
+
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
@@ -101,7 +107,7 @@ module ManyLens {
             public Render(): void {
                 super.Render(null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
-               // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
+                // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
 
                 this._curveSvg = this._element.insert("svg", ":first-child")
@@ -119,23 +125,29 @@ module ManyLens {
                     .attr("y", 0)
                 ;
 
+
                 this._subView = this._curveSvg.append("g")
                     .attr("clip-path", "url(#stackRectClip)")
                     .append("g")
                     .attr("id", "curve.subView")
+                    .on("mousemove", () => {
+                        var mouse = d3.mouse(this._subView.node());
+                        this._fisheye_scale
+                            .domain(this._intervals.map(function (d) { return d.x; }))
+                            .focus(mouse[0])
+                        ;
+                        this._subView
+                            .selectAll("rect.stackRect")
+                            .attr("x", (d) => {
+                                return this._fisheye_scale(d.x);
+                            })
+                            .attr("width", (d) => {
+                                return this._fisheye_scale.rangeBand(d.x);
+                            })
+                    })
                 ;
 
-                this._x_axis = this._curveSvg.append("g")
-                    .attr("class", "curve x axis")
-                    .attr("transform", "translate(" +[0, (this._view_height - this._view_botton_padding)] + ")")
-                    .call(this._x_axis_gen)
-                ;
 
-                this._y_axis = this._curveSvg.append("g")
-                    .attr("class", "curve y axis")
-                    .attr("transform", "translate(" + (this._coordinate_margin_left+this._view_left_padding) + ",0)")
-                    .call(this._y_axis_gen)
-                ;
 
                 this._curveSvg.append("defs").append("clipPath")
                     .attr("id", "curveClip")
@@ -152,8 +164,19 @@ module ManyLens {
                     .attr("id", "curve.mainView")
                 ;
 
+                this._x_axis = this._curveSvg.append("g")
+                    .attr("class", "curve x axis")
+                    .attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")")
+                    .call(this._x_axis_gen)
+                ;
 
-               
+                this._y_axis = this._curveSvg.append("g")
+                    .attr("class", "curve y axis")
+                    .attr("transform", "translate(" + (this._coordinate_margin_left + this._view_left_padding) + ",0)")
+                    .call(this._y_axis_gen)
+                ;
+
+
             }
 
             public PullInterval(interalID: string): void {
@@ -186,7 +209,7 @@ module ManyLens {
             }
 
             private RefreshGraph(point: Point) {
-                
+
                 //Refresh the stack rect view
                 if (this._data[0].type == 1 || this._data[0].type == 3) {
                     var width: number = 0;
@@ -201,9 +224,10 @@ module ManyLens {
                     this._intervals.push(stackRect);
                     this._stackrect_width += stackRect.width;
 
+
                     var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
                     var scale = d3.scale.linear().domain([0, totalWidth]).range([0, totalWidth - newWidth]);
-                    var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9","#2A9CC8"]);
+                    var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
 
                     rect.transition()
                         .attr("width", (d, i) => {
@@ -219,7 +243,7 @@ module ManyLens {
                                 d.x = d.x - d.width;
                             return d.x;
                         })
-                        .style("fill", (d,i) => {
+                        .style("fill", (d, i) => {
                             if (this._stackrect_width > totalWidth)
                                 d.fill = colorScale(i);
                             return d.fill;
@@ -242,7 +266,7 @@ module ManyLens {
                         })
                         .style({
                             stroke: "#fff",
-                            "stroke-width":0.5
+                            "stroke-width": 0.5
                         })
                     ;
                     rect.exit().remove();
@@ -252,10 +276,10 @@ module ManyLens {
 
                 //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
-                                    d3.max(this._data, function (d) { return d.trueValue; }),
-                                    d3.max(this._data, function (d) { return d.value; })
-                                ])
-                            ]);
+                    d3.max(this._data, function (d) { return d.trueValue; }),
+                    d3.max(this._data, function (d) { return d.value; })
+                ])
+                ]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
 
@@ -277,18 +301,18 @@ module ManyLens {
                         nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
 
                         while (this._data[++i] && this._data[i].beg == section.id) {
-                            section.pathPoints.push({ index: i, value: this._data[i].value, trueValue:this._data[i].trueValue });
+                            section.pathPoints.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
                             nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         }
 
                         if (this._data[i] && this._data[i].type == 3) {
                             section.end = i;
-                            section.pathPoints.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
+                            section.pathPoints.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
                         } else if (this._data[i] && this._data[i].type == 1) {
                             section.end = i - 1;
                             var sectionRestPath = [];
-                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value,trueValue:this._data[i-1].trueValue });
-                            sectionRestPath.push({ index: i, value: this._data[i].value,trueValue: this._data[i].trueValue });
+                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
+                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
                             restPathData.push(sectionRestPath);
                         } else {
                             section.end = i - 1;
@@ -297,15 +321,15 @@ module ManyLens {
                     } else {
                         var sectionRestPath = [];
                         if (this._data[i - 1])
-                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value,trueValue:this._data[i-1].trueValue });
-                        sectionRestPath.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
+                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
+                        sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
 
                         while (this._data[++i] && !this._data[i].beg) {
-                            sectionRestPath.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
+                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
                         }
 
                         if (this._data[i])
-                            sectionRestPath.push({ index: i, value: this._data[i].value,trueValue:this._data[i].trueValue });
+                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
 
                         restPathData.push(sectionRestPath);
                     }
@@ -333,7 +357,7 @@ module ManyLens {
                     .style({
                         fill: '#2A9CC8',
                         stroke: "#fff",
-                        "stroke-width":0.5
+                        "stroke-width": 0.5
                     })
                     .on("click", (d: Section) => {
                         this.SelectSegment(d);
@@ -402,13 +426,13 @@ module ManyLens {
                     .style({
                         'stroke': 'rgb(31, 145, 189)',
                         'stroke-width': 3,
-                        'fill':'none'
+                        'fill': 'none'
                     })
                     .attr("d", function (d) { return lineFunc(d); })
                     .attr("class", "curve rest path")
                 ;
                 restPath.exit().remove();
-                
+
                 var trueRestPath = this._mainView.selectAll(".curve.rest.true.path").data(restPathData);
                 trueRestPath.attr("d", function (d) {
                     return truelineFunc(d);
@@ -445,7 +469,7 @@ module ManyLens {
                         return this._y_scale(d.value);
                     })
                     .attr("r", (d) => {
-                        return  3;
+                        return 3;
                     })
                     .style({
                         fill: "#fff",

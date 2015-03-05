@@ -210,6 +210,7 @@ var ManyLens;
                 this._x_axis_gen = d3.svg.axis();
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
+                this._fisheye_scale = d3.fisheye.ordinal();
                 this._section_num = 50;
                 this._view_height = 130;
                 this._view_top_padding = 15;
@@ -225,6 +226,7 @@ var ManyLens;
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
                 this._x_axis_gen.scale(this._x_scale).ticks(0).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
+                this._fisheye_scale.rangeRoundBands([0, this._coordinate_margin_left + this._view_left_padding]).focus(this._coordinate_margin_left + this._view_left_padding);
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
@@ -241,17 +243,28 @@ var ManyLens;
                 configurable: true
             });
             Curve.prototype.Render = function () {
+                var _this = this;
                 _super.prototype.Render.call(this, null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "stackRectClip").append("rect").attr("width", this._coordinate_margin_left + this._view_left_padding).attr("height", this._view_height - this._view_botton_padding).attr("x", 0).attr("y", 0);
-                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView");
-                this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")").call(this._x_axis_gen);
-                this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + (this._coordinate_margin_left + this._view_left_padding) + ",0)").call(this._y_axis_gen);
+                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").on("mousemove", function () {
+                    var mouse = d3.mouse(_this._subView.node());
+                    _this._fisheye_scale.domain(_this._intervals.map(function (d) {
+                        return d.x;
+                    })).focus(mouse[0]);
+                    _this._subView.selectAll("rect.stackRect").attr("x", function (d) {
+                        return _this._fisheye_scale(d.x);
+                    }).attr("width", function (d) {
+                        return _this._fisheye_scale.rangeBand(d.x);
+                    });
+                });
                 this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
+                this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")").call(this._x_axis_gen);
+                this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + (this._coordinate_margin_left + this._view_left_padding) + ",0)").call(this._y_axis_gen);
             };
             Curve.prototype.PullInterval = function (interalID) {
                 var _this = this;

@@ -196,7 +196,7 @@
             private PullData(): void {
                 if (ManyLens.TestMode) {
                     this._manyLens.ManyLensHubServerTestPullPoint().done(() => {
-                       
+
                         this._launchDataBtn.classed("disabled", false);
                     });
                 } else {

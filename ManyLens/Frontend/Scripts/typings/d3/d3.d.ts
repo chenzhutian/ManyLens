@@ -4,7 +4,7 @@
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
 
 declare module D3 {
-    export interface Selectors {
+    export interface Selectors  {
         /**
         * Select an element from the current document
         */

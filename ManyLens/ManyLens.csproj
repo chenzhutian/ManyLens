@@ -122,6 +122,7 @@
     <Content Include="Frontend\Image\icons\png\Thumbs.db" />
     <Content Include="Frontend\Image\login\Thumbs.db" />
     <Content Include="Frontend\Image\tile\Thumbs.db" />
+    <Content Include="Frontend\Scripts\d3.fisheye.js" />
     <Content Include="Frontend\Scripts\ManyLens.js" />
     <Content Include="Frontend\testData\us.json" />
     <Content Include="ClassDiagram1.cd" />
@@ -228,6 +229,7 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Frontend\Scripts\typings\d3.fisheye\d3.fisheye.d.ts" />
     <TypeScriptCompile Include="Frontend\Scripts\typings\d3.cloud.layout\d3.cloud.layout.d.ts" />
     <TypeScriptCompile Include="Frontend\Scripts\typings\d3\d3.d.ts" />
     <TypeScriptCompile Include="Frontend\Scripts\typings\d3\plugins\d3.superformula.d.ts" />
