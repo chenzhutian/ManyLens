@@ -227,6 +227,7 @@ var ManyLens;
                 this._x_axis_gen.scale(this._x_scale).ticks(0).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
                 this._fisheye_scale.rangeRoundBands([0, this._coordinate_margin_left + this._view_left_padding]).focus(this._coordinate_margin_left + this._view_left_padding);
+                this._time_formater = d3.time.format("%Y%m%d%H%M%S");
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
@@ -242,6 +243,14 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
+            Curve.prototype.ShrinkStackRect = function () {
+                if (this._subView)
+                    this._subView.selectAll("rect.stackRect").transition().attr("x", function (d) {
+                        return d.x;
+                    }).attr("width", function (d) {
+                        return d.width;
+                    });
+            };
             Curve.prototype.Render = function () {
                 var _this = this;
                 _super.prototype.Render.call(this, null);
@@ -250,7 +259,10 @@ var ManyLens;
                 this._element.select(".progress").style("display", "none");
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "stackRectClip").append("rect").attr("width", this._coordinate_margin_left + this._view_left_padding).attr("height", this._view_height - this._view_botton_padding).attr("x", 0).attr("y", 0);
+                var timer;
                 this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").on("mousemove", function () {
+                    if (timer)
+                        clearTimeout(timer);
                     var mouse = d3.mouse(_this._subView.node());
                     _this._fisheye_scale.domain(_this._intervals.map(function (d) {
                         return d.x;
@@ -260,6 +272,10 @@ var ManyLens;
                     }).attr("width", function (d) {
                         return _this._fisheye_scale.rangeBand(d.x);
                     });
+                }).on("mouseleave", function () {
+                    timer = setTimeout(function () {
+                        _this.ShrinkStackRect();
+                    }, 800);
                 });
                 this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
@@ -292,7 +308,9 @@ var ManyLens;
                 //Refresh the stack rect view
                 if (this._data[0].type == 1 || this._data[0].type == 3) {
                     var width = 0;
-                    var totalWidth = this._coordinate_margin_left + this._view_left_padding;
+                    var totalWidth = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
+                    var midWidth = 0.4 * (this._coordinate_margin_left + this._view_left_padding);
+                    var minWidth = 0.2 * (this._coordinate_margin_left + this._view_left_padding);
                     var newWidth = 20;
                     var stackRect = {
                         id: this._data[0].beg,
@@ -300,10 +318,10 @@ var ManyLens;
                         width: newWidth,
                         fill: "#2A9CC8"
                     };
+                    console.log(this._time_formater.parse(stackRect.id));
                     this._intervals.push(stackRect);
-                    this._stackrect_width += stackRect.width;
                     var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
-                    var scale = d3.scale.linear().domain([0, totalWidth]).range([0, totalWidth - newWidth]);
+                    var scale = d3.scale.linear().domain([0, this._stackrect_width]).range([0, totalWidth]);
                     var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
                     rect.transition().attr("width", function (d, i) {
                         if (_this._stackrect_width > totalWidth)
@@ -313,16 +331,15 @@ var ManyLens;
                     }).attr("x", function (d, i) {
                         if (_this._stackrect_width > totalWidth)
                             d.x = scale(d.x);
-                        else
-                            d.x = d.x - d.width;
                         return d.x;
                     }).style("fill", function (d, i) {
                         if (_this._stackrect_width > totalWidth)
                             d.fill = colorScale(i);
                         return d.fill;
                     });
-                    rect.enter().append("rect").attr("class", "stackRect").attr("y", 0).attr("x", function (d) {
-                        return d.x - d.width;
+                    this._stackrect_width = width;
+                    rect.enter().append("rect").attr("class", "stackRect").attr("y", 0).attr("x", function (d, i) {
+                        return d.x;
                     }).attr("width", function (d) {
                         width += d.width;
                         return d.width;
@@ -331,6 +348,8 @@ var ManyLens;
                     }).style({
                         stroke: "#fff",
                         "stroke-width": 0.5
+                    }).transition().attr("x", function (d, i) {
+                        return d.x = _this._stackrect_width;
                     });
                     rect.exit().remove();
                     this._stackrect_width = width;

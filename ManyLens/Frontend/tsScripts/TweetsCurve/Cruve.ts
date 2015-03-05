@@ -58,6 +58,7 @@ module ManyLens {
             private _intervals: Array<StackRect>;
             protected _data: Array<Point>;
             private _stackrect_width: number = 0;
+            private _time_formater: D3.Time.TimeFormat;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -100,8 +101,24 @@ module ManyLens {
                     .focus(this._coordinate_margin_left + this._view_left_padding)
                 ;
 
+                this._time_formater = d3.time.format("%Y%m%d%H%M%S");
+
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
+            }
+
+            private ShrinkStackRect() {
+                if(this._subView)
+                    this._subView
+                        .selectAll("rect.stackRect")
+                        .transition()
+                        .attr("x", (d) => {
+                            return d.x
+                        })
+                        .attr("width", (d) => {
+                            return d.width;
+                        })
+                    ;
             }
 
             public Render(): void {
@@ -125,12 +142,13 @@ module ManyLens {
                     .attr("y", 0)
                 ;
 
-
+                var timer;
                 this._subView = this._curveSvg.append("g")
                     .attr("clip-path", "url(#stackRectClip)")
                     .append("g")
                     .attr("id", "curve.subView")
                     .on("mousemove", () => {
+                        if(timer) clearTimeout(timer);
                         var mouse = d3.mouse(this._subView.node());
                         this._fisheye_scale
                             .domain(this._intervals.map(function (d) { return d.x; }))
@@ -144,9 +162,14 @@ module ManyLens {
                             .attr("width", (d) => {
                                 return this._fisheye_scale.rangeBand(d.x);
                             })
+                        ;
+                    })
+                    .on("mouseleave", () => {
+                        timer = setTimeout(() => {
+                            this.ShrinkStackRect();
+                        } , 800);
                     })
                 ;
-
 
 
                 this._curveSvg.append("defs").append("clipPath")
@@ -213,7 +236,10 @@ module ManyLens {
                 //Refresh the stack rect view
                 if (this._data[0].type == 1 || this._data[0].type == 3) {
                     var width: number = 0;
-                    var totalWidth: number = this._coordinate_margin_left + this._view_left_padding;
+                    var totalWidth: number = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
+                    var midWidth: number = 0.4 * (this._coordinate_margin_left + this._view_left_padding);
+                    var minWidth: number = 0.2 * (this._coordinate_margin_left + this._view_left_padding);
+                    
                     var newWidth: number = 20;
                     var stackRect: StackRect = {
                         id: this._data[0].beg,
@@ -221,12 +247,11 @@ module ManyLens {
                         width: newWidth,
                         fill: "#2A9CC8"
                     }
+                    console.log(this._time_formater.parse(stackRect.id));
                     this._intervals.push(stackRect);
-                    this._stackrect_width += stackRect.width;
-
 
                     var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
-                    var scale = d3.scale.linear().domain([0, totalWidth]).range([0, totalWidth - newWidth]);
+                    var scale = d3.scale.linear().domain([0, this._stackrect_width]).range([0, totalWidth]);
                     var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
 
                     rect.transition()
@@ -239,8 +264,6 @@ module ManyLens {
                         .attr("x", (d, i) => {
                             if (this._stackrect_width > totalWidth)
                                 d.x = scale(d.x);
-                            else
-                                d.x = d.x - d.width;
                             return d.x;
                         })
                         .style("fill", (d, i) => {
@@ -249,12 +272,13 @@ module ManyLens {
                             return d.fill;
                         })
                     ;
+                    this._stackrect_width = width;
 
                     rect.enter().append("rect")
                         .attr("class", "stackRect")
                         .attr("y", 0)
-                        .attr("x", (d) => {
-                            return d.x - d.width;
+                        .attr("x", (d,i) => {
+                            return d.x;
                         })
                         .attr("width", (d) => {
                             width += d.width;
@@ -268,6 +292,10 @@ module ManyLens {
                             stroke: "#fff",
                             "stroke-width": 0.5
                         })
+                        .transition()
+                        .attr("x", (d, i) => {
+                            return d.x = this._stackrect_width;
+                        })
                     ;
                     rect.exit().remove();
 
@@ -276,9 +304,9 @@ module ManyLens {
 
                 //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
-                    d3.max(this._data, function (d) { return d.trueValue; }),
-                    d3.max(this._data, function (d) { return d.value; })
-                ])
+                        d3.max(this._data, function (d) { return d.trueValue; }),
+                        d3.max(this._data, function (d) { return d.value; })
+                    ])
                 ]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
