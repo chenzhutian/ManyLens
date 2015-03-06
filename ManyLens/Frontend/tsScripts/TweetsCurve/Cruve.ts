@@ -125,19 +125,6 @@ module ManyLens {
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
             }
 
-            private ShrinkStackRect() {
-                if(this._subView)
-                    this._subView
-                        .selectAll("rect.stackRect")
-                        .transition()
-                        .attr("x", (d) => {
-                            return d.x
-                        })
-                        .attr("width", (d) => {
-                            return d.width;
-                        })
-                    ;
-            }
 
             public Render(): void {
                 super.Render(null);
@@ -316,9 +303,9 @@ module ManyLens {
                         })
                     ;
                     rect.exit().remove();
-
                     this._stackrect_width = width;
 
+                    //The stack date
                     var date = this._time_formater.parse(stackRect.id);
                     var newDate:StackDate = {
                         id:this.StackID,
@@ -338,14 +325,31 @@ module ManyLens {
                                 break;
                             }
                         }
-                        this._stack_date.push({
-                            id:this.StackID,
+                        
+                        lastDate = {
+                            id: this.StackID,
                             type: "day",
+                            num: this.GetWeek(lastDate.date),
+                            date: lastDate.date
+                        };
+                        while (this._stack_date.length > 0) {
+                            var tempDate = this._stack_date.pop();
+                            if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
+                                newStack.push(tempDate);
+                            } else {
+                                this._stack_date.push(tempDate);
+                                break;
+                            }
+                        }
+                        lastDate = {
+                            id: this.StackID,
+                            type: "week",
                             num: lastDate.date.getMonth(),
                             date: lastDate.date
-                        });
-                        this._stack_date.push(newDate);
+                        };
 
+                        this._stack_date.push(lastDate);
+                        this._stack_date.push(newDate);
                     } else {
                         if (lastDate)
                             this._stack_date.push(lastDate);
@@ -382,8 +386,9 @@ module ManyLens {
                     
 
                     var ids = this._stack_date.map(function (d) {
-                        return d.id;
+                        return d.num+"";
                     });
+                    console.log(ids);
                 }
 
                 //Refresh the curve view
@@ -613,6 +618,26 @@ module ManyLens {
                 else {
                     console.log("Segmentation hasn't finished yet!");
                 }
+            }
+
+
+            private ShrinkStackRect() {
+                if (this._subView)
+                    this._subView
+                        .selectAll("rect.stackRect")
+                        .transition()
+                        .attr("x", (d) => {
+                            return d.x
+                        })
+                        .attr("width", (d) => {
+                            return d.width;
+                        })
+                    ;
+            }
+
+            private GetWeek(date: Date):number {
+                var onejan = new Date(date.getFullYear(), 0, 1);
+                return Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
             }
 
         }

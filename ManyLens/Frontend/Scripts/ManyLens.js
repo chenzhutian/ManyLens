@@ -252,14 +252,6 @@ var ManyLens;
                 enumerable: true,
                 configurable: true
             });
-            Curve.prototype.ShrinkStackRect = function () {
-                if (this._subView)
-                    this._subView.selectAll("rect.stackRect").transition().attr("x", function (d) {
-                        return d.x;
-                    }).attr("width", function (d) {
-                        return d.width;
-                    });
-            };
             Curve.prototype.Render = function () {
                 var _this = this;
                 _super.prototype.Render.call(this, null);
@@ -361,6 +353,7 @@ var ManyLens;
                     });
                     rect.exit().remove();
                     this._stackrect_width = width;
+                    //The stack date
                     var date = this._time_formater.parse(stackRect.id);
                     var newDate = {
                         id: this.StackID,
@@ -381,12 +374,29 @@ var ManyLens;
                                 break;
                             }
                         }
-                        this._stack_date.push({
+                        lastDate = {
                             id: this.StackID,
                             type: "day",
+                            num: this.GetWeek(lastDate.date),
+                            date: lastDate.date
+                        };
+                        while (this._stack_date.length > 0) {
+                            var tempDate = this._stack_date.pop();
+                            if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
+                                newStack.push(tempDate);
+                            }
+                            else {
+                                this._stack_date.push(tempDate);
+                                break;
+                            }
+                        }
+                        lastDate = {
+                            id: this.StackID,
+                            type: "week",
                             num: lastDate.date.getMonth(),
                             date: lastDate.date
-                        });
+                        };
+                        this._stack_date.push(lastDate);
                         this._stack_date.push(newDate);
                     }
                     else {
@@ -414,8 +424,9 @@ var ManyLens;
                     });
                     stackDate.exit().remove();
                     var ids = this._stack_date.map(function (d) {
-                        return d.id;
+                        return d.num + "";
                     });
+                    console.log(ids);
                 }
                 //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
@@ -592,6 +603,18 @@ var ManyLens;
                 else {
                     console.log("Segmentation hasn't finished yet!");
                 }
+            };
+            Curve.prototype.ShrinkStackRect = function () {
+                if (this._subView)
+                    this._subView.selectAll("rect.stackRect").transition().attr("x", function (d) {
+                        return d.x;
+                    }).attr("width", function (d) {
+                        return d.width;
+                    });
+            };
+            Curve.prototype.GetWeek = function (date) {
+                var onejan = new Date(date.getFullYear(), 0, 1);
+                return Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
             };
             return Curve;
         })(ManyLens.D3ChartObject);
