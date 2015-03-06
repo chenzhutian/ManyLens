@@ -31,6 +31,13 @@ module ManyLens {
             x: number;
             fill: string;
         }
+        interface StackDate {
+            id: string;
+            type: string;
+            num: number;
+            date: Date;
+            intervals?: Array<StackRect>;
+        }
 
         export class Curve extends D3ChartObject {
 
@@ -58,7 +65,13 @@ module ManyLens {
             private _intervals: Array<StackRect>;
             protected _data: Array<Point>;
             private _stackrect_width: number = 0;
+
             private _time_formater: D3.Time.TimeFormat;
+            private _stack_date: Array<StackDate>;
+            private _month_beg: number;
+            private _week_beg: number;
+            private _day_beg: number;
+            private _stack_date_id_gen: number = 0;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -68,12 +81,16 @@ module ManyLens {
                     this._section_num = Math.ceil(num);
                 }
             }
+            public get StackID(): string {
+                return "id"+this._stack_date_id_gen++;
+            }
 
             constructor(element: D3.Selection, manyLens: ManyLens) {
                 super(element, manyLens);
 
                 this._data = new Array<Point>();
                 this._intervals = new Array<StackRect>();
+                this._stack_date = new Array<StackDate>();
 
                 this._view_width = parseFloat(this._element.style("width"));
 
@@ -102,6 +119,7 @@ module ManyLens {
                 ;
 
                 this._time_formater = d3.time.format("%Y%m%d%H%M%S");
+
 
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
@@ -171,7 +189,6 @@ module ManyLens {
                     })
                 ;
 
-
                 this._curveSvg.append("defs").append("clipPath")
                     .attr("id", "curveClip")
                     .append("rect")
@@ -224,6 +241,8 @@ module ManyLens {
 
             public AddPoint(point: Point): void {
                 this._data.push(point);
+
+
                 this.RefreshGraph(point);
 
                 if (this._data.length > this._section_num + 1) {
@@ -234,7 +253,7 @@ module ManyLens {
             private RefreshGraph(point: Point) {
 
                 //Refresh the stack rect view
-                if (this._data[0].type == 1 || this._data[0].type == 3) {
+                if (this._data[0].type == 2 || this._data[0].type == 3) {
                     var width: number = 0;
                     var totalWidth: number = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
                     var midWidth: number = 0.4 * (this._coordinate_margin_left + this._view_left_padding);
@@ -247,12 +266,11 @@ module ManyLens {
                         width: newWidth,
                         fill: "#2A9CC8"
                     }
-                    console.log(this._time_formater.parse(stackRect.id));
                     this._intervals.push(stackRect);
 
-                    var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
                     var scale = d3.scale.linear().domain([0, this._stackrect_width]).range([0, totalWidth]);
                     var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
+                    var rect = this._subView.selectAll("rect.stactDate").data(this._intervals);
 
                     rect.transition()
                         .attr("width", (d, i) => {
@@ -300,6 +318,72 @@ module ManyLens {
                     rect.exit().remove();
 
                     this._stackrect_width = width;
+
+                    var date = this._time_formater.parse(stackRect.id);
+                    var newDate:StackDate = {
+                        id:this.StackID,
+                        type: "hour",
+                        num: date.getDay(),
+                        date: date
+                    }
+                    var lastDate = this._stack_date.pop();
+                    if (lastDate && lastDate.type == "hour" && lastDate.num != newDate.num) {
+                        var newStack = [];
+                        while (this._stack_date.length > 0) {
+                            var tempDate = this._stack_date.pop();
+                            if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
+                                newStack.push(tempDate);
+                            } else {
+                                this._stack_date.push(tempDate);
+                                break;
+                            }
+                        }
+                        this._stack_date.push({
+                            id:this.StackID,
+                            type: "day",
+                            num: lastDate.date.getMonth(),
+                            date: lastDate.date
+                        });
+                        this._stack_date.push(newDate);
+
+                    } else {
+                        if (lastDate)
+                            this._stack_date.push(lastDate);
+                        this._stack_date.push(newDate);
+                    }
+
+                    var stackDate = this._subView.selectAll("rect.stackRect").data(this._stack_date, function (d) {
+                        return d.id;
+                    });
+
+                    stackDate
+                        .transition()
+                        .attr("x", function (d, i) {
+                            return i * 20;
+                        })
+                    ;
+                    stackDate.enter().append("rect")
+                        .attr("x", function (d, i) {
+                            return i * 20;
+                        })
+                        .attr({
+                            "class":"stackDate",
+                            width: 20,
+                            height: this._view_height + this._view_top_padding,
+                            y: 0
+                        })
+                        .style({
+                            stroke: "#fff",
+                            fill:"#000",
+                            "stroke-width": 0.5
+                        })
+                    ;
+                    stackDate.exit().remove();
+                    
+
+                    var ids = this._stack_date.map(function (d) {
+                        return d.id;
+                    });
                 }
 
                 //Refresh the curve view

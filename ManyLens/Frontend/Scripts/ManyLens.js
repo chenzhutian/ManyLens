@@ -219,8 +219,10 @@ var ManyLens;
                 this._view_right_padding = 50;
                 this._coordinate_margin_left = 150;
                 this._stackrect_width = 0;
+                this._stack_date_id_gen = 0;
                 this._data = new Array();
                 this._intervals = new Array();
+                this._stack_date = new Array();
                 this._view_width = parseFloat(this._element.style("width"));
                 this._x_scale.domain([0, this._section_num]).range([this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
@@ -239,6 +241,13 @@ var ManyLens;
                     if (typeof num === 'number') {
                         this._section_num = Math.ceil(num);
                     }
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Curve.prototype, "StackID", {
+                get: function () {
+                    return "id" + this._stack_date_id_gen++;
                 },
                 enumerable: true,
                 configurable: true
@@ -306,7 +315,7 @@ var ManyLens;
             Curve.prototype.RefreshGraph = function (point) {
                 var _this = this;
                 //Refresh the stack rect view
-                if (this._data[0].type == 1 || this._data[0].type == 3) {
+                if (this._data[0].type == 2 || this._data[0].type == 3) {
                     var width = 0;
                     var totalWidth = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
                     var midWidth = 0.4 * (this._coordinate_margin_left + this._view_left_padding);
@@ -318,11 +327,10 @@ var ManyLens;
                         width: newWidth,
                         fill: "#2A9CC8"
                     };
-                    console.log(this._time_formater.parse(stackRect.id));
                     this._intervals.push(stackRect);
-                    var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
                     var scale = d3.scale.linear().domain([0, this._stackrect_width]).range([0, totalWidth]);
                     var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
+                    var rect = this._subView.selectAll("rect.stactDate").data(this._intervals);
                     rect.transition().attr("width", function (d, i) {
                         if (_this._stackrect_width > totalWidth)
                             d.width = scale(d.width);
@@ -353,6 +361,61 @@ var ManyLens;
                     });
                     rect.exit().remove();
                     this._stackrect_width = width;
+                    var date = this._time_formater.parse(stackRect.id);
+                    var newDate = {
+                        id: this.StackID,
+                        type: "hour",
+                        num: date.getDay(),
+                        date: date
+                    };
+                    var lastDate = this._stack_date.pop();
+                    if (lastDate && lastDate.type == "hour" && lastDate.num != newDate.num) {
+                        var newStack = [];
+                        while (this._stack_date.length > 0) {
+                            var tempDate = this._stack_date.pop();
+                            if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
+                                newStack.push(tempDate);
+                            }
+                            else {
+                                this._stack_date.push(tempDate);
+                                break;
+                            }
+                        }
+                        this._stack_date.push({
+                            id: this.StackID,
+                            type: "day",
+                            num: lastDate.date.getMonth(),
+                            date: lastDate.date
+                        });
+                        this._stack_date.push(newDate);
+                    }
+                    else {
+                        if (lastDate)
+                            this._stack_date.push(lastDate);
+                        this._stack_date.push(newDate);
+                    }
+                    var stackDate = this._subView.selectAll("rect.stackRect").data(this._stack_date, function (d) {
+                        return d.id;
+                    });
+                    stackDate.transition().attr("x", function (d, i) {
+                        return i * 20;
+                    });
+                    stackDate.enter().append("rect").attr("x", function (d, i) {
+                        return i * 20;
+                    }).attr({
+                        "class": "stackDate",
+                        width: 20,
+                        height: this._view_height + this._view_top_padding,
+                        y: 0
+                    }).style({
+                        stroke: "#fff",
+                        fill: "#000",
+                        "stroke-width": 0.5
+                    });
+                    stackDate.exit().remove();
+                    var ids = this._stack_date.map(function (d) {
+                        return d.id;
+                    });
                 }
                 //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
