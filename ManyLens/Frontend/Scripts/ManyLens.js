@@ -322,7 +322,7 @@ var ManyLens;
                     this._intervals.push(stackRect);
                     var scale = d3.scale.linear().domain([0, this._stackrect_width]).range([0, totalWidth]);
                     var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
-                    var rect = this._subView.selectAll("rect.stactDate").data(this._intervals);
+                    var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
                     rect.transition().attr("width", function (d, i) {
                         if (_this._stackrect_width > totalWidth)
                             d.width = scale(d.width);
@@ -374,29 +374,33 @@ var ManyLens;
                                 break;
                             }
                         }
-                        lastDate = {
+                        var newDate2 = {
                             id: this.StackID,
                             type: "day",
                             num: this.GetWeek(lastDate.date),
                             date: lastDate.date
                         };
-                        while (this._stack_date.length > 0) {
-                            var tempDate = this._stack_date.pop();
-                            if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
-                                newStack.push(tempDate);
+                        lastDate = this._stack_date.pop();
+                        if (lastDate && lastDate.type == "day" && lastDate.num != newDate2.num) {
+                            while (this._stack_date.length > 0) {
+                                var tempDate = this._stack_date.pop();
+                                if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
+                                    newStack.push(tempDate);
+                                }
+                                else {
+                                    this._stack_date.push(tempDate);
+                                    break;
+                                }
                             }
-                            else {
-                                this._stack_date.push(tempDate);
-                                break;
-                            }
+                            lastDate = {
+                                id: this.StackID,
+                                type: "week",
+                                num: lastDate.date.getMonth(),
+                                date: lastDate.date
+                            };
+                            this._stack_date.push(lastDate);
                         }
-                        lastDate = {
-                            id: this.StackID,
-                            type: "week",
-                            num: lastDate.date.getMonth(),
-                            date: lastDate.date
-                        };
-                        this._stack_date.push(lastDate);
+                        this._stack_date.push(newDate2);
                         this._stack_date.push(newDate);
                     }
                     else {
@@ -404,7 +408,7 @@ var ManyLens;
                             this._stack_date.push(lastDate);
                         this._stack_date.push(newDate);
                     }
-                    var stackDate = this._subView.selectAll("rect.stackRect").data(this._stack_date, function (d) {
+                    var stackDate = this._subView.selectAll("rect.stackDate").data(this._stack_date, function (d) {
                         return d.id;
                     });
                     stackDate.transition().attr("x", function (d, i) {
@@ -424,7 +428,7 @@ var ManyLens;
                     });
                     stackDate.exit().remove();
                     var ids = this._stack_date.map(function (d) {
-                        return d.num + "";
+                        return d.type + "_" + d.num;
                     });
                     console.log(ids);
                 }
