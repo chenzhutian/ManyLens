@@ -33,9 +33,12 @@ module ManyLens {
         }
         interface StackDate {
             id: string;
-            type: string;
+            type: number;
             num: number;
             date: Date;
+            x: number;
+            width: number;
+            isRemove: boolean;
             intervals?: Array<StackRect>;
         }
 
@@ -53,7 +56,7 @@ module ManyLens {
             private _y_axis: D3.Selection;
             private _fisheye_scale: D3.FishEyeOrdinalScale = d3.fisheye.ordinal();
 
-            private _section_num: number = 50;
+            private _section_num: number = 15;
             private _view_height: number = 130;
             private _view_width: number;
             private _view_top_padding: number = 15;
@@ -68,7 +71,9 @@ module ManyLens {
 
             private _time_formater: D3.Time.TimeFormat;
             private _stack_date: Array<StackDate>;
+            private _stack_date_right: Array<StackDate>;
             private _stack_date_id_gen: number = 0;
+            private _stackdate_width: number = 0;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -240,155 +245,83 @@ module ManyLens {
                 if (this._data[0].type == 2 || this._data[0].type == 3) {
                     var width: number = 0;
                     var totalWidth: number = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
-                    var midWidth: number = 0.4 * (this._coordinate_margin_left + this._view_left_padding);
-                    var minWidth: number = 0.2 * (this._coordinate_margin_left + this._view_left_padding);
                     
                     var newWidth: number = 20;
                     var stackRect: StackRect = {
                         id: this._data[0].beg,
-                        x: this._coordinate_margin_left + this._view_left_padding,
+                        x: 0,
                         width: newWidth,
                         fill: "#2A9CC8"
                     }
-                    this._intervals.push(stackRect);
+                    //this._intervals.push(stackRect);
 
-                    var scale = d3.scale.linear().domain([0, this._stackrect_width]).range([0, totalWidth]);
-                    var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
-                    var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
+                    
+                    //var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
+                    //var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
 
-                    rect.transition()
-                        .attr("width", (d, i) => {
-                            if (this._stackrect_width > totalWidth)
-                                d.width = scale(d.width);
-                            width += d.width;
-                            return d.width;
-                        })
-                        .attr("x", (d, i) => {
-                            if (this._stackrect_width > totalWidth)
-                                d.x = scale(d.x);
-                            return d.x;
-                        })
-                        .style("fill", (d, i) => {
-                            if (this._stackrect_width > totalWidth)
-                                d.fill = colorScale(i);
-                            return d.fill;
-                        })
-                    ;
-                    this._stackrect_width = width;
+                    //rect.transition()
+                    //    .attr("width", (d, i) => {
+                    //        if (this._stackrect_width > totalWidth)
+                    //            d.width = scale(d.width);
+                    //        width += d.width;
+                    //        return d.width;
+                    //    })
+                    //    .attr("x", (d, i) => {
+                    //        if (this._stackrect_width > totalWidth)
+                    //            d.x = scale(d.x);
+                    //        return d.x;
+                    //    })
+                    //    .style("fill", (d, i) => {
+                    //        if (this._stackrect_width > totalWidth)
+                    //            d.fill = colorScale(i);
+                    //        return d.fill;
+                    //    })
+                    //;
+                    //this._stackrect_width = width;
 
-                    rect.enter().append("rect")
-                        .attr("class", "stackRect")
-                        .attr("y", 0)
-                        .attr("x", (d,i) => {
-                            return d.x;
-                        })
-                        .attr("width", (d) => {
-                            width += d.width;
-                            return d.width;
-                        })
-                        .attr("height", this._view_height + this._view_top_padding)
-                        .style("fill", (d) => {
-                            return d.fill;
-                        })
-                        .style({
-                            stroke: "#fff",
-                            "stroke-width": 0.5
-                        })
-                        .transition()
-                        .attr("x", (d, i) => {
-                            return d.x = this._stackrect_width;
-                        })
-                    ;
-                    rect.exit().remove();
-                    this._stackrect_width = width;
+                    //rect.enter().append("rect")
+                    //    .attr("class", "stackRect")
+                    //    .attr({
+                    //        x: this._coordinate_margin_left + this._view_left_padding,
+                    //        y:0
+                    //    })
+                    //    .attr("width", (d) => {
+                    //        width += d.width;
+                    //        return d.width;
+                    //    })
+                    //    .attr("height", this._view_height + this._view_top_padding)
+                    //    .style("fill", (d) => {
+                    //        return d.fill;
+                    //    })
+                    //    .style({
+                    //        stroke: "#fff",
+                    //        "stroke-width": 0.5
+                    //    })
+                    //    .transition()
+                    //    .attr("x", (d, i) => {
+                    //        return d.x = this._stackrect_width;
+                    //    })
+                    //;
+                    //rect.exit().remove();
+                    //this._stackrect_width = width;
 
                     //The stack date
                     var date = this._time_formater.parse(stackRect.id);
-                    var newDate:StackDate = {
-                        id:this.StackID,
-                        type: "hour",
-                        num: date.getDay(),
-                        date: date
-                    }
-                    var lastDate = this._stack_date.pop();
-                    if (lastDate && lastDate.type == "hour" && lastDate.num != newDate.num) {
-                        var newStack = [];
-                        while (this._stack_date.length > 0) {
-                            var tempDate = this._stack_date.pop();
-                            if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
-                                newStack.push(tempDate);
-                            } else {
-                                this._stack_date.push(tempDate);
-                                break;
-                            }
-                        }
-                        
-                        var newDate2 = {
-                            id: this.StackID,
-                            type: "day",
-                            num: this.GetWeek(lastDate.date),
-                            date: lastDate.date
-                        };
-
-                        lastDate = this._stack_date.pop();
-                        if (lastDate && lastDate.type == "day" && lastDate.num != newDate2.num) {
-                            while (this._stack_date.length > 0) {
-                                var tempDate = this._stack_date.pop();
-                                if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
-                                    newStack.push(tempDate);
-                                } else {
-                                    this._stack_date.push(tempDate);
-                                    break;
-                                }
-                            }
-                            lastDate = {
-                                id: this.StackID,
-                                type: "week",
-                                num: lastDate.date.getMonth(),
-                                date: lastDate.date
-                            };
-                            this._stack_date.push(lastDate);
-                        }
-
-                        this._stack_date.push(newDate2);
-                        this._stack_date.push(newDate);
-                    } else {
-                        if (lastDate)
-                            this._stack_date.push(lastDate);
-                        this._stack_date.push(newDate);
+                    this._stack_date_right = [];
+                    this.doIt(date, 0);
+                    if (this._stack_date.length * 20 > totalWidth) {
+                        var scale = d3.scale.linear().domain([0, this._stack_date.length * 20]).range([0, totalWidth]);
+                        this._subView.selectAll("rect.stackDate")
+                            .transition()
+                            .attr("x", function (d) {
+                                return scale(d.x);
+                            })
+                            .attr("width", function (d) {
+                                return scale(d.width);
+                            })
+                        ;
                     }
 
-                    var stackDate = this._subView.selectAll("rect.stackDate").data(this._stack_date, function (d) {return d.id;});
-
-                    stackDate
-                        .transition()
-                        .attr("x", function (d, i) {
-                            return i * 20;
-                        })
-                    ;
-                    stackDate.enter().append("rect")
-                        .attr("x", function (d, i) {
-                            return i * 20;
-                        })
-                        .attr({
-                            "class":"stackDate",
-                            width: 20,
-                            height: this._view_height + this._view_top_padding,
-                            y: 0
-                        })
-                        .style({
-                            stroke: "#fff",
-                            fill:"#000",
-                            "stroke-width": 0.5
-                        })
-                    ;
-                    stackDate.exit().remove();
-                    
-
-                    var ids = this._stack_date.map(function (d) {
-                        return d.type+"_"+d.num;
-                    });
-                    console.log(ids);
                 }
 
                 //Refresh the curve view
@@ -640,6 +573,129 @@ module ManyLens {
                 return Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
             }
 
+            private EndAll(transition: D3.Transition.Transition, callback: (...args: any[]) => any) {
+                var n = 0;
+                transition
+                    .each(function () { ++n; })
+                    .each("end", function () {
+                        if (!--n)
+                            callback.apply(this, arguments);
+                    }); 
+            }
+
+            private doIt(date: Date, depth: number) {
+                var num;
+                switch (depth) {
+                    case 0: num = date.getDay(); break;
+                    case 1: num = this.GetWeek(date); break;
+                    case 2: num = date.getMonth(); break;
+                    default: num = -1;
+                }
+
+                var newWidth: number = 20;
+                var newDate: StackDate = {
+                    id: this.StackID,
+                    type: depth,
+                    num: num,
+                    isRemove: false,
+                    width:newWidth,
+                    x:this._stack_date.length  * newWidth,
+                    date: date
+                }
+
+                var colorScale = d3.scale.linear().domain([0, 2]).range(["#2A9CC8", "#2574A9"]);
+
+
+                this._stack_date_right.push(newDate);
+                var tempStackDate: StackDate[] = [];
+                tempStackDate = tempStackDate.concat(this._stack_date, this._stack_date_right.reverse()).sort(function (a, b) { return (a.x > b.x) ? 1 : -1; });
+                var stackDate = this._subView.selectAll("rect.stackDate").data(tempStackDate, function (d) { return d.id; });
+
+                stackDate
+                    .transition()
+                    .attr("x", (d, i) => {
+                        d.x = i * newWidth;
+                        return d.x;
+                    })      
+                    .attr("width", (d) => {
+                        return d.width;
+                    })             
+                    .style("fill", (d) => {
+                        return colorScale(d.type);
+                    })
+                ;
+
+                stackDate.enter().append("rect")
+                    .attr("x",  (d)=> {
+                        if (depth == 0)
+                            return this._coordinate_margin_left + this._view_left_padding;
+                        return d.x;
+                    })
+                    .attr("width", (d) => {
+                        return d.width;
+                    })
+                    .attr({
+                        "class": "stackDate",
+                        height: this._view_height + this._view_top_padding,
+                        y: 0
+                    })
+                    .style({
+                        stroke: "#fff",
+                        "stroke-width": 0.5
+                    })
+                    .style("fill", (d) => {
+                        if (d.type == 0) {
+                            return colorScale(d.type);
+                        }
+                        return colorScale(d.type - 1);
+                    })
+                    .transition()
+                    .style("fill", (d) => {
+                        return colorScale(d.type);
+                    })
+                    .attr("x", function (d) {
+                        return d.x;
+                    })
+                ;
+
+                stackDate.exit().filter(function (d) { return !d.isRemove;})
+                    .transition()
+                    .attr("x", function (d) {
+                        d.isRemove = true;
+                        return d.x;
+                    })
+                    .remove()
+                ;
+
+                var lastDate = this._stack_date.pop();
+                if (lastDate) {
+                    if (lastDate.type == newDate.type && lastDate.num != newDate.num) {
+                        var newStack = [];
+                        while (this._stack_date.length > 0) {
+                            var tempDate = this._stack_date.pop();
+                            if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
+                                newStack.push(tempDate);
+                            } else {
+                                this._stack_date.push(tempDate);
+                                break;
+                            }
+                        }
+
+                        if (newStack.length > 0)
+                            lastDate.x = newStack[newStack.length - 1].x;
+                        newStack.forEach((d) => {
+                            d.x = newStack[newStack.length - 1].x;
+                        });
+
+                        this.doIt(lastDate.date, ++depth);
+                    } else {
+                        this._stack_date.push(lastDate);
+                    }
+                }
+
+                this._stack_date.push(newDate);
+
+            }
         }
     }
 }
