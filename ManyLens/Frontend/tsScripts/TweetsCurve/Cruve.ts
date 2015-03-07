@@ -186,10 +186,12 @@ module ManyLens {
                         this._subView
                             .selectAll("rect.stackRect")
                             .attr("x", (d) => {
-                                return this._fisheye_scale(d.x);
+                                if (this._fisheye_scale(d.x))
+                                    return this._fisheye_scale(d.x);
                             })
                             .attr("width", (d) => {
-                                return this._fisheye_scale.rangeBand(d.x);
+                                if(this._fisheye_scale.rangeBand(d.x))
+                                    return this._fisheye_scale.rangeBand(d.x);
                             })
                         ;
                     })

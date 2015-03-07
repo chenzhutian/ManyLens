@@ -280,9 +280,11 @@ var ManyLens;
                     }
                     _this._subView.selectAll("rect.stackDate").style("visibility", "hidden");
                     _this._subView.selectAll("rect.stackRect").attr("x", function (d) {
-                        return _this._fisheye_scale(d.x);
+                        if (_this._fisheye_scale(d.x))
+                            return _this._fisheye_scale(d.x);
                     }).attr("width", function (d) {
-                        return _this._fisheye_scale.rangeBand(d.x);
+                        if (_this._fisheye_scale.rangeBand(d.x))
+                            return _this._fisheye_scale.rangeBand(d.x);
                     });
                 }).on("mouseleave", function () {
                     timer = setTimeout(function () {
