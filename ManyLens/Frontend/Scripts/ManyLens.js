@@ -211,7 +211,7 @@ var ManyLens;
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
                 this._fisheye_scale = d3.fisheye.ordinal();
-                this._section_num = 15;
+                this._section_num = 50;
                 this._view_height = 130;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
@@ -269,6 +269,16 @@ var ManyLens;
                     _this._fisheye_scale.domain(_this._intervals.map(function (d) {
                         return d.x;
                     })).focus(mouse[0]);
+                    if (_this._subView.selectAll("rect.stackRect").empty()) {
+                        _this._subView.selectAll("rect.stackRect").data(_this._intervals).enter().append("rect").attr("x", function (d, i) {
+                            return d.x = i * 20;
+                        }).attr("y", 0).attr("width", 20).attr("class", "stackRect").attr("height", _this._view_height + _this._view_top_padding).style({
+                            fill: "#2A9CC8",
+                            stroke: "#fff",
+                            "stroke-width": 0.5
+                        });
+                    }
+                    _this._subView.selectAll("rect.stackDate").style("visibility", "hidden");
                     _this._subView.selectAll("rect.stackRect").attr("x", function (d) {
                         return _this._fisheye_scale(d.x);
                     }).attr("width", function (d) {
@@ -318,7 +328,7 @@ var ManyLens;
                         width: newWidth,
                         fill: "#2A9CC8"
                     };
-                    //this._intervals.push(stackRect);
+                    this._intervals.push(stackRect);
                     //var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
                     //var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
                     //rect.transition()
@@ -371,7 +381,9 @@ var ManyLens;
                     this.doIt(date, 0);
                     if (this._stack_date.length * 20 > totalWidth) {
                         var scale = d3.scale.linear().domain([0, this._stack_date.length * 20]).range([0, totalWidth]);
-                        this._subView.selectAll("rect.stackDate").transition().attr("x", function (d) {
+                        this._subView.selectAll("rect.stackDate").filter(function (d) {
+                            return !d.isRemove;
+                        }).transition().attr("x", function (d) {
                             return scale(d.x);
                         }).attr("width", function (d) {
                             return scale(d.width);
@@ -555,12 +567,12 @@ var ManyLens;
                 }
             };
             Curve.prototype.ShrinkStackRect = function () {
-                if (this._subView)
+                if (this._subView) {
                     this._subView.selectAll("rect.stackRect").transition().attr("x", function (d) {
-                        return d.x;
-                    }).attr("width", function (d) {
-                        return d.width;
-                    });
+                        return 0;
+                    }).remove();
+                    this._subView.selectAll("rect.stackDate").style("visibility", "visible");
+                }
             };
             Curve.prototype.GetWeek = function (date) {
                 var onejan = new Date(date.getFullYear(), 0, 1);

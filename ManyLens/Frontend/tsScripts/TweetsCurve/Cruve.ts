@@ -56,7 +56,7 @@ module ManyLens {
             private _y_axis: D3.Selection;
             private _fisheye_scale: D3.FishEyeOrdinalScale = d3.fisheye.ordinal();
 
-            private _section_num: number = 15;
+            private _section_num: number = 50;
             private _view_height: number = 130;
             private _view_width: number;
             private _view_top_padding: number = 15;
@@ -155,12 +155,34 @@ module ManyLens {
                     .append("g")
                     .attr("id", "curve.subView")
                     .on("mousemove", () => {
-                        if(timer) clearTimeout(timer);
+                        if (timer) clearTimeout(timer);
+
+
                         var mouse = d3.mouse(this._subView.node());
                         this._fisheye_scale
                             .domain(this._intervals.map(function (d) { return d.x; }))
                             .focus(mouse[0])
                         ;
+
+                        if (this._subView.selectAll("rect.stackRect").empty()) {
+                            
+                            this._subView
+                                .selectAll("rect.stackRect").data(this._intervals)
+                                .enter().append("rect")
+                                .attr("x", function (d, i) { return d.x = i * 20; })
+                                .attr("y",0)
+                                .attr("width", 20)
+                                .attr("class","stackRect")
+                                .attr("height", this._view_height + this._view_top_padding)
+                                .style({
+                                    fill: "#2A9CC8",
+                                    stroke: "#fff",
+                                    "stroke-width": 0.5
+                                })
+                            ;
+                        }
+                        this._subView.selectAll("rect.stackDate").style("visibility", "hidden");
+
                         this._subView
                             .selectAll("rect.stackRect")
                             .attr("x", (d) => {
@@ -253,7 +275,7 @@ module ManyLens {
                         width: newWidth,
                         fill: "#2A9CC8"
                     }
-                    //this._intervals.push(stackRect);
+                    this._intervals.push(stackRect);
 
                     
                     //var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
@@ -311,7 +333,7 @@ module ManyLens {
                     this.doIt(date, 0);
                     if (this._stack_date.length * 20 > totalWidth) {
                         var scale = d3.scale.linear().domain([0, this._stack_date.length * 20]).range([0, totalWidth]);
-                        this._subView.selectAll("rect.stackDate")
+                        this._subView.selectAll("rect.stackDate").filter(function (d) { return !d.isRemove; })
                             .transition()
                             .attr("x", function (d) {
                                 return scale(d.x);
@@ -555,17 +577,26 @@ module ManyLens {
 
 
             private ShrinkStackRect() {
-                if (this._subView)
+                if (this._subView) {
                     this._subView
                         .selectAll("rect.stackRect")
                         .transition()
                         .attr("x", (d) => {
-                            return d.x
+                            return 0;
                         })
-                        .attr("width", (d) => {
-                            return d.width;
-                        })
+                        .remove()
+                    //.attr("x", (d) => {
+                    //    return d.x
+                    //})
+                    //.attr("width", (d) => {
+                    //    return d.width;
+                    //})
                     ;
+                    this._subView
+                        .selectAll("rect.stackDate")
+                        .style("visibility", "visible");
+
+                }
             }
 
             private GetWeek(date: Date):number {
@@ -604,7 +635,6 @@ module ManyLens {
                 }
 
                 var colorScale = d3.scale.linear().domain([0, 2]).range(["#2A9CC8", "#2574A9"]);
-
 
                 this._stack_date_right.push(newDate);
                 var tempStackDate: StackDate[] = [];
