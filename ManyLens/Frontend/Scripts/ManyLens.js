@@ -221,6 +221,7 @@ var ManyLens;
                 this._stackrect_width = 0;
                 this._stack_date_id_gen = 0;
                 this._stackdate_width = 0;
+                this._stack_bar_width = 15;
                 this._data = new Array();
                 this._intervals = new Array();
                 this._stack_date = new Array();
@@ -321,14 +322,11 @@ var ManyLens;
                 var _this = this;
                 //Refresh the stack rect view
                 if (this._data[0].type == 2 || this._data[0].type == 3) {
-                    var width = 0;
-                    var totalWidth = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
-                    var newWidth = 20;
+                    //var width: number = 0;
+                    //var totalWidth: number = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
                     var stackRect = {
                         id: this._data[0].beg,
                         x: 0,
-                        width: newWidth,
-                        fill: "#2A9CC8"
                     };
                     this._intervals.push(stackRect);
                     //var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
@@ -380,17 +378,7 @@ var ManyLens;
                     //The stack date
                     var date = this._time_formater.parse(stackRect.id);
                     this._stack_date_right = [];
-                    this.doIt(date, 0);
-                    if (this._stack_date.length * 20 > totalWidth) {
-                        var scale = d3.scale.linear().domain([0, this._stack_date.length * 20]).range([0, totalWidth]);
-                        this._subView.selectAll("rect.stackDate").filter(function (d) {
-                            return !d.isRemove;
-                        }).transition().attr("x", function (d) {
-                            return scale(d.x);
-                        }).attr("width", function (d) {
-                            return scale(d.width);
-                        });
-                    }
+                    this.doIt(date, 0, [stackRect]);
                 }
                 //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
@@ -589,7 +577,7 @@ var ManyLens;
                         callback.apply(this, arguments);
                 });
             };
-            Curve.prototype.doIt = function (date, depth) {
+            Curve.prototype.doIt = function (date, depth, intervals) {
                 var _this = this;
                 var num;
                 switch (depth) {
@@ -605,27 +593,26 @@ var ManyLens;
                     default:
                         num = -1;
                 }
-                var newWidth = 20;
                 var newDate = {
                     id: this.StackID,
                     type: depth,
                     num: num,
                     isRemove: false,
-                    width: newWidth,
-                    x: this._stack_date.length * newWidth,
-                    date: date
+                    width: this._stack_bar_width,
+                    x: this._stack_date.length * this._stack_bar_width,
+                    date: date,
+                    intervals: intervals
                 };
-                var colorScale = d3.scale.linear().domain([0, 2]).range(["#2A9CC8", "#2574A9"]);
+                var colorScale = d3.scale.ordinal().domain([0, 1, 2]).range(["#2A9CC8", "#2574A9", "#34495E"]);
                 this._stack_date_right.push(newDate);
-                var tempStackDate = [];
-                tempStackDate = tempStackDate.concat(this._stack_date, this._stack_date_right.reverse()).sort(function (a, b) {
+                var tempStackDate = [].concat(this._stack_date, this._stack_date_right.reverse()).sort(function (a, b) {
                     return (a.x > b.x) ? 1 : -1;
                 });
                 var stackDate = this._subView.selectAll("rect.stackDate").data(tempStackDate, function (d) {
                     return d.id;
                 });
                 stackDate.transition().attr("x", function (d, i) {
-                    d.x = i * newWidth;
+                    d.x = i * _this._stack_bar_width;
                     return d.x;
                 }).attr("width", function (d) {
                     return d.width;
@@ -665,6 +652,7 @@ var ManyLens;
                 if (lastDate) {
                     if (lastDate.type == newDate.type && lastDate.num != newDate.num) {
                         var newStack = [];
+                        newStack.push(lastDate);
                         while (this._stack_date.length > 0) {
                             var tempDate = this._stack_date.pop();
                             if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
@@ -675,12 +663,10 @@ var ManyLens;
                                 break;
                             }
                         }
-                        if (newStack.length > 0)
-                            lastDate.x = newStack[newStack.length - 1].x;
                         newStack.forEach(function (d) {
                             d.x = newStack[newStack.length - 1].x;
                         });
-                        this.doIt(lastDate.date, ++depth);
+                        this.doIt(lastDate.date, ++depth, newStack);
                     }
                     else {
                         this._stack_date.push(lastDate);

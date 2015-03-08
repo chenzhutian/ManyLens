@@ -26,10 +26,10 @@ module ManyLens {
         }
 
         interface StackRect {
-            width: number;
+            //width: number;
             id: string;
             x: number;
-            fill: string;
+            //fill: string;
         }
         interface StackDate {
             id: string;
@@ -74,6 +74,7 @@ module ManyLens {
             private _stack_date_right: Array<StackDate>;
             private _stack_date_id_gen: number = 0;
             private _stackdate_width: number = 0;
+            private _stack_bar_width: number = 15;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -267,15 +268,14 @@ module ManyLens {
 
                 //Refresh the stack rect view
                 if (this._data[0].type == 2 || this._data[0].type == 3) {
-                    var width: number = 0;
-                    var totalWidth: number = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
+                    //var width: number = 0;
+                    //var totalWidth: number = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
                     
-                    var newWidth: number = 20;
-                    var stackRect: StackRect = {
+                    var stackRect:StackRect = {
                         id: this._data[0].beg,
                         x: 0,
-                        width: newWidth,
-                        fill: "#2A9CC8"
+                        //width: this._stack_bar_width,
+                        //fill: "#2A9CC8"
                     }
                     this._intervals.push(stackRect);
 
@@ -332,19 +332,19 @@ module ManyLens {
                     //The stack date
                     var date = this._time_formater.parse(stackRect.id);
                     this._stack_date_right = [];
-                    this.doIt(date, 0);
-                    if (this._stack_date.length * 20 > totalWidth) {
-                        var scale = d3.scale.linear().domain([0, this._stack_date.length * 20]).range([0, totalWidth]);
-                        this._subView.selectAll("rect.stackDate").filter(function (d) { return !d.isRemove; })
-                            .transition()
-                            .attr("x", function (d) {
-                                return scale(d.x);
-                            })
-                            .attr("width", function (d) {
-                                return scale(d.width);
-                            })
-                        ;
-                    }
+                    this.doIt(date, 0,[stackRect]);
+                    //if (this._stack_date.length * 20 > totalWidth) {
+                    //    var scale = d3.scale.linear().domain([0, this._stack_date.length * 20]).range([0, totalWidth]);
+                    //    this._subView.selectAll("rect.stackDate").filter(function (d) { return !d.isRemove; })
+                    //        .transition()
+                    //        .attr("x", function (d) {
+                    //            return scale(d.x);
+                    //        })
+                    //        .attr("width", function (d) {
+                    //            return scale(d.width);
+                    //        })
+                    //    ;
+                    //}
 
                 }
 
@@ -616,7 +616,7 @@ module ManyLens {
                     }); 
             }
 
-            private doIt(date: Date, depth: number) {
+            private doIt(date: Date, depth: number,intervals:Array<StackRect>) {
                 var num;
                 switch (depth) {
                     case 0: num = date.getDay(); break;
@@ -625,28 +625,28 @@ module ManyLens {
                     default: num = -1;
                 }
 
-                var newWidth: number = 20;
                 var newDate: StackDate = {
                     id: this.StackID,
                     type: depth,
                     num: num,
                     isRemove: false,
-                    width:newWidth,
-                    x:this._stack_date.length  * newWidth,
-                    date: date
+                    width:this._stack_bar_width,
+                    x:this._stack_date.length  * this._stack_bar_width,
+                    date: date,
+                    intervals:intervals
                 }
 
-                var colorScale = d3.scale.linear().domain([0, 2]).range(["#2A9CC8", "#2574A9"]);
+                var colorScale = d3.scale.ordinal().domain([0, 1, 2])
+                    .range(["#2A9CC8", "#2574A9","#34495E"]);
 
                 this._stack_date_right.push(newDate);
-                var tempStackDate: StackDate[] = [];
-                tempStackDate = tempStackDate.concat(this._stack_date, this._stack_date_right.reverse()).sort(function (a, b) { return (a.x > b.x) ? 1 : -1; });
+                var tempStackDate: StackDate[] = [].concat(this._stack_date, this._stack_date_right.reverse()).sort(function (a, b) { return (a.x > b.x) ? 1 : -1; });
                 var stackDate = this._subView.selectAll("rect.stackDate").data(tempStackDate, function (d) { return d.id; });
 
                 stackDate
                     .transition()
                     .attr("x", (d, i) => {
-                        d.x = i * newWidth;
+                        d.x = i * this._stack_bar_width
                         return d.x;
                     })      
                     .attr("width", (d) => {
@@ -703,6 +703,7 @@ module ManyLens {
                 if (lastDate) {
                     if (lastDate.type == newDate.type && lastDate.num != newDate.num) {
                         var newStack = [];
+                        newStack.push(lastDate);
                         while (this._stack_date.length > 0) {
                             var tempDate = this._stack_date.pop();
                             if (tempDate.type == lastDate.type && tempDate.num == lastDate.num) {
@@ -713,13 +714,11 @@ module ManyLens {
                             }
                         }
 
-                        if (newStack.length > 0)
-                            lastDate.x = newStack[newStack.length - 1].x;
                         newStack.forEach((d) => {
                             d.x = newStack[newStack.length - 1].x;
                         });
 
-                        this.doIt(lastDate.date, ++depth);
+                        this.doIt(lastDate.date, ++depth,newStack);
                     } else {
                         this._stack_date.push(lastDate);
                     }
