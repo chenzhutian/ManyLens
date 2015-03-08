@@ -1,4 +1,5 @@
-﻿module ManyLens {
+﻿
+module ManyLens {
 
     export module Navigation {
 
@@ -18,6 +19,7 @@
             /*-----------------Data menu-----------------*/
             private _isLoaded: boolean = false;
             private _launchDataBtn: D3.Selection;
+            private _reorganizeIntervalBtn: JQuery;
 
             /*--------------Attribute menu---------------*/
             private _brand: D3.Selection;
@@ -33,7 +35,12 @@
                 this._brand_name = brandName;
                 this._map_Svg = mapSvg;
 
-                this._launchDataBtn = this._element.append("button")
+                this._reorganizeIntervalBtn = $("#intervals-organize-switch")
+                .on("switchChange.bootstrapSwitch",  (event,state)=> {
+                    this._manyLens.ManyLensHubServerReOrganizePeak(state);
+                });
+
+                this._launchDataBtn = this._element.select("#curve-btns").append("button")
                     .attr({
                         type: "button",
                         class: "btn btn-primary btn-block disabled"

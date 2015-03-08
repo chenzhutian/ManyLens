@@ -318,6 +318,133 @@ namespace ManyLens.SignalR
             });
         }
 
+        public async Task ReOrganizePeak(bool state) 
+        {
+            await Task.Run(() => {
+                if (state)
+                {
+
+                }
+                else
+                {
+                    //Generate the new big vector
+                    Interval[] ia = interals.Values.ToArray();
+                    Dictionary<string, int> bigIdofWords = new Dictionary<string, int>();
+                    int dimension = 0;
+                    for (int i = 0, len = ia.Length; i < len; ++i)
+                    {
+                        Interval interval = ia[i];
+                        foreach (KeyValuePair<string, int> item in interval.Vocabulary.IdOfWords)
+                        {
+                            if (!bigIdofWords.ContainsKey(item.Key))
+                            {
+                                bigIdofWords.Add(item.Key, dimension++);
+                            }
+                        }
+                    }
+                    List<float[]> bigIntervalVectors = new List<float[]>();
+                    for (int i = 0, len = ia.Length; i < len; ++i)
+                    {
+                        Interval interval = ia[i];
+                        float[] tempVector = new float[dimension];
+                        for (int j = 0; j < dimension; ++j)
+                        {
+                            tempVector[j] = 0;
+                        }
+                        foreach (KeyValuePair<string, int> item in interval.Vocabulary.IdOfWords)
+                        {
+                            string word = item.Key;
+                            int index = item.Value;
+                            int newIndex = bigIdofWords[word];
+                            tempVector[newIndex] = interval.IntervalVector[index];
+                        }
+                        bigIntervalVectors.Add(tempVector);
+                    }
+
+
+                    int seedsNum = 3;
+                    List<float[]> seeds = new List<float[]>(seedsNum);
+                    
+                    //Random select the seeds
+                    List<int> seedsIndex = new List<int>(seedsNum);
+                    List<List<Interval>> intervalsInGroups = new List<List<Interval>>();
+                    for (int i = 0; i < seedsNum; ++i)
+                    {
+                        int index = rnd.Next(interals.Count);
+                        while (seedsIndex.Contains(index))
+                        {
+                            index = rnd.Next(interals.Count);
+                        }
+                        seedsIndex.Add(index);
+                        seeds.Add(ia[index].IntervalVector);
+                        intervalsInGroups.Add(new List<Interval>());
+                    }
+
+                    while(true)
+                    {
+                        //classify the intervals
+                        for (int i = 0, len = ia.Length; i < len; ++i)
+                        {
+                            double minDist = double.MaxValue;
+                            int minIndex = -1;
+                            for (int j = 0; j < seedsNum; ++j)
+                            {
+                                double dist = Distance(seeds[j], ia[i].IntervalVector);
+                                if (dist < minDist)
+                                {
+                                    minDist = dist;
+                                    minIndex = j;
+                                }
+                            }
+                            intervalsInGroups[minIndex].Add(ia[i]);
+                        }
+
+                        //update each seed and clear the store group;
+                        for (int i = 0; i < seedsNum; ++i)
+                        {
+                            float[] seedVector = new float[dimenstion];
+                            for (int j = 0, lenj = dimenstion; j < lenj; ++j)
+                            {
+                                seedVector[j] = 0;
+                            }
+
+                            List<Interval> groupIntervals = intervalsInGroups[i];
+                            for (int j = 0, lenj = groupIntervals.Count; j < lenj; ++j)
+                            {
+                                for (int k = 0, lenk = dimenstion; k < lenk; ++k)
+                                {
+                                    seedVector[k] += groupIntervals[j].IntervalVector[k];
+                                }
+                            }
+
+                            for (int j = 0, lenj = dimenstion; j < lenj; ++j)
+                            {
+                                seedVector[j] /= groupIntervals.Count;
+                            }
+
+                            seeds[i] = seedVector;
+                            intervalsInGroups[i] = new List<Interval>();
+                        }
+                    }
+                }
+            
+            });
+
+        }
+
+        public static double Distance(float[] a, float[] b)
+        {
+            if (a.Length != b.Length)
+                return -1;
+            double dist = 0;
+            for (int i = 0, len = a.Length; i < len; ++i)
+            { 
+                double dx = a[i] - b[i];
+                dist += dx * dx;
+            }
+            return Math.Sqrt(dist);
+        }
+
         public async Task PullInterval(string interalID, IProgress<double> progress)
         {
             VisMap visMap;

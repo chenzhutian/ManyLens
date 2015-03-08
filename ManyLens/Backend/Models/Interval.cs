@@ -14,6 +14,7 @@ namespace ManyLens.Models
         private DateTime beginDate;
         private DateTime endDate;
         private float[] rmMatrix;
+        private float[] intervalVector;
 
         private bool isPackage = false;
         private bool hasVectorized = false;
@@ -26,6 +27,7 @@ namespace ManyLens.Models
         private Interval package;
         private Interval lastInterval = null;
         private double HXY = -1;
+
         #region Getter & Setter
         public string ID
         {
@@ -134,6 +136,45 @@ namespace ManyLens.Models
                     }
                 }
                 return this.tfidfVectors;
+            }
+        }
+        public float[] IntervalVector
+        {
+            get
+            {
+                int t = 5;
+                while (--t >= 0 && !this.HasVectorized) 
+                {
+                    Thread.Sleep(500);
+                }
+
+                if (!this.HasVectorized)
+                {
+                    return null;
+                }
+
+                if (this.intervalVector == null)
+                {
+                    this.intervalVector = new float[this.TFIDFVectors[0].Length];
+                    for (int i = 0, len = this.intervalVector.Length; i < len; ++i)
+                    {
+                        this.intervalVector[i] = 0;
+                    }
+                    for (int i = 0, len = this.TFIDFVectors.Count; i < len; ++i)
+                    {
+                        float[] tempVector = this.TFIDFVectors[i];
+                        for (int j = 0, lenj = tempVector.Length; j < lenj; ++j)
+                        {
+                            this.intervalVector[j] += tempVector[j];
+                        }
+                    }
+                    for (int i = 0, len = this.intervalVector.Length; i < len; ++i)
+                    {
+                        this.intervalVector[i] /= this.TFIDFVectors.Count;
+                    }
+
+                }
+                return this.intervalVector;
             }
         }
         public double Entropy

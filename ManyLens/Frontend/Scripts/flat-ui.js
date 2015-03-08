@@ -6588,7 +6588,7 @@ if (typeof jQuery === 'undefined') { throw new Error('Bootstrap\'s JavaScript re
               return _this.$element.trigger("focus.bootstrapSwitch");
             };
           })(this),
-          "mouseup.bootstrapSwitch touchend.bootstrapSwitch": (function(_this) {
+          "mouseup.bootstrapSwitch touchend.bootstrapSwitch": (function (_this) {
             return function(e) {
               if (!_this.isLabelDragging) {
                 return;

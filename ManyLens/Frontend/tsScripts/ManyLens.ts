@@ -7,7 +7,7 @@
 module ManyLens {
 
     export class ManyLens {
-        public static TestMode: boolean = true;
+        public static TestMode: boolean = false;
 
         private _manyLens_hub: Hub.ManyLensHub;
 
@@ -132,6 +132,15 @@ module ManyLens {
             //this._manyLens_hub.client[funcName] = function () {
             //    func.apply(registerObj, arguments);
             //}
+        }
+
+        public ManyLensHubServerReOrganizePeak(state: boolean): Hub.IPromise<void> {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("reOrganizePeak", state);
+
         }
 
         public ManyLensHubServerPullPoint(start: string): Hub.IPromise<void> {

@@ -90,5 +90,18 @@ namespace ManyLens.Models
                 return -1;
             return this.DfOfWords[word];
         }
+
+        public Dictionary<int, int> MapTo(Vocabulary v)
+        {
+            Dictionary<int, int> map = new Dictionary<int, int>();
+            foreach (KeyValuePair<string, int> item in idOfWords)
+            {
+                string word = item.Key;
+                int idInMe = item.Value;
+                int idInHim = v.IdOfWords[word];
+                map.Add(idInMe, idInHim);
+            }
+            return map;
+        }
     }
 }
