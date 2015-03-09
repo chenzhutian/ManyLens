@@ -25,10 +25,11 @@ namespace ManyLens.Models
                 this.sparseVector = value;
             }
         }
-        public Vocabulary Vocabulary
+        public virtual Vocabulary Vocabulary
         {
             get
             {
+
                 return this.vocabulary;
             }
             set

@@ -320,6 +320,7 @@ namespace ManyLens.SignalR
 
         public async Task ReOrganizePeak(bool state) 
         {
+            List<List<float[]>> intervalsInGroups = null;
             await Task.Run(() => {
                 if (state)
                 {
@@ -343,6 +344,7 @@ namespace ManyLens.SignalR
                         }
                     }
                     List<float[]> bigIntervalVectors = new List<float[]>();
+                    List<int> intervalsGroup = new List<int>();
                     for (int i = 0, len = ia.Length; i < len; ++i)
                     {
                         Interval interval = ia[i];
@@ -359,15 +361,15 @@ namespace ManyLens.SignalR
                             tempVector[newIndex] = interval.IntervalVector[index];
                         }
                         bigIntervalVectors.Add(tempVector);
+                        intervalsGroup.Add(-1);
                     }
-
 
                     int seedsNum = 3;
                     List<float[]> seeds = new List<float[]>(seedsNum);
                     
                     //Random select the seeds
                     List<int> seedsIndex = new List<int>(seedsNum);
-                    List<List<float[]>> intervalsInGroups = new List<List<float[]>>();
+                    intervalsInGroups = new List<List<float[]>>();
                     for (int i = 0; i < seedsNum; ++i)
                     {
                         int index = rnd.Next(interals.Count);
@@ -380,8 +382,15 @@ namespace ManyLens.SignalR
                         intervalsInGroups.Add(new List<float[]>());
                     }
 
-                    while(true)
+                    int changeGroupNum = int.MaxValue;
+                    while(changeGroupNum >0 )
                     {
+                        changeGroupNum = 0;
+                        for (int i = 0; i < seedsNum; ++i)
+                        {
+                            intervalsInGroups[i] = new List<float[]>();
+                        }
+
                         //classify the intervals
                         for (int i = 0, len = ia.Length; i < len; ++i)
                         {
@@ -397,6 +406,11 @@ namespace ManyLens.SignalR
                                 }
                             }
                             intervalsInGroups[minIndex].Add(bigIntervalVectors[i]);
+                            if (intervalsGroup[i] != minIndex)
+                            {
+                                intervalsGroup[i] = minIndex;
+                                changeGroupNum++;
+                            }
                         }
 
                         //update each seed and clear the store group;
@@ -421,14 +435,16 @@ namespace ManyLens.SignalR
                             {
                                 seedVector[j] /= groupIntervals.Count;
                             }
-
                             seeds[i] = seedVector;
-                            intervalsInGroups[i] = new List<float[]>();
                         }
                     }
+
+                    
+                    Clients.Caller.clusterInterval(intervalsGroup);
                 }
-            
+                
             });
+            
 
         }
 

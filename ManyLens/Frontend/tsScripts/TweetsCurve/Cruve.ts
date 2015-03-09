@@ -56,14 +56,14 @@ module ManyLens {
             private _y_axis: D3.Selection;
             private _fisheye_scale: D3.FishEyeOrdinalScale = d3.fisheye.ordinal();
 
-            private _section_num: number = 50;
+            private _section_num: number = 70;
             private _view_height: number = 130;
             private _view_width: number;
             private _view_top_padding: number = 15;
             private _view_botton_padding: number = 5;
             private _view_left_padding: number = 50;
             private _view_right_padding: number = 50;
-            private _coordinate_margin_left: number = 150;
+            private _coordinate_margin_left: number = 1000;
 
             private _intervals: Array<StackRect>;
             protected _data: Array<Point>;
@@ -126,6 +126,7 @@ module ManyLens {
 
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "clusterInterval", this.ClusterInterval);
             }
 
 
@@ -726,6 +727,10 @@ module ManyLens {
 
                 this._stack_date.push(newDate);
 
+            }
+
+            private ClusterInterval(intervalsInGroups:any): void {
+                console.log(intervalsInGroups);
             }
         }
     }

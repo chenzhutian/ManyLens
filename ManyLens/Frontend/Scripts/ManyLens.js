@@ -216,13 +216,13 @@ var ManyLens;
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
                 this._fisheye_scale = d3.fisheye.ordinal();
-                this._section_num = 50;
+                this._section_num = 70;
                 this._view_height = 130;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._coordinate_margin_left = 150;
+                this._coordinate_margin_left = 1000;
                 this._stackrect_width = 0;
                 this._stack_date_id_gen = 0;
                 this._stackdate_width = 0;
@@ -239,6 +239,7 @@ var ManyLens;
                 this._time_formater = d3.time.format("%Y%m%d%H%M%S");
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "clusterInterval", this.ClusterInterval);
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
                 get: function () {
@@ -677,6 +678,9 @@ var ManyLens;
                     }
                 }
                 this._stack_date.push(newDate);
+            };
+            Curve.prototype.ClusterInterval = function (intervalsInGroups) {
+                console.log(intervalsInGroups);
             };
             return Curve;
         })(ManyLens.D3ChartObject);

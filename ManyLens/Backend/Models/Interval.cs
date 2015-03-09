@@ -230,6 +230,28 @@ namespace ManyLens.Models
                 return this.conditionalEntropy;
             }
         }
+        public override Vocabulary Vocabulary
+        {
+            get
+            {
+                int t = 5;
+                while (--t >= 0 && !this.HasVectorized)
+                {
+                    Thread.Sleep(500);
+                }
+
+                if (!this.HasVectorized)
+                {
+                    return null;
+                }
+	
+                return base.Vocabulary;
+            }
+            set
+            {
+                base.Vocabulary = value;
+            }
+        }
         #endregion
 
         public Interval(List<Tweet> tweets, int termsCount)
