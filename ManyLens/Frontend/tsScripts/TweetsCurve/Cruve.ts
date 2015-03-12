@@ -63,7 +63,7 @@ module ManyLens {
             private _view_botton_padding: number = 5;
             private _view_left_padding: number = 50;
             private _view_right_padding: number = 50;
-            private _coordinate_margin_left: number = 1000;
+            private _coordinate_margin_left: number = 200;
 
             private _intervals: Array<StackRect>;
             protected _data: Array<Point>;

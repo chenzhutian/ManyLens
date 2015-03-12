@@ -222,7 +222,7 @@ var ManyLens;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._coordinate_margin_left = 1000;
+                this._coordinate_margin_left = 200;
                 this._stackrect_width = 0;
                 this._stack_date_id_gen = 0;
                 this._stackdate_width = 0;
