@@ -639,7 +639,16 @@ var ManyLens;
                 this._stack_date.push(newDate);
             };
             Curve.prototype.ClusterInterval = function (intervalsInGroups) {
+                var _this = this;
                 console.log(intervalsInGroups);
+                var groups = new Map();
+                intervalsInGroups.forEach(function (d, i) {
+                    if (!groups.has(d)) {
+                        groups.set(d, []);
+                    }
+                    groups.get(d).push(_this._intervals[i]);
+                });
+                console.log(groups);
             };
             return Curve;
         })(ManyLens.D3ChartObject);

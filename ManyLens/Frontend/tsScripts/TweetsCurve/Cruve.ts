@@ -659,8 +659,17 @@ module ManyLens {
 
             }
 
-            private ClusterInterval(intervalsInGroups:any): void {
+            private ClusterInterval(intervalsInGroups:any[]): void {
                 console.log(intervalsInGroups);
+                var groups: Map<number, StackRect[]> = new Map<number,StackDate[]>();
+                intervalsInGroups.forEach((d,i) => {
+                    if (!groups.has(d)) {
+                       
+                        groups.set(d, []);
+                    }
+                    groups.get(d).push(this._intervals[i]);
+                });
+                console.log(groups);
             }
         }
     }
