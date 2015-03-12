@@ -1127,6 +1127,9 @@ interface JQueryStatic {
  * The jQuery instance members
  */
 interface JQuery {
+    bootstrapSwitch(...args):any;
+
+
     /**
      * Register a handler to be called when Ajax requests complete. This is an AjaxEvent.
      *

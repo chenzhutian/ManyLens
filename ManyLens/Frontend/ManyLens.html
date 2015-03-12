@@ -63,9 +63,8 @@
 
         <div class="nav-side-menu" id="sidebar-nav">
             <div id="curve-btns" style="text-align:center">
-                <input id="intervals-organize-switch" type="checkbox" checked data-toggle="switch" data-on-color="info" data-off-color="danger" data-on-text="Time" data-off-text="Text" />
-            </div>
-
+                <input id="intervals-organize-switch" type="checkbox" checked data-on-color="info" data-off-color="danger" data-on-text="Time" data-off-text="Content" />
+             </div>
         </div>
 
         <div class="container-fluid row-11" id="page-content">
@@ -180,10 +179,6 @@
 
             </div>
 
-
-
-
-
         </div><!--container-->
 
     </div>
@@ -195,9 +190,9 @@
     <script src="Scripts/ManyLens.js" type="text/javascript"></script>
     <script>
         // Switches
-        if ($('[data-toggle="switch"]').length) {
-            $('[data-toggle="switch"]').bootstrapSwitch();
-        }
+
+        $("#intervals-organize-switch").bootstrapSwitch("disabled",true);
+
 
     </script>
 </body>

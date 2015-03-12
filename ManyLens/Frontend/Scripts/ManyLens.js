@@ -48,6 +48,7 @@ var ManyLens;
                 });
                 this._brand = this._element.append("div").attr("class", "nav-brand").text(this._brand_name);
                 this._menu_list = this._element.append("div").attr("class", "menu-list").append("ul").attr("id", "side-menu-content").attr("class", "menu-content");
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
             }
             SideBarNavigation.prototype.DemoData = function () {
                 var data = {
@@ -161,6 +162,9 @@ var ManyLens;
                 this._isLoaded = true;
                 this._launchDataBtn.classed("disabled", false);
             };
+            SideBarNavigation.prototype.EnableReorganizeIntervalBtn = function () {
+                this._reorganizeIntervalBtn.bootstrapSwitch("disabled", false);
+            };
             SideBarNavigation.prototype.PullData = function () {
                 var _this = this;
                 if (ManyLens.ManyLens.TestMode) {
@@ -216,7 +220,7 @@ var ManyLens;
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
                 this._fisheye_scale = d3.fisheye.ordinal();
-                this._section_num = 70;
+                this._section_num = 50;
                 this._view_height = 130;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
@@ -328,62 +332,13 @@ var ManyLens;
                 var _this = this;
                 //Refresh the stack rect view
                 if (this._data[0].type == 2 || this._data[0].type == 3) {
-                    //var width: number = 0;
-                    //var totalWidth: number = 0.6 * (this._coordinate_margin_left + this._view_left_padding);
                     var stackRect = {
                         id: this._data[0].beg,
                         x: 0,
                     };
                     this._intervals.push(stackRect);
-                    //var colorScale = d3.scale.linear().domain([0, this._intervals.length]).range(["#2574A9", "#2A9CC8"]);
-                    //var rect = this._subView.selectAll("rect.stackRect").data(this._intervals);
-                    //rect.transition()
-                    //    .attr("width", (d, i) => {
-                    //        if (this._stackrect_width > totalWidth)
-                    //            d.width = scale(d.width);
-                    //        width += d.width;
-                    //        return d.width;
-                    //    })
-                    //    .attr("x", (d, i) => {
-                    //        if (this._stackrect_width > totalWidth)
-                    //            d.x = scale(d.x);
-                    //        return d.x;
-                    //    })
-                    //    .style("fill", (d, i) => {
-                    //        if (this._stackrect_width > totalWidth)
-                    //            d.fill = colorScale(i);
-                    //        return d.fill;
-                    //    })
-                    //;
-                    //this._stackrect_width = width;
-                    //rect.enter().append("rect")
-                    //    .attr("class", "stackRect")
-                    //    .attr({
-                    //        x: this._coordinate_margin_left + this._view_left_padding,
-                    //        y:0
-                    //    })
-                    //    .attr("width", (d) => {
-                    //        width += d.width;
-                    //        return d.width;
-                    //    })
-                    //    .attr("height", this._view_height + this._view_top_padding)
-                    //    .style("fill", (d) => {
-                    //        return d.fill;
-                    //    })
-                    //    .style({
-                    //        stroke: "#fff",
-                    //        "stroke-width": 0.5
-                    //    })
-                    //    .transition()
-                    //    .attr("x", (d, i) => {
-                    //        return d.x = this._stackrect_width;
-                    //    })
-                    //;
-                    //rect.exit().remove();
-                    //this._stackrect_width = width;
                     //The stack date
                     var date = this._time_formater.parse(stackRect.id);
-                    this._stack_date_right = [];
                     this.doIt(date, 0, [stackRect]);
                 }
                 //Refresh the curve view
@@ -574,21 +529,25 @@ var ManyLens;
                 var onejan = new Date(date.getFullYear(), 0, 1);
                 return Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
             };
-            Curve.prototype.EndAll = function (transition, callback) {
-                var n = 0;
-                transition.each(function () {
-                    ++n;
-                }).each("end", function () {
-                    if (!--n)
-                        callback.apply(this, arguments);
-                });
-            };
-            Curve.prototype.doIt = function (date, depth, intervals) {
+            //private EndAll(transition: D3.Transition.Transition, callback: (...args: any[]) => any) {
+            //    var n = 0;
+            //    transition
+            //        .each(function () { ++n; })
+            //        .each("end", function () {
+            //            if (!--n)
+            //                callback.apply(this, arguments);
+            //        }); 
+            //}
+            Curve.prototype.doIt = function (date, depth, intervals, stack_date_right) {
                 var _this = this;
+                if (stack_date_right === void 0) { stack_date_right = null; }
                 var num;
                 switch (depth) {
                     case 0:
-                        num = date.getDay();
+                        {
+                            num = date.getDay();
+                            stack_date_right = new Array();
+                        }
                         break;
                     case 1:
                         num = this.GetWeek(date);
@@ -609,8 +568,8 @@ var ManyLens;
                     intervals: intervals
                 };
                 var colorScale = d3.scale.ordinal().domain([0, 1, 2]).range(["#2A9CC8", "#2574A9", "#34495E"]);
-                this._stack_date_right.push(newDate);
-                var tempStackDate = [].concat(this._stack_date, this._stack_date_right.reverse()).sort(function (a, b) {
+                stack_date_right.push(newDate);
+                var tempStackDate = [].concat(this._stack_date, stack_date_right.reverse()).sort(function (a, b) {
                     return (a.x > b.x) ? 1 : -1;
                 });
                 var stackDate = this._subView.selectAll("rect.stackDate").data(tempStackDate, function (d) {
@@ -671,7 +630,7 @@ var ManyLens;
                         newStack.forEach(function (d) {
                             d.x = newStack[newStack.length - 1].x;
                         });
-                        this.doIt(lastDate.date, ++depth, newStack);
+                        this.doIt(lastDate.date, ++depth, newStack, stack_date_right);
                     }
                     else {
                         this._stack_date.push(lastDate);

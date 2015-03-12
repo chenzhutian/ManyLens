@@ -66,6 +66,7 @@ module ManyLens {
                     .attr("id", "side-menu-content")
                     .attr("class", "menu-content")
                 ;
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
             }
 
             private DemoData(): MenuListData {
@@ -198,6 +199,10 @@ module ManyLens {
             public FinishLoadData() {
                 this._isLoaded = true;
                 this._launchDataBtn.classed("disabled", false);
+            }
+
+            private EnableReorganizeIntervalBtn(): void {
+                this._reorganizeIntervalBtn.bootstrapSwitch("disabled", false);
             }
 
             private PullData(): void {

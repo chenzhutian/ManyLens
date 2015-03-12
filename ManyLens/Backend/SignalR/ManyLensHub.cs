@@ -51,9 +51,8 @@ namespace ManyLens.SignalR
 
         }
 
-
-        private static List<Interval> taskList = new List<Interval>();
-        private static void PreprocesInterval()
+        private List<Interval> taskList = new List<Interval>();
+        private void PreprocesInterval()
         {
             while (taskList.Count > 0)
             {
@@ -61,20 +60,24 @@ namespace ManyLens.SignalR
                 Debug.WriteLine("TID　of this DOLONGRUN is " + Thread.CurrentThread.ManagedThreadId);
                 Debug.WriteLine("ON interval " + interval.ID);
                 IProgress<double> p = new Progress<double>();
-                interval.Preproccessing(p);
+                interval.PreproccessingParallel(p);
                 Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
                 Debug.WriteLine("Entropy of " + interval.ID + " is " + interval.Entropy);
                 taskList.RemoveAt(0);
             }
+            Clients.Caller.enableReorganizeIntervalBtn();
         }
-        private static Task task = new Task(PreprocesInterval);
-        private static void LazyThreadForConditionalEntropy(Interval interval)
+        private Task task = null ;
+        private void LazyThreadForConditionalEntropy(Interval interval)
         {
 
             taskList.Add(interval);
-            if (task.Status == TaskStatus.Created)
+            if (task == null)
+            {
+                task = new Task(PreprocesInterval);
                 task.Start();
-            if (task.IsCompleted)
+            }
+            else if (task.IsCompleted)
             {
                 task = new Task(PreprocesInterval);
                 task.Start();
