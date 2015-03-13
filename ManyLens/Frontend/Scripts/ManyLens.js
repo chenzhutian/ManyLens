@@ -270,7 +270,6 @@ var ManyLens;
                 configurable: true
             });
             Curve.prototype.Render = function () {
-                var _this = this;
                 _super.prototype.Render.call(this, null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
@@ -281,9 +280,9 @@ var ManyLens;
                 this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").on("mouseenter", function () {
                     clearTimeout(timer);
                 }).on("mouseleave", function () {
-                    timer = setTimeout(function () {
-                        _this.ShrinkStackRect();
-                    }, 1000);
+                    //timer = setTimeout(() => {
+                    //    this.ShrinkStackRect();
+                    //} , 1000);
                 });
                 this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
@@ -706,19 +705,31 @@ var ManyLens;
                 }).transition().attr("x", function (p) {
                     return p.x + (data.length - 1) * _this._stack_bar_width;
                 });
-                this._subView.on("mousemove", function () {
-                    var mouse = d3.mouse(_this._subView.node());
-                    _this._fisheye_scale.domain(d3.selectAll("rect.stack")[0].map(function (d) {
-                        if (d3.select(d).style("visibility") != "hidden")
-                            return +d3.select(d).attr("x");
-                    })).focus(mouse[0]);
-                    _this._subView.selectAll("rect.stack").filter(function () {
-                        return d3.select(this).style("visibility") != "hidden";
-                    }).attr("x", function (d) {
-                        if (_this._fisheye_scale(d.x))
-                            return _this._fisheye_scale(d.x);
-                    });
-                });
+                //this._subView.on("mousemove",() => {
+                //    var mouse = d3.mouse(this._subView.node());
+                //    var data = [];
+                //    d3.selectAll("rect.stack").attr("x",function (d,i) {
+                //        if (d3.select(this).style("visibility") != "hidden") {
+                //            data.push(d.x);
+                //        }
+                //    });
+                //    this._fisheye_scale
+                //        .domain(data)
+                //        .focus(mouse[0])
+                //    ;
+                //    this._subView
+                //        .selectAll("rect.stack").filter(function () { return d3.select(this).style("visibility") != "hidden";})
+                //        .attr("x",(d) => {
+                //            if (this._fisheye_scale(d.x))
+                //                return this._fisheye_scale(d.x);
+                //        })
+                //        .attr("width",(d) => {
+                //            if (this._fisheye_scale.rangeBand(d.x))
+                //                return this._fisheye_scale.rangeBand(d.x);
+                //        })
+                //    ;
+                //})
+                //;
             };
             return Curve;
         })(ManyLens.D3ChartObject);

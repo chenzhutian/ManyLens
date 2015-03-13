@@ -164,9 +164,9 @@ module ManyLens {
                         clearTimeout(timer);
                     })
                     .on("mouseleave", () => {
-                        timer = setTimeout(() => {
-                            this.ShrinkStackRect();
-                        } , 1000);
+                        //timer = setTimeout(() => {
+                        //    this.ShrinkStackRect();
+                        //} , 1000);
                     })
                 ;
 
@@ -758,30 +758,33 @@ module ManyLens {
                     })
                 ;
 
-                this._subView.on("mousemove",() => {
-                    var mouse = d3.mouse(this._subView.node());
-                    this._fisheye_scale
-                        .domain(d3.selectAll("rect.stack")[0]
-                        .map(function (d) {
-                            if (d3.select(d).style("visibility") != "hidden")
-                            return +d3.select(d).attr("x");
-                        }))
-                        .focus(mouse[0])
-                    ;
+                //this._subView.on("mousemove",() => {
+                //    var mouse = d3.mouse(this._subView.node());
+                //    var data = [];
+                //    d3.selectAll("rect.stack").attr("x",function (d,i) {
+                //        if (d3.select(this).style("visibility") != "hidden") {
+                //            data.push(d.x);
+                //        }
+                //    });
 
-                    this._subView
-                        .selectAll("rect.stack").filter(function () { return d3.select(this).style("visibility") != "hidden";})
-                        .attr("x",(d) => {
-                            if (this._fisheye_scale(d.x))
-                                return this._fisheye_scale(d.x);
-                        })
-                        //.attr("width",(d) => {
-                        //    if (this._fisheye_scale.rangeBand(d.x))
-                        //        return this._fisheye_scale.rangeBand(d.x);
-                        //})
-                    ;
-                })
-                ;
+                //    this._fisheye_scale
+                //        .domain(data)
+                //        .focus(mouse[0])
+                //    ;
+
+                //    this._subView
+                //        .selectAll("rect.stack").filter(function () { return d3.select(this).style("visibility") != "hidden";})
+                //        .attr("x",(d) => {
+                //            if (this._fisheye_scale(d.x))
+                //                return this._fisheye_scale(d.x);
+                //        })
+                //        .attr("width",(d) => {
+                //            if (this._fisheye_scale.rangeBand(d.x))
+                //                return this._fisheye_scale.rangeBand(d.x);
+                //        })
+                //    ;
+                //})
+                //;
 
 
 
