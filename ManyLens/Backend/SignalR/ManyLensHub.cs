@@ -56,11 +56,12 @@ namespace ManyLens.SignalR
         {
             while (taskList.Count > 0)
             {
+
                 Interval interval = taskList[0];
                 Debug.WriteLine("TID　of this DOLONGRUN is " + Thread.CurrentThread.ManagedThreadId);
                 Debug.WriteLine("ON interval " + interval.ID);
                 IProgress<double> p = new Progress<double>();
-                interval.PreproccessingParallel(p);
+                interval.Preproccessing(p);
                 Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
                 Debug.WriteLine("Entropy of " + interval.ID + " is " + interval.Entropy);
                 taskList.RemoveAt(0);
@@ -80,7 +81,9 @@ namespace ManyLens.SignalR
             else if (task.IsCompleted)
             {
                 task = new Task(PreprocesInterval);
+                Clients.Caller.disableReorganizeIntervalBtn();
                 task.Start();
+                
             }
         }
 
@@ -327,7 +330,7 @@ namespace ManyLens.SignalR
             await Task.Run(() => {
                 if (state)
                 {
-
+                    Clients.Caller.timeInterval();
                 }
                 else
                 {

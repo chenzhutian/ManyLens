@@ -49,6 +49,7 @@ var ManyLens;
                 this._brand = this._element.append("div").attr("class", "nav-brand").text(this._brand_name);
                 this._menu_list = this._element.append("div").attr("class", "menu-list").append("ul").attr("id", "side-menu-content").attr("class", "menu-content");
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
             }
             SideBarNavigation.prototype.DemoData = function () {
                 var data = {
@@ -165,6 +166,9 @@ var ManyLens;
             SideBarNavigation.prototype.EnableReorganizeIntervalBtn = function () {
                 this._reorganizeIntervalBtn.bootstrapSwitch("disabled", false);
             };
+            SideBarNavigation.prototype.DisableReorganizeIntervalBtn = function () {
+                this._reorganizeIntervalBtn.bootstrapSwitch("disabled", true);
+            };
             SideBarNavigation.prototype.PullData = function () {
                 var _this = this;
                 if (ManyLens.ManyLens.TestMode) {
@@ -244,6 +248,7 @@ var ManyLens;
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "clusterInterval", this.ClusterInterval);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "timeInterval", this.TimeInterval);
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
                 get: function () {
@@ -273,34 +278,12 @@ var ManyLens;
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "stackRectClip").append("rect").attr("width", this._coordinate_margin_left + this._view_left_padding).attr("height", this._view_height - this._view_botton_padding).attr("x", 0).attr("y", 0);
                 var timer;
-                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").on("mousemove", function () {
-                    if (timer)
-                        clearTimeout(timer);
-                    var mouse = d3.mouse(_this._subView.node());
-                    _this._fisheye_scale.domain(_this._intervals.map(function (d) {
-                        return d.x;
-                    })).focus(mouse[0]);
-                    if (_this._subView.selectAll("rect.stackRect").empty()) {
-                        _this._subView.selectAll("rect.stackRect").data(_this._intervals).enter().append("rect").attr("x", function (d, i) {
-                            return d.x = i * 20;
-                        }).attr("y", 0).attr("width", 20).attr("class", "stackRect").attr("height", _this._view_height + _this._view_top_padding).style({
-                            fill: "#2A9CC8",
-                            stroke: "#fff",
-                            "stroke-width": 0.5
-                        });
-                    }
-                    _this._subView.selectAll("rect.stackDate").style("visibility", "hidden");
-                    _this._subView.selectAll("rect.stackRect").attr("x", function (d) {
-                        if (_this._fisheye_scale(d.x))
-                            return _this._fisheye_scale(d.x);
-                    }).attr("width", function (d) {
-                        if (_this._fisheye_scale.rangeBand(d.x))
-                            return _this._fisheye_scale.rangeBand(d.x);
-                    });
+                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").on("mouseenter", function () {
+                    clearTimeout(timer);
                 }).on("mouseleave", function () {
                     timer = setTimeout(function () {
                         _this.ShrinkStackRect();
-                    }, 800);
+                    }, 1000);
                 });
                 this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
@@ -331,10 +314,11 @@ var ManyLens;
             Curve.prototype.RefreshGraph = function (point) {
                 var _this = this;
                 //Refresh the stack rect view
-                if (this._data[0].type == 2 || this._data[0].type == 3) {
+                if (this._data[0].type == 1 || this._data[0].type == 3) {
                     var stackRect = {
                         id: this._data[0].beg,
                         x: 0,
+                        ox: 0
                     };
                     this._intervals.push(stackRect);
                     //The stack date
@@ -517,27 +501,26 @@ var ManyLens;
                     console.log("Segmentation hasn't finished yet!");
                 }
             };
-            Curve.prototype.ShrinkStackRect = function () {
+            Curve.prototype.ShrinkStackRect = function (filterX) {
+                if (filterX === void 0) { filterX = -1; }
                 if (this._subView) {
-                    this._subView.selectAll("rect.stackRect").transition().attr("x", function (d) {
-                        return 0;
+                    this._subView.selectAll("rect.stack.rect").transition().attr("x", function (d) {
+                        return d.ox;
                     }).remove();
-                    this._subView.selectAll("rect.stackDate").style("visibility", "visible");
+                    this._subView.select("g.stack.rect.group").remove();
+                    this._subView.selectAll("rect.stack.organize").style("visibility", function (d) {
+                        if (d.x != filterX)
+                            return "visible";
+                        return "hidden";
+                    }).transition().attr("x", function (d) {
+                        return d.x;
+                    });
                 }
             };
             Curve.prototype.GetWeek = function (date) {
                 var onejan = new Date(date.getFullYear(), 0, 1);
                 return Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
             };
-            //private EndAll(transition: D3.Transition.Transition, callback: (...args: any[]) => any) {
-            //    var n = 0;
-            //    transition
-            //        .each(function () { ++n; })
-            //        .each("end", function () {
-            //            if (!--n)
-            //                callback.apply(this, arguments);
-            //        }); 
-            //}
             Curve.prototype.doIt = function (date, depth, intervals, stack_date_right) {
                 var _this = this;
                 if (stack_date_right === void 0) { stack_date_right = null; }
@@ -562,8 +545,8 @@ var ManyLens;
                     type: depth,
                     num: num,
                     isRemove: false,
-                    width: this._stack_bar_width,
                     x: this._stack_date.length * this._stack_bar_width,
+                    fill: null,
                     date: date,
                     intervals: intervals
                 };
@@ -572,25 +555,23 @@ var ManyLens;
                 var tempStackDate = [].concat(this._stack_date, stack_date_right.reverse()).sort(function (a, b) {
                     return (a.x > b.x) ? 1 : -1;
                 });
-                var stackDate = this._subView.selectAll("rect.stackDate").data(tempStackDate, function (d) {
+                var stackDate = this._subView.selectAll("rect.stack.organize.date").data(tempStackDate, function (d) {
                     return d.id;
                 });
+                var self = this;
                 stackDate.transition().attr("x", function (d, i) {
                     d.x = i * _this._stack_bar_width;
                     return d.x;
-                }).attr("width", function (d) {
-                    return d.width;
                 }).style("fill", function (d) {
-                    return colorScale(d.type);
+                    return d.fill;
                 });
                 stackDate.enter().append("rect").attr("x", function (d) {
                     if (depth == 0)
                         return _this._coordinate_margin_left + _this._view_left_padding;
                     return d.x;
-                }).attr("width", function (d) {
-                    return d.width;
                 }).attr({
-                    "class": "stackDate",
+                    "class": "stack organize date",
+                    width: this._stack_bar_width,
                     height: this._view_height + this._view_top_padding,
                     y: 0
                 }).style({
@@ -601,8 +582,11 @@ var ManyLens;
                         return colorScale(d.type);
                     }
                     return colorScale(d.type - 1);
+                }).on("dblclick", function (d, i) {
+                    d3.select(this).style("visibility", "hidden");
+                    self.ExpandStackDate(d);
                 }).transition().style("fill", function (d) {
-                    return colorScale(d.type);
+                    return d.fill = colorScale(d.type);
                 }).attr("x", function (d) {
                     return d.x;
                 });
@@ -627,10 +611,12 @@ var ManyLens;
                                 break;
                             }
                         }
+                        var tempIntervals = [];
                         newStack.forEach(function (d) {
                             d.x = newStack[newStack.length - 1].x;
+                            tempIntervals = tempIntervals.concat(d.intervals);
                         });
-                        this.doIt(lastDate.date, ++depth, newStack, stack_date_right);
+                        this.doIt(lastDate.date, ++depth, tempIntervals, stack_date_right);
                     }
                     else {
                         this._stack_date.push(lastDate);
@@ -638,17 +624,101 @@ var ManyLens;
                 }
                 this._stack_date.push(newDate);
             };
+            Curve.prototype.TimeInterval = function () {
+                this.ShrinkStackRect();
+                this._subView.selectAll("rect.stack.organize.content").transition().style("opacity", function (d) {
+                    return 0;
+                }).remove();
+                var self = this;
+                this._subView.selectAll("rect.stack.organize.date").data(this._stack_date).enter().append("rect").attr({
+                    width: this._stack_bar_width,
+                    "class": "stack organize date",
+                    height: this._view_height + this._view_top_padding,
+                    y: 0
+                }).style({
+                    stroke: "#fff",
+                    "stroke-width": 0.5
+                }).attr("x", function (d) {
+                    return d.x;
+                }).style("fill", function (d) {
+                    return d.fill;
+                }).on("dblclick", function (d) {
+                    d3.select(this).style("visibility", "hidden");
+                    self.ExpandStackDate(d);
+                });
+            };
             Curve.prototype.ClusterInterval = function (intervalsInGroups) {
                 var _this = this;
-                console.log(intervalsInGroups);
-                var groups = new Map();
+                this.ShrinkStackRect();
+                this._subView.selectAll("rect.stack.organize.date").transition().style("opacity", function (d) {
+                    return 0;
+                }).remove();
+                this._cluster_peak = new Map();
                 intervalsInGroups.forEach(function (d, i) {
-                    if (!groups.has(d)) {
-                        groups.set(d, []);
+                    if (!_this._cluster_peak.has(d)) {
+                        _this._cluster_peak.set(d, []);
                     }
-                    groups.get(d).push(_this._intervals[i]);
+                    if (_this._intervals[i])
+                        _this._cluster_peak.get(d).push(_this._intervals[i]);
                 });
-                console.log(groups);
+                var data = [];
+                var color = d3.scale.category10();
+                this._cluster_peak.forEach(function (d) {
+                    data.push(d);
+                });
+                var self = this;
+                this._subView.selectAll("rect.stack.organize.content").data(data).enter().append("rect").attr({
+                    width: this._stack_bar_width,
+                    "class": "stack organize content",
+                    height: this._view_height + this._view_top_padding,
+                    y: 0
+                }).style({
+                    stroke: "#fff",
+                    "stroke-width": 0.5
+                }).attr("x", function (d, i) {
+                    return d.x = i * _this._stack_bar_width;
+                }).style("fill", function (d, i) {
+                    return d.fill = color(i);
+                }).on("dblclick", function (d, i) {
+                    d3.select(this).style("visibility", "hidden");
+                    self.ExpandStackDate(d);
+                });
+            };
+            Curve.prototype.ExpandStackDate = function (d) {
+                var _this = this;
+                this.ShrinkStackRect(d.x);
+                var data = d.intervals || d;
+                this._subView.append("g").attr("class", "stack rect group").selectAll("rect.stack.rect").data(data).enter().append("rect").attr({
+                    width: this._stack_bar_width,
+                    "class": "stack rect",
+                    height: this._view_height + this._view_top_padding,
+                    y: 0
+                }).style({
+                    stroke: "#fff",
+                    "stroke-width": 0.5,
+                    opacity: 1e-6
+                }).attr("x", function (p, j) {
+                    p.ox = d.x;
+                    return d.x + j * _this._stack_bar_width;
+                }).transition().style("opacity", 1);
+                this._subView.selectAll("rect.stack.organize").filter(function (p) {
+                    return p.x > d.x;
+                }).transition().attr("x", function (p) {
+                    return p.x + (data.length - 1) * _this._stack_bar_width;
+                });
+                this._subView.on("mousemove", function () {
+                    var mouse = d3.mouse(_this._subView.node());
+                    _this._fisheye_scale.domain(d3.selectAll("rect.stack")[0].map(function (d) {
+                        if (d3.select(d).style("visibility") != "hidden")
+                            return +d3.select(d).attr("x");
+                    })).focus(mouse[0]);
+                    _this._subView.selectAll("rect.stack").filter(function () {
+                        return d3.select(this).style("visibility") != "hidden";
+                    }).attr("x", function (d) {
+                        if (_this._fisheye_scale(d.x))
+                            return _this._fisheye_scale(d.x);
+                    });
+                });
             };
             return Curve;
         })(ManyLens.D3ChartObject);
