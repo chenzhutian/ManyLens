@@ -80,182 +80,181 @@ module ManyLens {
             public get Section_Num(): number {
                 return this._section_num;
             }
-            public set Section_Num(num: number) {
-                if (typeof num === 'number') {
-                    this._section_num = Math.ceil(num);
+            public set Section_Num( num: number ) {
+                if ( typeof num === 'number' ) {
+                    this._section_num = Math.ceil( num );
                 }
             }
             public get StackID(): string {
                 return "id" + this._stack_time_id_gen++;
             }
 
-            constructor(element: D3.Selection, manyLens: ManyLens) {
-                super(element, manyLens);
+            constructor( element: D3.Selection, manyLens: ManyLens ) {
+                super( element, manyLens );
 
                 this._data = new Array<Point>();
                 this._intervals = new Array<StackRect>();
                 this._stack_time = new Array<StackDate>();
 
-                this._view_width = parseFloat(this._element.style("width"));
+                this._view_width = parseFloat( this._element.style( "width" ) );
 
                 this._x_scale
-                    .domain([0, this._section_num])
-                    .range([this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding])
+                    .domain( [0, this._section_num] )
+                    .range( [this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding] )
                 ;
                 this._y_scale
-                    .domain([0, 20])
-                    .range([this._view_height - this._view_botton_padding, this._view_top_padding])
+                    .domain( [0, 20] )
+                    .range( [this._view_height - this._view_botton_padding, this._view_top_padding] )
                 ;
                 this._x_axis_gen
-                    .scale(this._x_scale)
-                    .ticks(0)
-                    .orient("bottom")
+                    .scale( this._x_scale )
+                    .ticks( 0 )
+                    .orient( "bottom" )
                 ;
                 this._y_axis_gen
-                    .scale(this._y_scale)
-                    .ticks(2)
-                    .orient("left")
+                    .scale( this._y_scale )
+                    .ticks( 2 )
+                    .orient( "left" )
                 ;
 
                 this._fisheye_scale
-                    .rangeRoundBands([0, this._subView_width])
-                    .focus(this._coordinate_margin_left + this._view_left_padding)
+                    .rangeRoundBands( [0, this._subView_width] )
+                    .focus( this._coordinate_margin_left + this._view_left_padding )
                 ;
 
-                this._time_formater = d3.time.format("%Y%m%d%H%M%S");
+                this._time_formater = d3.time.format( "%Y%m%d%H%M%S" );
 
 
                 /*---Please register all the client function here---*/
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "clusterInterval", this.ClusterInterval);
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "timeInterval", this.TimeInterval);
+                this._manyLens.ManyLensHubRegisterClientFunction( this, "addPoint", this.AddPoint );
+                this._manyLens.ManyLensHubRegisterClientFunction( this, "clusterInterval", this.ClusterInterval );
+                this._manyLens.ManyLensHubRegisterClientFunction( this, "timeInterval", this.TimeInterval );
             }
 
             public Render(): void {
-                super.Render(null);
+                super.Render( null );
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
-                // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
-                this._element.select(".progress").style("display", "none");
+                this._element.select( ".progress" ).style( "display", "none" );
 
-                this._curveSvg = this._element.insert("svg", ":first-child")
-                    .attr("width", this._view_width)
-                    .attr("height", this._view_height)
-                    .style("margin-bottom", "17px")
+                this._curveSvg = this._element.insert( "svg", ":first-child" )
+                    .attr( "width", this._view_width )
+                    .attr( "height", this._view_height )
+                    .style( "margin-bottom", "17px" )
                 ;
 
-                this._curveSvg.append("defs").append("clipPath")
-                    .attr("id", "stackRectClip")
-                    .append("rect")
-                    .attr("width", this._coordinate_margin_left + this._view_left_padding)
-                    .attr("height", this._view_height - this._view_botton_padding)
-                    .attr("x", 0)
-                    .attr("y", 0)
+                this._curveSvg.append( "defs" ).append( "clipPath" )
+                    .attr( "id", "stackRectClip" )
+                    .append( "rect" )
+                    .attr( "width", this._coordinate_margin_left + this._view_left_padding )
+                    .attr( "height", this._view_height - this._view_botton_padding )
+                    .attr( "x", 0 )
+                    .attr( "y", 0 )
                 ;
 
                 var timer;
-                this._subView = this._curveSvg.append("g")
-                    .attr("clip-path", "url(#stackRectClip)")
-                    .append("g")
-                    .attr("id", "curve.subView")
-                    .on("mouseenter",() => {
-                    clearTimeout(timer);
+                this._subView = this._curveSvg.append( "g" )
+                    .attr( "clip-path", "url(#stackRectClip)" )
+                    .append( "g" )
+                    .attr( "id", "curve.subView" )
+                    .on( "mouseenter",() => {
+                    clearTimeout( timer );
                 })
-                    .on("mouseleave",() => {
+                    .on( "mouseleave",() => {
                     timer = setTimeout(() => {
                         this.ShrinkStackRect();
-                    }, 1000);
+                    }, 1000 );
                 })
                 ;
 
-                this._curveSvg.append("defs").append("clipPath")
-                    .attr("id", "curveClip")
-                    .append("rect")
-                    .attr("width", coordinate_view_width)
-                    .attr("height", this._view_height - this._view_botton_padding)
-                    .attr("x", this._view_left_padding + this._coordinate_margin_left)
-                    .attr("y", 0)
+                this._curveSvg.append( "defs" ).append( "clipPath" )
+                    .attr( "id", "curveClip" )
+                    .append( "rect" )
+                    .attr( "width", coordinate_view_width )
+                    .attr( "height", this._view_height - this._view_botton_padding )
+                    .attr( "x", this._view_left_padding + this._coordinate_margin_left )
+                    .attr( "y", 0 )
                 ;
 
-                this._mainView = this._curveSvg.append("g")
-                    .attr("clip-path", "url(#curveClip)")
-                    .append("g")
-                    .attr("id", "curve.mainView")
+                this._mainView = this._curveSvg.append( "g" )
+                    .attr( "clip-path", "url(#curveClip)" )
+                    .append( "g" )
+                    .attr( "id", "curve.mainView" )
                 ;
 
-                this._x_axis = this._curveSvg.append("g")
-                    .attr("class", "curve x axis")
-                    .attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")")
-                    .call(this._x_axis_gen)
+                this._x_axis = this._curveSvg.append( "g" )
+                    .attr( "class", "curve x axis" )
+                    .attr( "transform", "translate(" + [0, ( this._view_height - this._view_botton_padding )] + ")" )
+                    .call( this._x_axis_gen )
                 ;
 
-                this._y_axis = this._curveSvg.append("g")
-                    .attr("class", "curve y axis")
-                    .attr("transform", "translate(" + (this._coordinate_margin_left + this._view_left_padding) + ",0)")
-                    .call(this._y_axis_gen)
+                this._y_axis = this._curveSvg.append( "g" )
+                    .attr( "class", "curve y axis" )
+                    .attr( "transform", "translate(" + ( this._coordinate_margin_left + this._view_left_padding ) + ",0)" )
+                    .call( this._y_axis_gen )
                 ;
 
             }
 
-            public PullInterval(interalID: string): void {
-                if (ManyLens.TestMode)
-                    this._manyLens.ManyLensHubServerTestPullInterval(interalID);
+            public PullInterval( interalID: string ): void {
+                if ( ManyLens.TestMode )
+                    this._manyLens.ManyLensHubServerTestPullInterval( interalID );
                 else {
-                    this._manyLens.ManyLensHubServerPullInterval(interalID)
-                        .progress((percent) => {
-                        this._element.select(".progress-bar")
-                            .style("width", percent * 100 + "%")
+                    this._manyLens.ManyLensHubServerPullInterval( interalID )
+                        .progress(( percent ) => {
+                        this._element.select( ".progress-bar" )
+                            .style( "width", percent * 100 + "%" )
                         ;
                     })
                         .done(() => {
-                        this._element.select(".progress-bar")
-                            .style("width", 0)
+                        this._element.select( ".progress-bar" )
+                            .style( "width", 0 )
                         ;
-                        this._element.select(".progress").style("display", "none");
-                        this._curveSvg.style("margin-bottom", "17px")
+                        this._element.select( ".progress" ).style( "display", "none" );
+                        this._curveSvg.style( "margin-bottom", "17px" )
                     });
                 }
             }
 
-            public AddPoint(point: Point): void {
-                this._data.push(point);
-                this.RefreshGraph(point);
-                if (this._data.length > this._section_num + 1) {
+            public AddPoint( point: Point ): void {
+                this._data.push( point );
+                this.RefreshGraph( point );
+                if ( this._data.length > this._section_num + 1 ) {
                     this._data.shift();
                 }
             }
 
-            private RefreshGraph(point: Point) {
+            private RefreshGraph( point: Point ) {
                 //Refresh the stack rect view
-                if (this._data[0].type == 1 || this._data[0].type == 3) {
+                if ( this._data[0].type == 1 || this._data[0].type == 3 ) {
 
                     var stackRect: StackRect = {
                         id: this._data[0].beg,
                         x: 0,
                         ox: 0
                     }
-                    this._intervals.push(stackRect);
+                    this._intervals.push( stackRect );
 
                     //The stack date
-                    var date = this._time_formater.parse(stackRect.id);
-                    this.doIt(date, 0, [stackRect]);
+                    var date = this._time_formater.parse( stackRect.id );
+                    this.StackBarByTime( date, 0, [stackRect] );
                 }
 
                 //Refresh the curve view
-                this._y_scale.domain([0, d3.max([
-                    d3.max(this._data, function (d) { return d.trueValue; }),
-                    d3.max(this._data, function (d) { return d.value; })
-                ])
-                ]);
-                this._y_axis_gen.scale(this._y_scale);
-                this._y_axis.call(this._y_axis_gen);
+                this._y_scale.domain( [0, d3.max( [
+                    d3.max( this._data, function ( d ) { return d.trueValue; }),
+                    d3.max( this._data, function ( d ) { return d.value; })
+                ] )
+                ] );
+                this._y_axis_gen.scale( this._y_scale );
+                this._y_axis.call( this._y_axis_gen );
 
                 var restPathData = [];
                 var nodesData = [];
                 var sectionData = new Array<Section>();
 
                 var i = 0, len = this._data.length;
-                while (i < len) {
-                    if (this._data[i].beg) {
+                while ( i < len ) {
+                    if ( this._data[i].beg ) {
                         var section: Section = {
                             id: this._data[i].beg,
                             beg: i,
@@ -264,180 +263,180 @@ module ManyLens {
                                 { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue }
                             ]
                         };
-                        nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
+                        nodesData.push( { id: this._data[i].beg, value: this._data[i].value, index: i });
 
-                        while (this._data[++i] && this._data[i].beg == section.id) {
-                            section.pathPoints.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
-                            nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
+                        while ( this._data[++i] && this._data[i].beg == section.id ) {
+                            section.pathPoints.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            nodesData.push( { id: this._data[i].beg, value: this._data[i].value, index: i });
                         }
 
-                        if (this._data[i] && this._data[i].type == 3) {
+                        if ( this._data[i] && this._data[i].type == 3 ) {
                             section.end = i;
-                            section.pathPoints.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
-                        } else if (this._data[i] && this._data[i].type == 1) {
+                            section.pathPoints.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                        } else if ( this._data[i] && this._data[i].type == 1 ) {
                             section.end = i - 1;
                             var sectionRestPath = [];
-                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
-                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
-                            restPathData.push(sectionRestPath);
+                            sectionRestPath.push( { index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
+                            sectionRestPath.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            restPathData.push( sectionRestPath );
                         } else {
                             section.end = i - 1;
                         }
-                        sectionData.push(section);
+                        sectionData.push( section );
                     } else {
                         var sectionRestPath = [];
-                        if (this._data[i - 1])
-                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
-                        sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                        if ( this._data[i - 1] )
+                            sectionRestPath.push( { index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
+                        sectionRestPath.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
 
-                        while (this._data[++i] && !this._data[i].beg) {
-                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                        while ( this._data[++i] && !this._data[i].beg ) {
+                            sectionRestPath.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
                         }
 
-                        if (this._data[i])
-                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                        if ( this._data[i] )
+                            sectionRestPath.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
 
-                        restPathData.push(sectionRestPath);
+                        restPathData.push( sectionRestPath );
                     }
                 }
 
                 //handle the seg rect
-                var rects = this._mainView.selectAll(".curve.seg").data(sectionData);
-                rects.attr("x",(d, i) => {
-                    return this._x_scale(d.beg);
+                var rects = this._mainView.selectAll( ".curve.seg" ).data( sectionData );
+                rects.attr( "x",( d, i ) => {
+                    return this._x_scale( d.beg );
                 })
-                    .attr("width",(d, i) => {
-                    return this._x_scale(d.end) - this._x_scale(d.beg);
+                    .attr( "width",( d, i ) => {
+                    return this._x_scale( d.end ) - this._x_scale( d.beg );
                 })
                 ;
-                rects.enter().append("rect")
-                    .attr("x",(d, i) => {
-                    return this._x_scale(d.beg);
+                rects.enter().append( "rect" )
+                    .attr( "x",( d, i ) => {
+                    return this._x_scale( d.beg );
                 })
-                    .attr("y", 0)
-                    .attr("width",(d, i) => {
-                    return this._x_scale(d.end) - this._x_scale(d.beg);
+                    .attr( "y", 0 )
+                    .attr( "width",( d, i ) => {
+                    return this._x_scale( d.end ) - this._x_scale( d.beg );
                 })
-                    .attr("height", this._view_height + this._view_top_padding)
-                    .attr("class", "curve seg")
-                    .style({
+                    .attr( "height", this._view_height + this._view_top_padding )
+                    .attr( "class", "curve seg" )
+                    .style( {
                     fill: '#2A9CC8',
                     stroke: "#fff",
                     "stroke-width": 0.5
                 })
-                    .on("click",(d: Section) => {
-                    this.SelectSegment(d);
+                    .on( "click",( d: Section ) => {
+                    this.SelectSegment( d );
                 })
                 ;
                 rects.exit().remove();
 
                 var lineFunc = d3.svg.line()
-                    .x((d, i) => {
-                    return this._x_scale(d.index);
+                    .x(( d, i ) => {
+                    return this._x_scale( d.index );
                 })
-                    .y((d, i) => {
-                    return this._y_scale(d.value);
+                    .y(( d, i ) => {
+                    return this._y_scale( d.value );
                 })
-                    .interpolate("linear")
+                    .interpolate( "linear" )
                     ;
                 var truelineFunc = d3.svg.line()
-                    .x((d, i) => {
-                    return this._x_scale(d.index);
+                    .x(( d, i ) => {
+                    return this._x_scale( d.index );
                 })
-                    .y((d, i) => {
-                    return this._y_scale(d.trueValue);
+                    .y(( d, i ) => {
+                    return this._y_scale( d.trueValue );
                 })
-                    .interpolate("linear")
+                    .interpolate( "linear" )
                     ;
 
 
-                var path = this._mainView.selectAll(".curve.section.path").data(sectionData, function (d) { return d.id; });
-                path.attr("d", function (d) {
-                    return lineFunc(d.pathPoints);
+                var path = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });
+                path.attr( "d", function ( d ) {
+                    return lineFunc( d.pathPoints );
                 });
                 path
-                    .enter().append("path")
-                    .style({
+                    .enter().append( "path" )
+                    .style( {
                     'stroke': '#F6BB42',
                     'stroke-width': 3,
                     'fill': 'none'
                 })
-                    .attr("d", function (d) { return lineFunc(d.pathPoints); })
-                    .attr("class", "curve section path")
+                    .attr( "d", function ( d ) { return lineFunc( d.pathPoints ); })
+                    .attr( "class", "curve section path" )
                 ;
                 path.exit().remove();
 
-                var truepath = this._mainView.selectAll(".curve.section.true.path").data(sectionData, function (d) { return d.id; });
-                truepath.attr("d", function (d) {
-                    return truelineFunc(d.pathPoints);
+                var truepath = this._mainView.selectAll( ".curve.section.true.path" ).data( sectionData, function ( d ) { return d.id; });
+                truepath.attr( "d", function ( d ) {
+                    return truelineFunc( d.pathPoints );
                 });
                 truepath
-                    .enter().append("path")
-                    .style({
+                    .enter().append( "path" )
+                    .style( {
                     'stroke': '#fff',
                     'stroke-width': 3,
                     'fill': 'none'
                 })
-                    .attr("d", function (d) { return truelineFunc(d.pathPoints); })
-                    .attr("class", "curve section true path")
+                    .attr( "d", function ( d ) { return truelineFunc( d.pathPoints ); })
+                    .attr( "class", "curve section true path" )
                 ;
                 truepath.exit().remove();
 
-                var restPath = this._mainView.selectAll(".curve.rest.path").data(restPathData);
-                restPath.attr("d", function (d) {
-                    return lineFunc(d);
+                var restPath = this._mainView.selectAll( ".curve.rest.path" ).data( restPathData );
+                restPath.attr( "d", function ( d ) {
+                    return lineFunc( d );
                 })
                 restPath
-                    .enter().append("path")
-                    .style({
+                    .enter().append( "path" )
+                    .style( {
                     'stroke': 'rgb(31, 145, 189)',
                     'stroke-width': 3,
                     'fill': 'none'
                 })
-                    .attr("d", function (d) { return lineFunc(d); })
-                    .attr("class", "curve rest path")
+                    .attr( "d", function ( d ) { return lineFunc( d ); })
+                    .attr( "class", "curve rest path" )
                 ;
                 restPath.exit().remove();
 
-                var trueRestPath = this._mainView.selectAll(".curve.rest.true.path").data(restPathData);
-                trueRestPath.attr("d", function (d) {
-                    return truelineFunc(d);
+                var trueRestPath = this._mainView.selectAll( ".curve.rest.true.path" ).data( restPathData );
+                trueRestPath.attr( "d", function ( d ) {
+                    return truelineFunc( d );
                 })
                 trueRestPath
-                    .enter().append("path")
-                    .style({
+                    .enter().append( "path" )
+                    .style( {
                     'stroke': 'rgb(31, 145, 189)',
                     'stroke-width': 3,
                     'fill': 'none'
                 })
-                    .attr("d", function (d) { return truelineFunc(d); })
-                    .attr("class", "curve rest path")
+                    .attr( "d", function ( d ) { return truelineFunc( d ); })
+                    .attr( "class", "curve rest path" )
                 ;
                 trueRestPath.exit().remove();
 
 
                 //handle the seg node
-                var nodes = this._mainView.selectAll(".curve.node").data(nodesData, function (d) { return d.index; });
+                var nodes = this._mainView.selectAll( ".curve.node" ).data( nodesData, function ( d ) { return d.index; });
                 nodes
-                    .attr("cx",(d, i) => {
-                    return this._x_scale(d.index);
+                    .attr( "cx",( d, i ) => {
+                    return this._x_scale( d.index );
                 })
-                    .attr("cy",(d) => {
-                    return this._y_scale(d.value);
+                    .attr( "cy",( d ) => {
+                    return this._y_scale( d.value );
                 })
                 ;
-                nodes.enter().append("circle")
-                    .attr("class", "curve node")
-                    .attr("cx",(d, i) => {
-                    return this._x_scale(d.index);
+                nodes.enter().append( "circle" )
+                    .attr( "class", "curve node" )
+                    .attr( "cx",( d, i ) => {
+                    return this._x_scale( d.index );
                 })
-                    .attr("cy",(d) => {
-                    return this._y_scale(d.value);
+                    .attr( "cy",( d ) => {
+                    return this._y_scale( d.value );
                 })
-                    .attr("r",(d) => {
+                    .attr( "r",( d ) => {
                     return 3;
                 })
-                    .style({
+                    .style( {
                     fill: "#fff",
                     stroke: "rgb(31, 145, 189)",
                     "stroke-width": 1.5
@@ -445,75 +444,78 @@ module ManyLens {
                 nodes.exit().remove();
 
                 // move the main view
-                if (this._data.length > (this._section_num + 1)) {
+                if ( this._data.length > ( this._section_num + 1 ) ) {
                     this._mainView
-                        .attr("transform", null)
+                        .attr( "transform", null )
                         .transition()
-                        .duration(40)  //this time-step should be equale to the time step of AddPoint() in server.hub
-                        .ease("linear")
-                        .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)")
+                        .duration( 40 )  //this time-step should be equale to the time step of AddPoint() in server.hub
+                        .ease( "linear" )
+                        .attr( "transform", "translate(" + ( this._x_scale( 0 ) - this._x_scale( 1 ) ) + ",0)" )
                     ;
                 }
 
             }
 
-            private SelectSegment(d: Section) {
-                if (d.end != null) {
-                    this._curveSvg.style("margin-bottom", "0px")
-                    this._element.select(".progress").style("display", "block");
-                    this.PullInterval(d.id);
-
-                }
-                else {
-                    console.log("Segmentation hasn't finished yet!");
+            private SelectSegment( d: Section|StackRect ) {
+                if ( d['end'] == -1 ) {
+                    console.log( "Segmentation hasn't finished yet!" );
+                } else if ( d['end'] != null && d['end'] != -1 ) {
+                    this._curveSvg.style( "margin-bottom", "0px" )
+                    this._element.select( ".progress" ).style( "display", "block" );
+                    this.PullInterval( d.id );
+                } else if ( d['end'] == null ) {
+                    console.log( d );
+                    this._curveSvg.style( "margin-bottom", "0px" )
+                    this._element.select( ".progress" ).style( "display", "block" );
+                    this.PullInterval( d.id );
                 }
             }
 
-            private ShrinkStackRect(filterX: number = -1) {
-                if (this._subView) {
+            private ShrinkStackRect( filterX: number = -1 ) {
+                if ( this._subView ) {
                     this._subView
-                        .selectAll("rect.stack.rect")
+                        .selectAll( "rect.stack.rect" )
                         .transition()
-                        .attr("x",(d) => {
+                        .attr( "x",( d ) => {
                         return d.ox;
                     })
                         .remove()
                     ;
                     this._subView
-                        .select("g.stack.rect.group")
+                        .select( "g.stack.rect.group" )
                         .remove()
                     ;
 
                     this._subView
-                        .selectAll("rect.stack.organize")
-                        .style("visibility", function (d) {
-                        if (d.x != filterX)
+                        .selectAll( "rect.stack.organize" )
+                        .style( "visibility", function ( d ) {
+                        if ( d.x != filterX )
                             return "visible";
                         return "hidden";
                     })
                         .transition()
-                        .attr("x",(d) => { return d.x = d.ox; })
-                        .attr("width", this._stack_bar_width)
+                        .attr( "x",( d ) => { return d.x = d.ox; })
+                        .attr( "width", this._stack_bar_width )
                     ;
 
-                    this._subView.on("mousemove", null);
+                    this._subView.on( "mousemove", null );
                 }
             }
 
-            private GetWeek(date: Date): number {
-                var onejan = new Date(date.getFullYear(), 0, 1);
-                return Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
+            private GetWeek( date: Date ): number {
+                var onejan = new Date( date.getFullYear(), 0, 1 );
+                return Math.ceil(( ( ( date.getTime() - onejan.getTime() ) / 86400000 ) + onejan.getDay() + 1 ) / 7 );
             }
 
-            private doIt(date: Date, depth: number, intervals: Array<StackRect>, stack_time_right: Array<StackDate> = null) {
+            private StackBarByTime( date: Date, depth: number, intervals: Array<StackRect>, stack_time_right: Array<StackDate> = null ) {
                 var num;
-                switch (depth) {
+                switch ( depth ) {
                     case 0: {
                         num = date.getDay();
                         stack_time_right = new Array<StackDate>();
                     }
                         break;
-                    case 1: num = this.GetWeek(date); break;
+                    case 1: num = this.GetWeek( date ); break;
                     case 2: num = date.getMonth(); break;
                     default: num = -1;
                 }
@@ -530,63 +532,63 @@ module ManyLens {
                     intervals: intervals
                 }
 
-                var colorScale = d3.scale.ordinal().domain([0, 1, 2])
-                    .range(["#2A9CC8", "#2574A9", "#34495E"]);
+                var colorScale = d3.scale.ordinal().domain( [0, 1, 2] )
+                    .range( ["#2A9CC8", "#2574A9", "#34495E"] );
 
-                stack_time_right.push(newDate);
-                var tempStackDate: StackDate[] = [].concat(this._stack_time, stack_time_right.reverse()).sort(function (a, b) { return (a.x > b.x) ? 1 : -1; });
-                var stack_time_bar = this._subView.selectAll("rect.stack.organize.time").data(tempStackDate, function (d) { return d.id; });
+                stack_time_right.push( newDate );
+                var tempStackDate: StackDate[] = [].concat( this._stack_time, stack_time_right.reverse() ).sort( function ( a, b ) { return ( a.x > b.x ) ? 1 : -1; });
+                var stack_time_bar = this._subView.selectAll( "rect.stack.organize.time" ).data( tempStackDate, function ( d ) { return d.id; });
 
                 var self = this;
                 stack_time_bar
                     .transition()
-                    .attr("x",(d, i) => {
+                    .attr( "x",( d, i ) => {
                     d.x = d.ox = i * this._stack_bar_width
                     return d.x;
                 })
-                    .style("fill",(d) => {
+                    .style( "fill",( d ) => {
                     return d.fill;
                 })
                 ;
 
-                stack_time_bar.enter().append("rect")
-                    .attr("x",(d) => {
-                    if (depth == 0)
+                stack_time_bar.enter().append( "rect" )
+                    .attr( "x",( d ) => {
+                    if ( depth == 0 )
                         return this._coordinate_margin_left + this._view_left_padding;
                     return d.x;
                 })
-                    .attr({
+                    .attr( {
                     "class": "stack organize time",
                     width: this._stack_bar_width,
                     height: this._view_height + this._view_top_padding,
                     y: 0
                 })
-                    .style({
+                    .style( {
                     stroke: "#fff",
                     "stroke-width": 0.5
                 })
-                    .style("fill",(d) => {
-                    if (d.type == 0) {
-                        return colorScale(d.type);
+                    .style( "fill",( d ) => {
+                    if ( d.type == 0 ) {
+                        return colorScale( d.type );
                     }
-                    return colorScale(d.type - 1);
+                    return colorScale( d.type - 1 );
                 })
-                    .on("dblclick", function (d, i) {
-                    d3.select(this).style("visibility", "hidden");
-                    self.ExpandStackDate(d);
+                    .on( "dblclick", function ( d, i ) {
+                    d3.select( this ).style( "visibility", "hidden" );
+                    self.ExpandStackDate( d );
                 })
                     .transition()
-                    .style("fill",(d) => {
-                    return d.fill = colorScale(d.type);
+                    .style( "fill",( d ) => {
+                    return d.fill = colorScale( d.type );
                 })
-                    .attr("x", function (d) {
+                    .attr( "x", function ( d ) {
                     return d.x;
                 })
                 ;
 
-                stack_time_bar.exit().filter(function (d) { return !d.isRemove; })
+                stack_time_bar.exit().filter( function ( d ) { return !d.isRemove; })
                     .transition()
-                    .attr("x", function (d) {
+                    .attr( "x", function ( d ) {
                     d.isRemove = true;
                     return d.x;
                 })
@@ -594,194 +596,197 @@ module ManyLens {
                 ;
 
                 var last_time_bar = this._stack_time.pop();
-                if (last_time_bar) {
-                    if (last_time_bar.type == newDate.type && last_time_bar.num != newDate.num) {
+                if ( last_time_bar ) {
+                    if ( last_time_bar.type == newDate.type && last_time_bar.num != newDate.num ) {
                         var newStack = [];
-                        newStack.push(last_time_bar);
-                        while (this._stack_time.length > 0) {
+                        newStack.push( last_time_bar );
+                        while ( this._stack_time.length > 0 ) {
                             var tempDate = this._stack_time.pop();
-                            if (tempDate.type == last_time_bar.type && tempDate.num == last_time_bar.num) {
-                                newStack.push(tempDate);
+                            if ( tempDate.type == last_time_bar.type && tempDate.num == last_time_bar.num ) {
+                                newStack.push( tempDate );
                             } else {
-                                this._stack_time.push(tempDate);
+                                this._stack_time.push( tempDate );
                                 break;
                             }
                         }
 
                         var tempIntervals: Array<StackRect> = [];
-                        newStack.forEach((d: StackDate) => {
+                        newStack.forEach(( d: StackDate ) => {
                             d.x = newStack[newStack.length - 1].x;
-                            tempIntervals = tempIntervals.concat(d.intervals);
+                            tempIntervals = tempIntervals.concat( d.intervals );
                         });
 
-                        this.doIt(last_time_bar.date, ++depth, tempIntervals, stack_time_right);
+                        this.StackBarByTime( last_time_bar.date, ++depth, tempIntervals, stack_time_right );
                     } else {
-                        this._stack_time.push(last_time_bar);
+                        this._stack_time.push( last_time_bar );
                     }
                 }
 
-                this._stack_time.push(newDate);
+                this._stack_time.push( newDate );
 
             }
             private TimeInterval(): void {
                 this.ShrinkStackRect();
                 this._subView
-                    .selectAll("rect.stack.organize.content")
+                    .selectAll( "rect.stack.organize.content" )
                     .transition()
-                    .style("opacity",(d) => {
+                    .style( "opacity",( d ) => {
                     return 0;
                 })
                     .remove()
                 ;
 
                 var self = this;
-                this._subView.selectAll("rect.stack.organize.time")
-                    .data(this._stack_time)
-                    .enter().append("rect")
-                    .attr({
+                this._subView.selectAll( "rect.stack.organize.time" )
+                    .data( this._stack_time )
+                    .enter().append( "rect" )
+                    .attr( {
                     width: this._stack_bar_width,
                     "class": "stack organize time",
                     height: this._view_height + this._view_top_padding,
                     y: 0
                 })
-                    .style({
+                    .style( {
                     stroke: "#fff",
                     "stroke-width": 0.5
                 })
-                    .attr("x",(d) => {
+                    .attr( "x",( d ) => {
                     return d.x;
                 })
-                    .style("fill",(d) => {
+                    .style( "fill",( d ) => {
                     return d.fill;
                 })
-                    .on("dblclick", function (d) {
-                    d3.select(this).style("visibility", "hidden");
-                    self.ExpandStackDate(d);
+                    .on( "dblclick", function ( d ) {
+                    d3.select( this ).style( "visibility", "hidden" );
+                    self.ExpandStackDate( d );
                 })
                 ;
 
             }
 
-            private ClusterInterval(intervalsInGroups: any[]): void {
+            private ClusterInterval( intervalsInGroups: any[] ): void {
                 this.ShrinkStackRect();
                 this._subView
-                    .selectAll("rect.stack.organize.time")
+                    .selectAll( "rect.stack.organize.time" )
                     .transition()
-                    .style("opacity",(d) => {
+                    .style( "opacity",( d ) => {
                     return 0;
                 })
                     .remove()
                 ;
 
                 this._stack_content = new Map<number, StackRect[]>();
-                intervalsInGroups.forEach((d, i) => {
-                    if (!this._stack_content.has(d)) {
-                        this._stack_content.set(d, []);
+                intervalsInGroups.forEach(( d, i ) => {
+                    if ( !this._stack_content.has( d ) ) {
+                        this._stack_content.set( d, [] );
                     }
-                    if (this._intervals[i])
-                        this._stack_content.get(d).push(this._intervals[i]);
+                    if ( this._intervals[i] )
+                        this._stack_content.get( d ).push( this._intervals[i] );
                 });
 
                 var data = [];
                 var color = d3.scale.category10();
-                this._stack_content.forEach((d) => {
-                    data.push(d);
+                this._stack_content.forEach(( d ) => {
+                    data.push( d );
                 });
 
                 var self = this;
                 this._subView
-                    .selectAll("rect.stack.organize.content")
-                    .data(data)
-                    .enter().append("rect")
-                    .attr({
+                    .selectAll( "rect.stack.organize.content" )
+                    .data( data )
+                    .enter().append( "rect" )
+                    .attr( {
                     width: this._stack_bar_width,
                     "class": "stack organize content",
                     height: this._view_height + this._view_top_padding,
                     y: 0
                 })
-                    .style({
+                    .style( {
                     stroke: "#fff",
                     "stroke-width": 0.5
                 })
-                    .attr("x",(d, i) => {
+                    .attr( "x",( d, i ) => {
                     return d.x = d.ox = i * this._stack_bar_width
                 })
-                    .style("fill",(d, i) => {
-                    return d.fill = color(i);
+                    .style( "fill",( d, i ) => {
+                    return d.fill = color( i );
                 })
-                    .on("dblclick", function (d, i) {
-                    d3.select(this).style("visibility", "hidden");
-                    self.ExpandStackDate(d);
+                    .on( "dblclick", function ( d, i ) {
+                    d3.select( this ).style( "visibility", "hidden" );
+                    self.ExpandStackDate( d );
                 })
 
                 ;
 
             }
 
-            private ExpandStackDate(d: any): void {
-                this.ShrinkStackRect(d.x);
-                var data: Array<any> = d.intervals || d;
+            private ExpandStackDate( d: any ): void {
+                this.ShrinkStackRect( d.x );
+                var data: Array<StackRect> = d.intervals || d;
 
-                this._subView.append("g")
-                    .attr("class", "stack rect group")
-                    .selectAll("rect.stack.rect")
-                    .data(data)
-                    .enter().append("rect")
-                    .attr({
+                this._subView.append( "g" )
+                    .attr( "class", "stack rect group" )
+                    .selectAll( "rect.stack.rect" )
+                    .data( data )
+                    .enter().append( "rect" )
+                    .attr( {
                     width: this._stack_bar_width,
                     "class": "stack rect",
                     height: this._view_height + this._view_top_padding,
                     y: 0
                 })
-                    .style({
+                    .style( {
                     stroke: "#fff",
                     "stroke-width": 0.5,
                     opacity: 1e-6
                 })
-                    .attr("x",(p, j) => {
+                    .attr( "x",( p, j ) => {
                     p.ox = d.x;
                     return p.x = d.x + j * this._stack_bar_width
                 })
+                    .on( "click",( d ) => {
+                    this.SelectSegment( d );
+                })
                     .transition()
-                    .style("opacity", 1)
+                    .style( "opacity", 1 )
                 //  .style("fill", color)
                 ;
 
                 var maxI: number = -1;
-                var temp_stack_bar = this._subView.selectAll("rect.stack.organize").filter((p, i) => { maxI = i > maxI ? i : maxI; return p.x > d.x; })
-                var offsetX = (data.length - 1) * this._stack_bar_width;
-                if ((maxI + data.length - 1) * this._stack_bar_width > this._subView_width) {
+                var temp_stack_bar = this._subView.selectAll( "rect.stack.organize" ).filter(( p, i ) => { maxI = i > maxI ? i : maxI; return p.x > d.x; })
+                var offsetX = ( data.length - 1 ) * this._stack_bar_width;
+                if ( ( maxI + data.length - 1 ) * this._stack_bar_width > this._subView_width ) {
 
                     temp_stack_bar
-                        .attr("x",(p) => {
-                            return p.x = p.x + offsetX;
-                        })
+                        .attr( "x",( p ) => {
+                        return p.x = p.x + offsetX;
+                    })
                     ;
 
-                    this._subView.on("mousemove",() => {
+                    this._subView.on( "mousemove",() => {
 
-                        var mouse = d3.mouse(this._subView.node());
+                        var mouse = d3.mouse( this._subView.node() );
                         var data = [];
-                        d3.selectAll("rect.stack").attr("x", function (d, i) {
-                            if (d3.select(this).style("visibility") != "hidden") {
-                                data.push(d.x);
+                        d3.selectAll( "rect.stack" ).attr( "x", function ( d, i ) {
+                            if ( d3.select( this ).style( "visibility" ) != "hidden" ) {
+                                data.push( d.x );
                             }
                         });
-                        data.sort(function (a, b) { return a > b ? 1 : -1; })
+                        data.sort( function ( a, b ) { return a > b ? 1 : -1; })
                         this._fisheye_scale
-                            .domain(data)
-                            .focus(mouse[0])
+                            .domain( data )
+                            .focus( mouse[0] )
                         ;
 
                         this._subView
-                            .selectAll("rect.stack").filter(function () { return d3.select(this).style("visibility") != "hidden"; })
-                            .attr("x",(d) => {
+                            .selectAll( "rect.stack" ).filter( function () { return d3.select( this ).style( "visibility" ) != "hidden"; })
+                            .attr( "x",( d ) => {
                             //if (this._fisheye_scale(d.x))
-                            return this._fisheye_scale(d.x);
+                            return this._fisheye_scale( d.x );
                         })
-                            .attr("width",(d) => {
+                            .attr( "width",( d ) => {
                             //if (this._fisheye_scale.rangeBand(d.x))
-                            return this._fisheye_scale.rangeBand(d.x);
+                            return this._fisheye_scale.rangeBand( d.x );
                         })
                         ;
                     })
@@ -789,10 +794,10 @@ module ManyLens {
 
                 } else {
                     temp_stack_bar.transition()
-                        .attr("x",(p) => {
+                        .attr( "x",( p ) => {
                         return p.x = p.x + offsetX;
-                        })
-                        .attr("width", this._stack_bar_width)
+                    })
+                        .attr( "width", this._stack_bar_width )
                     ;
                 }
             }

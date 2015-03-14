@@ -272,7 +272,6 @@ var ManyLens;
                 var _this = this;
                 _super.prototype.Render.call(this, null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
-                // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
                 this._element.select(".progress").style("display", "none");
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "stackRectClip").append("rect").attr("width", this._coordinate_margin_left + this._view_left_padding).attr("height", this._view_height - this._view_botton_padding).attr("x", 0).attr("y", 0);
@@ -322,7 +321,7 @@ var ManyLens;
                     this._intervals.push(stackRect);
                     //The stack date
                     var date = this._time_formater.parse(stackRect.id);
-                    this.doIt(date, 0, [stackRect]);
+                    this.StackBarByTime(date, 0, [stackRect]);
                 }
                 //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
@@ -491,13 +490,19 @@ var ManyLens;
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
-                if (d.end != null) {
+                if (d['end'] == -1) {
+                    console.log("Segmentation hasn't finished yet!");
+                }
+                else if (d['end'] != null && d['end'] != -1) {
                     this._curveSvg.style("margin-bottom", "0px");
                     this._element.select(".progress").style("display", "block");
                     this.PullInterval(d.id);
                 }
-                else {
-                    console.log("Segmentation hasn't finished yet!");
+                else if (d['end'] == null) {
+                    console.log(d);
+                    this._curveSvg.style("margin-bottom", "0px");
+                    this._element.select(".progress").style("display", "block");
+                    this.PullInterval(d.id);
                 }
             };
             Curve.prototype.ShrinkStackRect = function (filterX) {
@@ -521,7 +526,7 @@ var ManyLens;
                 var onejan = new Date(date.getFullYear(), 0, 1);
                 return Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
             };
-            Curve.prototype.doIt = function (date, depth, intervals, stack_time_right) {
+            Curve.prototype.StackBarByTime = function (date, depth, intervals, stack_time_right) {
                 var _this = this;
                 if (stack_time_right === void 0) { stack_time_right = null; }
                 var num;
@@ -617,7 +622,7 @@ var ManyLens;
                             d.x = newStack[newStack.length - 1].x;
                             tempIntervals = tempIntervals.concat(d.intervals);
                         });
-                        this.doIt(last_time_bar.date, ++depth, tempIntervals, stack_time_right);
+                        this.StackBarByTime(last_time_bar.date, ++depth, tempIntervals, stack_time_right);
                     }
                     else {
                         this._stack_time.push(last_time_bar);
@@ -701,6 +706,8 @@ var ManyLens;
                 }).attr("x", function (p, j) {
                     p.ox = d.x;
                     return p.x = d.x + j * _this._stack_bar_width;
+                }).on("click", function (d) {
+                    _this.SelectSegment(d);
                 }).transition().style("opacity", 1);
                 var maxI = -1;
                 var temp_stack_bar = this._subView.selectAll("rect.stack.organize").filter(function (p, i) {
