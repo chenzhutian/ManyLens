@@ -12,8 +12,10 @@ namespace ManyLens.Preprocessing
         public static void VectorizeEachTweet(Interval interval, IProgress<double> progress)
         {
             if (interval.HasVectorized)
+            {
+                progress.Report(1);
                 return;
-
+            }
             Dictionary<string, int> rawDFofWords = new Dictionary<string, int>();
             Dictionary<string, int> frequenceOfWords = new Dictionary<string, int>();
             Dictionary<string, int> dfOfWords = new Dictionary<string, int>();

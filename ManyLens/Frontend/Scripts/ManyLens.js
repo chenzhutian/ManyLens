@@ -499,7 +499,6 @@ var ManyLens;
                     this.PullInterval(d.id);
                 }
                 else if (d['end'] == null) {
-                    console.log(d);
                     this._curveSvg.style("margin-bottom", "0px");
                     this._element.select(".progress").style("display", "block");
                     this.PullInterval(d.id);

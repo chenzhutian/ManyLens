@@ -17,8 +17,10 @@ namespace ManyLens.Preprocessing
         public static void ProcessTweetParallel(Interval interval, IProgress<double> progress)
         {
             if (interval.HasPreprocessed)
+            {
+                progress.Report(0.5);
                 return;
-
+            }
             //deleting repeated tweet.
             Dictionary<string, bool> tweetsDict = new Dictionary<string, bool>();
             //deleting stop_words, stop_abbreviation_words, stop_hashtags .
