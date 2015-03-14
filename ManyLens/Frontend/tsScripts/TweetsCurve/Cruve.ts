@@ -40,6 +40,7 @@ module ManyLens {
             //  width: number;
             isRemove: boolean;
             x: number;
+            ox: number;
             fill: string;
             intervals: Array<StackRect>;
         }
@@ -69,12 +70,14 @@ module ManyLens {
 
             private _intervals: Array<StackRect>;
             protected _data: Array<Point>;
-            private _stackrect_width: number = 0;
+
+            //private _stackrect_width: number = 0;
+            private _subView_width: number = this._coordinate_margin_left + this._view_left_padding - 50;
 
             private _time_formater: D3.Time.TimeFormat;
             private _stack_date: Array<StackDate>;
             private _stack_date_id_gen: number = 0;
-            private _stackdate_width: number = 0;
+            //private _stackdate_width: number = 0;
             private _stack_bar_width: number = 15;
 
             private _cluster_peak: Map<number, StackRect[]>;
@@ -120,7 +123,7 @@ module ManyLens {
                 ;
 
                 this._fisheye_scale
-                    .rangeRoundBands([0, this._coordinate_margin_left + this._view_left_padding])
+                    .rangeRoundBands([0, this._subView_width])
                     .focus(this._coordinate_margin_left + this._view_left_padding)
                 ;
 
@@ -161,13 +164,13 @@ module ManyLens {
                     .append("g")
                     .attr("id", "curve.subView")
                     .on("mouseenter",() => {
-                        clearTimeout(timer);
-                    })
-                    .on("mouseleave", () => {
-                        //timer = setTimeout(() => {
-                        //    this.ShrinkStackRect();
-                        //} , 1000);
-                    })
+                    clearTimeout(timer);
+                })
+                    .on("mouseleave",() => {
+                    timer = setTimeout(() => {
+                        this.ShrinkStackRect();
+                    }, 1000);
+                })
                 ;
 
                 this._curveSvg.append("defs").append("clipPath")
@@ -494,14 +497,16 @@ module ManyLens {
                     this._subView
                         .selectAll("rect.stack.organize")
                         .style("visibility", function (d) {
-                            if (d.x != filterX)
-                                return "visible";
-                            return "hidden";
-                        })
+                        if (d.x != filterX)
+                            return "visible";
+                        return "hidden";
+                    })
                         .transition()
-                        .attr("x",(d) => { return d.x; })
+                        .attr("x",(d) => { return d.x = d.ox; })
+                        .attr("width", this._stack_bar_width)
                     ;
 
+                    this._subView.on("mousemove", null);
                 }
             }
 
@@ -529,6 +534,7 @@ module ManyLens {
                     num: num,
                     isRemove: false,
                     x: this._stack_date.length * this._stack_bar_width,
+                    ox: this._stack_date.length * this._stack_bar_width,
                     fill: null,
                     date: date,
                     intervals: intervals
@@ -545,7 +551,7 @@ module ManyLens {
                 stackDate
                     .transition()
                     .attr("x",(d, i) => {
-                    d.x = i * this._stack_bar_width
+                    d.x = d.ox = i * this._stack_bar_width
                     return d.x;
                 })
                     .style("fill",(d) => {
@@ -639,30 +645,30 @@ module ManyLens {
                 ;
 
                 var self = this;
-               this._subView.selectAll("rect.stack.organize.date")
+                this._subView.selectAll("rect.stack.organize.date")
                     .data(this._stack_date)
                     .enter().append("rect")
                     .attr({
-                        width: this._stack_bar_width,
-                        "class": "stack organize date",
-                        height: this._view_height + this._view_top_padding,
-                        y: 0
-                    })
+                    width: this._stack_bar_width,
+                    "class": "stack organize date",
+                    height: this._view_height + this._view_top_padding,
+                    y: 0
+                })
                     .style({
-                        stroke: "#fff",
-                        "stroke-width": 0.5
-                    })
+                    stroke: "#fff",
+                    "stroke-width": 0.5
+                })
                     .attr("x",(d) => {
-                        return d.x;
-                    })
+                    return d.x;
+                })
                     .style("fill",(d) => {
-                        return d.fill;
-                    })
+                    return d.fill;
+                })
                     .on("dblclick", function (d) {
-                        d3.select(this).style("visibility", "hidden");
-                        self.ExpandStackDate(d);
-                    })
-                    ;
+                    d3.select(this).style("visibility", "hidden");
+                    self.ExpandStackDate(d);
+                })
+                ;
 
             }
 
@@ -683,8 +689,8 @@ module ManyLens {
                         this._cluster_peak.set(d, []);
                     }
                     if (this._intervals[i])
-                            this._cluster_peak.get(d).push(this._intervals[i]);
-                    });
+                        this._cluster_peak.get(d).push(this._intervals[i]);
+                });
 
                 var data = [];
                 var color = d3.scale.category10();
@@ -698,25 +704,25 @@ module ManyLens {
                     .data(data)
                     .enter().append("rect")
                     .attr({
-                        width: this._stack_bar_width,
-                        "class": "stack organize content",
-                        height: this._view_height + this._view_top_padding,
-                        y: 0
-                    })
+                    width: this._stack_bar_width,
+                    "class": "stack organize content",
+                    height: this._view_height + this._view_top_padding,
+                    y: 0
+                })
                     .style({
-                        stroke: "#fff",
-                        "stroke-width": 0.5
-                    })
+                    stroke: "#fff",
+                    "stroke-width": 0.5
+                })
                     .attr("x",(d, i) => {
-                        return d.x = i * this._stack_bar_width
-                    })
+                    return d.x = d.ox = i * this._stack_bar_width
+                })
                     .style("fill",(d, i) => {
-                        return d.fill = color(i);
-                    })
+                    return d.fill = color(i);
+                })
                     .on("dblclick", function (d, i) {
-                        d3.select(this).style("visibility", "hidden");
-                        self.ExpandStackDate(d);
-                    })
+                    d3.select(this).style("visibility", "hidden");
+                    self.ExpandStackDate(d);
+                })
 
                 ;
 
@@ -732,59 +738,77 @@ module ManyLens {
                     .data(data)
                     .enter().append("rect")
                     .attr({
-                        width: this._stack_bar_width,
-                        "class": "stack rect",
-                        height: this._view_height + this._view_top_padding,
-                        y: 0
-                    })
+                    width: this._stack_bar_width,
+                    "class": "stack rect",
+                    height: this._view_height + this._view_top_padding,
+                    y: 0
+                })
                     .style({
-                        stroke: "#fff",
-                        "stroke-width": 0.5,
-                        opacity: 1e-6
-                    })
+                    stroke: "#fff",
+                    "stroke-width": 0.5,
+                    opacity: 1e-6
+                })
                     .attr("x",(p, j) => {
-                        p.ox = d.x;
-                        return d.x + j * this._stack_bar_width
-                    })
+                    p.ox = d.x;
+                    return p.x = d.x + j * this._stack_bar_width
+                })
                     .transition()
                     .style("opacity", 1)
                 //  .style("fill", color)
                 ;
 
-                this._subView.selectAll("rect.stack.organize").filter((p) => { return p.x > d.x; })
-                    .transition()
-                    .attr("x",(p) => {
-                        return p.x + (data.length - 1) * this._stack_bar_width;
+                var maxI: number = -1;
+                var temp = this._subView.selectAll("rect.stack.organize").filter((p, i) => { maxI = i > maxI ? i : maxI; return p.x > d.x; })
+
+                if ((maxI + data.length - 1) * this._stack_bar_width > this._subView_width) {
+                    var offsetX = (data.length - 1) * this._stack_bar_width;
+                    temp
+                        .attr("x",(p) => {
+                            return p.x = p.x + offsetX;
+                        })
+                    ;
+
+                    this._subView.on("mousemove",() => {
+
+                        var mouse = d3.mouse(this._subView.node());
+                        var data = [];
+                        d3.selectAll("rect.stack").attr("x", function (d, i) {
+                            if (d3.select(this).style("visibility") != "hidden") {
+                                data.push(d.x);
+                            }
+                        });
+                        data.sort(function (a, b) { return a > b ? 1 : -1; })
+                        console.log(data);
+                        this._fisheye_scale
+                            .domain(data)
+                            .focus(mouse[0])
+                        ;
+
+                        this._subView
+                            .selectAll("rect.stack").filter(function () { return d3.select(this).style("visibility") != "hidden"; })
+                            .attr("x",(d) => {
+                            //if (this._fisheye_scale(d.x))
+                            return this._fisheye_scale(d.x);
+                        })
+                            .attr("width",(d) => {
+                            //if (this._fisheye_scale.rangeBand(d.x))
+                            return this._fisheye_scale.rangeBand(d.x);
+                        })
+                        ;
                     })
-                ;
+                    ;
 
-                //this._subView.on("mousemove",() => {
-                //    var mouse = d3.mouse(this._subView.node());
-                //    var data = [];
-                //    d3.selectAll("rect.stack").attr("x",function (d,i) {
-                //        if (d3.select(this).style("visibility") != "hidden") {
-                //            data.push(d.x);
-                //        }
-                //    });
+                } else {
 
-                //    this._fisheye_scale
-                //        .domain(data)
-                //        .focus(mouse[0])
-                //    ;
+                    temp.transition()
+                        .attr("x",(p) => {
+                            return p.x = p.x + (data.length - 1) * this._stack_bar_width;
+                        })
+                        .attr("width", this._stack_bar_width)
+                    ;
 
-                //    this._subView
-                //        .selectAll("rect.stack").filter(function () { return d3.select(this).style("visibility") != "hidden";})
-                //        .attr("x",(d) => {
-                //            if (this._fisheye_scale(d.x))
-                //                return this._fisheye_scale(d.x);
-                //        })
-                //        .attr("width",(d) => {
-                //            if (this._fisheye_scale.rangeBand(d.x))
-                //                return this._fisheye_scale.rangeBand(d.x);
-                //        })
-                //    ;
-                //})
-                //;
+                }
+
 
 
 

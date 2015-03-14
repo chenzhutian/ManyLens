@@ -231,9 +231,10 @@ var ManyLens;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
                 this._coordinate_margin_left = 200;
-                this._stackrect_width = 0;
+                //private _stackrect_width: number = 0;
+                this._subView_width = this._coordinate_margin_left + this._view_left_padding - 50;
                 this._stack_date_id_gen = 0;
-                this._stackdate_width = 0;
+                //private _stackdate_width: number = 0;
                 this._stack_bar_width = 15;
                 this._data = new Array();
                 this._intervals = new Array();
@@ -243,7 +244,7 @@ var ManyLens;
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
                 this._x_axis_gen.scale(this._x_scale).ticks(0).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
-                this._fisheye_scale.rangeRoundBands([0, this._coordinate_margin_left + this._view_left_padding]).focus(this._coordinate_margin_left + this._view_left_padding);
+                this._fisheye_scale.rangeRoundBands([0, this._subView_width]).focus(this._coordinate_margin_left + this._view_left_padding);
                 this._time_formater = d3.time.format("%Y%m%d%H%M%S");
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
@@ -270,6 +271,7 @@ var ManyLens;
                 configurable: true
             });
             Curve.prototype.Render = function () {
+                var _this = this;
                 _super.prototype.Render.call(this, null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 // var coordinate_view_height = this._view_height - this._view_top_padding - this._view_botton_padding;
@@ -280,9 +282,9 @@ var ManyLens;
                 this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").on("mouseenter", function () {
                     clearTimeout(timer);
                 }).on("mouseleave", function () {
-                    //timer = setTimeout(() => {
-                    //    this.ShrinkStackRect();
-                    //} , 1000);
+                    timer = setTimeout(function () {
+                        _this.ShrinkStackRect();
+                    }, 1000);
                 });
                 this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
@@ -512,8 +514,9 @@ var ManyLens;
                             return "visible";
                         return "hidden";
                     }).transition().attr("x", function (d) {
-                        return d.x;
-                    });
+                        return d.x = d.ox;
+                    }).attr("width", this._stack_bar_width);
+                    this._subView.on("mousemove", null);
                 }
             };
             Curve.prototype.GetWeek = function (date) {
@@ -545,6 +548,7 @@ var ManyLens;
                     num: num,
                     isRemove: false,
                     x: this._stack_date.length * this._stack_bar_width,
+                    ox: this._stack_date.length * this._stack_bar_width,
                     fill: null,
                     date: date,
                     intervals: intervals
@@ -559,7 +563,7 @@ var ManyLens;
                 });
                 var self = this;
                 stackDate.transition().attr("x", function (d, i) {
-                    d.x = i * _this._stack_bar_width;
+                    d.x = d.ox = i * _this._stack_bar_width;
                     return d.x;
                 }).style("fill", function (d) {
                     return d.fill;
@@ -675,7 +679,7 @@ var ManyLens;
                     stroke: "#fff",
                     "stroke-width": 0.5
                 }).attr("x", function (d, i) {
-                    return d.x = i * _this._stack_bar_width;
+                    return d.x = d.ox = i * _this._stack_bar_width;
                 }).style("fill", function (d, i) {
                     return d.fill = color(i);
                 }).on("dblclick", function (d, i) {
@@ -698,38 +702,47 @@ var ManyLens;
                     opacity: 1e-6
                 }).attr("x", function (p, j) {
                     p.ox = d.x;
-                    return d.x + j * _this._stack_bar_width;
+                    return p.x = d.x + j * _this._stack_bar_width;
                 }).transition().style("opacity", 1);
-                this._subView.selectAll("rect.stack.organize").filter(function (p) {
+                var maxI = -1;
+                var temp = this._subView.selectAll("rect.stack.organize").filter(function (p, i) {
+                    maxI = i > maxI ? i : maxI;
                     return p.x > d.x;
-                }).transition().attr("x", function (p) {
-                    return p.x + (data.length - 1) * _this._stack_bar_width;
                 });
-                //this._subView.on("mousemove",() => {
-                //    var mouse = d3.mouse(this._subView.node());
-                //    var data = [];
-                //    d3.selectAll("rect.stack").attr("x",function (d,i) {
-                //        if (d3.select(this).style("visibility") != "hidden") {
-                //            data.push(d.x);
-                //        }
-                //    });
-                //    this._fisheye_scale
-                //        .domain(data)
-                //        .focus(mouse[0])
-                //    ;
-                //    this._subView
-                //        .selectAll("rect.stack").filter(function () { return d3.select(this).style("visibility") != "hidden";})
-                //        .attr("x",(d) => {
-                //            if (this._fisheye_scale(d.x))
-                //                return this._fisheye_scale(d.x);
-                //        })
-                //        .attr("width",(d) => {
-                //            if (this._fisheye_scale.rangeBand(d.x))
-                //                return this._fisheye_scale.rangeBand(d.x);
-                //        })
-                //    ;
-                //})
-                //;
+                if ((maxI + data.length - 1) * this._stack_bar_width > this._subView_width) {
+                    var offsetX = (data.length - 1) * this._stack_bar_width;
+                    temp.attr("x", function (p) {
+                        return p.x = p.x + offsetX;
+                    });
+                    this._subView.on("mousemove", function () {
+                        var mouse = d3.mouse(_this._subView.node());
+                        var data = [];
+                        d3.selectAll("rect.stack").attr("x", function (d, i) {
+                            if (d3.select(this).style("visibility") != "hidden") {
+                                data.push(d.x);
+                            }
+                        });
+                        data.sort(function (a, b) {
+                            return a > b ? 1 : -1;
+                        });
+                        console.log(data);
+                        _this._fisheye_scale.domain(data).focus(mouse[0]);
+                        _this._subView.selectAll("rect.stack").filter(function () {
+                            return d3.select(this).style("visibility") != "hidden";
+                        }).attr("x", function (d) {
+                            //if (this._fisheye_scale(d.x))
+                            return _this._fisheye_scale(d.x);
+                        }).attr("width", function (d) {
+                            //if (this._fisheye_scale.rangeBand(d.x))
+                            return _this._fisheye_scale.rangeBand(d.x);
+                        });
+                    });
+                }
+                else {
+                    temp.transition().attr("x", function (p) {
+                        return p.x = p.x + (data.length - 1) * _this._stack_bar_width;
+                    }).attr("width", this._stack_bar_width);
+                }
             };
             return Curve;
         })(ManyLens.D3ChartObject);
