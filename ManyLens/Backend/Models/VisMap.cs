@@ -164,7 +164,7 @@ namespace ManyLens.Models
                     unitData.Add(new UnitsData()
                     {
                         unitID = unit.UnitID,
-                        count = unit.TweetsCount,
+                        value = unit.TweetsCount,
                         x = unit.X,
                         y = unit.Y,
                         mapID = this.VisMapID

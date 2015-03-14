@@ -3,7 +3,7 @@
 ///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
 ///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
 ///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
-
+///<reference path = "../tsScripts/MapArea/SOMMAP.ts" />
 module ManyLens {
 
     export class ManyLens {
@@ -58,10 +58,10 @@ module ManyLens {
             this._nav_sidebar = new Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
             this._nav_sidebar.BuildList(null);
 
-            this._historySvg = d3.select("#" + this._historySvg_id);
-            this._historyTrees = new LensHistory.HistoryTrees(this._historySvg, this);
+            //this._historySvg = d3.select("#" + this._historySvg_id);
+            //this._historyTrees = new LensHistory.HistoryTrees(this._historySvg, this);
             //Add a new tree here, actually the tree should not be add here
-            this._historyTrees.addTree();
+            //this._historyTrees.addTree();
 
             this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
             /*-------------------------Start the hub-------------------------------------------*/
@@ -90,11 +90,11 @@ module ManyLens {
             this._lens.set(lens.ID, lens);
         }
         public AddLensToHistoryTree(lens: Lens.BaseD3Lens): void {
-            this._historyTrees.addNode({
-                color: lens.LensTypeColor,
-                lensType: lens.Type,
-                tree_id: 0
-            });
+            //this._historyTrees.addNode({
+            //    color: lens.LensTypeColor,
+            //    lensType: lens.Type,
+            //    tree_id: 0
+            //});
         }
 
         //TODO need to implementation

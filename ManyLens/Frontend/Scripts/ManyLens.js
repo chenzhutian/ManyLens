@@ -3864,11 +3864,1065 @@ var ManyLens;
 //        }
 //    }
 //} 
+var ManyLens;
+(function (ManyLens) {
+    var MapArea;
+    (function (MapArea) {
+        var Shader = (function () {
+            function Shader(gl, arg) {
+                var fragment, vertex;
+                this._gl = gl;
+                vertex = arg.vertex, fragment = arg.fragment;
+                this._program = this._gl.createProgram();
+                this._vs = this._gl.createShader(this._gl.VERTEX_SHADER);
+                this._fs = this._gl.createShader(this._gl.FRAGMENT_SHADER);
+                this._gl.attachShader(this._program, this._vs);
+                this._gl.attachShader(this._program, this._fs);
+                this.compileShader(this._vs, vertex);
+                this.compileShader(this._fs, fragment);
+                this.link();
+                this._value_cache = {};
+                this._uniform_cache = {};
+                this._attribCache = {};
+            }
+            Shader.prototype.attribLocation = function (name) {
+                var location;
+                location = this._attribCache[name];
+                if (location === void 0) {
+                    location = this._attribCache[name] = this._gl.getAttribLocation(this._program, name);
+                }
+                return location;
+            };
+            Shader.prototype.compileShader = function (shader, source) {
+                this._gl.shaderSource(shader, source);
+                this._gl.compileShader(shader);
+                if (!this._gl.getShaderParameter(shader, this._gl.COMPILE_STATUS)) {
+                    throw "Shader Compile Error: " + (this._gl.getShaderInfoLog(shader));
+                }
+            };
+            Shader.prototype.link = function () {
+                this._gl.linkProgram(this._program);
+                if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
+                    throw "Shader Link Error: " + (this._gl.getProgramInfoLog(this._program));
+                }
+            };
+            Shader.prototype.use = function () {
+                this._gl.useProgram(this._program);
+                return this;
+            };
+            Shader.prototype.uniformLoc = function (name) {
+                var location;
+                location = this._uniform_cache[name];
+                if (location === void 0) {
+                    location = this._uniform_cache[name] = this._gl.getUniformLocation(this._program, name);
+                }
+                return location;
+            };
+            Shader.prototype.int = function (name, value) {
+                var cached, loc;
+                cached = this._value_cache[name];
+                if (cached !== value) {
+                    this._value_cache[name] = value;
+                    loc = this.uniformLoc(name);
+                    if (loc) {
+                        this._gl.uniform1i(loc, value);
+                    }
+                }
+                return this;
+            };
+            Shader.prototype.vec2 = function (name, a, b) {
+                var loc;
+                loc = this.uniformLoc(name);
+                if (loc) {
+                    this._gl.uniform2f(loc, a, b);
+                }
+                return this;
+            };
+            Shader.prototype.float = function (name, value) {
+                var cached, loc;
+                cached = this._value_cache[name];
+                if (cached !== value) {
+                    this._value_cache[name] = value;
+                    loc = this.uniformLoc(name);
+                    if (loc) {
+                        this._gl.uniform1f(loc, value);
+                    }
+                }
+                return this;
+            };
+            return Shader;
+        })();
+        var Framebuffer = (function () {
+            function Framebuffer(gl) {
+                this._gl = gl;
+                this._buffer = this._gl.createFramebuffer();
+            }
+            Framebuffer.prototype.bind = function () {
+                this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._buffer);
+                return this;
+            };
+            Framebuffer.prototype.unbind = function () {
+                this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+                return this;
+            };
+            Framebuffer.prototype.check = function () {
+                var result;
+                result = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
+                switch (result) {
+                    case this._gl.FRAMEBUFFER_UNSUPPORTED:
+                        throw 'Framebuffer is unsupported';
+                        break;
+                    case this._gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                        throw 'Framebuffer incomplete attachment';
+                        break;
+                    case this._gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                        throw 'Framebuffer incomplete dimensions';
+                        break;
+                    case this._gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                        throw 'Framebuffer incomplete missing attachment';
+                }
+                return this;
+            };
+            Framebuffer.prototype.color = function (texture) {
+                this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, texture.target, texture.handle, 0);
+                this.check();
+                return this;
+            };
+            return Framebuffer;
+        })();
+        var Texture = (function () {
+            function Texture(gl, params) {
+                var _ref, _ref1;
+                this._gl = gl;
+                if (params == null) {
+                    params = {};
+                }
+                this._channels = this._gl[((_ref = params.channels) != null ? _ref : 'rgba').toUpperCase()];
+                if (typeof params.type === 'number') {
+                    this._type = params.type;
+                }
+                else {
+                    this._type = this._gl[((_ref1 = params.type) != null ? _ref1 : 'unsigned_byte').toUpperCase()];
+                }
+                switch (this._channels) {
+                    case this._gl.RGBA:
+                        this._chancount = 4;
+                        break;
+                    case this._gl.RGB:
+                        this._chancount = 3;
+                        break;
+                    case this._gl.LUMINANCE_ALPHA:
+                        this._chancount = 2;
+                        break;
+                    default:
+                        this._chancount = 1;
+                }
+                this.target = this._gl.TEXTURE_2D;
+                this.handle = this._gl.createTexture();
+            }
+            Texture.prototype.bind = function (unit) {
+                if (unit == null) {
+                    unit = 0;
+                }
+                if (unit > 15) {
+                    throw 'Texture unit too large: ' + unit;
+                }
+                this._gl.activeTexture(this._gl.TEXTURE0 + unit);
+                this._gl.bindTexture(this.target, this.handle);
+                return this;
+            };
+            Texture.prototype.setSize = function (width, height) {
+                this._width = width;
+                this._height = height;
+                this._gl.texImage2D(this.target, 0, this._channels, this._width, this._height, 0, this._channels, this._type, null);
+                return this;
+            };
+            Texture.prototype.upload = function (data) {
+                this._width = data.width;
+                this._height = data.height;
+                this._gl.texImage2D(this.target, 0, this._channels, this._channels, this._type, data);
+                return this;
+            };
+            Texture.prototype.linear = function () {
+                this._gl.texParameteri(this.target, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
+                this._gl.texParameteri(this.target, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR);
+                return this;
+            };
+            Texture.prototype.nearest = function () {
+                this._gl.texParameteri(this.target, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
+                this._gl.texParameteri(this.target, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
+                return this;
+            };
+            Texture.prototype.clampToEdge = function () {
+                this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
+                this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
+                return this;
+            };
+            Texture.prototype.repeat = function () {
+                this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT);
+                this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_T, this._gl.REPEAT);
+                return this;
+            };
+            return Texture;
+        })();
+        var NodeH = (function () {
+            function NodeH(gl, width, height) {
+                this.use = function () {
+                    return this._fbo.bind();
+                };
+                this.bind = function (unit) {
+                    return this._texture.bind(unit);
+                };
+                this.end = function () {
+                    return this._fbo.unbind();
+                };
+                this.resize = function (width, height) {
+                    this._width = width;
+                    this._height = height;
+                    return this._texture.bind(0).setSize(this._width, this._height);
+                };
+                var floatExt;
+                this._gl = gl;
+                this._width = width;
+                this._height = height;
+                gl.getExtension('OES_texture_float');
+                this._texture = new Texture(this._gl, {
+                    type: this._gl.FLOAT
+                }).bind(0).setSize(this._width, this._height).nearest().clampToEdge();
+                this._fbo = new Framebuffer(this._gl).bind().color(this._texture).unbind();
+            }
+            return NodeH;
+        })();
+        var vertexShaderBlit = '\
+attribute vec4 position;\n\
+varying vec2 texcoord;\n\
+void main(){\n\
+    texcoord = position.xy*0.5+0.5;\n\
+    gl_Position = position;\n\
+}';
+        var vertexShaderBlit1 = '\
+uniform float times;\n\
+uniform vec2 center;\n\
+attribute vec4 position;\n\
+varying vec2 texcoord;\n\
+void main(){\n\
+    texcoord = ((position.xy - center)* 0.5 * times + center * 0.5 + 0.5);\n\
+    gl_Position = position;\n\
+}';
+        var fragmentShaderBlit = '\
+#ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+precision highp int;\n\
+precision highp float;\n\
+#else\n\
+precision mediump int;\n\
+precision mediump float;\n\
+#endif\n\
+uniform sampler2D source;\n\
+varying vec2 texcoord;';
+        var fragmentShaderHill = '\
+#ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+precision highp int;\n\
+precision highp float;\n\
+#else\n\
+precision mediump int;\n\
+precision mediump float;\n\
+#endif\n\
+uniform sampler2D source;\n\
+varying vec2 texcoord;\n\
+uniform vec2 viewport;\
+void main(){\
+    bool newPos = true;\
+    float testVal;\
+    float currentVal = 0.0;\
+    vec2 texPos;\
+    vec2 newTexPos;\
+    texPos = texcoord;\
+    newTexPos = texcoord;\
+    \
+    int flag = 0;\
+    const int band = 5;\
+    const int band1 = 5;\
+    currentVal = texture2D(source, texPos).a;\
+    for(int i=-band; i<=band; i++){\
+        for(int j=-band; j<=band; j++){\
+            vec2 offset = vec2(i,j)/viewport;\
+            float Val = texture2D(source, texPos+offset).a;\
+            if (Val > currentVal) {\
+                flag = 1;\
+            }\
+        }\
+    }\
+    if(flag==0){\
+        for(int i=0;i<2;i++){\
+            newPos = false;\
+            currentVal = texture2D(source, texPos).a;\
+            for(int x=0; x>=-band1; x--){\
+                for(int y=-band1; y<=band1; y++){\
+                    if(x==0&&y<=0)continue;\
+                    vec2 off = vec2(x,y)/viewport;\
+                    testVal = texture2D(source, texPos+off).a;\
+                    if (testVal >= currentVal) {\
+                        currentVal = testVal;\
+                        newPos = true;\
+                        newTexPos = texPos + off;\
+                    }\
+                }\
+            }\
+            texPos = newTexPos;\
+            if(newPos==false) {break;}\
+        }\
+    }else{\
+        for(int i=0; i<2; i++){\
+            newPos = false;\
+            currentVal = texture2D(source, texPos).a;\
+            for(int x=-band; x<=band; x++){\
+                for(int y=-band; y<=band; y++){\
+                    vec2 off = vec2(x,y)/viewport;\
+                    testVal = texture2D(source, texPos+off).a;\
+                    if (testVal >currentVal) {\
+                        currentVal = testVal;\
+                        newPos = true;\
+                        newTexPos = texPos + off;\
+                    }\
+                }\
+            }\
+            texPos = newTexPos;\
+            if(newPos==false) {break;}\
+        }\
+    }\
+    gl_FragColor = vec4(vec2(texPos), currentVal, 1.0);\
+}';
+        var fragmentShaderFinalHill = '\
+#ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+precision highp int;\n\
+precision highp float;\n\
+#else\n\
+precision mediump int;\n\
+precision mediump float;\n\
+#endif\nuniform sampler2D source;\n\
+varying vec2 texcoord;\n\
+uniform vec2 viewport;\n\
+void main(){\
+    vec2 newTexPos;\
+    newTexPos = texcoord;\
+    for(int i=0;i<16;i++){\
+        newTexPos = vec2(texture2D(source, newTexPos).r, texture2D(source, newTexPos).g);\
+        if(newTexPos.x==texture2D(source, newTexPos).r&&newTexPos.y==texture2D(source, newTexPos).g) {break;}\
+    }\
+    float x = floor(newTexPos.x*viewport.x);\
+    float y = floor(newTexPos.y*viewport.y);\
+    gl_FragColor = vec4(x,y,0.0,0.0);\
+}';
+        var vsCopy = vertexShaderBlit;
+        var fsCopy = '\
+#ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+precision highp int;\n\
+precision highp float;\n\
+#else\n\
+precision mediump int;\n\
+precision mediump float;\n\
+#endif\n\
+uniform sampler2D source;\n\
+varying vec2 texcoord;\n\
+void main(){\
+    float intensity = texture2D(source, texcoord).a;\
+    gl_FragColor = vec4(intensity);\
+}';
+        var Heights = (function () {
+            function Heights(heatmap, gl, width, height) {
+                var i, _i, _ref;
+                this._heatmap = heatmap;
+                this._gl = gl;
+                this._width = width;
+                this._height = height;
+                this._textureBuffer = new Float32Array(this._width * this._height * 4);
+                this._shader = new Shader(this._gl, {
+                    vertex: '\
+attribute vec4 position, intensity;\n\
+varying vec2 off, dim;\n\
+varying float vIntensity;\n\
+uniform vec2 viewport;\n\
+void main(){\n\
+    dim = abs(position.zw);\n\
+    off = position.zw;\n\
+    vec2 pos = position.xy + position.zw;\n\
+    vIntensity = intensity.x;\n\
+    gl_Position = vec4((pos / viewport) * 2.0 - 1.0, 0.0, 1.0);\n\
+}',
+                    fragment: '\
+#ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+precision highp int;\n\
+precision highp float;\n\
+#else\n\
+precision mediump int;\n\
+precision mediump float;\n\
+#endif\n\
+varying vec2 off, dim;\n\
+varying float vIntensity;\n\
+void main(){\n\
+    float falloff = (1.0 - smoothstep(0.0, 1.0, length(off / dim)));\n\
+    float intensity = falloff * vIntensity;\n\
+    gl_FragColor = vec4(intensity, intensity, intensity, intensity);\n\
+}'
+                });
+                this._rawEdgeShader = new Shader(this._gl, {
+                    vertex: '\
+attribute vec4 position, intensity;\n\
+varying vec2 off, dim;\n\
+varying float vIntensity;\n\
+uniform vec2 viewport;\n\
+void main(){\n\
+    dim = abs(position.zw);\n\
+    off = position.zw;\n\
+    vec2 pos = position.xy + position.zw;\n\
+    vIntensity = intensity.x;\n\
+    gl_Position = vec4((pos/viewport)*2.0-1.0, 0.0, 1.0);\n\
+}',
+                    fragment: '\
+#ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+precision highp int;\n\
+precision highp float;\n\
+#else\n\
+precision mediump int;\n\
+precision mediump float;\n\
+#endif\n\
+varying vec2 off, dim;\n\
+varying float vIntensity;\n\
+void main(){\n\
+    float falloff = (1.0);\n\
+    float intensity = falloff * vIntensity;\n\
+    gl_FragColor = vec4(-intensity);\n\
+}'
+                });
+                this._hillShader = new Shader(this._gl, {
+                    vertex: vertexShaderBlit,
+                    //fragment: this.getShaderByScriptID("fragmentShaderHill")
+                    fragment: fragmentShaderHill
+                });
+                this._dumpHillShader = new Shader(this._gl, {
+                    vertex: vertexShaderBlit,
+                    fragment: fragmentShaderFinalHill
+                });
+                this._copyShader = new Shader(this._gl, {
+                    vertex: vsCopy,
+                    fragment: fsCopy
+                });
+                this._nodeBack = new NodeH(this._gl, this._width, this._height);
+                this.nodeFront = new NodeH(this._gl, this._width, this._height);
+                this._nodeHill = new NodeH(this._gl, this._width, this._height);
+                this._nodeDensity = new NodeH(this._gl, this._width, this._height);
+                //for Nodes
+                this._vertexBuffer = this._gl.createBuffer();
+                this._vertexSize = 8;
+                this._maxPointCount = 1024 * 256;
+                this._vertexBufferData = new Float32Array(this._maxPointCount * this._vertexSize * 6);
+                this._vertexBufferViews = [];
+                for (i = _i = 0, _ref = this._maxPointCount; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+                    this._vertexBufferViews.push(new Float32Array(this._vertexBufferData.buffer, 0, i * this._vertexSize * 6));
+                }
+                this._bufferIndex = 0;
+                this._pointCount = 0;
+                //for Edges
+                this._edgevertexBuffer = this._gl.createBuffer();
+                this._edgevertexSize = 8;
+                this._edgemaxPointCount = 1024 * 256;
+                this._edgevertexBufferData = new Float32Array(this._edgemaxPointCount * this._edgevertexSize * 6);
+                this._edgevertexBufferViews = [];
+                for (i = _i = 0, _ref = this._edgemaxPointCount; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+                    this._edgevertexBufferViews.push(new Float32Array(this._edgevertexBufferData.buffer, 0, i * this._edgevertexSize * 6));
+                }
+                this._edgebufferIndex = 0;
+                this._edgepointCount = 0;
+            }
+            //将某个script转化成字符串
+            Heights.prototype.getShaderByScriptID = function (id) {
+                var shaderScript = document.getElementById(id);
+                if (!shaderScript) {
+                    alert("Error: getShader.");
+                    return null;
+                }
+                var str = "";
+                var k = shaderScript.firstChild;
+                while (k) {
+                    if (k.nodeType == 3) {
+                        str += k.textContent;
+                    }
+                    k = k.nextSibling;
+                }
+                return str;
+            };
+            Heights.prototype.resize = function (width, height) {
+                this._width = width;
+                this._height = height;
+                this._textureBuffer = new Float32Array(this._width * this._height * 4);
+                this._nodeHill.resize(this._width, this._height);
+                this._nodeBack.resize(this._width, this._height);
+                this._nodeDensity.resize(this._width, this._height);
+                return this.nodeFront.resize(this._width, this._height);
+            };
+            Heights.prototype.clear = function () {
+                this.nodeFront.use();
+                this._gl.clearColor(0, 0, 0, 0);
+                this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+                return this.nodeFront.end();
+            };
+            //将点画到帧缓冲区（nodeFront）
+            Heights.prototype.update = function () {
+                var intensityLoc, positionLoc;
+                if (this._pointCount > 0) {
+                    this._gl.enable(this._gl.BLEND);
+                    this.nodeFront.use();
+                    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._vertexBuffer);
+                    this._gl.bufferData(this._gl.ARRAY_BUFFER, this._vertexBufferViews[this._pointCount], this._gl.STREAM_DRAW);
+                    positionLoc = this._shader.attribLocation('position');
+                    intensityLoc = this._shader.attribLocation('intensity');
+                    this._gl.enableVertexAttribArray(1);
+                    this._gl.vertexAttribPointer(positionLoc, 4, this._gl.FLOAT, false, 8 * 4, 0 * 4);
+                    this._gl.vertexAttribPointer(intensityLoc, 4, this._gl.FLOAT, false, 8 * 4, 4 * 4);
+                    this._shader.use().vec2('viewport', this._width, this._height);
+                    this._gl.drawArrays(this._gl.TRIANGLES, 0, this._pointCount * 6);
+                    this._gl.disableVertexAttribArray(1);
+                    this._pointCount = 0;
+                    this._bufferIndex = 0;
+                    this.nodeFront.end();
+                    this._nodeDensity = this.nodeFront;
+                    this._gl.disable(this._gl.BLEND);
+                }
+            };
+            //将边画到帧缓冲区（nodeFront）
+            Heights.prototype.updateEdges = function () {
+                var intensityLoc, positionLoc;
+                if (this._edgepointCount > 0) {
+                    this.nodeFront.use();
+                    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._edgevertexBuffer);
+                    this._gl.bufferData(this._gl.ARRAY_BUFFER, this._edgevertexBufferViews[this._edgepointCount], this._gl.STREAM_DRAW);
+                    positionLoc = this._rawEdgeShader.attribLocation('position');
+                    intensityLoc = this._rawEdgeShader.attribLocation('intensity');
+                    this._gl.enableVertexAttribArray(1);
+                    this._gl.vertexAttribPointer(positionLoc, 4, this._gl.FLOAT, false, 8 * 4, 0 * 4);
+                    this._gl.vertexAttribPointer(intensityLoc, 4, this._gl.FLOAT, false, 8 * 4, 4 * 4);
+                    this._rawEdgeShader.use().int('source', 0).vec2('viewport', this._width, this._height);
+                    this._gl.drawArrays(this._gl.TRIANGLES, 0, this._edgepointCount * 6);
+                    this._gl.disableVertexAttribArray(1);
+                    this._edgepointCount = 0;
+                    this._edgebufferIndex = 0;
+                    this.nodeFront.end();
+                }
+            };
+            Heights.prototype.addVertex = function (x, y, xs, ys, intensity) {
+                this._vertexBufferData[this._bufferIndex++] = x;
+                this._vertexBufferData[this._bufferIndex++] = y;
+                this._vertexBufferData[this._bufferIndex++] = xs;
+                this._vertexBufferData[this._bufferIndex++] = ys;
+                this._vertexBufferData[this._bufferIndex++] = intensity;
+                this._vertexBufferData[this._bufferIndex++] = intensity;
+                this._vertexBufferData[this._bufferIndex++] = intensity;
+                return this._vertexBufferData[this._bufferIndex++] = intensity;
+            };
+            Heights.prototype.addNode = function (x, y, size, intensity) {
+                var s;
+                if (size == null) {
+                    size = 50;
+                }
+                if (intensity == null) {
+                    intensity = 0.2;
+                }
+                if (this._pointCount >= this._maxPointCount - 1) {
+                    this.update();
+                }
+                s = size / 2;
+                this.addVertex(x, y, -s, -s, intensity);
+                this.addVertex(x, y, +s, -s, intensity);
+                this.addVertex(x, y, -s, +s, intensity);
+                this.addVertex(x, y, -s, +s, intensity);
+                this.addVertex(x, y, +s, -s, intensity);
+                this.addVertex(x, y, +s, +s, intensity);
+                return this._pointCount += 1;
+            };
+            Heights.prototype.addEdgeVertex = function (x, y, xs, ys, intensity) {
+                this._edgevertexBufferData[this._edgebufferIndex++] = x;
+                this._edgevertexBufferData[this._edgebufferIndex++] = y;
+                this._edgevertexBufferData[this._edgebufferIndex++] = xs;
+                this._edgevertexBufferData[this._edgebufferIndex++] = ys;
+                this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
+                this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
+                this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
+                return this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
+            };
+            Heights.prototype.addEdge = function (x0, y0, x1, y1, size, intensity) {
+                var s, x, y;
+                if (size == null) {
+                    size = 50;
+                }
+                if (intensity == null) {
+                    intensity = 0.2;
+                }
+                if (this._edgepointCount >= this._edgemaxPointCount - 1) {
+                    this.updateEdges();
+                }
+                var lineLength = Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
+                x = (x0 + x1) / 2;
+                y = (y0 + y1) / 2;
+                size = size / 2;
+                var px0, px1, px2, px3, px4, py0, py1, py2, py3, py4;
+                py0 = (x1 - x0) / lineLength;
+                px0 = (y0 - y1) / lineLength;
+                px1 = x0 + px0 * size;
+                py1 = y0 + py0 * size;
+                px2 = x1 + px0 * size;
+                py2 = y1 + py0 * size;
+                px3 = x0 - px0 * size;
+                py3 = y0 - py0 * size;
+                px4 = x1 - px0 * size;
+                py4 = y1 - py0 * size;
+                this.addEdgeVertex(x, y, px1 - x, py1 - y, intensity);
+                this.addEdgeVertex(x, y, px2 - x, py2 - y, intensity);
+                this.addEdgeVertex(x, y, px3 - x, py3 - y, intensity);
+                this.addEdgeVertex(x, y, px3 - x, py3 - y, intensity);
+                this.addEdgeVertex(x, y, px2 - x, py2 - y, intensity);
+                this.addEdgeVertex(x, y, px4 - x, py4 - y, intensity);
+                this._edgepointCount += 1;
+            };
+            //将帧缓冲区的内容copy回本地(CPU上的内存)
+            Heights.prototype.dumpDensityMapTexureBuffer = function () {
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
+                this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
+                this._nodeDensity.bind(0);
+                this._nodeBack.use();
+                this._gl.clearColor(0, 0, 0, 0);
+                this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+                this._copyShader.use().int('source', 0).vec2('viewport', this._width, this._height);
+                this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+                this._gl.readPixels(0, 0, this._width, this._height, this._gl.RGBA, this._gl.FLOAT, this._textureBuffer);
+                this._nodeBack.end();
+            };
+            //获得当前本地端内存所存储的帧缓冲区内容
+            Heights.prototype.getTextureBuffer = function () {
+                return this._textureBuffer;
+            };
+            //进行点聚合爬山算法
+            Heights.prototype.hillClimbing = function () {
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
+                this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
+                this.nodeFront.bind(0);
+                this._nodeHill.use();
+                this._gl.clearColor(0, 0, 0, 0);
+                this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+                this._hillShader.use().int('source', 0).vec2('viewport', this._width, this._height);
+                this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+                this._nodeHill.end();
+            };
+            //将爬山结果copy回本地端内存缓冲区
+            Heights.prototype.dumpFinalHillClimbingResult = function () {
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
+                this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
+                this._nodeHill.bind(0);
+                this._nodeBack.use();
+                this._gl.clearColor(0, 0, 0, 0);
+                this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+                this._dumpHillShader.use().int('source', 0).vec2('viewport', this._width, this._height);
+                this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+                this._gl.readPixels(0, 0, this._width, this._height, this._gl.RGBA, this._gl.FLOAT, this._textureBuffer);
+                this._nodeBack.end();
+            };
+            return Heights;
+        })();
+        var WebGLHeatmap = (function () {
+            function WebGLHeatmap(arg) {
+                var _ref;
+                _ref = arg != null ? arg : {}, this.canvas = _ref.canvas, this._width = _ref.width, this._height = _ref.height;
+                if (!this.canvas) {
+                    this.canvas = document.createElement('canvas');
+                }
+                this._gl = this.canvas.getContext('experimental-webgl', { antialias: true });
+                if (this._gl === null) {
+                    throw 'WebGL not supported';
+                }
+                this._gl.enableVertexAttribArray(0);
+                this._gl.getExtension('OES_texture_float');
+                this._gl.blendFunc(this._gl.ONE, this._gl.ONE);
+                var alphaRange;
+                var _ref1 = alphaRange != null ? alphaRange : [0, 1], alphaStart = _ref1[0], alphaEnd = _ref1[1];
+                var output = "vec4 alphaFun(vec3 color, float intensity){\n    float alpha = smoothstep(" + (alphaStart.toFixed(8)) + ", " + (alphaEnd.toFixed(8)) + ", intensity);\n    return vec4(color*alpha, alpha);\n}";
+                var getColorFun = 'float a0 = 0.3; float a1 = 0.6; vec4 getColor(float intensity){\n    vec3 blue = vec3(0.0, 0.0, 1.0);\n    vec3 cyan = vec3(0.0, 1.0, 1.0);\n    vec3 green = vec3(0.0, 1.0, 0.0);\n    vec3 yellow = vec3(1.0, 1.0, 0.0);\n    vec3 red = vec3(1.0, 0.0, 0.0);\n\n    vec4 color;\n if(intensity>=0.0) {if(intensity>=level6)color= vec4(0.4,0.2,0.1,0.85);else if(intensity>=level5)color= vec4(0.5,0.2,0.1,0.7);else if(intensity>=level4)color= vec4(0.7,0.4,0.15,0.9);else if(intensity>=level3)color= vec4(0.7,0.4,0.15,0.7);else if(intensity>=level2)color= vec4(0.6,0.4,0.20,0.60);else if(intensity>=level1)color= vec4(0.95*a1,0.8*a1,0.55*a1,a1);else if(intensity>=level0)color= vec4(0.95*a0,0.8*a0,0.55*a0,a0); else color=vec4(0,0,0,intensity);}\nelse{color = vec4(1.0,(1.0+intensity)*0.7,(1.0+intensity)*0.7,1.0);}\n    return color;\n}';
+                var rawgetColorFun = 'vec3 getColor(float intensity){\n    vec3 blue = vec3(0.0, 0.0, 1.0);\n    vec3 cyan = vec3(0.0, 1.0, 1.0);\n    vec3 green = vec3(0.0, 1.0, 0.0);\n    vec3 yellow = vec3(1.0, 1.0, 0.0);\n    vec3 red = vec3(1.0, 0.0, 0.0);\n\n    vec3 color = (\n        fade(-0.25, 0.25, intensity)*blue +\n        fade(0.0, 0.5, intensity)*cyan +\n        fade(0.25, 0.75, intensity)*green +\n        fade(0.5, 1.0, intensity)*yellow +\n        smoothstep(0.75, 1.0, intensity)*red\n    );\n    return color;\n}';
+                this._shader = new Shader(this._gl, {
+                    vertex: vertexShaderBlit1,
+                    fragment: fragmentShaderBlit + ("uniform float level0;\nuniform float level1;\nuniform float level2;\nuniform float level3;\nuniform float level4;\nuniform float level5;\nuniform float level6;\n") + ("float linstep(float low, float high, float value){\n    return clamp((value-low)/(high-low), 0.0, 1.0);\n}\n\nfloat fade(float low, float high, float value){\n    float mid = (low+high)*0.5;\n    float range = (high-low)*0.5;\n    float x = 1.0 - clamp(abs(mid-value)/range, 0.0, 1.0);\n    return smoothstep(0.0, 1.0, x);\n}\n\n" + getColorFun + "\n" + "\n\nvoid main(){\n    float intensity = (texture2D(source, texcoord).r);\n    vec4 color = getColor(intensity);\n   gl_FragColor = color;\n}")
+                });
+                this._rawshader = new Shader(this._gl, {
+                    vertex: vertexShaderBlit1,
+                    fragment: fragmentShaderBlit + ("float linstep(float low, float high, float value){\n    return clamp((value-low)/(high-low), 0.0, 1.0);\n}\n\nfloat fade(float low, float high, float value){\n    float mid = (low+high)*0.5;\n    float range = (high-low)*0.5;\n    float x = 1.0 - clamp(abs(mid-value)/range, 0.0, 1.0);\n    return smoothstep(0.0, 1.0, x);\n}\n\n" + rawgetColorFun + "\n" + output + "\n\nvoid main(){\n    float intensity = smoothstep(0.0, 1.0, texture2D(source, texcoord).r);\n    vec3 color = getColor(intensity);\n    gl_FragColor = alphaFun(color, intensity);\n}")
+                });
+                if (this._width == null) {
+                    this._width = this.canvas.offsetWidth || 2;
+                }
+                if (this._height == null) {
+                    this._height = this.canvas.offsetHeight || 2;
+                }
+                this.canvas.width = this._width;
+                this.canvas.height = this._height;
+                this._gl.viewport(0, 0, this._width, this._height);
+                this.quad = this._gl.createBuffer();
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.quad);
+                var quad = new Float32Array([-1, -1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, 1, 0, 1, 1, -1, 0, 1, 1, 1, 0, 1]);
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, quad, this._gl.STATIC_DRAW);
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+                this._heights = new Heights(this, this._gl, this._width, this._height);
+            }
+            WebGLHeatmap.prototype.adjustSize = function () {
+                var canvasHeight, canvasWidth;
+                canvasWidth = this.canvas.offsetWidth || 2;
+                canvasHeight = this.canvas.offsetHeight || 2;
+                if (this._width !== canvasWidth || this._height !== canvasHeight) {
+                    this._gl.viewport(0, 0, canvasWidth, canvasHeight);
+                    this.canvas.width = canvasWidth;
+                    this.canvas.height = canvasHeight;
+                    this._width = canvasWidth;
+                    this._height = canvasHeight;
+                    this._heights.resize(this._width, this._height);
+                }
+            };
+            WebGLHeatmap.prototype.display = function (x, y, times, contourForIntensity) {
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.quad);
+                this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
+                this._heights.nodeFront.bind(0);
+                if (!times)
+                    times = 1.0;
+                if (!x)
+                    x = 0;
+                if (!y)
+                    y = 0;
+                if (!contourForIntensity) {
+                    contourForIntensity = [1, 1, 1, 1, 1, 1, 1];
+                }
+                if (this._gradientTexture) {
+                    this._gradientTexture.bind(1);
+                }
+                var flag = true;
+                if (MapArea.config.shaderStyle == null)
+                    flag = true;
+                else if (MapArea.config.shaderStyle == 0)
+                    flag = true;
+                else
+                    flag = false;
+                if (flag) {
+                    this._shader.use().int('source', 0).int('gradientTexture', 1).float('level0', contourForIntensity[0]).float('level1', contourForIntensity[1]).float('level2', contourForIntensity[2]).float('level3', contourForIntensity[3]).float('level4', contourForIntensity[4]).float('level5', contourForIntensity[5]).float('level6', contourForIntensity[6]).float('times', times).vec2('center', x, y);
+                }
+                else {
+                    this._rawshader.use().int('source', 0).int('gradientTexture', 1).float('times', times).vec2('center', x, y);
+                }
+                return this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+            };
+            WebGLHeatmap.prototype.dumpDensityMapTexureBuffer = function () {
+                this._heights.dumpDensityMapTexureBuffer();
+            };
+            WebGLHeatmap.prototype.getTextureBuffer = function () {
+                return this._heights.getTextureBuffer();
+            };
+            WebGLHeatmap.prototype.getDensityMapTextureBuffer = function () {
+                return this._heights.getTextureBuffer();
+            };
+            WebGLHeatmap.prototype.getHillClimbingResultTextureBuffer = function () {
+                return this._heights.getTextureBuffer();
+            };
+            WebGLHeatmap.prototype.hillClimbing = function () {
+                this._heights.hillClimbing();
+            };
+            WebGLHeatmap.prototype.dumpFinalHillClimbingResult = function () {
+                this._heights.dumpFinalHillClimbingResult();
+            };
+            WebGLHeatmap.prototype.addNode = function (x, y, size, intensity) {
+                return this._heights.addNode(x, y, size, intensity);
+            };
+            WebGLHeatmap.prototype.updateNodes = function () {
+                return this._heights.update();
+            };
+            WebGLHeatmap.prototype.addEdge = function (x0, y0, x1, y1, size, intensity) {
+                return this._heights.addEdge(x0, y0, x1, y1, size, intensity);
+            };
+            WebGLHeatmap.prototype.updateEdges = function () {
+                return this._heights.updateEdges();
+            };
+            WebGLHeatmap.prototype.clear = function () {
+                return this._heights.clear();
+            };
+            WebGLHeatmap.prototype.changTimes = function (x, y, times) {
+                this._gl.viewport(-x * (times - 1), -(this._height - y) * (times - 1), this._width * times, this._height * times);
+            };
+            WebGLHeatmap.prototype.returnToInitial = function () {
+                this._gl.viewport(0, 0, this._width, this._height);
+            };
+            return WebGLHeatmap;
+        })();
+        MapArea.WebGLHeatmap = WebGLHeatmap;
+    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./WebGLLod.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var MapArea;
+    (function (MapArea) {
+        var config = (function () {
+            function config() {
+            }
+            config.setKernelBandWidth = function (val) {
+                config.kernelBandwidth = val;
+                config.LoDMap.DrawCanvas();
+            };
+            config.setIntensity = function (val) {
+                config.intensity = val;
+                config.LoDMap.DrawCanvas();
+            };
+            config.setShader = function (val) {
+                config.shaderStyle = val;
+                config.LoDMap.DrawCanvas();
+            };
+            config.kernelBandwidth = 64;
+            config.intensity = 3;
+            config.shaderStyle = 0;
+            config.stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
+            return config;
+        })();
+        MapArea.config = config;
+        var HeatMapLayer = (function () {
+            function HeatMapLayer(parentID, canvasHeight, canvasWidth, unitSize, nodeArray) {
+                config.LoDMap = this;
+                this._parentID = parentID;
+                this._canvas_height = canvasHeight * unitSize;
+                this._canvas_width = canvasWidth * unitSize;
+                //this._unit_size = unitSize;
+                this._nodeArray = nodeArray.map(function (d) {
+                    return { x: d.x * unitSize, y: d.y * unitSize, value: d.value };
+                });
+                this.addAndInitCanvas();
+                this.DrawCanvas();
+            }
+            //在html上添加canvas并初始化，热力图和LoD就画在这个canvas上
+            HeatMapLayer.prototype.addAndInitCanvas = function () {
+                this._canvas = document.createElement('canvas');
+                this._canvas.style.position = 'relative';
+                this._canvas.height = this._canvas_height;
+                this._canvas.width = this._canvas_width;
+                this._canvas.style.top = -this._canvas.height / 2 + 'px';
+                this._canvas.style.left = -this._canvas.width / 2 + 'px';
+                var container = document.createElement('div');
+                container.style.position = 'absolute';
+                container.style.left = '0%';
+                container.style.top = '0%';
+                container.appendChild(this._canvas);
+                document.getElementById(this._parentID).appendChild(container);
+                // document.getElementsByTagName( "body" )[0].insertBefore( container, document.getElementById( "sidePanel" ) );
+                //创建热力图
+                this._LoD = new MapArea.WebGLHeatmap({ canvas: this._canvas });
+                //初始化像素矩阵
+                var width = this._LoD.canvas.width;
+                var height = this._LoD.canvas.height;
+                this._pixelMatrix = new Array(height);
+                for (var i = 0; i < height; ++i) {
+                    var tmp = new Array(width);
+                    this._pixelMatrix[i] = tmp;
+                    for (var j = 0; j < width; ++j)
+                        this._pixelMatrix[i][j] = 0;
+                }
+                ;
+                //初始化等高线值,这里设置为7层
+                this._contourForIntensity = new Array(7);
+                for (var i = 0, len = this._contourForIntensity.length; i < len; ++i) {
+                    this._contourForIntensity[i] = 0.0;
+                }
+                ;
+            };
+            //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
+            HeatMapLayer.prototype.DrawCanvas = function () {
+                this._canvas.height = this._canvas_height;
+                this._canvas.width = this._canvas_width;
+                this._canvas.style.top = -this._canvas.height / 2 + 'px';
+                this._canvas.style.left = -this._canvas.width / 2 + 'px';
+                var dStart = new Date();
+                this.getEdgesNodesAndDraw();
+                var nSpan = (new Date()).getMilliseconds() - dStart.getMilliseconds();
+                console.log("overall time is :" + nSpan + "ms");
+            };
+            //1、统计pixel矩阵上每个点出现的次数，然后根据每个Pixel点上不同的点个数赋予不同的强度，然后画到帧缓冲区中;并将当前的densityMap的结果copy回CPU端
+            //2、根据densityMap的强度矩阵获得强度矩阵的最大值，并设置等高线的值;
+            HeatMapLayer.prototype.getEdgesNodesAndDraw = function () {
+                this._LoD.clear(); //每次重新绘制图时都需要将GPU的帧缓冲区清零
+                var s = "[";
+                this._nodeArray.forEach(function (d) {
+                    s += '{"x":' + d.x + ',"y":' + d.y + ',"value":' + d.value + '},';
+                });
+                s += "]";
+                console.log(s);
+                this.drawNodes(this._nodeArray); //画点，渲染的结果在帧缓冲区中
+                this._LoD.display(0, 0, 1.0, this._contourForIntensity); //将最终渲染的帧缓冲区的结果展示到屏幕上
+            };
+            HeatMapLayer.prototype.drawNodes = function (nodes) {
+                //初始像素矩阵为零
+                var width = this._pixelMatrix[0].length;
+                var height = this._pixelMatrix.length;
+                for (var i = 0; i < height; i++) {
+                    for (var j = 0; j < width; j++)
+                        this._pixelMatrix[i][j] = 0;
+                }
+                for (var i = 0, len = nodes.length; i < len; ++i) {
+                    var x = nodes[i].x; //* this._unit_size;
+                    var y = height - 1 - nodes[i].y; //* this._unit_size;
+                    this._pixelMatrix[y][x] = nodes[i].value;
+                }
+                //获得当前bing Map的放大倍数
+                var zoomLevel = 5; //this._map.getZoom();
+                //根据不同的zoomLevel设置不同的强度基数和核半径
+                var density = config.intensity;
+                density = density * zoomLevel / 5.0; //Math.max(zoomLevel-4.0, 1.0);
+                var ans = 0;
+                var kernelBand = 0;
+                var BaseKernelBand = config.kernelBandwidth;
+                if (zoomLevel < 5.0) {
+                    kernelBand = BaseKernelBand * Math.pow(0.75, 5.0 - zoomLevel);
+                }
+                else
+                    kernelBand = BaseKernelBand * Math.atan(zoomLevel - 3.3) * Math.pow(1.05, zoomLevel - 5.0);
+                for (var i = 0; i < height; i++) {
+                    for (var j = 0; j < width; j++) {
+                        if (this._pixelMatrix[i][j] > 0) {
+                            //遍历点聚合后的像素矩阵，将点的坐标以及其对应的核半径和强度值加入点缓冲区中
+                            this._LoD.addNode(j, i, kernelBand, Math.sqrt(this._pixelMatrix[i][j]) * density / 300);
+                            ans++;
+                        }
+                    }
+                }
+                //在GPU中画点的热力图，帧缓冲与纹理nodeFront绑定
+                this._LoD.updateNodes();
+                // get the Maximum Val of density from the retrieved Buffer, and compute the contour Map
+                //画完热力图，将热力图的强度矩阵拷贝回CPU端，CPU端计算热力图中的最大强度，然后根据这个最大强度设置等高线的值。
+                this.getTextureBufferIntensity(null);
+            };
+            HeatMapLayer.prototype.getTextureBufferIntensity = function (textureBuffer) {
+                // dump the densityMap from GPU's FrameBuffer (bind the TextureBuffer)
+                this._LoD.dumpDensityMapTexureBuffer();
+                if (textureBuffer == null)
+                    textureBuffer = this._LoD.getDensityMapTextureBuffer();
+                var maxVal = 0;
+                for (var idx = 0, len = textureBuffer.length; idx < len; idx += 16) {
+                    maxVal = Math.max(textureBuffer[idx], maxVal);
+                }
+                //var rate = [0.01,0.02,0.04,0.08,0.15,0.19,0.28];
+                if (maxVal == 0)
+                    maxVal = 1.0;
+                //提前估算好各个等高线的值与最大值的比率，然后根据得到的densityMap的最大值计算出当前各个等高线的值
+                var rate = config.stops;
+                for (var idx = 0, len = this._contourForIntensity.length; idx < len; idx++) {
+                    this._contourForIntensity[idx] = maxVal * rate[idx];
+                }
+            };
+            return HeatMapLayer;
+        })();
+        MapArea.HeatMapLayer = HeatMapLayer;
+    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./HeatmapLayer.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var MapArea;
+    (function (MapArea) {
+        var SOMMap = (function (_super) {
+            __extends(SOMMap, _super);
+            function SOMMap(element, manyLens) {
+                _super.call(this, element, manyLens);
+                // private _lensPane: Pane.ClassicLensPane;
+                //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
+                this._colorPalettes = ["rgb(198,219,239)", "rgb(158,202,225)", "rgb(107, 174, 214)", "rgb(66, 146, 198)", "rgb(33, 113, 181)", "rgb(8, 81, 156)", "rgb(8, 81, 156)"];
+                // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
+                this._element.attr("height", function () {
+                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                });
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
+            }
+            SOMMap.prototype.Render = function () {
+                //this._lensPane.Render();
+            };
+            SOMMap.prototype.ShowVis = function (visData) {
+                var _this = this;
+                var deviation = d3.deviation(visData.unitsData, function (d) {
+                    return d.value;
+                });
+                var mean = d3.mean(visData.unitsData, function (d) {
+                    return d.value;
+                });
+                var median = d3.median(visData.unitsData, function (d) {
+                    return d.value;
+                });
+                var oneDeviationMin = (mean - deviation) > 0 ? (mean - deviation) : 0;
+                var twoDeviationMax = (mean + 2 * deviation);
+                var oneDeviationMax = (mean + deviation);
+                var scale = d3.scale.quantize().domain([oneDeviationMin, oneDeviationMax]).range([1, 2, 3]);
+                var data0 = [];
+                visData.unitsData.forEach(function (d) {
+                    if (d.value > twoDeviationMax) {
+                        d.colorIndex = 5;
+                    }
+                    else if (d.value > oneDeviationMax) {
+                        d.colorIndex = 4;
+                    }
+                    else if (d.value < oneDeviationMin || d.value < median) {
+                        d.colorIndex = 0;
+                    }
+                    else {
+                        d.colorIndex = scale(d.value);
+                    }
+                    if (data0[d.colorIndex] == null) {
+                        data0[d.colorIndex] = [d.value];
+                    }
+                    else {
+                        data0[d.colorIndex].push(d.value);
+                    }
+                });
+                console.log(visData.min, visData.max);
+                console.log(d3.deviation(visData.unitsData, function (d) {
+                    return d.value;
+                }));
+                console.log(d3.mean(visData.unitsData, function (d) {
+                    return d.value;
+                }));
+                console.log(d3.median(visData.unitsData, function (d) {
+                    return d.value;
+                }));
+                console.log(data0);
+                var somMapWidth = 300.0;
+                var somMapHeight = 300.0;
+                var xPadding = somMapWidth / (visData.width + 1);
+                var yPadding = somMapHeight / (visData.height + 1);
+                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }]).attr("id", function (d) {
+                    return "mapSvg" + d.mapID;
+                }).attr("width", somMapWidth).attr("height", somMapHeight);
+                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d, i) {
+                    return d.x * 20;
+                }).attr("y", function (d, i) {
+                    return d.y * 20;
+                }).attr({
+                    width: 20,
+                    height: 20
+                }).attr("fill", function (d) {
+                    //var interpalote = d3.interpolateRgb(this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]);
+                    //var extent = d3.extent<number>(data0[d.colorIndex]);
+                    //return interpalote((d.count - extent[0]) / (extent[1] - extent[0]));
+                    var colorScale = d3.scale.linear().domain(d3.extent(data0[d.colorIndex])).range([_this._colorPalettes[d.colorIndex], _this._colorPalettes[d.colorIndex + 1]]);
+                    return colorScale(d.value);
+                });
+                new MapArea.HeatMapLayer("mapView", visData.height, visData.width, 20, visData.unitsData);
+            };
+            return SOMMap;
+        })(ManyLens.D3ChartObject);
+        MapArea.SOMMap = SOMMap;
+    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
+})(ManyLens || (ManyLens = {}));
 ///<reference path = "../tsScripts/Hub/Hub.ts" />
 ///<reference path="../tsScripts/Navigation/SideBarNavigation.ts" />
 ///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
 ///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
 ///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
+///<reference path = "../tsScripts/MapArea/SOMMAP.ts" />
 var ManyLens;
 (function (_ManyLens) {
     var ManyLens = (function () {
@@ -3894,10 +4948,10 @@ var ManyLens;
             this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
             this._nav_sidebar = new _ManyLens.Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
             this._nav_sidebar.BuildList(null);
-            this._historySvg = d3.select("#" + this._historySvg_id);
-            this._historyTrees = new _ManyLens.LensHistory.HistoryTrees(this._historySvg, this);
+            //this._historySvg = d3.select("#" + this._historySvg_id);
+            //this._historyTrees = new LensHistory.HistoryTrees(this._historySvg, this);
             //Add a new tree here, actually the tree should not be add here
-            this._historyTrees.addTree();
+            //this._historyTrees.addTree();
             this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
             /*-------------------------Start the hub-------------------------------------------*/
             this._manyLens_hub.connection.start().done(function () {
@@ -3938,11 +4992,11 @@ var ManyLens;
             this._lens.set(lens.ID, lens);
         };
         ManyLens.prototype.AddLensToHistoryTree = function (lens) {
-            this._historyTrees.addNode({
-                color: lens.LensTypeColor,
-                lensType: lens.Type,
-                tree_id: 0
-            });
+            //this._historyTrees.addNode({
+            //    color: lens.LensTypeColor,
+            //    lensType: lens.Type,
+            //    tree_id: 0
+            //});
         };
         //TODO need to implementation
         ManyLens.prototype.RemoveLens = function (lens) {
@@ -4271,100 +5325,6 @@ var ManyLens;
         return LensAssemblyFactory;
     })();
     ManyLens.LensAssemblyFactory = LensAssemblyFactory;
-})(ManyLens || (ManyLens = {}));
-var ManyLens;
-(function (ManyLens) {
-    var MapArea;
-    (function (MapArea) {
-        var SOMMap = (function (_super) {
-            __extends(SOMMap, _super);
-            function SOMMap(element, manyLens) {
-                _super.call(this, element, manyLens);
-                // private _lensPane: Pane.ClassicLensPane;
-                //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
-                this._colorPalettes = ["rgb(198,219,239)", "rgb(158,202,225)", "rgb(107, 174, 214)", "rgb(66, 146, 198)", "rgb(33, 113, 181)", "rgb(8, 81, 156)", "rgb(8, 81, 156)"];
-                // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
-                this._element.attr("height", function () {
-                    return this.parentNode.clientHeight - this.offsetTop + 20;
-                });
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
-            }
-            SOMMap.prototype.Render = function () {
-                //this._lensPane.Render();
-            };
-            SOMMap.prototype.ShowVis = function (visData) {
-                var _this = this;
-                var deviation = d3.deviation(visData.unitsData, function (d) {
-                    return d.count;
-                });
-                var mean = d3.mean(visData.unitsData, function (d) {
-                    return d.count;
-                });
-                var median = d3.median(visData.unitsData, function (d) {
-                    return d.count;
-                });
-                var oneDeviationMin = (mean - deviation) > 0 ? (mean - deviation) : 0;
-                var twoDeviationMax = (mean + 2 * deviation);
-                var oneDeviationMax = (mean + deviation);
-                var scale = d3.scale.quantize().domain([oneDeviationMin, oneDeviationMax]).range([1, 2, 3]);
-                var data0 = [];
-                visData.unitsData.forEach(function (d) {
-                    if (d.count > twoDeviationMax) {
-                        d.colorIndex = 5;
-                    }
-                    else if (d.count > oneDeviationMax) {
-                        d.colorIndex = 4;
-                    }
-                    else if (d.count < oneDeviationMin || d.count < median) {
-                        d.colorIndex = 0;
-                    }
-                    else {
-                        d.colorIndex = scale(d.count);
-                    }
-                    if (data0[d.colorIndex] == null) {
-                        data0[d.colorIndex] = [d.count];
-                    }
-                    else {
-                        data0[d.colorIndex].push(d.count);
-                    }
-                });
-                console.log(visData.min, visData.max);
-                console.log(d3.deviation(visData.unitsData, function (d) {
-                    return d.count;
-                }));
-                console.log(d3.mean(visData.unitsData, function (d) {
-                    return d.count;
-                }));
-                console.log(d3.median(visData.unitsData, function (d) {
-                    return d.count;
-                }));
-                console.log(data0);
-                var somMapWidth = 300.0;
-                var somMapHeight = 300.0;
-                var xPadding = somMapWidth / (visData.width + 1);
-                var yPadding = somMapHeight / (visData.height + 1);
-                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }]).attr("id", function (d) {
-                    return "mapSvg" + d.mapID;
-                }).attr("width", somMapWidth).attr("height", somMapHeight);
-                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d, i) {
-                    return 100 + d.x * 20;
-                }).attr("y", function (d, i) {
-                    return 100 + d.y * 20;
-                }).attr({
-                    width: 20,
-                    height: 20
-                }).attr("fill", function (d) {
-                    //var interpalote = d3.interpolateRgb(this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]);
-                    //var extent = d3.extent<number>(data0[d.colorIndex]);
-                    //return interpalote((d.count - extent[0]) / (extent[1] - extent[0]));
-                    var colorScale = d3.scale.linear().domain(d3.extent(data0[d.colorIndex])).range([_this._colorPalettes[d.colorIndex], _this._colorPalettes[d.colorIndex + 1]]);
-                    return colorScale(d.count);
-                });
-            };
-            return SOMMap;
-        })(ManyLens.D3ChartObject);
-        MapArea.SOMMap = SOMMap;
-    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../Lens/LensList.ts" />
 //module ManyLens {

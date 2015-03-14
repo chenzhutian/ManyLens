@@ -1,10 +1,11 @@
-﻿module ManyLens {
+﻿///<reference path = "./HeatmapLayer.ts" />
+module ManyLens {
     export module MapArea {
 
         interface UnitData {
             unitID: number;
             colorIndex: number;
-            count: number;
+            value: number;
             x: number;
             y: number;
             mapID: string;
@@ -48,9 +49,9 @@
             }
 
             public ShowVis(visData: MapData): void {
-                var deviation = d3.deviation(visData.unitsData, function (d) { return d.count; });
-                var mean = d3.mean(visData.unitsData, function (d) { return d.count; });
-                var median = d3.median(visData.unitsData, function (d) { return d.count; });
+                var deviation = d3.deviation(visData.unitsData, function (d) { return d.value; });
+                var mean = d3.mean(visData.unitsData, function (d) { return d.value; });
+                var median = d3.median(visData.unitsData, function (d) { return d.value; });
                 var oneDeviationMin = (mean - deviation) > 0 ? (mean - deviation) : 0;
                 var twoDeviationMax = (mean + 2 * deviation);
                 var oneDeviationMax = (mean + deviation);
@@ -59,27 +60,27 @@
                 
                 var data0 = [];
                 visData.unitsData.forEach((d) => {
-                    if (d.count > twoDeviationMax) {
+                    if (d.value > twoDeviationMax) {
                         d.colorIndex = 5;
-                    }else if (d.count > oneDeviationMax) {
+                    }else if (d.value > oneDeviationMax) {
                         d.colorIndex = 4;
                     }
-                    else if (d.count < oneDeviationMin || d.count < median) {
+                    else if (d.value < oneDeviationMin || d.value < median) {
                         d.colorIndex = 0;
                     } else {
-                        d.colorIndex = scale(d.count);
+                        d.colorIndex = scale(d.value);
                     }
 
                     if (data0[d.colorIndex] == null) {
-                        data0[d.colorIndex] = [d.count];
+                        data0[d.colorIndex] = [d.value];
                     } else {
-                            data0[d.colorIndex].push(d.count);
+                            data0[d.colorIndex].push(d.value);
                     }
                 });
                 console.log(visData.min, visData.max);
-                console.log(d3.deviation(visData.unitsData, function (d) { return d.count; }));
-                console.log(d3.mean(visData.unitsData, function (d) { return d.count; }));
-                console.log(d3.median(visData.unitsData, function (d) { return d.count; }));
+                console.log(d3.deviation(visData.unitsData, function (d) { return d.value; }));
+                console.log(d3.mean(visData.unitsData, function (d) { return d.value; }));
+                console.log(d3.median(visData.unitsData, function (d) { return d.value; }));
                 console.log(data0);
 
                 var somMapWidth = 300.0;
@@ -102,8 +103,8 @@
                     .data(visData.unitsData)
                     .enter().append("rect")
                     .attr("class","unit")
-                    .attr("x", function (d, i) { return 100+d.x * 20; })
-                    .attr("y", function (d, i) { return 100+d.y * 20; })
+                    .attr("x", function (d, i) { return d.x * 20; })
+                    .attr("y", function (d, i) { return d.y * 20; })
                     .attr({
                         width: 20,
                         height:20
@@ -117,10 +118,11 @@
                             .domain(d3.extent(data0[d.colorIndex]))
                             .range([this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]]);
 
-                        return colorScale(d.count);
+                        return colorScale(d.value);
                     })
                 ;
 
+                new HeatMapLayer( "mapView", visData.height,visData.width,20, visData.unitsData );
             }
         }
     }
