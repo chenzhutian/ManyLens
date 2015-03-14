@@ -4686,8 +4686,9 @@ var ManyLens;
         })();
         MapArea.config = config;
         var HeatMapLayer = (function () {
-            function HeatMapLayer(parentID, canvasHeight, canvasWidth, unitSize, nodeArray) {
+            function HeatMapLayer(id, parentID, canvasHeight, canvasWidth, unitSize, nodeArray) {
                 config.LoDMap = this;
+                this._id = id;
                 this._parentID = parentID;
                 this._canvas_height = canvasHeight * unitSize;
                 this._canvas_width = canvasWidth * unitSize;
@@ -4702,14 +4703,15 @@ var ManyLens;
             HeatMapLayer.prototype.addAndInitCanvas = function () {
                 this._canvas = document.createElement('canvas');
                 this._canvas.style.position = 'relative';
+                this._canvas.id = this._id;
                 this._canvas.height = this._canvas_height;
                 this._canvas.width = this._canvas_width;
-                this._canvas.style.top = -this._canvas.height / 2 + 'px';
-                this._canvas.style.left = -this._canvas.width / 2 + 'px';
+                //this._canvas.style.top = -this._canvas.height / 2 + 'px';
+                //this._canvas.style.left = -this._canvas.width / 2 + 'px';
                 var container = document.createElement('div');
-                container.style.position = 'absolute';
-                container.style.left = '0%';
-                container.style.top = '0%';
+                //container.style.position = 'absolute';
+                //container.style.left = '0%';
+                //container.style.top = '0%';
                 container.appendChild(this._canvas);
                 document.getElementById(this._parentID).appendChild(container);
                 // document.getElementsByTagName( "body" )[0].insertBefore( container, document.getElementById( "sidePanel" ) );
@@ -4910,7 +4912,7 @@ var ManyLens;
                     var colorScale = d3.scale.linear().domain(d3.extent(data0[d.colorIndex])).range([_this._colorPalettes[d.colorIndex], _this._colorPalettes[d.colorIndex + 1]]);
                     return colorScale(d.value);
                 });
-                new MapArea.HeatMapLayer("mapView", visData.height, visData.width, 20, visData.unitsData);
+                new MapArea.HeatMapLayer("mapView", "mapCanvas" + visData.mapID, visData.height, visData.width, 20, visData.unitsData);
             };
             return SOMMap;
         })(ManyLens.D3ChartObject);

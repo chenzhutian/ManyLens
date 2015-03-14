@@ -122,7 +122,7 @@ module ManyLens {
                     })
                 ;
 
-                new HeatMapLayer( "mapView", visData.height,visData.width,20, visData.unitsData );
+                new HeatMapLayer( "mapView", "mapCanvas"+visData.mapID,visData.height,visData.width,20, visData.unitsData );
             }
         }
     }
