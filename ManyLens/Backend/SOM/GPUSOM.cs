@@ -46,7 +46,7 @@ namespace ManyLens.SOM
             interval.RMMatrix = rmMatrix;
 
             int trainsetSize = interval.TweetsCount;
-            float[] trainset = interval.GetTFIDFVector(trainsetSize);
+            float[] trainset = interval.GetHashVector(trainsetSize);
             Debug.WriteLine("Set the parameter for SOM");
             //set the resolution of SOM map
             int width = 32;

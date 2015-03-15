@@ -9,13 +9,7 @@ namespace ManyLens.Preprocessing
 {
     public class TweetsVectorizer
     {
-        public static void HashingVectorizer(Interval interval, IProgress<double> progress)
-        { 
-            
-        
-        }
-
-
+       
         public static void VectorizeEachTweet(Interval interval, IProgress<double> progress)
         {
             if (interval.HasVectorized)
@@ -136,7 +130,6 @@ namespace ManyLens.Preprocessing
             interval.Vocabulary = new Vocabulary(idOfWords, dfOfWords, frequenceOfWords);
 
             interval.HasVectorized = true;
-            // });
 
         }
     }

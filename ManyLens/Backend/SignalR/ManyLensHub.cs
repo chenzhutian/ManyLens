@@ -16,7 +16,7 @@ namespace ManyLens.SignalR
 {
     public class ManyLensHub : Hub
     {
-        private static bool TestMode = true;
+        private static bool TestMode = false;
         private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;

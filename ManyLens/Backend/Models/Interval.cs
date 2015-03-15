@@ -138,6 +138,47 @@ namespace ManyLens.Models
                 return this.tfidfVectors;
             }
         }
+        public List<float[]> HashVecotrs
+        {
+            get
+            {
+                if (this.SparseVector == null)
+                    return null;
+                if (this.hashVectors == null)
+                {
+                    this.hashVectors = new List<float[]>();
+                    int vectorCount = this.SparseVector.Count;
+                    if (vectorCount != this.TweetsCount)
+                        throw new Exception("the count of vector and tweets is different！");
+
+                    for (int i = 0; i < vectorCount; ++i)
+                    {
+                        float[] vector = new float[8196];
+                        double sum = 0.0;
+                        foreach (KeyValuePair<string, int> item in this.SparseVector[i])
+                        {
+                            string key = item.Key;
+                            int value = item.Value;
+                            int h = key.GetHashCode();
+                            int index = Math.Abs(h) % 8192;
+                            value = value * (h > 0 ? 1 : -1);
+                            vector[index] = value;
+                            sum += value * value;
+                        }
+                        sum = Math.Sqrt(sum);
+                        foreach (KeyValuePair<string, int> item in this.SparseVector[i])
+                        {
+                            int h = item.Key.GetHashCode();
+                            int index = Math.Abs(h) % 8192;
+                            vector[index] = (float)(vector[index] / sum);
+                        }
+                        this.hashVectors.Add(vector);
+                    }
+                }
+                return this.hashVectors;
+            }
+        
+        }
         public float[] IntervalVector
         {
             get
@@ -277,43 +318,61 @@ namespace ManyLens.Models
             this.Tweets.AddRange(term.Tweets);
         }
 
-        public float[] GetTFIDFVector(int num = 0)
+        public float[] GetHashVector(int num = 0)
         {
-            if (this.SparseVector == null)
-                return null;
-            if (this.tfidfVectors == null)
+            //List<float[]> tempVector = this.HashVecotrs;
+            int dimension = 8192;
+            if (num == 0)
+                num = this.SparseVector.Count;
+            float[] hashVector = new float[dimension * num];
+            for (int i = 0; i < num; ++i)
             {
-                this.tfidfVectors = new List<float[]>();
-                int vectorCount = this.SparseVector.Count;
-                if (vectorCount != this.TweetsCount)
-                    throw new Exception("the count of vector and tweets is different！");
-
-                double D = vectorCount;
-                for (int i = 0; i < vectorCount; ++i)
+                for (int j = 0; j < dimension; ++j)
                 {
-                    float[] vector = new float[this.Dimension];
-                    double sum = 0.0;
-                    List<string> keys = this.SparseVector[i].Keys.ToList();
-                    for (int j = keys.Count - 1; j >= 0; --j)
-                    {
-                        string key = keys[j];
-                        double value = (double)this.SparseVector[i][key];
-
-                        int id = this.GetIDofWord(key);
-                        double idf = Math.Log(D / ((double)this.GetDFofWord(key) + 1.0));
-                        vector[id] = (float)(value * idf);
-                        sum += vector[id] * vector[id];
-                    }
-                    sum = Math.Sqrt(sum);
-                    for (int j = keys.Count - 1; j >= 0; --j)
-                    {
-                        string key = keys[j];
-                        int id = this.GetIDofWord(key);
-                        vector[id] = (float)(vector[id] / sum);
-                    }
-                    this.tfidfVectors.Add(vector);
+                    hashVector[j + i * dimension] = this.HashVecotrs[i][j];
                 }
             }
+            return hashVector;
+        }
+
+        public float[] GetTFIDFVector(int num = 0)
+        {
+            //List<float[]> tempVector = this.TFIDFVectors;
+            //if (this.SparseVector == null)
+            //    return null;
+            //if (this.tfidfVectors == null)
+            //{
+            //    this.tfidfVectors = new List<float[]>();
+            //    int vectorCount = this.SparseVector.Count;
+            //    if (vectorCount != this.TweetsCount)
+            //        throw new Exception("the count of vector and tweets is different！");
+
+            //    double D = vectorCount;
+            //    for (int i = 0; i < vectorCount; ++i)
+            //    {
+            //        float[] vector = new float[this.Dimension];
+            //        double sum = 0.0;
+            //        List<string> keys = this.SparseVector[i].Keys.ToList();
+            //        for (int j = keys.Count - 1; j >= 0; --j)
+            //        {
+            //            string key = keys[j];
+            //            double value = (double)this.SparseVector[i][key];
+
+            //            int id = this.GetIDofWord(key);
+            //            double idf = Math.Log(D / ((double)this.GetDFofWord(key) + 1.0));
+            //            vector[id] = (float)(value * idf);
+            //            sum += vector[id] * vector[id];
+            //        }
+            //        sum = Math.Sqrt(sum);
+            //        for (int j = keys.Count - 1; j >= 0; --j)
+            //        {
+            //            string key = keys[j];
+            //            int id = this.GetIDofWord(key);
+            //            vector[id] = (float)(vector[id] / sum);
+            //        }
+            //        this.tfidfVectors.Add(vector);
+            //    }
+            //}
             int dimension = this.Dimension;
             if (num == 0)
                 num = this.SparseVector.Count;
@@ -322,7 +381,7 @@ namespace ManyLens.Models
             {
                 for (int j = 0; j < dimension; ++j)
                 {
-                    tfidfVector[j + i * dimension] = this.tfidfVectors[i][j];
+                    tfidfVector[j + i * dimension] = this.TFIDFVectors[i][j];
                 }
             }
             return tfidfVector;
