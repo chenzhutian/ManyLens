@@ -486,7 +486,7 @@ var ManyLens;
                 nodes.exit().remove();
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(40).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(4).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
@@ -547,7 +547,7 @@ var ManyLens;
                 var newDate = {
                     id: this.StackID,
                     type: depth,
-                    num: num,
+                    index: num,
                     isRemove: false,
                     x: this._stack_time.length * this._stack_bar_width,
                     ox: this._stack_time.length * this._stack_bar_width,
@@ -603,12 +603,12 @@ var ManyLens;
                 }).remove();
                 var last_time_bar = this._stack_time.pop();
                 if (last_time_bar) {
-                    if (last_time_bar.type == newDate.type && last_time_bar.num != newDate.num) {
+                    if (last_time_bar.type == newDate.type && last_time_bar.index != newDate.index) {
                         var newStack = [];
                         newStack.push(last_time_bar);
                         while (this._stack_time.length > 0) {
                             var tempDate = this._stack_time.pop();
-                            if (tempDate.type == last_time_bar.type && tempDate.num == last_time_bar.num) {
+                            if (tempDate.type == last_time_bar.type && tempDate.index == last_time_bar.index) {
                                 newStack.push(tempDate);
                             }
                             else {
@@ -4686,10 +4686,10 @@ var ManyLens;
         })();
         MapArea.config = config;
         var HeatMapLayer = (function () {
-            function HeatMapLayer(id, parentID, canvasHeight, canvasWidth, unitSize, nodeArray) {
+            function HeatMapLayer(id, parentContainer, canvasHeight, canvasWidth, unitSize, nodeArray) {
                 config.LoDMap = this;
                 this._id = id;
-                this._parentID = parentID;
+                this._parent_container = parentContainer;
                 this._canvas_height = canvasHeight * unitSize;
                 this._canvas_width = canvasWidth * unitSize;
                 //this._unit_size = unitSize;
@@ -4702,18 +4702,13 @@ var ManyLens;
             //在html上添加canvas并初始化，热力图和LoD就画在这个canvas上
             HeatMapLayer.prototype.addAndInitCanvas = function () {
                 this._canvas = document.createElement('canvas');
-                this._canvas.style.position = 'relative';
                 this._canvas.id = this._id;
                 this._canvas.height = this._canvas_height;
                 this._canvas.width = this._canvas_width;
+                //this._canvas.style.position = 'relative';
                 //this._canvas.style.top = -this._canvas.height / 2 + 'px';
                 //this._canvas.style.left = -this._canvas.width / 2 + 'px';
-                var container = document.createElement('div');
-                //container.style.position = 'absolute';
-                //container.style.left = '0%';
-                //container.style.top = '0%';
-                container.appendChild(this._canvas);
-                document.getElementById(this._parentID).appendChild(container);
+                this._parent_container.appendChild(this._canvas);
                 // document.getElementsByTagName( "body" )[0].insertBefore( container, document.getElementById( "sidePanel" ) );
                 //创建热力图
                 this._LoD = new MapArea.WebGLHeatmap({ canvas: this._canvas });
@@ -4739,8 +4734,8 @@ var ManyLens;
             HeatMapLayer.prototype.DrawCanvas = function () {
                 this._canvas.height = this._canvas_height;
                 this._canvas.width = this._canvas_width;
-                this._canvas.style.top = -this._canvas.height / 2 + 'px';
-                this._canvas.style.left = -this._canvas.width / 2 + 'px';
+                //this._canvas.style.top = -this._canvas.height / 2 + 'px';
+                //this._canvas.style.left = -this._canvas.width / 2 + 'px';
                 var dStart = new Date();
                 this.getEdgesNodesAndDraw();
                 var nSpan = (new Date()).getMilliseconds() - dStart.getMilliseconds();
@@ -4750,12 +4745,12 @@ var ManyLens;
             //2、根据densityMap的强度矩阵获得强度矩阵的最大值，并设置等高线的值;
             HeatMapLayer.prototype.getEdgesNodesAndDraw = function () {
                 this._LoD.clear(); //每次重新绘制图时都需要将GPU的帧缓冲区清零
-                var s = "[";
-                this._nodeArray.forEach(function (d) {
-                    s += '{"x":' + d.x + ',"y":' + d.y + ',"value":' + d.value + '},';
-                });
-                s += "]";
-                console.log(s);
+                //var s: string = "[";
+                //this._nodeArray.forEach(( d ) => {
+                //    s += '{"x":'+d.x+',"y":'+d.y+',"value":'+d.value+'},'
+                //});
+                //s += "]";
+                //console.log( s );
                 this.drawNodes(this._nodeArray); //画点，渲染的结果在帧缓冲区中
                 this._LoD.display(0, 0, 1.0, this._contourForIntensity); //将最终渲染的帧缓冲区的结果展示到屏幕上
             };
@@ -4832,65 +4827,56 @@ var ManyLens;
             __extends(SOMMap, _super);
             function SOMMap(element, manyLens) {
                 _super.call(this, element, manyLens);
-                // private _lensPane: Pane.ClassicLensPane;
-                //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
                 this._colorPalettes = ["rgb(198,219,239)", "rgb(158,202,225)", "rgb(107, 174, 214)", "rgb(66, 146, 198)", "rgb(33, 113, 181)", "rgb(8, 81, 156)", "rgb(8, 81, 156)"];
                 // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
                 this._element.attr("height", function () {
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
+                this._heatmap_container = document.createElement('div');
+                this._heatmap_container.style.pointerEvents = "none";
+                this._heatmap_container.style.position = 'absolute';
+                this._heatmap_container.style.left = this._element.node().offsetLeft.toString() + "px";
+                this._heatmap_container.style.top = this._element.node().offsetTop.toString() + "px";
+                this._heatmap_container.style.height = this._element.node().offsetHeight.toString() + "px";
+                this._heatmap_container.style.width = this._element.node().offsetWidth.toString() + "px";
+                document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
             SOMMap.prototype.Render = function () {
                 //this._lensPane.Render();
             };
             SOMMap.prototype.ShowVis = function (visData) {
-                var _this = this;
-                var deviation = d3.deviation(visData.unitsData, function (d) {
-                    return d.value;
-                });
-                var mean = d3.mean(visData.unitsData, function (d) {
-                    return d.value;
-                });
-                var median = d3.median(visData.unitsData, function (d) {
-                    return d.value;
-                });
-                var oneDeviationMin = (mean - deviation) > 0 ? (mean - deviation) : 0;
-                var twoDeviationMax = (mean + 2 * deviation);
-                var oneDeviationMax = (mean + deviation);
-                var scale = d3.scale.quantize().domain([oneDeviationMin, oneDeviationMax]).range([1, 2, 3]);
-                var data0 = [];
-                visData.unitsData.forEach(function (d) {
-                    if (d.value > twoDeviationMax) {
-                        d.colorIndex = 5;
-                    }
-                    else if (d.value > oneDeviationMax) {
-                        d.colorIndex = 4;
-                    }
-                    else if (d.value < oneDeviationMin || d.value < median) {
-                        d.colorIndex = 0;
-                    }
-                    else {
-                        d.colorIndex = scale(d.value);
-                    }
-                    if (data0[d.colorIndex] == null) {
-                        data0[d.colorIndex] = [d.value];
-                    }
-                    else {
-                        data0[d.colorIndex].push(d.value);
-                    }
-                });
-                console.log(visData.min, visData.max);
-                console.log(d3.deviation(visData.unitsData, function (d) {
-                    return d.value;
-                }));
-                console.log(d3.mean(visData.unitsData, function (d) {
-                    return d.value;
-                }));
-                console.log(d3.median(visData.unitsData, function (d) {
-                    return d.value;
-                }));
-                console.log(data0);
+                new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.height, visData.width, 20, visData.unitsData);
+                //var deviation = d3.deviation(visData.unitsData, function (d) { return d.value; });
+                //var mean = d3.mean(visData.unitsData, function (d) { return d.value; });
+                //var median = d3.median(visData.unitsData, function (d) { return d.value; });
+                //var oneDeviationMin = (mean - deviation) > 0 ? (mean - deviation) : 0;
+                //var twoDeviationMax = (mean + 2 * deviation);
+                //var oneDeviationMax = (mean + deviation);
+                //var scale = d3.scale.quantize().domain([oneDeviationMin,oneDeviationMax]).range([1,2,3]);
+                //var data0 = [];
+                //visData.unitsData.forEach((d) => {
+                //    if (d.value > twoDeviationMax) {
+                //        d.colorIndex = 5;
+                //    }else if (d.value > oneDeviationMax) {
+                //        d.colorIndex = 4;
+                //    }
+                //    else if (d.value < oneDeviationMin || d.value < median) {
+                //        d.colorIndex = 0;
+                //    } else {
+                //        d.colorIndex = scale(d.value);
+                //    }
+                //    if (data0[d.colorIndex] == null) {
+                //        data0[d.colorIndex] = [d.value];
+                //    } else {
+                //            data0[d.colorIndex].push(d.value);
+                //    }
+                //});
+                //console.log(visData.min, visData.max);
+                //console.log(d3.deviation(visData.unitsData, function (d) { return d.value; }));
+                //console.log(d3.mean(visData.unitsData, function (d) { return d.value; }));
+                //console.log(d3.median(visData.unitsData, function (d) { return d.value; }));
+                //console.log(data0);
                 var somMapWidth = 300.0;
                 var somMapHeight = 300.0;
                 var xPadding = somMapWidth / (visData.width + 1);
@@ -4905,14 +4891,9 @@ var ManyLens;
                 }).attr({
                     width: 20,
                     height: 20
-                }).attr("fill", function (d) {
-                    //var interpalote = d3.interpolateRgb(this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]);
-                    //var extent = d3.extent<number>(data0[d.colorIndex]);
-                    //return interpalote((d.count - extent[0]) / (extent[1] - extent[0]));
-                    var colorScale = d3.scale.linear().domain(d3.extent(data0[d.colorIndex])).range([_this._colorPalettes[d.colorIndex], _this._colorPalettes[d.colorIndex + 1]]);
-                    return colorScale(d.value);
+                }).style({
+                    opacity: 1e-6
                 });
-                new MapArea.HeatMapLayer("mapView", "mapCanvas" + visData.mapID, visData.height, visData.width, 20, visData.unitsData);
             };
             return SOMMap;
         })(ManyLens.D3ChartObject);

@@ -154,10 +154,10 @@ namespace ManyLens.SignalR
                 }
                 variance = Math.Sqrt(variance / p);
 
-                //output the point json data
-                System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
-                var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
-                List<Point> points = new List<Point>();
+                ////output the point json data
+                //System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
+                //var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
+                //List<Point> points = new List<Point>();
                 for (int i = p, t = 0; t < tp.Length; i++,stepCount--, t++)
                 {
                     //Gaussin smoothing
@@ -302,11 +302,11 @@ namespace ManyLens.SignalR
                     //}
                     #endregion
 
-                    //Output the json data
-                    points.Add(point);
+                    ////Output the json data
+                    //points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(50);
+                    Thread.Sleep(5);
 
                     //Gaussin smoothing
                     if (stepCount == 0)
@@ -316,11 +316,11 @@ namespace ManyLens.SignalR
                     }
                 }
 
-                //Output the json data
-                Debug.Write("Let's cache the point data as json");
-                jser.WriteObject(sw.BaseStream, points);
-                sw.Close();
-                Debug.Write("finish json");
+                ////Output the json data
+                //Debug.Write("Let's cache the point data as json");
+                //jser.WriteObject(sw.BaseStream, points);
+                //sw.Close();
+                //Debug.Write("finish json");
             });
         }
 

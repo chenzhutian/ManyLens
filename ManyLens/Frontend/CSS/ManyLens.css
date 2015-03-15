@@ -73,8 +73,6 @@ div#page-content {
     margin:0 0 5px;
 }
 
-
-
 .view-title-sm-green {
     padding-top: 10px;
     padding-bottom: 10px;
@@ -89,10 +87,14 @@ div#page-content {
     margin-top: 20px;
 }
 
-
+/*---------------Map view-------------*/
 div#mapView {
     background-color: #fff;
 }
+svg#mapSvg {
+    position:relative;
+}
+
 
 div#historyView {
     background-color: #fff;

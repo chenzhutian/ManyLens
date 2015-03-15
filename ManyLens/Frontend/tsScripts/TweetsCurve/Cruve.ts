@@ -32,12 +32,12 @@ module ManyLens {
         }
         interface StackDate {
             id: string;
-            type: number;
-            num: number;
-            date: Date;
-            isRemove: boolean;
             x: number;
             ox: number;
+            type: number;
+            index: number;
+            date: Date;
+            isRemove: boolean;
             fill: string;
             intervals: Array<StackRect>;
         }
@@ -448,7 +448,7 @@ module ManyLens {
                     this._mainView
                         .attr( "transform", null )
                         .transition()
-                        .duration( 40 )  //this time-step should be equale to the time step of AddPoint() in server.hub
+                        .duration( 4 )  //this time-step should be equale to the time step of AddPoint() in server.hub
                         .ease( "linear" )
                         .attr( "transform", "translate(" + ( this._x_scale( 0 ) - this._x_scale( 1 ) ) + ",0)" )
                     ;
@@ -522,7 +522,7 @@ module ManyLens {
                 var newDate: StackDate = {
                     id: this.StackID,
                     type: depth,
-                    num: num,
+                    index: num,
                     isRemove: false,
                     x: this._stack_time.length * this._stack_bar_width,
                     ox: this._stack_time.length * this._stack_bar_width,
@@ -596,12 +596,12 @@ module ManyLens {
 
                 var last_time_bar = this._stack_time.pop();
                 if ( last_time_bar ) {
-                    if ( last_time_bar.type == newDate.type && last_time_bar.num != newDate.num ) {
+                    if ( last_time_bar.type == newDate.type && last_time_bar.index != newDate.index ) {
                         var newStack = [];
                         newStack.push( last_time_bar );
                         while ( this._stack_time.length > 0 ) {
                             var tempDate = this._stack_time.pop();
-                            if ( tempDate.type == last_time_bar.type && tempDate.num == last_time_bar.num ) {
+                            if ( tempDate.type == last_time_bar.type && tempDate.index == last_time_bar.index ) {
                                 newStack.push( tempDate );
                             } else {
                                 this._stack_time.push( tempDate );
