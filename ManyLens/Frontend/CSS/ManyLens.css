@@ -94,7 +94,13 @@ div#mapView {
 svg#mapSvg {
     position:relative;
 }
-
+div#heatmap-container {
+      pointer-events:none;
+      position:absolute;             
+}
+    div#heatmap-container > canvas {
+        position:absolute;
+    }
 
 div#historyView {
     background-color: #fff;

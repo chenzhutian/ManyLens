@@ -4544,7 +4544,9 @@ void main(){\n\
                 var alphaRange;
                 var _ref1 = alphaRange != null ? alphaRange : [0, 1], alphaStart = _ref1[0], alphaEnd = _ref1[1];
                 var output = "vec4 alphaFun(vec3 color, float intensity){\n    float alpha = smoothstep(" + (alphaStart.toFixed(8)) + ", " + (alphaEnd.toFixed(8)) + ", intensity);\n    return vec4(color*alpha, alpha);\n}";
-                var getColorFun = 'float a0 = 0.3; float a1 = 0.6; vec4 getColor(float intensity){\n    vec3 blue = vec3(0.0, 0.0, 1.0);\n    vec3 cyan = vec3(0.0, 1.0, 1.0);\n    vec3 green = vec3(0.0, 1.0, 0.0);\n    vec3 yellow = vec3(1.0, 1.0, 0.0);\n    vec3 red = vec3(1.0, 0.0, 0.0);\n\n    vec4 color;\n if(intensity>=0.0) {if(intensity>=level6)color= vec4(0.4,0.2,0.1,0.85);else if(intensity>=level5)color= vec4(0.5,0.2,0.1,0.7);else if(intensity>=level4)color= vec4(0.7,0.4,0.15,0.9);else if(intensity>=level3)color= vec4(0.7,0.4,0.15,0.7);else if(intensity>=level2)color= vec4(0.6,0.4,0.20,0.60);else if(intensity>=level1)color= vec4(0.95*a1,0.8*a1,0.55*a1,a1);else if(intensity>=level0)color= vec4(0.95*a0,0.8*a0,0.55*a0,a0); else color=vec4(0,0,0,intensity);}\nelse{color = vec4(1.0,(1.0+intensity)*0.7,(1.0+intensity)*0.7,1.0);}\n    return color;\n}';
+                /*-----------------different color scheme------------*/
+                //var getColorFun = 'float a0 = 0.3; float a1 = 0.6; vec4 getColor(float intensity){\n vec4 color;\n if(intensity>=0.0) {if(intensity>=level6)color= vec4(0.03,0.19,0.42,1);else if(intensity>=level5)color= vec4(0.03,0.32,0.61,1);else if(intensity>=level4)color= vec4(0.13,0.44,0.71,1);else if(intensity>=level3)color= vec4(0.26,0.57,0.78,1);else if(intensity>=level2)color= vec4(0.42,0.68,0.84,1);else if(intensity>=level1)color= vec4(0.62,0.80,0.88,1);else if(intensity>=level0)color= vec4(0.78,0.86,0.94,1); else color=vec4(0,0,0,intensity);}\nelse{color = vec4((1.0+intensity)*0.7,(1.0+intensity)*0.7,1.0,1.0);}\n    return color;\n}';
+                var getColorFun = 'float a0 = 0.3; float a1 = 0.6; vec4 getColor(float intensity){\n vec4 color;\n if(intensity>=0.0) {if(intensity>=level6)color= vec4(0.1,0.2,0.4,0.85);else if(intensity>=level5)color= vec4(0.1,0.2,0.5,0.7);else if(intensity>=level4)color= vec4(0.15,0.4,0.7,0.9);else if(intensity>=level3)color= vec4(0.15,0.4,0.7,0.7);else if(intensity>=level2)color= vec4(0.2,0.4,0.6,0.60);else if(intensity>=level1)color= vec4(0.55*a1,0.8*a1,0.95*a1,a1);else if(intensity>=level0)color= vec4(0.55*a0,0.8*a0,0.95*a0,a0); else color=vec4(0,0,0,intensity);}\nelse{color = vec4((1.0+intensity)*0.7,(1.0+intensity)*0.7,1.0,1.0);}\n  return color;\n}';
                 var rawgetColorFun = 'vec3 getColor(float intensity){\n    vec3 blue = vec3(0.0, 0.0, 1.0);\n    vec3 cyan = vec3(0.0, 1.0, 1.0);\n    vec3 green = vec3(0.0, 1.0, 0.0);\n    vec3 yellow = vec3(1.0, 1.0, 0.0);\n    vec3 red = vec3(1.0, 0.0, 0.0);\n\n    vec3 color = (\n        fade(-0.25, 0.25, intensity)*blue +\n        fade(0.0, 0.5, intensity)*cyan +\n        fade(0.25, 0.75, intensity)*green +\n        fade(0.5, 1.0, intensity)*yellow +\n        smoothstep(0.75, 1.0, intensity)*red\n    );\n    return color;\n}';
                 this._shader = new Shader(this._gl, {
                     vertex: vertexShaderBlit1,
@@ -4709,7 +4711,6 @@ var ManyLens;
                 //this._canvas.style.top = -this._canvas.height / 2 + 'px';
                 //this._canvas.style.left = -this._canvas.width / 2 + 'px';
                 this._parent_container.appendChild(this._canvas);
-                // document.getElementsByTagName( "body" )[0].insertBefore( container, document.getElementById( "sidePanel" ) );
                 //创建热力图
                 this._LoD = new MapArea.WebGLHeatmap({ canvas: this._canvas });
                 //初始化像素矩阵
@@ -4833,12 +4834,11 @@ var ManyLens;
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
                 this._heatmap_container = document.createElement('div');
-                this._heatmap_container.style.pointerEvents = "none";
-                this._heatmap_container.style.position = 'absolute';
+                this._heatmap_container.id = "heatmap-container";
                 this._heatmap_container.style.left = this._element.node().offsetLeft.toString() + "px";
                 this._heatmap_container.style.top = this._element.node().offsetTop.toString() + "px";
-                this._heatmap_container.style.height = this._element.node().offsetHeight.toString() + "px";
-                this._heatmap_container.style.width = this._element.node().offsetWidth.toString() + "px";
+                //this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString()+"px";
+                //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString()+"px";
                 document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }

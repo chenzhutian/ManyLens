@@ -27,15 +27,14 @@ module ManyLens {
             //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
             private _heatmap_container: HTMLElement;
 
-
             private _colorPalettes: string[] = ["rgb(198,219,239)",
-                                                                    "rgb(158,202,225)",
-                                                                    "rgb(107, 174, 214)",
-                                                                    "rgb(66, 146, 198)",
-                                                                    "rgb(33, 113, 181)",
-                                                                    "rgb(8, 81, 156)",
-                                                                    "rgb(8, 81, 156)"
-                                                                ];
+                                                "rgb(158,202,225)",
+                                                "rgb(107, 174, 214)",
+                                                "rgb(66, 146, 198)",
+                                                "rgb(33, 113, 181)",
+                                                "rgb(8, 81, 156)",
+                                                "rgb(8, 81, 156)"
+                                            ];
 
             constructor(element: D3.Selection, manyLens: ManyLens) {
                 super(element, manyLens);
@@ -45,12 +44,11 @@ module ManyLens {
                 });
 
                 this._heatmap_container = document.createElement( 'div' );
-                this._heatmap_container.style.pointerEvents = "none";
-                this._heatmap_container.style.position = 'absolute';
+                this._heatmap_container.id = "heatmap-container";
                 this._heatmap_container.style.left = ( <HTMLElement>this._element.node() ).offsetLeft.toString()+"px";
                 this._heatmap_container.style.top = ( <HTMLElement>this._element.node() ).offsetTop.toString()+"px";
-                this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString()+"px";
-                this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString()+"px";
+                //this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString()+"px";
+                //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString()+"px";
                 document.getElementById( "mapView" ).insertBefore( this._heatmap_container,this._element.node() );
 
 

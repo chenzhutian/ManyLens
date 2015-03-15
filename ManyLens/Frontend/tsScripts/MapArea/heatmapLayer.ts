@@ -66,8 +66,6 @@ module ManyLens {
 
                 this._parent_container.appendChild( this._canvas );
                 
-               // document.getElementsByTagName( "body" )[0].insertBefore( container, document.getElementById( "sidePanel" ) );
-
                 //创建热力图
                 this._LoD = new WebGLHeatmap( { canvas: this._canvas });
 
