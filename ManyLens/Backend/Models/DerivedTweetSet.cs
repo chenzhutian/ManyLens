@@ -29,7 +29,6 @@ namespace ManyLens.Models
         {
             get
             {
-
                 return this.vocabulary;
             }
             set

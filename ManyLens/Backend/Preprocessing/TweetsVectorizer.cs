@@ -9,6 +9,13 @@ namespace ManyLens.Preprocessing
 {
     public class TweetsVectorizer
     {
+        public static void HashingVectorizer(Interval interval, IProgress<double> progress)
+        { 
+            
+        
+        }
+
+
         public static void VectorizeEachTweet(Interval interval, IProgress<double> progress)
         {
             if (interval.HasVectorized)

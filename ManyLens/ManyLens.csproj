@@ -65,6 +65,9 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
+    <Reference Include="MurmurHash">
+      <HintPath>..\packages\murmurhash-signed.1.0.0\lib\net45\MurmurHash.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -205,6 +208,7 @@
   <ItemGroup>
     <Compile Include="Backend\IO\TweetsIO.cs" />
     <Compile Include="Backend\Math\GaussinRandom.cs" />
+    <Compile Include="Backend\Math\Hash.cs" />
     <Compile Include="Backend\Models\DerivedTweetSet.cs" />
     <Compile Include="Backend\Models\Interval.cs" />
     <Compile Include="Backend\Models\JSONModels.cs" />
