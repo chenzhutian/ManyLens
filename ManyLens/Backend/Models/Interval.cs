@@ -16,7 +16,7 @@ namespace ManyLens.Models
         private float[] rmMatrix;
         private float[] intervalVector;
 
-        private int hashDimension = 1024;
+        private int hashDimension = 8192;
 
         private bool isPackage = false;
         private bool hasVectorized = false;

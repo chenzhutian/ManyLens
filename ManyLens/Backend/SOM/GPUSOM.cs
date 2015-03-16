@@ -42,7 +42,7 @@ namespace ManyLens.SOM
             //generate the random matrix for random mapping
             int dimensionAfterRM = 1024;
             GaussianRandom grd = new GaussianRandom(Math.Sqrt(1.0 / (double)dimensionAfterRM));
-            float[] rmMatrix = grd.RandomMapping(dimensionAfterRM, interval.Dimension);
+            float[] rmMatrix = grd.RandomMapping(dimensionAfterRM, 8192);
             interval.RMMatrix = rmMatrix;
 
             int trainsetSize = interval.TweetsCount;
@@ -63,7 +63,7 @@ namespace ManyLens.SOM
             IntPtr pointer = SOMwithRandomMapping(rmMatrix,
                     trainset,
                     trainsetSize,
-                    interval.Dimension,
+                    8192,
                     height,
                     width,
                     batch_size,
