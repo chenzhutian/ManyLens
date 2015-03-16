@@ -162,6 +162,12 @@ namespace ManyLens.Models
             }
         }
 
+        public Tweet(string tweetID, string originalContent)
+        {
+            this.TweetID = tweetID;
+            this.OriginalContent = originalContent.Replace("\"", "\\\"");
+        }
+
         public Tweet(string tweetID, string originalContent, string postDate, string lon, string lat, User user)
             : this(tweetID,originalContent,double.Parse(lon),double.Parse(lat),user)
         {

@@ -9,6 +9,45 @@ namespace ManyLens.IO
 {
     public class TweetsIO
     {
+        public static Interval Load20NGData(string filePath)
+        {
+            List<Tweet> tweets = new List<Tweet>();
+            StreamReader sr = new StreamReader(filePath);
+            while (!sr.EndOfStream)
+            {
+                string[] s = sr.ReadLine().Split('\t');
+                Tweet tweet = new Tweet(s[1], s[2]);
+                tweets.Add(tweet);
+            }
+            Interval interval = new Interval(tweets);
+            return interval;
+        }
+        public static void Dump20NGData(string filePath, Interval interval)
+        {
+            List<float[]> vectors = interval.HashVecotrs;
+            StreamWriter sw = new StreamWriter(filePath);
+            for(int i = 0, len = vectors.Count; i < len; ++i)
+            {
+                string s  = "";
+                float[] vector = vectors[i];
+                for (int j = 0, lenj = vector.Length; j < lenj; ++j)
+                {
+                    if (j != lenj - 1)
+                        s += vector[j] + ",";
+                    else
+                        s += vector[j];
+                }
+                sw.WriteLine(s);
+            }
+            sw.Close();
+
+            sw = new StreamWriter(filePath + "groups");
+            for (int i = 0, len = vectors.Count; i < len; ++i)
+            {
+                sw.WriteLine(interval.Tweets[i].TweetID);
+            }
+            sw.Close();
+        }
 
         public static SortedDictionary<DateTime, Term> LoadTweetsAsTermsSortedByDate(string tweetFile)
         {

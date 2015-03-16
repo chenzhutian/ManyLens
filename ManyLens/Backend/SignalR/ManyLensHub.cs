@@ -44,9 +44,22 @@ namespace ManyLens.SignalR
                     dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
                 if (cities1000 == null)
                     cities1000 = TweetsIO.LoadCities1000(cities1000File);
-                if(stopWords == null)
+                if (stopWords == null)
                     stopWords = TweetsIO.LoadStopWord(stopwordFile);
             });
+
+            //string train20ng = rootFolder + "Backend\\DataBase\\TEST\\train20ng";
+            //string test20ng = rootFolder + "Backend\\DataBase\\TEST\\test20ng";
+            //Progress<double> p = new Progress<double>();
+            //Interval trainInterval = TweetsIO.Load20NGData(train20ng);
+            //Preprocessing.TweetsPreprocessor.ProcessTweetParallel(trainInterval,p);
+            //Preprocessing.TweetsVectorizer.VectorizeEachTweet(trainInterval, p);
+            //TweetsIO.Dump20NGData(train20ng + "vectors", trainInterval);
+
+            //Interval testInterval = TweetsIO.Load20NGData(test20ng);
+            //Preprocessing.TweetsPreprocessor.ProcessTweetParallel(testInterval, p);
+            //Preprocessing.TweetsVectorizer.VectorizeEachTweet(testInterval, p);
+            //TweetsIO.Dump20NGData(testInterval + "vectors", testInterval);
 
         }
 
