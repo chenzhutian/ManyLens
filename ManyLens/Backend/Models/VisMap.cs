@@ -11,7 +11,7 @@ namespace ManyLens.Models
         private string visMapId;
         private Dictionary<int, Unit> units = null;
         private int maxTweetCount = -1;
-        private float[] rmMatrix;
+        //private float[] rmMatrix;
         private int width;
         private int height;
 
@@ -73,17 +73,17 @@ namespace ManyLens.Models
             }
         }
 
-        public float[] RMMatrix
-        {
-            get
-            {
-                return this.rmMatrix;
-            }
-            set
-            {
-                this.rmMatrix = value;
-            }
-        }
+        //public float[] RMMatrix
+        //{
+        //    get
+        //    {
+        //        return this.rmMatrix;
+        //    }
+        //    set
+        //    {
+        //        this.rmMatrix = value;
+        //    }
+        //}
         public VisMap ParentNote
         {
             get

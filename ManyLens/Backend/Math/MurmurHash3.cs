@@ -7,7 +7,7 @@ using Murmur;
 
 namespace ManyLens.myMath
 {
-    public class Hash
+    public class MurmurHash3
     {
         private static HashAlgorithm hash = MurmurHash.Create32();
 

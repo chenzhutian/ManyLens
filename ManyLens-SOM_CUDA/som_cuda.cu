@@ -390,8 +390,7 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	cudaError_t cudaStatus;
 	dim3 threads(DIMENSION);
 	dim3 blocks(ceil((double)batch_size / (double)CHKSIZE));
-	//Calculate_Euclidean_Distance_Kernel_noRandomMapping<<<batch_size,1024,dimension*sizeof(float)>>>(d_weights,dimension,d_input_set,input_index_of_this_batch,batch_size,neuron_number,d_result);
-	Calculate_Euclidean_Distance_Kernel << <blocks, threads >> >(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
+	Calculate_Euclidean_Distance_Kernel <<<blocks, threads >>>(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching EuclideanDistancesBMU!\n", cudaStatus);
@@ -399,7 +398,7 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	}
 
 	cudaFuncSetCacheConfig(Min_Reduce_Kernel, cudaFuncCachePreferL1);
-	Min_Reduce_Kernel << <batch_size, 512 >> >(d_result, d_BID, neuron_number);
+	Min_Reduce_Kernel <<<batch_size, 512 >>>(d_result, d_BID, neuron_number);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching min reduce!\n", cudaStatus);
@@ -830,12 +829,6 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 	const float lambda,
 	const float iterNum)
 {
-	//std::string logPath = "C:\\Users\\v-zhuche.FAREAST\\Documents\\Visual Studio 2012\\Projects\\myWebApplication\\SOMLog\\";
-	std::string logPath = "D:\\SOMLog\\";
-	std::ofstream fout(logPath + "log");
-	fout << "here we go";
-	fout.close();
-
 	const unsigned int d_input_set_size = input_set_size;								//define the input set size on device
 	const unsigned int dimension_before_random_mapping = dimension;						//the original dimension of the input set
 	const unsigned int dimension_after_random_mapping = DIMENSION;						//dimension after random mapping, can not change
@@ -843,7 +836,7 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 	float iter = 0;																		//iteration
 
 	int distance_table_length = (int)(1 +
-		neuron_number * (neuron_number - 1) * 0.5);			//the length of distance Table
+		neuron_number * (neuron_number - 1) * 0.5);										//the length of distance Table
 	float* h_weights = new float[dimension_after_random_mapping * neuron_number];		//weights of each neuron in host memory
 	float* h_distance = new float[distance_table_length];								//distance table in host memory
 	int* h_position = new int[2 * neuron_number];										//position--(x,y)--of each neuron in host memory

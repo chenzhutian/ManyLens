@@ -40,7 +40,7 @@ namespace ManyLens.SOM
         {
             InitializeCUDA();
             //generate the random matrix for random mapping
-            interval.RMMatrix = config.Parameter.RmMatrix;
+            //interval.RMMatrix = config.Parameter.RmMatrix;
 
             int trainsetSize = interval.TweetsCount;
             float[] trainset = interval.GetHashVector(trainsetSize);
@@ -89,7 +89,7 @@ namespace ManyLens.SOM
                         visMap.AddUnit(h_output[i], unit);
                     }
                 }
-                visMap.RMMatrix = config.Parameter.RmMatrix;
+                //visMap.RMMatrix = config.Parameter.RmMatrix;
 
             }
             catch (NullReferenceException e)
@@ -131,7 +131,7 @@ namespace ManyLens.SOM
         public static VisMap TweetReOrganizeSOM(VisMap visMap,int[] selectedUnits)
         {
             InitializeCUDA();
-            float[] rmMatrix = visMap.RMMatrix;
+           // float[] rmMatrix = visMap.RMMatrix;
             List<float[]> rawTrainset = new List<float[]>();
             List<Tweet> rawTweets = new List<Tweet>();   
 
@@ -165,7 +165,7 @@ namespace ManyLens.SOM
             float iterD = 1f;
 
             //use som train here
-            IntPtr pointer = SOMwithRandomMapping(rmMatrix,
+            IntPtr pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
                     trainset,
                     trainsetSize,
                     dimension,

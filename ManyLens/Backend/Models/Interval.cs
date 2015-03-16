@@ -13,7 +13,7 @@ namespace ManyLens.Models
         private string id;
         private DateTime beginDate;
         private DateTime endDate;
-        private float[] rmMatrix;
+        //private float[] rmMatrix;
         private float[] intervalVector;
 
         private int hashDimension = config.Parameter.HashDimension;
@@ -63,17 +63,17 @@ namespace ManyLens.Models
                 return this.termsCount;
             }
         }
-        public float[] RMMatrix
-        {
-            get
-            {
-                return this.rmMatrix;
-            }
-            set
-            {
-                this.rmMatrix = value;
-            }
-        }
+        //public float[] RMMatrix
+        //{
+        //    get
+        //    {
+        //        return this.rmMatrix;
+        //    }
+        //    set
+        //    {
+        //        this.rmMatrix = value;
+        //    }
+        //}
         public bool HasVectorized
         {
             get
@@ -173,7 +173,7 @@ namespace ManyLens.Models
                         double sum = 0.0;
                         foreach (KeyValuePair<string, int> item in this.SparseVector[i])
                         {
-                            int h = myMath.Hash.GetHashCode(item.Key);
+                            int h = myMath.MurmurHash3.GetHashCode(item.Key);
                             int index = Math.Abs(h) % this.hashDimension;
                             int value = item.Value * (h > 0 ? 1 : -1);
                             vector[index] += value;
@@ -182,7 +182,7 @@ namespace ManyLens.Models
                         sum = Math.Sqrt(sum);
                         foreach (KeyValuePair<string, int> item in this.SparseVector[i])
                         {
-                            int h = myMath.Hash.GetHashCode(item.Key);
+                            int h = myMath.MurmurHash3.GetHashCode(item.Key);
                             int index = Math.Abs(h) % this.hashDimension;
                             vector[index] = (float)(vector[index] / sum);
                         }
@@ -325,13 +325,11 @@ namespace ManyLens.Models
         }
         #endregion
 
-        //public Interval(List<Tweet> tweets, int termsCount)
-        //    : base()
-        //{
-        //    this.Tweets = tweets;
-        //    this.termsCount = termsCount;
-        //    this.isPackage = true;
-        //}
+        public Interval(List<Tweet> tweets)
+            : base()
+        {
+            this.Tweets = tweets;
+        }
 
         //public Interval(DateTime beginDate, Term term, Term[] oldTerm)
         //    : base()
@@ -341,6 +339,7 @@ namespace ManyLens.Models
         //    this.Tweets.AddRange(term.Tweets);
         //    //this.oldTerm = oldTerm;
         //}
+
 
         public Interval(DateTime beginDate, Term term)
             : base()

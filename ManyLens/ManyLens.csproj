@@ -208,7 +208,7 @@
   <ItemGroup>
     <Compile Include="Backend\IO\TweetsIO.cs" />
     <Compile Include="Backend\Math\GaussinRandom.cs" />
-    <Compile Include="Backend\Math\Hash.cs" />
+    <Compile Include="Backend\Math\MurmurHash3.cs" />
     <Compile Include="Backend\Models\DerivedTweetSet.cs" />
     <Compile Include="Backend\Models\Interval.cs" />
     <Compile Include="Backend\Models\JSONModels.cs" />
