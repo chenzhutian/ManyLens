@@ -232,15 +232,15 @@ __global__ void Calculate_Cosine_Distance_Kernel(const float *d_weights,
 	while (tx < neuron_number)
 	{
 #pragma unroll
-		for (int i = 0; i < numCHKSIZE; i++)
+		for (int i = 0; i < numCHKSIZE; ++i)
 			result[i] = 0.0f;
 
-		for (int i = 0; i < DIMENSION; i++)
+		for (int i = 0; i < DIMENSION; ++i)
 		{
 			float Atemp = d_weights[(neuron_number * i) + tx];
 			//compute all CHKSIZE d_input_set vectors with read of d_weights
 #pragma unroll
-			for (int j = 0; j < numCHKSIZE; j++)
+			for (int j = 0; j < numCHKSIZE; ++j)
 			{
 				float temp = Atemp - shared_input_set[i + (j * DIMENSION)];
 				result[j] += temp * temp;
@@ -249,7 +249,7 @@ __global__ void Calculate_Cosine_Distance_Kernel(const float *d_weights,
 
 		//store CHKSIZE results
 #pragma unroll
-		for (int i = 0; i < numCHKSIZE; i++)
+		for (int i = 0; i < numCHKSIZE; ++i)
 			d_result[(i + (bx * CHKSIZE)) * neuron_number + tx] = result[i];
 
 		tx += blockDim.x;
@@ -490,7 +490,7 @@ __global__ void Update_Map_Map_Kernel(const float* d_input_set,
 	float numerator = 0.f;
 	int index_factor = gridDim.x - 1;
 	__shared__ float tempDenominator[DIMENSION];		//DIMENSION*CHKSIZE
-	int j = 0;
+
 	int count = 0;
 	int upper = ceilf((float)batch_size / (float)DIMENSION);
 	for (int j = 0; j < upper; ++j)
@@ -513,7 +513,7 @@ __global__ void Update_Map_Map_Kernel(const float* d_input_set,
 
 		count = (j + 1)*DIMENSION < batch_size ? DIMENSION : (batch_size - j * DIMENSION);
 		//Sum up the influence
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; ++i)
 		{
 			numerator += tempDenominator[i] * d_input_set[threadIdx.x + ((input_index_of_this_batch + (j * DIMENSION) + i) * DIMENSION)];
 			denominator += tempDenominator[i];
@@ -928,17 +928,17 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 			int dX = (h_position[2 * i] - h_position[2 * j]) * (h_position[2 * i] - h_position[2 * j]);
 			int dY = (h_position[2 * i + 1] - h_position[2 * j + 1]) * (h_position[2 * i + 1] - h_position[2 * j + 1]);
 
-			//if( sgn<int>(dX) == sgn<int>(dY))
-			//{
-			//	h_distance[t] = abs(dX + dY);
-			//}
-			//else
-			//{
-			//	h_distance[t] = abs(dX) > abs(dY) ? abs(dX) : abs(dY);
-			//}
-			//h_distance[t]  = h_distance[t] *h_distance[t] ;
+			if( sgn<int>(dX) == sgn<int>(dY))
+			{
+				h_distance[t] = abs(dX + dY);
+			}
+			else
+			{
+				h_distance[t] = abs(dX) > abs(dY) ? abs(dX) : abs(dY);
+			}
+			h_distance[t]  = h_distance[t] *h_distance[t] ;
 
-			h_distance[t] = dX + dY;
+			//h_distance[t] = dX + dY;
 			++t;
 		}
 	}
@@ -952,7 +952,7 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 	//Let's begin SOM
 	for (int i = 0; i < epochNum; i++)
 	{
-		for (unsigned int iCycle = 0; iCycle < (d_input_set_size / batch_size); iCycle++)
+		for (unsigned int iCycle = 0; iCycle < ceil(d_input_set_size / batch_size); iCycle++)
 		{
 			int inputx = iCycle * batch_size;
 			if (!Find_Best_Match_Neuron(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result))
