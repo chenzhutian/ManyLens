@@ -167,6 +167,7 @@ namespace ManyLens.Models
                         value = unit.TweetsCount,
                         x = unit.X,
                         y = unit.Y,
+                        label = unit.Label,
                         mapID = this.VisMapID
                     });
                 }

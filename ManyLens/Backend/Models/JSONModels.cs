@@ -56,6 +56,10 @@ namespace ManyLens.Models
         public int value{set;get;}
         public int x { set; get; }
         public int y { set; get; }
+
+        //TEST
+        public int label { set; get; }
+
         public string mapID { get; set; }
     }
 

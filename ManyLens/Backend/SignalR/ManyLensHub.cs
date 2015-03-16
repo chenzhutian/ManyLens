@@ -23,11 +23,15 @@ namespace ManyLens.SignalR
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
         private static Dictionary<string, Lens> lensdatas = new Dictionary<string, Lens>();
-        
+       
         public static List<TweetsIO.CityStruct> cities1000;
         public static HashSet<string> stopWords;
 
         private Random rnd = new Random();
+
+        //TEST
+        private static Interval trainInterval = null;
+
 
         public async Task LoadData(IProgress<double> progress)
         {
@@ -48,19 +52,17 @@ namespace ManyLens.SignalR
             //        stopWords = TweetsIO.LoadStopWord(stopwordFile);
             //});
 
+            //TEST
+            if (trainInterval == null)
+            {
+                string train20ng = rootFolder + "Backend\\DataBase\\TEST\\train20ng";
+                trainInterval = TweetsIO.Load20NGData(train20ng);
+                Preprocessing.TweetsPreprocessor.ProcessTweetParallel(trainInterval, progress);
+                Preprocessing.TweetsVectorizer.VectorizeEachTweet(trainInterval, progress);
+            }
 
-            string train20ng = rootFolder + "Backend\\DataBase\\TEST\\train20ng";
-            string test20ng = rootFolder + "Backend\\DataBase\\TEST\\test20ng";
-            Interval trainInterval = TweetsIO.Load20NGData(train20ng);
-            Preprocessing.TweetsPreprocessor.ProcessTweetParallel(trainInterval, progress);
-            Preprocessing.TweetsVectorizer.VectorizeEachTweet(trainInterval, progress);
-            //TweetsIO.Dump20NGData(train20ng + "vectors", trainInterval);
-            VisMap visMap =  GPUSOM.TweetSOM(trainInterval, "no");
+            VisMap visMap = GPUSOM.TweetSOM(trainInterval, "no");
             Clients.Caller.showVIS(visMap.GetVisData());
-            //Interval testInterval = TweetsIO.Load20NGData(test20ng);
-            //Preprocessing.TweetsPreprocessor.ProcessTweetParallel(testInterval, p);
-            //Preprocessing.TweetsVectorizer.VectorizeEachTweet(testInterval, p);
-            //TweetsIO.Dump20NGData(testInterval + "vectors", testInterval);
 
         }
 

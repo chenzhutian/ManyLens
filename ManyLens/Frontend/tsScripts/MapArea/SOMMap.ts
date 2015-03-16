@@ -64,7 +64,7 @@ module ManyLens {
                     this._heatmap_container,
                     visData.height,
                     visData.width,
-                    20,
+                    30,
                     visData.unitsData );
 
 
@@ -102,35 +102,36 @@ module ManyLens {
                 //console.log(d3.median(visData.unitsData, function (d) { return d.value; }));
                 //console.log(data0);
 
-                var somMapWidth = 300.0;
-                var somMapHeight = 300.0;
+                //var somMapWidth = 300.0;
+                //var somMapHeight = 300.0;
 
-                var xPadding = somMapWidth / (visData.width + 1);
-                var yPadding = somMapHeight / (visData.height + 1);
+                var xPadding = visData.width / (visData.width + 1);
+                var yPadding = visData.height / (visData.height + 1);
 
                 var svg = this._element
                     .append("g")
                     .data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }])
                     .attr("id", function (d) { return "mapSvg" + d.mapID; })
-                    .attr("width", somMapWidth)
-                    .attr("height", somMapHeight)
+                    .attr("width", visData.width)
+                    .attr("height", visData.height)
                 ;
 
                 svg.append("g")
                     .attr("class", "units")
-                    .selectAll("rect")
+                    .selectAll("text")
                     .data(visData.unitsData)
-                    .enter().append("rect")
+                    .enter().append("text")
                     .attr("class","unit")
-                    .attr("x", function (d, i) { return d.x * 20; })
-                    .attr("y", function (d, i) { return d.y * 20; })
-                    .attr({
-                        width: 20,
-                        height: 20
-                    })
-                    .style( {
-                        opacity:1e-6
-                    })
+                    .attr("x", function (d, i) { return d.x * 30; })
+                    .attr( "y", function ( d, i ) { return d.y * 30; })
+                    .text( function ( d, i ) { return d.label;})
+                    //.attr({
+                    //    width: 20,
+                    //    height: 20
+                    //})
+                    //.style( {
+                    //    opacity:1e-6
+                    //})
                     //.attr("fill", (d: UnitData) => {
                     //    //var interpalote = d3.interpolateRgb(this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]);
                     //    //var extent = d3.extent<number>(data0[d.colorIndex]);

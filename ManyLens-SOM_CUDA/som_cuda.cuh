@@ -18,6 +18,7 @@ void __syncthreads();
 #include <fstream>
 #include <iostream>
 #include <string>
+#include "Windows.h";
 
 #define DIMENSION 1024
 #define CHKSIZE 4     //neuron number must be evenly divisible by CHKSIZE

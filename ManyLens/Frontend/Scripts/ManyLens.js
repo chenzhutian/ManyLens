@@ -4846,7 +4846,7 @@ var ManyLens;
                 //this._lensPane.Render();
             };
             SOMMap.prototype.ShowVis = function (visData) {
-                new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.height, visData.width, 20, visData.unitsData);
+                new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.height, visData.width, 30, visData.unitsData);
                 //var deviation = d3.deviation(visData.unitsData, function (d) { return d.value; });
                 //var mean = d3.mean(visData.unitsData, function (d) { return d.value; });
                 //var median = d3.median(visData.unitsData, function (d) { return d.value; });
@@ -4877,22 +4877,19 @@ var ManyLens;
                 //console.log(d3.mean(visData.unitsData, function (d) { return d.value; }));
                 //console.log(d3.median(visData.unitsData, function (d) { return d.value; }));
                 //console.log(data0);
-                var somMapWidth = 300.0;
-                var somMapHeight = 300.0;
-                var xPadding = somMapWidth / (visData.width + 1);
-                var yPadding = somMapHeight / (visData.height + 1);
+                //var somMapWidth = 300.0;
+                //var somMapHeight = 300.0;
+                var xPadding = visData.width / (visData.width + 1);
+                var yPadding = visData.height / (visData.height + 1);
                 var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }]).attr("id", function (d) {
                     return "mapSvg" + d.mapID;
-                }).attr("width", somMapWidth).attr("height", somMapHeight);
-                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d, i) {
-                    return d.x * 20;
+                }).attr("width", visData.width).attr("height", visData.height);
+                svg.append("g").attr("class", "units").selectAll("text").data(visData.unitsData).enter().append("text").attr("class", "unit").attr("x", function (d, i) {
+                    return d.x * 30;
                 }).attr("y", function (d, i) {
-                    return d.y * 20;
-                }).attr({
-                    width: 20,
-                    height: 20
-                }).style({
-                    opacity: 1e-6
+                    return d.y * 30;
+                }).text(function (d, i) {
+                    return d.label;
                 });
             };
             return SOMMap;
