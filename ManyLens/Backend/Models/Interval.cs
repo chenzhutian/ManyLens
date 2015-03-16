@@ -16,19 +16,19 @@ namespace ManyLens.Models
         private float[] rmMatrix;
         private float[] intervalVector;
 
-        private int hashDimension = 8192;
+        private int hashDimension = config.Parameter.HashDimension;
 
-        private bool isPackage = false;
         private bool hasVectorized = false;
         private bool hasPreprocessed = false;
         private double entropy = -1;
-        private double conditionalEntropy = -1;
+        
+        //private double conditionalEntropy = -1;
+        //private bool isPackage = false;
         private int termsCount = 0;
-
-        private Term[] oldTerm;
-        private Interval package;
-        private Interval lastInterval = null;
-        private double HXY = -1;
+        //private Term[] oldTerm;
+        //private Interval package;
+        //private Interval lastInterval = null;
+        //private double HXY = -1;
 
         #region Getter & Setter
         public string ID
@@ -266,41 +266,41 @@ namespace ManyLens.Models
                 return this.entropy;
             }
         }
-        public Interval LastInterval
-        {
-            get { return this.lastInterval; }
-            set { this.lastInterval = value; }
-        }
-        public double ConditionalEntropy
-        {
-            get
-            {
-                if (this.LastInterval == null)
-                    return -1;
-                if (!this.HasVectorized)
-                    return -1;
-                if (this.conditionalEntropy == -1)
-                {
-                    if (this.HXY == -1)
-                    {
-                        double hxy = 0;
-                        foreach (KeyValuePair<string, double> item1 in this.Vocabulary.PofWords)
-                        {
-                            double p1 = item1.Value;
-                            foreach (KeyValuePair<string, double> item2 in this.LastInterval.Vocabulary.PofWords)
-                            {
-                                double p2 = item2.Value;
-                                double p = p1 * p2;
-                                hxy += p * Math.Log(p);
-                            }
-                        }
-                        this.HXY = -hxy;
-                    }
-                    this.conditionalEntropy = this.HXY - this.LastInterval.Entropy;
-                }
-                return this.conditionalEntropy;
-            }
-        }
+        //public Interval LastInterval
+        //{
+        //    get { return this.lastInterval; }
+        //    set { this.lastInterval = value; }
+        //}
+        //public double ConditionalEntropy
+        //{
+        //    get
+        //    {
+        //        if (this.LastInterval == null)
+        //            return -1;
+        //        if (!this.HasVectorized)
+        //            return -1;
+        //        if (this.conditionalEntropy == -1)
+        //        {
+        //            if (this.HXY == -1)
+        //            {
+        //                double hxy = 0;
+        //                foreach (KeyValuePair<string, double> item1 in this.Vocabulary.PofWords)
+        //                {
+        //                    double p1 = item1.Value;
+        //                    foreach (KeyValuePair<string, double> item2 in this.LastInterval.Vocabulary.PofWords)
+        //                    {
+        //                        double p2 = item2.Value;
+        //                        double p = p1 * p2;
+        //                        hxy += p * Math.Log(p);
+        //                    }
+        //                }
+        //                this.HXY = -hxy;
+        //            }
+        //            this.conditionalEntropy = this.HXY - this.LastInterval.Entropy;
+        //        }
+        //        return this.conditionalEntropy;
+        //    }
+        //}
         public override Vocabulary Vocabulary
         {
             get
@@ -325,21 +325,29 @@ namespace ManyLens.Models
         }
         #endregion
 
-        public Interval(List<Tweet> tweets, int termsCount)
-            : base()
-        {
-            this.Tweets = tweets;
-            this.termsCount = termsCount;
-            this.isPackage = true;
-        }
+        //public Interval(List<Tweet> tweets, int termsCount)
+        //    : base()
+        //{
+        //    this.Tweets = tweets;
+        //    this.termsCount = termsCount;
+        //    this.isPackage = true;
+        //}
 
-        public Interval(DateTime beginDate, Term term, Term[] oldTerm)
+        //public Interval(DateTime beginDate, Term term, Term[] oldTerm)
+        //    : base()
+        //{
+        //    this.id = beginDate.ToString("yyyyMMddHHmmss");
+        //    this.BeginDate = beginDate;
+        //    this.Tweets.AddRange(term.Tweets);
+        //    //this.oldTerm = oldTerm;
+        //}
+
+        public Interval(DateTime beginDate, Term term)
             : base()
         {
             this.id = beginDate.ToString("yyyyMMddHHmmss");
             this.BeginDate = beginDate;
             this.Tweets.AddRange(term.Tweets);
-            this.oldTerm = oldTerm;
         }
 
         public void AddTerm(Term term)

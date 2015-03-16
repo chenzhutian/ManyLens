@@ -40,10 +40,7 @@ namespace ManyLens.SOM
         {
             InitializeCUDA();
             //generate the random matrix for random mapping
-            int dimensionAfterRM = 1024;
-            GaussianRandom grd = new GaussianRandom(Math.Sqrt(1.0 / (double)dimensionAfterRM));
-            float[] rmMatrix = grd.RandomMapping(dimensionAfterRM, 8192);
-            interval.RMMatrix = rmMatrix;
+            interval.RMMatrix = config.Parameter.RmMatrix;
 
             int trainsetSize = interval.TweetsCount;
             float[] trainset = interval.GetHashVector(trainsetSize);
@@ -60,10 +57,10 @@ namespace ManyLens.SOM
 
             Debug.WriteLine("Let's have SOM");
             //use som train here
-            IntPtr pointer = SOMwithRandomMapping(rmMatrix,
+            IntPtr pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
                     trainset,
                     trainsetSize,
-                    8192,
+                    config.Parameter.HashDimension,
                     height,
                     width,
                     batch_size,
@@ -92,7 +89,7 @@ namespace ManyLens.SOM
                         visMap.AddUnit(h_output[i], unit);
                     }
                 }
-                visMap.RMMatrix = rmMatrix;
+                visMap.RMMatrix = config.Parameter.RmMatrix;
 
             }
             catch (NullReferenceException e)

@@ -34,7 +34,6 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
             lensdatas.Clear();
-            //string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
             string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
             string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
             string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
@@ -62,7 +61,7 @@ namespace ManyLens.SignalR
                 Debug.WriteLine("ON interval " + interval.ID);
                 IProgress<double> p = new Progress<double>();
                 interval.Preproccessing(p);
-                Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
+                //Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
                 Debug.WriteLine("Entropy of " + interval.ID + " is " + interval.Entropy);
                 taskList.RemoveAt(0);
             }
@@ -121,7 +120,7 @@ namespace ManyLens.SignalR
             //set the parameter
             double alpha = 0.125;
             double beta = 2.0;
-            Parameter.timeSpan = 2;
+            config.Parameter.TimeSpan = 2;
 
             await Task.Run(() =>
             {
@@ -225,11 +224,11 @@ namespace ManyLens.SignalR
                             tp[end].EndPoint = tp[end].ID;
                             tp[end].PointType += 2;
 
-                            ArraySegment<Term> oldTerm = new ArraySegment<Term>(tp, 0, begin);
-                            Interval interal = new Interval(tp[begin].TermDate, tp[begin], oldTerm.ToArray());
-                            //Set the last interval
-                            if(interals.Count > 0)
-                                interal.LastInterval = interals.Last().Value;
+                            //ArraySegment<Term> oldTerm = new ArraySegment<Term>(tp, 0, begin);
+                            Interval interal = new Interval(tp[begin].TermDate, tp[begin]);
+                            ////Set the last interval
+                            //if(interals.Count > 0)
+                            //    interal.LastInterval = interals.Last().Value;
                             interals.Add(interal.ID, interal);
                             
                             for (int k = begin + 1; k < end; ++k)

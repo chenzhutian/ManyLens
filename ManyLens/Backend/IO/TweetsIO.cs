@@ -27,7 +27,7 @@ namespace ManyLens.IO
             }
 
             int[] mode = new int[4];
-            for (int i = 0; i < Parameter.timeSpan; i++)
+            for (int i = 0; i < config.Parameter.TimeSpan; i++)
             {
                 mode[i] = 1;
             }

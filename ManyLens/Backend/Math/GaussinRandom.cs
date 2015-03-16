@@ -32,18 +32,17 @@ namespace ManyLens.myMath
             return (float)(this.Generate() * this.V + this.E);
         }
 
-        public float[] RandomMapping(int dimensionAfterRM, int dimensionBeforeRM)
-        {
+        //public float[] RandomMapping(int dimensionAfterRM, int dimensionBeforeRM)
+        //{
 
-            float[] matrix = new float[dimensionAfterRM * dimensionBeforeRM];
-            for (int i = 0; i < dimensionAfterRM; ++i)
-            {
-                for (int j = 0; j < dimensionBeforeRM; ++j)
-                    matrix[j * dimensionAfterRM + i] = (float)(this.Generate() * this.V);
-            }
-            return matrix;
-        }
-
+        //    float[] matrix = new float[dimensionAfterRM * dimensionBeforeRM];
+        //    for (int i = 0; i < dimensionAfterRM; ++i)
+        //    {
+        //        for (int j = 0; j < dimensionBeforeRM; ++j)
+        //            matrix[j * dimensionAfterRM + i] = (float)(this.Generate() * this.V);
+        //    }
+        //    return matrix;
+        //}
 
         private double Generate()
         {
@@ -67,6 +66,19 @@ namespace ManyLens.myMath
                 iset = 0;
                 return gset;
             }
+        }
+
+
+        public static float[] GetRMMatrix(int dimensionAfterRM, int dimensionBeforeRM)
+        {
+            GaussianRandom grd = new GaussianRandom(Math.Sqrt(1.0 / (double)dimensionAfterRM));
+            float[] matrix = new float[dimensionAfterRM * dimensionBeforeRM];
+            for (int i = 0; i < dimensionAfterRM; ++i)
+            {
+                for (int j = 0; j < dimensionBeforeRM; ++j)
+                    matrix[j * dimensionAfterRM + i] = (float)(grd.Generate() * grd.V);
+            }
+            return matrix;
         }
     }
 }

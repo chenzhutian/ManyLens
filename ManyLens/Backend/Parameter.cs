@@ -4,30 +4,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManyLens
+namespace ManyLens.config
 {
     class Parameter
     {
-        private static int _timeSpan = 3;
-        private static string tweetfile = "dtext-tweets-onedriver.txt";
-        public static double declineBeta = 0.5;
-        public static int maxPerSegment = 5000;
-        public static int maxHigherPerSegment = 5000;
-        public static int maxUserPerSegment = 5000;
-        public static int maxWordPerSegment = 5000;
-        public static bool segmentAggregate = false;
+        private static int timeSpan = 3;
+        private static int hashDimension = 8192;
+        private static int dimensionAfterRandomMapping = 1024;
+        private static float[] rmMatrix = myMath.GaussianRandom.GetRMMatrix(DimensionAfterRandomMapping, HashDimension);
 
-        public static int timeSpan
+        public static int HashDimension
         {
-            get { return _timeSpan; }
-            set { _timeSpan = value > 4 ? 4 : value < 1 ? 1 : value; }
+            get { return Parameter.hashDimension; }
+            set { Parameter.hashDimension = value; }
+        }
+        public static int DimensionAfterRandomMapping
+        {
+            get { return Parameter.dimensionAfterRandomMapping; }
+            set { Parameter.dimensionAfterRandomMapping = value; }
+        }
+        public static float[] RmMatrix
+        {
+            get { return Parameter.rmMatrix; }
+            set { Parameter.rmMatrix = value; }
+        }
+        public static int TimeSpan
+        {
+            get { return Parameter.timeSpan; }
+            set { Parameter.timeSpan = value > 4 ? 4 : value < 1 ? 1 : value; }
         }
 
-        public static string originalTweet
-        {
-            get { return tweetfile; }
-            set { tweetfile = value; }
-        }
+
 
         public static string[] intervals = { "Month", "Day", "Hour", "Minute" };
     }
