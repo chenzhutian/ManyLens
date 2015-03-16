@@ -328,6 +328,7 @@ namespace ManyLens.Models
         public Interval(List<Tweet> tweets)
             : base()
         {
+            this.id = "test";
             this.Tweets = tweets;
         }
 

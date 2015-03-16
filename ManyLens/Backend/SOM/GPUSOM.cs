@@ -71,19 +71,17 @@ namespace ManyLens.SOM
             int[] h_output = new int[trainsetSize];
             Marshal.Copy(pointer, h_output, 0, trainsetSize);
 
-            StreamWriter sw = new StreamWriter(rootPath + "Backend\\DataBase\\somOutput_"+interval.ID+".json");
-
-
+            //StreamWriter sw = new StreamWriter(rootPath + "Backend\\DataBase\\somOutput_" + interval.ID + ".json");
             //construct the som map for visualization
-            VisMap visMap = new VisMap(interval.ID+"_0",width,height,interval);
+            VisMap visMap = new VisMap(interval.ID + "_0", width, height, interval);
             try
             {
                 for (int i = 0; i < trainsetSize; ++i)
                 {
-                    sw.WriteLine(h_output[i]);
+                    //sw.WriteLine(h_output[i]);
                     if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i]))
                     {
-                        Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],interval);
+                        Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i], interval);
                         Tweet tweet = interval.Tweets[i];
                         unit.AddTweet(tweet);
                         visMap.AddUnit(h_output[i], unit);
@@ -96,8 +94,8 @@ namespace ManyLens.SOM
             {
                 Debug.WriteLine(e.InnerException);
             }
-            sw.Flush();
-            sw.Close();
+            //sw.Flush();
+            //sw.Close();
             return visMap;
         }
 

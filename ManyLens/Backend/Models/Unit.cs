@@ -154,16 +154,20 @@ namespace ManyLens.Models
             }
 
             User user = tweet.User;
-            if (this.Users.ContainsKey(user.UserName))
+            if(user != null)
             {
-                var num = this.UserTweets[user.UserName] + 1;
-                this.UserTweets[user.UserName] = num;
+                if (this.Users.ContainsKey(user.UserName))
+                {
+                    var num = this.UserTweets[user.UserName] + 1;
+                    this.UserTweets[user.UserName] = num;
+                }
+                else
+                {
+                    this.Users.Add(user.UserName, user);
+                    this.UserTweets.Add(user.UserName, 1);
+                }
             }
-            else
-            {
-                this.Users.Add(user.UserName, user);
-                this.UserTweets.Add(user.UserName, 1);
-            }
+
 
         }
 

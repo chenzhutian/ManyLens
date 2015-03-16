@@ -29,33 +29,34 @@ namespace ManyLens.SignalR
 
         private Random rnd = new Random();
 
-        public async Task LoadData()
+        public async Task LoadData(IProgress<double> progress)
         {
-            //clear the static data
-            interals.Clear();
-            lensdatas.Clear();
-            string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
-            string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
-            string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
-            Debug.WriteLine(tweetFile);
-            await Task.Run(() =>
-            {
-                if (dateTweetsFreq == null)
-                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
-                if (cities1000 == null)
-                    cities1000 = TweetsIO.LoadCities1000(cities1000File);
-                if (stopWords == null)
-                    stopWords = TweetsIO.LoadStopWord(stopwordFile);
-            });
+            ////clear the static data
+            //interals.Clear();
+            //lensdatas.Clear();
+            //string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
+            //string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
+            //string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+            //Debug.WriteLine(tweetFile);
+            //await Task.Run(() =>
+            //{
+            //    if (dateTweetsFreq == null)
+            //        dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
+            //    if (cities1000 == null)
+            //        cities1000 = TweetsIO.LoadCities1000(cities1000File);
+            //    if (stopWords == null)
+            //        stopWords = TweetsIO.LoadStopWord(stopwordFile);
+            //});
 
-            //string train20ng = rootFolder + "Backend\\DataBase\\TEST\\train20ng";
-            //string test20ng = rootFolder + "Backend\\DataBase\\TEST\\test20ng";
-            //Progress<double> p = new Progress<double>();
-            //Interval trainInterval = TweetsIO.Load20NGData(train20ng);
-            //Preprocessing.TweetsPreprocessor.ProcessTweetParallel(trainInterval,p);
-            //Preprocessing.TweetsVectorizer.VectorizeEachTweet(trainInterval, p);
+
+            string train20ng = rootFolder + "Backend\\DataBase\\TEST\\train20ng";
+            string test20ng = rootFolder + "Backend\\DataBase\\TEST\\test20ng";
+            Interval trainInterval = TweetsIO.Load20NGData(train20ng);
+            Preprocessing.TweetsPreprocessor.ProcessTweetParallel(trainInterval, progress);
+            Preprocessing.TweetsVectorizer.VectorizeEachTweet(trainInterval, progress);
             //TweetsIO.Dump20NGData(train20ng + "vectors", trainInterval);
-
+            VisMap visMap =  GPUSOM.TweetSOM(trainInterval, "no");
+            Clients.Caller.showVIS(visMap.GetVisData());
             //Interval testInterval = TweetsIO.Load20NGData(test20ng);
             //Preprocessing.TweetsPreprocessor.ProcessTweetParallel(testInterval, p);
             //Preprocessing.TweetsVectorizer.VectorizeEachTweet(testInterval, p);
