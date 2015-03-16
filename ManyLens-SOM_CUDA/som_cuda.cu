@@ -208,6 +208,8 @@ __global__ void Calculate_Euclidean_Distance_Kernel(const float *d_weights,
 	}
 }
 
+
+//Has not finish yet
 __global__ void Calculate_Cosine_Distance_Kernel(const float *d_weights,
 	const float *d_input_set,
 	const unsigned input_index_of_this_batch,
@@ -216,56 +218,40 @@ __global__ void Calculate_Cosine_Distance_Kernel(const float *d_weights,
 	float *d_result)
 {
 	__shared__ float shared_input_set[CHKSIZE * DIMENSION];		//enough shared storage for CHKSIZE vectors of d_input_set	
-	__shared__ float B[CHKSIZE];
 	int bx = blockIdx.x;										//one block per CHKSIZE rows of d_input_set
 	int tx = threadIdx.x;
 	float result[CHKSIZE];
-	float A;
 
+	int numCHKSIZE = (bx + 1) * CHKSIZE < batch_size ? CHKSIZE : batch_size - bx*CHKSIZE;
 #pragma unroll
-	for (int i = 0; i < CHKSIZE; i++)
+	for (int i = 0; i < numCHKSIZE; i++)
 		shared_input_set[(i * DIMENSION) + tx] = d_input_set[((input_index_of_this_batch + (bx * CHKSIZE) + i) * DIMENSION) + tx];
-	__syncthreads();
-
-	if (tx < CHKSIZE)
-	{
-		B[tx] = shared_input_set[tx*DIMENSION];
-		for (int i = 1; i < DIMENSION; ++i)
-		{
-			B[tx] += shared_input_set[tx*DIMENSION + i] * shared_input_set[tx*DIMENSION + i];
-		}
-		B[tx] = sqrtf(B[tx]);
-	}
 	__syncthreads();
 
 	//loop across all vectors in d_weights
 	while (tx < neuron_number)
 	{
 #pragma unroll
-		for (int i = 0; i < CHKSIZE; i++)
+		for (int i = 0; i < numCHKSIZE; i++)
 			result[i] = 0.0f;
 
-		A = 0;
 		for (int i = 0; i < DIMENSION; i++)
 		{
 			float Atemp = d_weights[(neuron_number * i) + tx];
 			//compute all CHKSIZE d_input_set vectors with read of d_weights
-			A += Atemp * Atemp;
 #pragma unroll
-			for (int j = 0; j < CHKSIZE; j++)
+			for (int j = 0; j < numCHKSIZE; j++)
 			{
-				float temp = Atemp * shared_input_set[i + (j * DIMENSION)];
-				result[j] += temp;
+				float temp = Atemp - shared_input_set[i + (j * DIMENSION)];
+				result[j] += temp * temp;
 			}
 		}
-		A = sqrtf(A);
 
 		//store CHKSIZE results
 #pragma unroll
-		for (int i = 0; i < CHKSIZE; i++)
-		{
-			d_result[(i + (bx * CHKSIZE)) * neuron_number + tx] = 1 - result[i] / (A*B[i]);
-		}
+		for (int i = 0; i < numCHKSIZE; i++)
+			d_result[(i + (bx * CHKSIZE)) * neuron_number + tx] = result[i];
+
 		tx += blockDim.x;
 	}
 }

@@ -10,10 +10,7 @@ namespace ManyLens.Models
     {
         private Dictionary<string, int> wordLabels = null;
 
-
-
         private float[] unitSumVector = null; //store as accumulate value
-
 
         private int x;
         private int y;
@@ -21,10 +18,7 @@ namespace ManyLens.Models
         private Dictionary<string, User> users;
         private Dictionary<string, int> userTweets;
 
-
-
         private Interval interval;
-
 
         #region Getter & Setter
         public float[] UnitVector
@@ -109,8 +103,6 @@ namespace ManyLens.Models
             set { userTweets = value; }
         }
         #endregion
-
-
 
         public Unit(int x, int y, int id, Interval interval)
             : base()
