@@ -208,7 +208,6 @@ __global__ void Calculate_Euclidean_Distance_Kernel(const float *d_weights,
 	}
 }
 
-
 //Has not finish yet
 __global__ void Calculate_Cosine_Distance_Kernel(const float *d_weights,
 	const float *d_input_set,
@@ -579,7 +578,6 @@ __global__ void Update_Map_Map_Kernel_noRandomMapping(const float* d_input_set,
 		//Update the weight of each neuron
 		d_weights[tid * gridDim.y + by] = numerator / denominator;
 }
-
 
 //Update weight of each neuron vector
 bool Update_Map(const float* d_distance,
@@ -987,9 +985,20 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	cudaMemcpy(d_distance, h_distance, distance_table_length * sizeof(float), cudaMemcpyHostToDevice);
 
 	/*-----------Initialize the weights of each neuron---------------------*/
+	//Test
+	float* h_temp_weights = new float[dimension_after_random_mapping * neuron_number];
+	cudaMemcpy(h_temp_weights, d_weights, neuron_number*dimension_after_random_mapping*sizeof(float), cudaMemcpyDeviceToHost);
+	for (int i = 0; i < neuron_number; ++i)
+	{
+		for (int j = 0; j < dimension_after_random_mapping; ++j)
+		{
+			h_weights[i + j*neuron_number] = h_temp_weights[i*dimension_after_random_mapping + j];
+		}
+	}
+
 	cudaMemcpy(d_weights, d_input_set, neuron_number* dimension_after_random_mapping  * sizeof(float), cudaMemcpyDeviceToDevice);
 	d_weights = Transpose(d_weights, dimension_after_random_mapping, neuron_number);
-	
+
 	//Test
 	cudaMemcpy(h_temp_weights, d_weights, neuron_number*dimension_after_random_mapping*sizeof(float), cudaMemcpyDeviceToHost);
 	for (int i = 0; i < dimension_after_random_mapping; ++i)
@@ -1001,14 +1010,10 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 		}
 	}
 
-	std::cout << "Initialize the weights done" << std::endl;
-
 	fout << "cicle times " << floor(d_input_set_size / batch_size) << std::endl;
-
 	//Let's begin SOM
 	for (int i = 0; i < epochNum; i++)
 	{
-
 		for (unsigned int iCycle = 0; iCycle < ceil(d_input_set_size / batch_size); iCycle++)
 		{
 			int inputx = iCycle * batch_size;
@@ -1017,7 +1022,6 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 				break;
 			}
 
-			//float sigmaT = (0.5*height * exp(-iter/lambda));
 			float sigmaT = 0.28*width*(1 - lambda*iter);
 			if (sigmaT < 1)
 				sigmaT = 1;
@@ -1032,30 +1036,36 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 
 	/*---------------Output -----------------*/
     float* h_output = new float[input_set_size+dimension_after_random_mapping*neuron_number];
-	for (unsigned int iCycle = 0; iCycle < ceil(d_input_set_size / batch_size); iCycle++)
+	for (unsigned int iCycle = 0; iCycle < ceil(input_set_size / batch_size); iCycle++)
 	{
 		int inputx = iCycle * batch_size;
-		std::cout << inputx << std::endl;
 		if (!Find_Best_Match_Neuron(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result,fout))
 		{
 			break;
 		}
 		cudaMemcpy(h_output + inputx, d_BID, batch_size*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 	}
-	cudaMemcpy(h_output + d_input_set_size, d_weights, dimension_after_random_mapping*neuron_number*sizeof(float), cudaMemcpyDeviceToHost);
-
+	cudaMemcpy(h_output + input_set_size, d_weights, dimension_after_random_mapping*neuron_number*sizeof(float), cudaMemcpyDeviceToHost);
+	
 	/*--------------- check the result of final weights update -----------------*/
-	//std::ofstream fweightout("../data/weightsFinal");
-	//cudaMemcpy(h_weights, d_weights, neuron_number * dimension_after_random_mapping * sizeof(float),cudaMemcpyDeviceToHost);
-	//for(int i = 0; i < neuron_number; ++i)
-	//{
-	//	for(int j = 0; j<  dimension_after_random_mapping; j++)
-	//	{
-	//		fweightout<<h_weights[i + j * neuron_number] <<" ";
-	//	}
-	//	fweightout<<std::endl;
-	//}
-	//fweightout.close();
+	std::ofstream fweightout("D:\\SOMLog\\weights_in_columnmajor");
+	for(int i = 0; i < neuron_number; ++i)
+	{
+		for(int j = 0; j<  dimension_after_random_mapping; j++)
+		{
+			fweightout<<h_output[input_set_size + i + j * neuron_number] <<" ";
+		}
+		fweightout<<std::endl;
+	}
+	fweightout.close();
+	std::ofstream fbid("D:\\SOMLog\\bid");
+	int* bid = new int[input_set_size];
+	memcpy(bid, h_output, input_set_size*sizeof(unsigned int));
+	for (int i = 0; i < d_input_set_size; ++i)
+	{
+		fbid << bid[i]<< std::endl;
+	}
+	fbid.close();
 
 	cudaFree(d_weights);
 	cudaFree(d_input_set);

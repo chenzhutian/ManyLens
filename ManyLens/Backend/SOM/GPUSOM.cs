@@ -69,10 +69,39 @@ namespace ManyLens.SOM
                     lambda,
                     iterD);
             Debug.WriteLine("SOM Finish");
-            int[] h_output = new int[trainsetSize];
-            Marshal.Copy(pointer, h_output, 0, trainsetSize);
 
-            //StreamWriter sw = new StreamWriter(rootPath + "Backend\\DataBase\\somOutput_" + interval.ID + ".json");
+            int[] h_BID = new int[trainsetSize];
+            Marshal.Copy(pointer, h_BID, 0, trainsetSize);
+
+            float[] h_weight = new float[width * height * config.Parameter.DimensionAfterRandomMapping];
+            IntPtr newPointer = IntPtr.Add(pointer, trainsetSize * sizeof(int));
+            Marshal.Copy(newPointer, h_weight, 0, width * height * config.Parameter.DimensionAfterRandomMapping);
+            Marshal.FreeHGlobal(pointer);
+
+            StreamReader sr = new StreamReader("D:\\SOMLog\\bid");
+            int k  = 0;
+            while (!sr.EndOfStream)
+            {
+                int bid = int.Parse(sr.ReadLine());
+                if (bid != h_BID[k])
+                    Debug.WriteLine("bid is wrong here!" + k.ToString());
+                ++k;
+            }
+            sr = new StreamReader("D:\\SOMLog\\weights_in_columnmajor");
+            k = 0;
+            while (!sr.EndOfStream)
+            {
+                string[] s = sr.ReadLine().Split(' ');
+                for (int j = 0; j < config.Parameter.DimensionAfterRandomMapping; ++j)
+                {
+                    if (Math.Abs(float.Parse(s[j]) - h_weight[j * width * height + k]) > 1e-6)
+                    {
+                        Debug.WriteLine("weight is wrong here!" + k.ToString());
+                    }
+                }
+                ++k;
+            }
+
             //construct the som map for visualization
             VisMap visMap = new VisMap(interval.ID + "_0", width, height, interval);
             try
@@ -80,12 +109,12 @@ namespace ManyLens.SOM
                 for (int i = 0; i < trainsetSize; ++i)
                 {
                     //sw.WriteLine(h_output[i]);
-                    if (!visMap.TryAddTweetToUnit(h_output[i], interval.Tweets[i]))
+                    if (!visMap.TryAddTweetToUnit((int)h_BID[i], interval.Tweets[i]))
                     {
-                        Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i], interval);
+                        Unit unit = new Unit((int)h_BID[i] % width, (int)h_BID[i] / width, (int)h_BID[i], interval);
                         Tweet tweet = interval.Tweets[i];
                         unit.AddTweet(tweet);
-                        visMap.AddUnit(h_output[i], unit);
+                        visMap.AddUnit((int)h_BID[i], unit);
                     }
                 }
                 //visMap.RMMatrix = config.Parameter.RmMatrix;
