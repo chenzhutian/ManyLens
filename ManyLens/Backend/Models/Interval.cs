@@ -13,13 +13,16 @@ namespace ManyLens.Models
         private string id;
         private DateTime beginDate;
         private DateTime endDate;
-        //private float[] rmMatrix;
         private float[] intervalVector;
-
         private int hashDimension = config.Parameter.HashDimension;
 
         private bool hasVectorized = false;
         private bool hasPreprocessed = false;
+        private bool hasSOMed = false;
+
+        private VisMap visMap = null;
+
+
         private double entropy = -1;
         
         //private double conditionalEntropy = -1;
@@ -96,6 +99,13 @@ namespace ManyLens.Models
             {
                 if (value == true)
                     this.hasPreprocessed = value;
+            }
+        }
+        public bool HasSOMed
+        {
+            get
+            {
+                return this.hasSOMed;
             }
         }
         public List<float[]> TFIDFVectors
@@ -321,6 +331,15 @@ namespace ManyLens.Models
             set
             {
                 base.Vocabulary = value;
+            }
+        }
+        public VisMap VisMap
+        {
+            get { return visMap; }
+            set 
+            { 
+                visMap = value;
+                this.hasSOMed = true;
             }
         }
         #endregion

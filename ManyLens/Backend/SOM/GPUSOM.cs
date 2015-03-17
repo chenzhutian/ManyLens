@@ -32,7 +32,6 @@ namespace ManyLens.SOM
                                                          float lambda,
                                                          float iterNum);
 
-
         [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern void somFree(IntPtr pointer);
 
@@ -102,7 +101,7 @@ namespace ManyLens.SOM
             }
 
             //construct the som map for visualization
-            VisMap visMap = new VisMap(interval.ID + "_0", width, height, interval);
+            VisMap visMap = new VisMap(interval.ID + "_0", width, height, h_weight, interval);
             try
             {
                 for (int i = 0; i < trainsetSize; ++i)
@@ -116,8 +115,6 @@ namespace ManyLens.SOM
                         visMap.AddUnit((int)h_BID[i], unit);
                     }
                 }
-                //visMap.RMMatrix = config.Parameter.RmMatrix;
-
             }
             catch (NullReferenceException e)
             {
@@ -137,7 +134,7 @@ namespace ManyLens.SOM
 
             StreamReader sr = new StreamReader(rootPath + "Backend\\DataBase\\somOutput_"+interval.ID+".json");
             //construct the som map for visualization
-            VisMap visMap = new VisMap(interval.ID + "_0", width, height, interval);
+            VisMap visMap = new VisMap(interval.ID + "_0", width, height, new float[100] ,interval);
             int i = 0;
             while (!sr.EndOfStream)
             {
@@ -155,76 +152,76 @@ namespace ManyLens.SOM
         
         }
 
-        public static VisMap TweetReOrganizeSOM(VisMap visMap,int[] selectedUnits)
-        {
-            InitializeCUDA();
-           // float[] rmMatrix = visMap.RMMatrix;
-            List<float[]> rawTrainset = new List<float[]>();
-            List<Tweet> rawTweets = new List<Tweet>();   
+        //public static VisMap TweetReOrganizeSOM(VisMap visMap,int[] selectedUnits)
+        //{
+        //    InitializeCUDA();
+        //   // float[] rmMatrix = visMap.RMMatrix;
+        //    List<float[]> rawTrainset = new List<float[]>();
+        //    List<Tweet> rawTweets = new List<Tweet>();   
 
-            for (int i = selectedUnits.Length - 1; i >= 0; --i)
-            {
-                Unit unit = visMap.GetUnitAt(selectedUnits[i]);
-                rawTrainset.AddRange(unit.TFIDFVectors);
-                rawTweets.AddRange(unit.Tweets);
-            }
+        //    for (int i = selectedUnits.Length - 1; i >= 0; --i)
+        //    {
+        //        Unit unit = visMap.GetUnitAt(selectedUnits[i]);
+        //        rawTrainset.AddRange(unit.TFIDFVectors);
+        //        rawTweets.AddRange(unit.Tweets);
+        //    }
 
-            int trainsetSize = rawTrainset.Count;
-            int dimension = rawTrainset[0].Length;
-            float[] trainset = new float[dimension * trainsetSize];
-            for (int i = 0; i < trainsetSize; ++i)
-            {
-                for (int j = 0; j < dimension; ++j)
-                {
-                    trainset[j + i * dimension] = rawTrainset[i][j];
-                }
-            }
+        //    int trainsetSize = rawTrainset.Count;
+        //    int dimension = rawTrainset[0].Length;
+        //    float[] trainset = new float[dimension * trainsetSize];
+        //    for (int i = 0; i < trainsetSize; ++i)
+        //    {
+        //        for (int j = 0; j < dimension; ++j)
+        //        {
+        //            trainset[j + i * dimension] = rawTrainset[i][j];
+        //        }
+        //    }
 
-            //set the resolution of SOM map
-            int width = 10;
-            int height = 10;
+        //    //set the resolution of SOM map
+        //    int width = 10;
+        //    int height = 10;
 
-            //set the batch size
-            int batch_size = trainsetSize;
-            //set the number of iteration
-            int iteration = 20;
-            float lambda = 0.05f;
-            float iterD = 1f;
+        //    //set the batch size
+        //    int batch_size = trainsetSize;
+        //    //set the number of iteration
+        //    int iteration = 20;
+        //    float lambda = 0.05f;
+        //    float iterD = 1f;
 
-            //use som train here
-            IntPtr pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
-                    trainset,
-                    trainsetSize,
-                    dimension,
-                    height,
-                    width,
-                    batch_size,
-                    iteration,
-                    lambda,
-                    iterD);
+        //    //use som train here
+        //    IntPtr pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
+        //            trainset,
+        //            trainsetSize,
+        //            dimension,
+        //            height,
+        //            width,
+        //            batch_size,
+        //            iteration,
+        //            lambda,
+        //            iterD);
 
-            int[] h_output = new int[trainsetSize];
-            Marshal.Copy(pointer, h_output, 0, trainsetSize);
+        //    int[] h_output = new int[trainsetSize];
+        //    Marshal.Copy(pointer, h_output, 0, trainsetSize);
 
-            #region construct the som map for visualization
-            //string sNum = (1+int.Parse(visMap.VisMapID[visMap.VisMapID.Length - 1].ToString())).ToString();
-            string sNum = visMap.ChildrenNum.ToString();
-            string visMapID = visMap.VisMapID+"_"+sNum;
+        //    #region construct the som map for visualization
+        //    //string sNum = (1+int.Parse(visMap.VisMapID[visMap.VisMapID.Length - 1].ToString())).ToString();
+        //    string sNum = visMap.ChildrenNum.ToString();
+        //    string visMapID = visMap.VisMapID+"_"+sNum;
             
-            VisMap newVisMap = new VisMap(visMapID,width,height,visMap.Interval,visMap);
-            for (int i = 0; i < trainsetSize; ++i)
-            {
-                if (!newVisMap.TryAddTweetToUnit(h_output[i], rawTweets[i]))
-                {
-                    Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],visMap.Interval);
-                    Tweet tweet = rawTweets[i];
-                    unit.AddTweet(tweet);
-                    newVisMap.AddUnit(h_output[i], unit);
-                }
-            }
-            #endregion
+        //    VisMap newVisMap = new VisMap(visMapID,width,height,visMap.Interval,visMap);
+        //    for (int i = 0; i < trainsetSize; ++i)
+        //    {
+        //        if (!newVisMap.TryAddTweetToUnit(h_output[i], rawTweets[i]))
+        //        {
+        //            Unit unit = new Unit(h_output[i] % width, h_output[i] / width, h_output[i],visMap.Interval);
+        //            Tweet tweet = rawTweets[i];
+        //            unit.AddTweet(tweet);
+        //            newVisMap.AddUnit(h_output[i], unit);
+        //        }
+        //    }
+        //    #endregion
 
-            return newVisMap;
-        }
+        //    return newVisMap;
+        //}
     }
 }

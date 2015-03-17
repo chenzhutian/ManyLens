@@ -11,9 +11,9 @@ namespace ManyLens.Models
         private string visMapId;
         private Dictionary<int, Unit> units = null;
         private int maxTweetCount = -1;
-        //private float[] rmMatrix;
         private int width;
         private int height;
+        private float[] mapWeightInColumnMajor = null;
 
         private Interval interval;
 
@@ -30,6 +30,13 @@ namespace ManyLens.Models
             private set
             {
                 this.visMapId = value;
+            }
+        }
+        public DateTime MapDate
+        {
+            get
+            {
+                return this.Interval.BeginDate;
             }
         }
         public Interval Interval
@@ -72,18 +79,6 @@ namespace ManyLens.Models
                 this.height = value;
             }
         }
-
-        //public float[] RMMatrix
-        //{
-        //    get
-        //    {
-        //        return this.rmMatrix;
-        //    }
-        //    set
-        //    {
-        //        this.rmMatrix = value;
-        //    }
-        //}
         public VisMap ParentNote
         {
             get
@@ -108,16 +103,34 @@ namespace ManyLens.Models
                 this.childNum = value;
             }
         }
+        public float[] MapWeightInColumnMajor
+        {
+            get
+            {
+                return this.mapWeightInColumnMajor;
+            }
+            private set
+            {
+                if (value.Length != this.Width * this.Height * config.Parameter.DimensionAfterRandomMapping)
+                    throw new Exception("the size of map weight matrix is wrong!");
+                else 
+                {
+                    this.mapWeightInColumnMajor = value;
+                }
+            }
+        }
         #endregion
 
-        public VisMap(string visMapID, int width, int height, Interval interval, VisMap parentNote = null)
+        public VisMap(string visMapID, int width, int height, float[] mapWeight, Interval interval, VisMap parentNote = null)
         {
             this.ParentNote = parentNote;
             this.VisMapID = visMapID;
             this.interval = interval;
             this.Width = width;
             this.Height = height;
+            this.MapWeightInColumnMajor = mapWeightInColumnMajor;
             this.units = new Dictionary<int, Unit>();
+            this.interval.VisMap = this;
         }
 
         public void AddUnit(int unitID, Unit unit)
@@ -189,7 +202,6 @@ namespace ManyLens.Models
                 return null;
             }
         }
-
 
     }
 }

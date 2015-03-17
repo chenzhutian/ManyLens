@@ -11,18 +11,16 @@ using ManyLens.Preprocessing;
 using ManyLens.SOM;
 using System.Diagnostics;
 
-
 namespace ManyLens.SignalR
 {
     public class ManyLensHub : Hub
     {
         private static bool TestMode = false;
-        private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-
+        
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
-        private static Dictionary<string, Lens> lensdatas = new Dictionary<string, Lens>();
+        private static Dictionary<string, Lens> lensDatas = new Dictionary<string, Lens>();
 
         public static List<TweetsIO.CityStruct> cities1000;
         public static HashSet<string> stopWords;
@@ -33,10 +31,10 @@ namespace ManyLens.SignalR
         {
             //clear the static data
             interals.Clear();
-            lensdatas.Clear();
-            string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
-            string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
-            string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+            lensDatas.Clear();
+            string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
+            string cities1000File = config.Parameter.RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
+            string stopwordFile = config.Parameter.RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
             Debug.WriteLine(tweetFile);
             await Task.Run(() =>
             {
@@ -485,11 +483,11 @@ namespace ManyLens.SignalR
                     //Test
                     if (TestMode)
                     {
-                        visMap = GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
+                        visMap = GPUSOM.TestTweetSOM(interal, config.Parameter.RootFolder);// TweetSOM(interal, rootFolder);
                     }
                     else
                     {
-                        visMap = GPUSOM.TweetSOM(interal, rootFolder);
+                        visMap = GPUSOM.TweetSOM(interal, config.Parameter.RootFolder);
                     }
 
                     Debug.WriteLine(interal.Entropy);
@@ -534,14 +532,14 @@ namespace ManyLens.SignalR
                     units.Add(visMap.GetUnitAt(unitsID[i]));
                 }
 
-                if (lensdatas.ContainsKey(lensID))
+                if (lensDatas.ContainsKey(lensID))
                 {
-                    lens = lensdatas[lensID];
+                    lens = lensDatas[lensID];
                 }
                 else
                 {
                     lens = new Lens();
-                    lensdatas.Add(lensID, lens);
+                    lensDatas.Add(lensID, lens);
                 }
 
                 lens.BindUnits(units);
@@ -556,7 +554,7 @@ namespace ManyLens.SignalR
         {
             await Task.Run(() =>
             {
-                lensdatas.Remove(lensID);
+                lensDatas.Remove(lensID);
             });
 
         }
@@ -566,7 +564,7 @@ namespace ManyLens.SignalR
         public void testPullPoint()
         {
             //load the point json data
-            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\pointData_test.json");
+            System.IO.StreamReader sr = new System.IO.StreamReader(config.Parameter.RootFolder + "Backend\\DataBase\\pointData_test.json");
             var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
             List<Point> points = (List<Point>)jser.ReadObject(sr.BaseStream);
             sr.Close();
@@ -580,7 +578,7 @@ namespace ManyLens.SignalR
         public void testPullInterval(string interalID)
         {
             //load the point json data
-            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\visData_test.json");
+            System.IO.StreamReader sr = new System.IO.StreamReader(config.Parameter.RootFolder + "Backend\\DataBase\\visData_test.json");
             var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
             VISData visData = (VISData)jser.ReadObject(sr.BaseStream);
             sr.Close();
@@ -592,7 +590,7 @@ namespace ManyLens.SignalR
         public async Task cWordCloudPieLens(string lensID, string pieKey, string baseData, string subData)
         {
             HashSet<string> words = new HashSet<string>();
-            Lens lens = lensdatas[lensID];
+            Lens lens = lensDatas[lensID];
             await Task.Run(() =>
             {
                 string t = baseData + "_" + subData;
@@ -618,7 +616,7 @@ namespace ManyLens.SignalR
 
         public async Task cMapPieLens(string lensID, string pieKey, string baseData, string subData)
         {
-            Lens lens = lensdatas[lensID];
+            Lens lens = lensDatas[lensID];
             string countryName = null;
             await Task.Run(() =>
             {
@@ -669,71 +667,71 @@ namespace ManyLens.SignalR
         //}
         #endregion
 
-        public void ReOrganize(string visMapID, int[] selectedUnits)
-        {
-            VisMap newVisMap = GPUSOM.TweetReOrganizeSOM(visMaps[visMapID], selectedUnits);
-            visMaps.Add(newVisMap.VisMapID, newVisMap);
-            Clients.Caller.showVIS(newVisMap.GetVisData());
-        }
-        public void MoveTweets(string visMapID, int[] fromUnitsID, int[] toUnitsID)
-        {
-            if (visMapID == null || fromUnitsID == null || toUnitsID == null)
-                return;
+        //public void ReOrganize(string visMapID, int[] selectedUnits)
+        //{
+        //    VisMap newVisMap = GPUSOM.TweetReOrganizeSOM(visMaps[visMapID], selectedUnits);
+        //    visMaps.Add(newVisMap.VisMapID, newVisMap);
+        //    Clients.Caller.showVIS(newVisMap.GetVisData());
+        //}
+        //public void MoveTweets(string visMapID, int[] fromUnitsID, int[] toUnitsID)
+        //{
+        //    if (visMapID == null || fromUnitsID == null || toUnitsID == null)
+        //        return;
 
-            if (fromUnitsID.Length < 1 || toUnitsID.Length < 1)
-                return;
+        //    if (fromUnitsID.Length < 1 || toUnitsID.Length < 1)
+        //        return;
 
-            VisMap visMap = visMaps[visMapID];
-            List<float[]> rawTrainset = new List<float[]>();
-            List<Tweet> rawTweets = new List<Tweet>();
-            List<Unit> fromUnits = new List<Unit>();
-            List<Unit> toUnits = new List<Unit>();
+        //    VisMap visMap = visMaps[visMapID];
+        //    List<float[]> rawTrainset = new List<float[]>();
+        //    List<Tweet> rawTweets = new List<Tweet>();
+        //    List<Unit> fromUnits = new List<Unit>();
+        //    List<Unit> toUnits = new List<Unit>();
 
-            for (int i = fromUnitsID.Length - 1; i >= 0; --i)
-            {
-                Unit unit = visMap.GetUnitAt(fromUnitsID[i]);
+        //    for (int i = fromUnitsID.Length - 1; i >= 0; --i)
+        //    {
+        //        Unit unit = visMap.GetUnitAt(fromUnitsID[i]);
 
-                fromUnits.Add(unit);
+        //        fromUnits.Add(unit);
 
-                rawTrainset.AddRange(unit.TFIDFVectors);
-                rawTweets.AddRange(unit.Tweets);
-                visMap.RemoveUnitAt(fromUnitsID[i]);
+        //        rawTrainset.AddRange(unit.TFIDFVectors);
+        //        rawTweets.AddRange(unit.Tweets);
+        //        visMap.RemoveUnitAt(fromUnitsID[i]);
 
-            }
+        //    }
 
-            for (int i = toUnitsID.Length - 1; i >= 0; --i)
-            {
-                Unit unit = visMap.GetUnitAt(toUnitsID[i]);
-                toUnits.Add(unit);
-            }
+        //    for (int i = toUnitsID.Length - 1; i >= 0; --i)
+        //    {
+        //        Unit unit = visMap.GetUnitAt(toUnitsID[i]);
+        //        toUnits.Add(unit);
+        //    }
 
-            for (int i = rawTrainset.Count - 1; i >= 0; --i)
-            {
-                float[] rawTrainVector = rawTrainset[i];
-                Unit closetUnit = null;
-                float dist = float.MaxValue;
-                for (int j = toUnits.Count - 1; j >= 0; --j)
-                {
-                    float[] unitVector = toUnits[j].UnitVector;
-                    float tempDist = 0;
-                    for (int k = unitVector.Length - 1; k >= 0; --k)
-                    {
-                        tempDist += (unitVector[k] - rawTrainVector[k]) * (unitVector[k] - rawTrainVector[k]);
-                    }
-                    if (tempDist < dist)
-                    {
-                        dist = tempDist;
-                        closetUnit = toUnits[j];
-                    }
-                }
-                closetUnit.AddTweet(rawTweets[i]);
-            }
+        //    for (int i = rawTrainset.Count - 1; i >= 0; --i)
+        //    {
+        //        float[] rawTrainVector = rawTrainset[i];
+        //        Unit closetUnit = null;
+        //        float dist = float.MaxValue;
+        //        for (int j = toUnits.Count - 1; j >= 0; --j)
+        //        {
+        //            float[] unitVector = toUnits[j].UnitVector;
+        //            float tempDist = 0;
+        //            for (int k = unitVector.Length - 1; k >= 0; --k)
+        //            {
+        //                tempDist += (unitVector[k] - rawTrainVector[k]) * (unitVector[k] - rawTrainVector[k]);
+        //            }
+        //            if (tempDist < dist)
+        //            {
+        //                dist = tempDist;
+        //                closetUnit = toUnits[j];
+        //            }
+        //        }
+        //        closetUnit.AddTweet(rawTweets[i]);
+        //    }
 
-            Clients.Caller.reDrawSOMMap(visMap.GetVisData());
-        }
+        //    Clients.Caller.reDrawSOMMap(visMap.GetVisData());
+        //}
         public void DoLongRunningThing()
         {
-            Clients.Caller.showMSG(rootFolder);
+            Clients.Caller.showMSG(config.Parameter.RootFolder);
         }
     }
 }

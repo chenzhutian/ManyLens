@@ -12,7 +12,13 @@ namespace ManyLens.config
         private static int hashDimension = 8192;
         private static int dimensionAfterRandomMapping = 1024;
         private static float[] rmMatrix = myMath.GaussianRandom.GetRMMatrix(DimensionAfterRandomMapping, HashDimension);
+        private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 
+        public static string RootFolder
+        {
+            get { return Parameter.rootFolder; }
+            set { Parameter.rootFolder = value; }
+        }
         public static int HashDimension
         {
             get { return Parameter.hashDimension; }
