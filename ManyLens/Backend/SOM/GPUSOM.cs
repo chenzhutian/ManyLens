@@ -47,7 +47,7 @@ namespace ManyLens.SOM
             Debug.WriteLine("Set the parameter for SOM");
             //set the resolution of SOM map
             int width = 32;
-            int height = 32;
+            int height = 16;
             //set the batch size
             int batch_size = trainsetSize;
             //set the number of iteration
