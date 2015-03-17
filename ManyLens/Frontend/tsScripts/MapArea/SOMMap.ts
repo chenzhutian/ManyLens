@@ -25,8 +25,17 @@ module ManyLens {
 
            // private _lensPane: Pane.ClassicLensPane;
             //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
-            private _heatmap_container: HTMLElement;
+            private _maps: Array<MapData> = [];
+            private _heatMaps: Array<HeatMapLayer> = [];
 
+            private _heatmap_container: HTMLElement;
+            private _unit_width: number = 20;
+            private _unit_height: number = 20;
+            
+            private _total_width: number;
+            private _left_offset: number = 10;
+            private _map_gap: number = 10;
+                
             private _colorPalettes: string[] = ["rgb(198,219,239)",
                                                 "rgb(158,202,225)",
                                                 "rgb(107, 174, 214)",
@@ -42,6 +51,7 @@ module ManyLens {
                 this._element.attr("height", function () {
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
+                this._total_width = parseFloat( this._element.style( "width" ) );
 
                 this._heatmap_container = document.createElement( 'div' );
                 this._heatmap_container.id = "heatmap-container";
@@ -60,60 +70,24 @@ module ManyLens {
             }
 
             public ShowVis( visData: MapData ): void {
-                new HeatMapLayer( "mapCanvas" + visData.mapID,
+                this._maps.push( visData );
+                var top_offset: number = (parseFloat( this._element.style( "height" ) ) - visData.height * this._unit_height)/ 2;
+
+                this._heatMaps.push( new HeatMapLayer( "mapCanvas" + visData.mapID,
                     this._heatmap_container,
-                    visData.height,
                     visData.width,
-                    15,
-                    visData.unitsData );
-
-
-                //var deviation = d3.deviation(visData.unitsData, function (d) { return d.value; });
-                //var mean = d3.mean(visData.unitsData, function (d) { return d.value; });
-                //var median = d3.median(visData.unitsData, function (d) { return d.value; });
-                //var oneDeviationMin = (mean - deviation) > 0 ? (mean - deviation) : 0;
-                //var twoDeviationMax = (mean + 2 * deviation);
-                //var oneDeviationMax = (mean + deviation);
-
-                //var scale = d3.scale.quantize().domain([oneDeviationMin,oneDeviationMax]).range([1,2,3]);
-                
-                //var data0 = [];
-                //visData.unitsData.forEach((d) => {
-                //    if (d.value > twoDeviationMax) {
-                //        d.colorIndex = 5;
-                //    }else if (d.value > oneDeviationMax) {
-                //        d.colorIndex = 4;
-                //    }
-                //    else if (d.value < oneDeviationMin || d.value < median) {
-                //        d.colorIndex = 0;
-                //    } else {
-                //        d.colorIndex = scale(d.value);
-                //    }
-
-                //    if (data0[d.colorIndex] == null) {
-                //        data0[d.colorIndex] = [d.value];
-                //    } else {
-                //            data0[d.colorIndex].push(d.value);
-                //    }
-                //});
-                //console.log(visData.min, visData.max);
-                //console.log(d3.deviation(visData.unitsData, function (d) { return d.value; }));
-                //console.log(d3.mean(visData.unitsData, function (d) { return d.value; }));
-                //console.log(d3.median(visData.unitsData, function (d) { return d.value; }));
-                //console.log(data0);
-
-                var somMapWidth = 300.0;
-                var somMapHeight = 300.0;
-
-                var xPadding = somMapWidth / (visData.width + 1);
-                var yPadding = somMapHeight / (visData.height + 1);
+                    visData.height,
+                    this._unit_width,
+                    this._unit_height,
+                    top_offset,
+                    this._left_offset,
+                    visData.unitsData )
+                );
 
                 var svg = this._element
                     .append("g")
-                    .data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }])
+                    .data([{ mapID: visData.mapID, width: visData.width, height: visData.height}])
                     .attr("id", function (d) { return "mapSvg" + d.mapID; })
-                    .attr("width", somMapWidth)
-                    .attr("height", somMapHeight)
                 ;
 
                 svg.append("g")
@@ -122,29 +96,39 @@ module ManyLens {
                     .data(visData.unitsData)
                     .enter().append("rect")
                     .attr("class","unit")
-                    .attr("x", function (d, i) { return d.x * 15; })
-                    .attr("y", function (d, i) { return d.y * 15; })
+                    .attr("x",  (d)=> { return this._left_offset +  d.x * this._unit_width; })
+                    .attr("y",  (d)=> { return top_offset + d.y * this._unit_height; })
                     .attr({
-                        width: 15,
-                        height: 15
+                        width: this._unit_width,
+                        height: this._unit_height
                     })
                     .style( {
                         opacity:1e-6
                     })
-                    //.attr("fill", (d: UnitData) => {
-                    //    //var interpalote = d3.interpolateRgb(this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]);
-                    //    //var extent = d3.extent<number>(data0[d.colorIndex]);
-                    //    //return interpalote((d.count - extent[0]) / (extent[1] - extent[0]));
-
-                    //    var colorScale = d3.scale.linear()
-                    //        .domain(d3.extent(data0[d.colorIndex]))
-                    //        .range([this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]]);
-
-                    //    return colorScale(d.value);
-                    //})
                 ;
 
+                this._left_offset += this._map_gap + this._unit_width * visData.width;
 
+                if ( this._left_offset > this._total_width ) {
+                    var scale = this._total_width /this._left_offset;
+                    this._left_offset *= scale;
+                    this.ScaleMaps(scale);
+                }
+                
+            }
+
+            private ScaleMaps( scale: number ): void {
+                this._element.selectAll( "rect" )
+                    .attr( "x", function ( d ) {
+                    return scale * parseFloat( d3.select( this ).attr( "x" ) );
+                })
+                    .attr( "y", function ( d ) {
+                    return scale * parseFloat( d3.select( this ).attr( "y" ) );
+                })
+                ;
+                this._heatMaps.forEach(( d ) => {
+                    d.ScaleCanvas( scale );
+                });
             }
         }
     }

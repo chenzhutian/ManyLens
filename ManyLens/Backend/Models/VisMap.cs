@@ -113,7 +113,10 @@ namespace ManyLens.Models
             {
                 //Just for test
                 if (value.Length == 1)
+                {
                     this.mapWeightInColumnMajor = value;
+                    return;
+                }
 
                 if (value.Length != this.Width * this.Height * config.Parameter.DimensionAfterRandomMapping)
                     throw new Exception("the size of map weight matrix is wrong!");

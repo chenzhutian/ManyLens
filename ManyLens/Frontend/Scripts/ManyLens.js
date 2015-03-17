@@ -225,7 +225,6 @@ var ManyLens;
                 this._y_axis_gen = d3.svg.axis();
                 this._fisheye_scale = d3.fisheye.ordinal();
                 this._section_num = 50;
-                this._view_height = 130;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
@@ -237,6 +236,7 @@ var ManyLens;
                 this._data = new Array();
                 this._intervals = new Array();
                 this._stack_time = new Array();
+                this._view_height = parseFloat(this._element.style("height")) - 30;
                 this._view_width = parseFloat(this._element.style("width"));
                 this._x_scale.domain([0, this._section_num]).range([this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
@@ -4688,15 +4688,17 @@ var ManyLens;
         })();
         MapArea.config = config;
         var HeatMapLayer = (function () {
-            function HeatMapLayer(id, parentContainer, canvasHeight, canvasWidth, unitSize, nodeArray) {
+            function HeatMapLayer(id, parentContainer, canvasWidth, canvasHeight, unitWidth, unitHeight, topOffset, leftOffset, nodeArray) {
                 config.LoDMap = this;
                 this._id = id;
                 this._parent_container = parentContainer;
-                this._canvas_height = canvasHeight * unitSize;
-                this._canvas_width = canvasWidth * unitSize;
+                this._canvas_width = canvasWidth * unitWidth;
+                this._canvas_height = canvasHeight * unitHeight;
+                this._canvas_top_offset = topOffset;
+                this._canvas_left_offset = leftOffset;
                 //this._unit_size = unitSize;
                 this._nodeArray = nodeArray.map(function (d) {
-                    return { x: d.x * unitSize, y: d.y * unitSize, value: d.value };
+                    return { x: d.x * unitWidth, y: d.y * unitHeight, value: d.value };
                 });
                 this.addAndInitCanvas();
                 this.DrawCanvas();
@@ -4707,21 +4709,17 @@ var ManyLens;
                 this._canvas.id = this._id;
                 this._canvas.height = this._canvas_height;
                 this._canvas.width = this._canvas_width;
-                //this._canvas.style.position = 'relative';
-                //this._canvas.style.top = -this._canvas.height / 2 + 'px';
-                //this._canvas.style.left = -this._canvas.width / 2 + 'px';
+                this._canvas.style.top = this._canvas_top_offset + 'px';
+                this._canvas.style.left = this._canvas_left_offset + 'px';
                 this._parent_container.appendChild(this._canvas);
                 //创建热力图
                 this._LoD = new MapArea.WebGLHeatmap({ canvas: this._canvas });
                 //初始化像素矩阵
                 var width = this._LoD.canvas.width;
                 var height = this._LoD.canvas.height;
-                this._pixelMatrix = new Array(height);
+                this._pixelMatrix = new Array(this._canvas_height);
                 for (var i = 0; i < height; ++i) {
-                    var tmp = new Array(width);
-                    this._pixelMatrix[i] = tmp;
-                    for (var j = 0; j < width; ++j)
-                        this._pixelMatrix[i][j] = 0;
+                    this._pixelMatrix[i] = new Array(this._canvas_width);
                 }
                 ;
                 //初始化等高线值,这里设置为7层
@@ -4731,12 +4729,30 @@ var ManyLens;
                 }
                 ;
             };
-            //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
-            HeatMapLayer.prototype.DrawCanvas = function () {
+            HeatMapLayer.prototype.ScaleCanvas = function (scale) {
+                this._canvas_width *= scale;
+                this._canvas_height *= scale;
+                this._canvas_top_offset *= (1 + scale);
+                this._canvas_left_offset *= scale;
                 this._canvas.height = this._canvas_height;
                 this._canvas.width = this._canvas_width;
-                //this._canvas.style.top = -this._canvas.height / 2 + 'px';
-                //this._canvas.style.left = -this._canvas.width / 2 + 'px';
+                this._canvas.style.top = this._canvas_top_offset + 'px';
+                this._canvas.style.left = this._canvas_left_offset + 'px';
+                //初始化像素矩阵
+                var width = Math.ceil(this._canvas_width);
+                var height = Math.ceil(this._canvas_height);
+                this._pixelMatrix = new Array(width);
+                for (var i = 0; i < height; ++i) {
+                    this._pixelMatrix[i] = new Array(height);
+                }
+                ;
+                this._nodeArray = this._nodeArray.map(function (d) {
+                    return { x: d.x * scale, y: d.y * scale, value: d.value };
+                });
+                this.DrawCanvas();
+            };
+            //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
+            HeatMapLayer.prototype.DrawCanvas = function () {
                 var dStart = new Date();
                 this.getEdgesNodesAndDraw();
                 var nSpan = (new Date()).getMilliseconds() - dStart.getMilliseconds();
@@ -4766,7 +4782,10 @@ var ManyLens;
                 for (var i = 0, len = nodes.length; i < len; ++i) {
                     var x = nodes[i].x; //* this._unit_size;
                     var y = height - 1 - nodes[i].y; //* this._unit_size;
-                    this._pixelMatrix[y][x] = nodes[i].value;
+                    if (this._pixelMatrix[y][x] != null)
+                        this._pixelMatrix[y][x] = nodes[i].value;
+                    else
+                        console.log(this._pixelMatrix[y]);
                 }
                 //获得当前bing Map的放大倍数
                 var zoomLevel = 5; //this._map.getZoom();
@@ -4828,11 +4847,20 @@ var ManyLens;
             __extends(SOMMap, _super);
             function SOMMap(element, manyLens) {
                 _super.call(this, element, manyLens);
+                // private _lensPane: Pane.ClassicLensPane;
+                //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
+                this._maps = [];
+                this._heatMaps = [];
+                this._unit_width = 20;
+                this._unit_height = 20;
+                this._left_offset = 10;
+                this._map_gap = 10;
                 this._colorPalettes = ["rgb(198,219,239)", "rgb(158,202,225)", "rgb(107, 174, 214)", "rgb(66, 146, 198)", "rgb(33, 113, 181)", "rgb(8, 81, 156)", "rgb(8, 81, 156)"];
                 // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
                 this._element.attr("height", function () {
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
+                this._total_width = parseFloat(this._element.style("width"));
                 this._heatmap_container = document.createElement('div');
                 this._heatmap_container.id = "heatmap-container";
                 this._heatmap_container.style.left = this._element.node().offsetLeft.toString() + "px";
@@ -4846,53 +4874,38 @@ var ManyLens;
                 //this._lensPane.Render();
             };
             SOMMap.prototype.ShowVis = function (visData) {
-                new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.height, visData.width, 15, visData.unitsData);
-                //var deviation = d3.deviation(visData.unitsData, function (d) { return d.value; });
-                //var mean = d3.mean(visData.unitsData, function (d) { return d.value; });
-                //var median = d3.median(visData.unitsData, function (d) { return d.value; });
-                //var oneDeviationMin = (mean - deviation) > 0 ? (mean - deviation) : 0;
-                //var twoDeviationMax = (mean + 2 * deviation);
-                //var oneDeviationMax = (mean + deviation);
-                //var scale = d3.scale.quantize().domain([oneDeviationMin,oneDeviationMax]).range([1,2,3]);
-                //var data0 = [];
-                //visData.unitsData.forEach((d) => {
-                //    if (d.value > twoDeviationMax) {
-                //        d.colorIndex = 5;
-                //    }else if (d.value > oneDeviationMax) {
-                //        d.colorIndex = 4;
-                //    }
-                //    else if (d.value < oneDeviationMin || d.value < median) {
-                //        d.colorIndex = 0;
-                //    } else {
-                //        d.colorIndex = scale(d.value);
-                //    }
-                //    if (data0[d.colorIndex] == null) {
-                //        data0[d.colorIndex] = [d.value];
-                //    } else {
-                //            data0[d.colorIndex].push(d.value);
-                //    }
-                //});
-                //console.log(visData.min, visData.max);
-                //console.log(d3.deviation(visData.unitsData, function (d) { return d.value; }));
-                //console.log(d3.mean(visData.unitsData, function (d) { return d.value; }));
-                //console.log(d3.median(visData.unitsData, function (d) { return d.value; }));
-                //console.log(data0);
-                var somMapWidth = 300.0;
-                var somMapHeight = 300.0;
-                var xPadding = somMapWidth / (visData.width + 1);
-                var yPadding = somMapHeight / (visData.height + 1);
-                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }]).attr("id", function (d) {
+                var _this = this;
+                this._maps.push(visData);
+                var top_offset = (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
+                this._heatMaps.push(new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.width, visData.height, this._unit_width, this._unit_height, top_offset, this._left_offset, visData.unitsData));
+                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height }]).attr("id", function (d) {
                     return "mapSvg" + d.mapID;
-                }).attr("width", somMapWidth).attr("height", somMapHeight);
-                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d, i) {
-                    return d.x * 15;
-                }).attr("y", function (d, i) {
-                    return d.y * 15;
+                });
+                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d) {
+                    return _this._left_offset + d.x * _this._unit_width;
+                }).attr("y", function (d) {
+                    return top_offset + d.y * _this._unit_height;
                 }).attr({
-                    width: 15,
-                    height: 15
+                    width: this._unit_width,
+                    height: this._unit_height
                 }).style({
                     opacity: 1e-6
+                });
+                this._left_offset += this._map_gap + this._unit_width * visData.width;
+                if (this._left_offset > this._total_width) {
+                    var scale = this._total_width / this._left_offset;
+                    this._left_offset *= scale;
+                    this.ScaleMaps(scale);
+                }
+            };
+            SOMMap.prototype.ScaleMaps = function (scale) {
+                this._element.selectAll("rect").attr("x", function (d) {
+                    return scale * parseFloat(d3.select(this).attr("x"));
+                }).attr("y", function (d) {
+                    return scale * parseFloat(d3.select(this).attr("y"));
+                });
+                this._heatMaps.forEach(function (d) {
+                    d.ScaleCanvas(scale);
                 });
             };
             return SOMMap;

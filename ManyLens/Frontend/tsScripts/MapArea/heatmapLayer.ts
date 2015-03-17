@@ -31,6 +31,8 @@ module ManyLens {
             private _canvas: HTMLCanvasElement; //浏览器上的画板
             private _canvas_width: number;
             private _canvas_height: number;
+            private _canvas_top_offset: number;
+            private _canvas_left_offset: number;
             //private _unit_size: number;
 
             private _LoD: WebGLHeatmap; //热力图
@@ -38,17 +40,19 @@ module ManyLens {
             private _contourForIntensity: number[]; //各等高线的值
             private _nodeArray: { x: number; y: number;value:number }[]; //点数组，每一个点由经纬度(x,y)组成
    
-            constructor( id: string, parentContainer:HTMLElement, canvasHeight:number,canvasWidth:number,unitSize:number, nodeArray: { x: number; y: number; value:number }[] ) {
+            constructor( id: string, parentContainer: HTMLElement, canvasWidth: number,canvasHeight:number,unitWidth:number, unitHeight:number,topOffset:number,leftOffset:number,nodeArray: { x: number; y: number; value:number }[] ) {
                 config.LoDMap = this;
                 this._id = id;
                 this._parent_container = parentContainer;
 
-                this._canvas_height = canvasHeight * unitSize;
-                this._canvas_width = canvasWidth * unitSize;
+                this._canvas_width = canvasWidth * unitWidth;
+                this._canvas_height = canvasHeight * unitHeight;
+                this._canvas_top_offset = topOffset;
+                this._canvas_left_offset = leftOffset;
                 //this._unit_size = unitSize;
 
                 this._nodeArray = nodeArray.map(( d ) => {
-                    return { x: d.x * unitSize, y: d.y * unitSize, value: d.value };
+                    return { x: d.x * unitWidth, y: d.y * unitHeight, value: d.value };
                 });
                 this.addAndInitCanvas();
                 this.DrawCanvas();
@@ -60,9 +64,8 @@ module ManyLens {
 
                 this._canvas.height = this._canvas_height;
                 this._canvas.width = this._canvas_width;
-                //this._canvas.style.position = 'relative';
-                //this._canvas.style.top = -this._canvas.height / 2 + 'px';
-                //this._canvas.style.left = -this._canvas.width / 2 + 'px';
+                this._canvas.style.top = this._canvas_top_offset + 'px';
+                this._canvas.style.left = this._canvas_left_offset + 'px';
 
                 this._parent_container.appendChild( this._canvas );
                 
@@ -73,12 +76,11 @@ module ManyLens {
                 var width = this._LoD.canvas.width;
                 var height = this._LoD.canvas.height;
 
-                this._pixelMatrix = new Array( height );
+                this._pixelMatrix = new Array( this._canvas_height );
                 for ( var i = 0; i < height; ++i ) {
-                    var tmp = new Array( width );
-                    this._pixelMatrix[i] = tmp;
-                    for ( var j = 0; j < width; ++j )
-                        this._pixelMatrix[i][j] = 0;
+                    this._pixelMatrix[i] = new Array( this._canvas_width );
+                    //for ( var j = 0; j < width; ++j )
+                    //    this._pixelMatrix[i][j] = 0;
                 };
                 //初始化等高线值,这里设置为7层
                 this._contourForIntensity = new Array( 7 );
@@ -87,13 +89,36 @@ module ManyLens {
                 };
 
             }
+            public ScaleCanvas( scale:number): void {
+                this._canvas_width *= scale;
+                this._canvas_height *= scale;
+                this._canvas_top_offset *= (1+scale);
+                this._canvas_left_offset *= scale;
+
+                this._canvas.height = this._canvas_height;
+                this._canvas.width = this._canvas_width;
+                this._canvas.style.top = this._canvas_top_offset + 'px';
+                this._canvas.style.left = this._canvas_left_offset + 'px';
+
+                //初始化像素矩阵
+                var width = Math.ceil( this._canvas_width );
+                var height = Math.ceil( this._canvas_height );
+
+                this._pixelMatrix = new Array( width );
+                for ( var i = 0; i < height; ++i ) {
+                    this._pixelMatrix[i] = new Array( height );
+                };
+
+                this._nodeArray = this._nodeArray.map(( d ) => {
+                    return { x: d.x * scale, y: d.y * scale, value: d.value };
+                });
+
+                this.DrawCanvas();
+            }
 
             //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
             public DrawCanvas(): void {
-                this._canvas.height = this._canvas_height;
-                this._canvas.width = this._canvas_width;
-                //this._canvas.style.top = -this._canvas.height / 2 + 'px';
-                //this._canvas.style.left = -this._canvas.width / 2 + 'px';
+
                 var dStart = new Date();
                 this.getEdgesNodesAndDraw();
                 var nSpan = ( new Date() ).getMilliseconds() - dStart.getMilliseconds();
@@ -135,7 +160,10 @@ module ManyLens {
                 for ( var i = 0, len = nodes.length; i < len; ++i ) {
                     var x = nodes[i].x;//* this._unit_size;
                     var y = height - 1 - nodes[i].y; //* this._unit_size;
-                    this._pixelMatrix[y][x] = nodes[i].value;
+                    if ( this._pixelMatrix[y][x] != null)
+                        this._pixelMatrix[y][x] = nodes[i].value;
+                    else
+                        console.log( this._pixelMatrix[y] );
                 }
 
                 //获得当前bing Map的放大倍数

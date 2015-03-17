@@ -57,7 +57,7 @@ module ManyLens {
             private _fisheye_scale: D3.FishEyeOrdinalScale = d3.fisheye.ordinal();
 
             private _section_num: number = 50;
-            private _view_height: number = 130;
+            private _view_height: number;
             private _view_width: number;
             private _view_top_padding: number = 15;
             private _view_botton_padding: number = 5;
@@ -96,6 +96,7 @@ module ManyLens {
                 this._intervals = new Array<StackRect>();
                 this._stack_time = new Array<StackDate>();
 
+                this._view_height = parseFloat( this._element.style( "height" ) ) - 30;
                 this._view_width = parseFloat( this._element.style( "width" ) );
 
                 this._x_scale
@@ -123,7 +124,6 @@ module ManyLens {
                 ;
 
                 this._time_formater = d3.time.format( "%Y%m%d%H%M%S" );
-
 
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction( this, "addPoint", this.AddPoint );
