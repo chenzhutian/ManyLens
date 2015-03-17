@@ -35,6 +35,7 @@ namespace ManyLens.SignalR
 
         public async Task LoadData(IProgress<double> progress)
         {
+<<<<<<< HEAD
             ////clear the static data
             //interals.Clear();
             //lensdatas.Clear();
@@ -63,6 +64,24 @@ namespace ManyLens.SignalR
 
             VisMap visMap = GPUSOM.TweetSOM(trainInterval, "no");
             Clients.Caller.showVIS(visMap.GetVisData());
+=======
+            //clear the static data
+            interals.Clear();
+            lensdatas.Clear();
+            string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
+            string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
+            string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+            Debug.WriteLine(tweetFile);
+            await Task.Run(() =>
+            {
+                if (dateTweetsFreq == null)
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
+                if (cities1000 == null)
+                    cities1000 = TweetsIO.LoadCities1000(cities1000File);
+                if (stopWords == null)
+                    stopWords = TweetsIO.LoadStopWord(stopwordFile);
+            });
+>>>>>>> origin/no-more-'mark'
 
         }
 

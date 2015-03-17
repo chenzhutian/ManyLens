@@ -249,7 +249,7 @@ __global__ void Calculate_Cosine_Distance_Kernel(const float *d_weights,
 
 		//store CHKSIZE results
 #pragma unroll
-		for (int i = 0; i < numCHKSIZE; i++)
+		for (int i = 0; i < numCHKSIZE; ++i)
 			d_result[(i + (bx * CHKSIZE)) * neuron_number + tx] = result[i];
 
 		tx += blockDim.x;
@@ -493,7 +493,6 @@ __global__ void Update_Map_Map_Kernel(const float* d_input_set,
 	float numerator = 0.f;
 	int index_factor = gridDim.x - 1;
 	__shared__ float tempDenominator[DIMENSION];		//DIMENSION*CHKSIZE
-	//int j = 0;
 	int count = 0;
 	int upper = ceilf((float)batch_size / (float)DIMENSION);
 	for (int j = 0; j < upper; ++j)
@@ -516,7 +515,7 @@ __global__ void Update_Map_Map_Kernel(const float* d_input_set,
 
 		count = (j + 1)*DIMENSION < batch_size ? DIMENSION : (batch_size - j * DIMENSION);
 		//Sum up the influence
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; ++i)
 		{
 			numerator += tempDenominator[i] * d_input_set[threadIdx.x + ((input_index_of_this_batch + (j * DIMENSION) + i) * DIMENSION)];
 			denominator += tempDenominator[i];
@@ -658,6 +657,41 @@ float* RandomMapping(const float* h_gaussin,
 	cudaFree(d_source);
 
 	return d_result;
+}
+
+const int TILE_DIM  = 32;
+const int BLOCK_ROWS = 8;
+__global__ void transposeNoBankConflicts(float *odata, const float *idata)
+{
+	__shared__ float tile[TILE_DIM][TILE_DIM + 1];
+
+	int x = blockIdx.x * TILE_DIM + threadIdx.x;
+	int y = blockIdx.y * TILE_DIM + threadIdx.y;
+	int width = gridDim.x * TILE_DIM;
+	int tWidth = gridDim.y * TILE_DIM;
+
+	for (int j = 0; j < TILE_DIM; j += BLOCK_ROWS)
+		tile[threadIdx.y + j][threadIdx.x] = idata[(y + j)*width + x];
+
+	__syncthreads();
+
+	x = blockIdx.y * TILE_DIM + threadIdx.x;  // transpose block offset
+	y = blockIdx.x * TILE_DIM + threadIdx.y;
+
+	for (int j = 0; j < TILE_DIM; j += BLOCK_ROWS)
+		odata[(y + j)*tWidth + x] = tile[threadIdx.x][threadIdx.y + j];
+}
+float* Transpose(float* d_temp_weight, const int dimension_after_random_mapping,const int neuron_number)
+{
+	dim3 dimGrid(dimension_after_random_mapping / TILE_DIM, neuron_number / TILE_DIM, 1);
+	dim3 dimBlock(TILE_DIM, BLOCK_ROWS, 1);
+
+	float* d_weights = 0;
+	cudaMalloc((void**)&d_weights, dimension_after_random_mapping * neuron_number * sizeof(float));
+
+	transposeNoBankConflicts << <dimGrid, dimBlock >> >(d_weights, d_temp_weight);
+	cudaFree(d_temp_weight);
+	return d_weights;
 }
 
 //unsigned int* SOM(const float* h_inputSet,
@@ -943,6 +977,7 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 			{
 				h_distance[t] = abs(dX) > abs(dY) ? abs(dX) : abs(dY);
 			}
+
 			h_distance[t]  = h_distance[t] * h_distance[t] ;
 
 			//h_distance[t] = dX + dY;
@@ -954,13 +989,39 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 
 	/*-----------Initialize the weights of each neuron---------------------*/
 	cudaMemcpy(d_weights, d_input_set, neuron_number* dimension_after_random_mapping  * sizeof(float), cudaMemcpyDeviceToDevice);
+	
+	//Test
+	float* h_temp_weights = new float[dimension_after_random_mapping * neuron_number];
+	cudaMemcpy(h_temp_weights, d_weights, neuron_number*dimension_after_random_mapping*sizeof(float), cudaMemcpyDeviceToHost);
+	for (int i = 0; i < neuron_number; ++i)
+	{
+		for (int j = 0; j < dimension_after_random_mapping; ++j)
+		{
+			h_weights[i + j*neuron_number] = h_temp_weights[i*dimension_after_random_mapping + j];
+		}
+	}
+
+	d_weights = Transpose(d_weights, dimension_after_random_mapping, neuron_number);
+	
+	//Test
+	cudaMemcpy(h_temp_weights, d_weights, neuron_number*dimension_after_random_mapping*sizeof(float), cudaMemcpyDeviceToHost);
+	for (int i = 0; i < dimension_after_random_mapping; ++i)
+	{
+		for (int j = 0; j < neuron_number; ++j)
+		{
+			if (h_weights[i*neuron_number + j] != h_temp_weights[i*neuron_number + j])
+				fout << "transpose wrong at neuron " << j << ",  dimension " << i << std::endl;
+		}
+	}
+
 	std::cout << "Initialize the weights done" << std::endl;
 
 	fout << "cicle times " << floor(d_input_set_size / batch_size) << std::endl;
 	//Let's begin SOM
 	for (int i = 0; i < epochNum; i++)
 	{
-		for (unsigned int iCycle = 0; iCycle < floor(d_input_set_size / batch_size); iCycle++)
+
+		for (unsigned int iCycle = 0; iCycle < ceil(d_input_set_size / batch_size); iCycle++)
 		{
 			int inputx = iCycle * batch_size;
 			if (!Find_Best_Match_Neuron(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result,fout))
