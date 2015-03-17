@@ -4846,7 +4846,7 @@ var ManyLens;
                 //this._lensPane.Render();
             };
             SOMMap.prototype.ShowVis = function (visData) {
-                new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.height, visData.width, 30, visData.unitsData);
+                new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.height, visData.width, 15, visData.unitsData);
                 //var deviation = d3.deviation(visData.unitsData, function (d) { return d.value; });
                 //var mean = d3.mean(visData.unitsData, function (d) { return d.value; });
                 //var median = d3.median(visData.unitsData, function (d) { return d.value; });
@@ -4885,11 +4885,14 @@ var ManyLens;
                     return "mapSvg" + d.mapID;
                 }).attr("width", visData.width).attr("height", visData.height);
                 svg.append("g").attr("class", "units").selectAll("text").data(visData.unitsData).enter().append("text").attr("class", "unit").attr("x", function (d, i) {
-                    return d.x * 30;
+                    return d.x * 15;
                 }).attr("y", function (d, i) {
-                    return d.y * 30;
-                }).text(function (d, i) {
-                    return d.label;
+                    return d.y * 15;
+                }).attr({
+                    width: 15,
+                    height: 15
+                }).style({
+                    opacity: 1e-6
                 });
             };
             return SOMMap;

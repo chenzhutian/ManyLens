@@ -681,13 +681,13 @@ __global__ void transposeNoBankConflicts(float *odata, const float *idata)
 	for (int j = 0; j < TILE_DIM; j += BLOCK_ROWS)
 		odata[(y + j)*tWidth + x] = tile[threadIdx.x][threadIdx.y + j];
 }
-float* Transpose(float* d_temp_weight, const int dimension_after_random_mapping,const int neuron_number)
+float* Transpose(float* d_temp_weight, const int oldX,const int oldY)
 {
-	dim3 dimGrid(dimension_after_random_mapping / TILE_DIM, neuron_number / TILE_DIM, 1);
+	dim3 dimGrid(oldX / TILE_DIM, oldY / TILE_DIM, 1);
 	dim3 dimBlock(TILE_DIM, BLOCK_ROWS, 1);
 
 	float* d_weights = 0;
-	cudaMalloc((void**)&d_weights, dimension_after_random_mapping * neuron_number * sizeof(float));
+	cudaMalloc((void**)&d_weights, oldX * oldY * sizeof(float));
 
 	transposeNoBankConflicts << <dimGrid, dimBlock >> >(d_weights, d_temp_weight);
 	cudaFree(d_temp_weight);
@@ -855,7 +855,7 @@ float* Transpose(float* d_temp_weight, const int dimension_after_random_mapping,
 //	return h_output;
 //}
 
-unsigned int* SOMwithRandomMapping(const float* h_gaussin,
+float* SOMwithRandomMapping(const float* h_gaussin,
 	const float* h_inputSet,
 	const unsigned int input_set_size,
 	const unsigned int dimension,
@@ -959,7 +959,7 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 		}
 		y++;
 	}
-	std::cout << "Initialize the positioin done" << std::endl;
+
 	/*----------------- Initialize the distance table --------------------*/
 	h_distance[0] = 0;
 	for (unsigned int i = 0, t = 1; i < neuron_number - 1; ++i)
@@ -985,22 +985,9 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 		}
 	}
 	cudaMemcpy(d_distance, h_distance, distance_table_length * sizeof(float), cudaMemcpyHostToDevice);
-	std::cout << "Initialize the distance done" << std::endl;
 
 	/*-----------Initialize the weights of each neuron---------------------*/
 	cudaMemcpy(d_weights, d_input_set, neuron_number* dimension_after_random_mapping  * sizeof(float), cudaMemcpyDeviceToDevice);
-	
-	//Test
-	float* h_temp_weights = new float[dimension_after_random_mapping * neuron_number];
-	cudaMemcpy(h_temp_weights, d_weights, neuron_number*dimension_after_random_mapping*sizeof(float), cudaMemcpyDeviceToHost);
-	for (int i = 0; i < neuron_number; ++i)
-	{
-		for (int j = 0; j < dimension_after_random_mapping; ++j)
-		{
-			h_weights[i + j*neuron_number] = h_temp_weights[i*dimension_after_random_mapping + j];
-		}
-	}
-
 	d_weights = Transpose(d_weights, dimension_after_random_mapping, neuron_number);
 	
 	//Test
@@ -1017,6 +1004,7 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 	std::cout << "Initialize the weights done" << std::endl;
 
 	fout << "cicle times " << floor(d_input_set_size / batch_size) << std::endl;
+
 	//Let's begin SOM
 	for (int i = 0; i < epochNum; i++)
 	{
@@ -1033,7 +1021,6 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 			float sigmaT = 0.28*width*(1 - lambda*iter);
 			if (sigmaT < 1)
 				sigmaT = 1;
-			std::cout << sigmaT << std::endl;
 			sigmaT = 2 * sigmaT * sigmaT;
 			if (!Update_Map(d_distance, neuron_number, d_input_set, inputx, d_BID, batch_size, dimension_after_random_mapping, sigmaT, d_weights))
 			{
@@ -1043,10 +1030,9 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 		}
 	}
 
-	std::cout << "Som training done" << std::endl;
-
-	unsigned int* h_output = new unsigned int[input_set_size];
-	for (unsigned int iCycle = 0; iCycle < (d_input_set_size / batch_size); iCycle++)
+	/*---------------Output -----------------*/
+    float* h_output = new float[input_set_size+dimension_after_random_mapping*neuron_number];
+	for (unsigned int iCycle = 0; iCycle < ceil(d_input_set_size / batch_size); iCycle++)
 	{
 		int inputx = iCycle * batch_size;
 		std::cout << inputx << std::endl;
@@ -1056,6 +1042,7 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 		}
 		cudaMemcpy(h_output + inputx, d_BID, batch_size*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 	}
+	cudaMemcpy(h_output + d_input_set_size, d_weights, dimension_after_random_mapping*neuron_number*sizeof(float), cudaMemcpyDeviceToHost);
 
 	/*--------------- check the result of final weights update -----------------*/
 	//std::ofstream fweightout("../data/weightsFinal");
@@ -1070,7 +1057,6 @@ unsigned int* SOMwithRandomMapping(const float* h_gaussin,
 	//}
 	//fweightout.close();
 
-	std::cout << "everything done" << std::endl;
 	cudaFree(d_weights);
 	cudaFree(d_input_set);
 	cudaFree(d_BID);

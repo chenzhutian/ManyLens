@@ -64,7 +64,7 @@ module ManyLens {
                     this._heatmap_container,
                     visData.height,
                     visData.width,
-                    30,
+                    15,
                     visData.unitsData );
 
 
@@ -122,16 +122,15 @@ module ManyLens {
                     .data(visData.unitsData)
                     .enter().append("text")
                     .attr("class","unit")
-                    .attr("x", function (d, i) { return d.x * 30; })
-                    .attr( "y", function ( d, i ) { return d.y * 30; })
-                    .text( function ( d, i ) { return d.label;})
-                    //.attr({
-                    //    width: 20,
-                    //    height: 20
-                    //})
-                    //.style( {
-                    //    opacity:1e-6
-                    //})
+                    .attr("x", function (d, i) { return d.x * 15; })
+                    .attr("y", function (d, i) { return d.y * 15; })
+                    .attr({
+                        width: 15,
+                        height: 15
+                    })
+                    .style( {
+                        opacity:1e-6
+                    })
                     //.attr("fill", (d: UnitData) => {
                     //    //var interpalote = d3.interpolateRgb(this._colorPalettes[d.colorIndex], this._colorPalettes[d.colorIndex+1]);
                     //    //var extent = d3.extent<number>(data0[d.colorIndex]);

@@ -61,7 +61,7 @@ extern "C"
 									const float iterNum,
 									const unsigned int groupsNum);
 
-	SOM_CUDA_API unsigned int* SOMwithRandomMapping(const float* h_gaussin,
+	SOM_CUDA_API float* SOMwithRandomMapping(const float* h_gaussin,
 													const float* h_inputSet,
 													const unsigned int input_set_size,
 													const unsigned int dimension,
