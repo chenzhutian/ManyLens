@@ -64,7 +64,7 @@ module ManyLens {
                     this._heatmap_container,
                     visData.height,
                     visData.width,
-                    20,
+                    15,
                     visData.unitsData );
 
 
@@ -122,11 +122,11 @@ module ManyLens {
                     .data(visData.unitsData)
                     .enter().append("rect")
                     .attr("class","unit")
-                    .attr("x", function (d, i) { return d.x * 20; })
-                    .attr("y", function (d, i) { return d.y * 20; })
+                    .attr("x", function (d, i) { return d.x * 15; })
+                    .attr("y", function (d, i) { return d.y * 15; })
                     .attr({
-                        width: 20,
-                        height: 20
+                        width: 15,
+                        height: 15
                     })
                     .style( {
                         opacity:1e-6

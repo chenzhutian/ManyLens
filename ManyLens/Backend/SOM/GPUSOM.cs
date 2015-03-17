@@ -46,7 +46,7 @@ namespace ManyLens.SOM
             float[] trainset = interval.GetHashVector(trainsetSize);
             Debug.WriteLine("Set the parameter for SOM");
             //set the resolution of SOM map
-            int width = 32;
+            int width = 64;
             int height = 32;
             //set the batch size
             int batch_size = trainsetSize;
