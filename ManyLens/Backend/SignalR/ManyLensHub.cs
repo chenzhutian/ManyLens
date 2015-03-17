@@ -23,29 +23,30 @@ namespace ManyLens.SignalR
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
         private static Dictionary<string, Lens> lensdatas = new Dictionary<string, Lens>();
-       
+
         public static List<TweetsIO.CityStruct> cities1000;
         public static HashSet<string> stopWords;
 
         private Random rnd = new Random();
 
-        //TEST
-        private static Interval trainInterval = null;
-
-
         public async Task LoadData(IProgress<double> progress)
         {
-            //TEST
-            if (trainInterval == null)
+            //clear the static data
+            interals.Clear();
+            lensdatas.Clear();
+            string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
+            string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
+            string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+            Debug.WriteLine(tweetFile);
+            await Task.Run(() =>
             {
-                string train20ng = rootFolder + "Backend\\DataBase\\TEST\\train20ng";
-                trainInterval = TweetsIO.Load20NGData(train20ng);
-                Preprocessing.TweetsPreprocessor.ProcessTweetParallel(trainInterval, progress);
-                Preprocessing.TweetsVectorizer.VectorizeEachTweet(trainInterval, progress);
-            }
-
-            VisMap visMap = GPUSOM.TweetSOM(trainInterval, "no");
-            Clients.Caller.showVIS(visMap.GetVisData());
+                if (dateTweetsFreq == null)
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
+                if (cities1000 == null)
+                    cities1000 = TweetsIO.LoadCities1000(cities1000File);
+                if (stopWords == null)
+                    stopWords = TweetsIO.LoadStopWord(stopwordFile);
+            });
         }
 
         private List<Interval> taskList = new List<Interval>();
@@ -65,7 +66,7 @@ namespace ManyLens.SignalR
             }
             Clients.Caller.enableReorganizeIntervalBtn();
         }
-        private Task task = null ;
+        private Task task = null;
         private void LazyThreadForConditionalEntropy(Interval interval)
         {
 
@@ -80,13 +81,13 @@ namespace ManyLens.SignalR
                 task = new Task(PreprocesInterval);
                 Clients.Caller.disableReorganizeIntervalBtn();
                 task.Start();
-                
+
             }
         }
 
-        private static double GetGaussin(double x,double sigma = 1)
+        private static double GetGaussin(double x, double sigma = 1)
         {
-            return Math.Exp((-x * x *0.5)/(sigma * sigma)) / (Math.Sqrt(2 * Math.PI) * sigma);
+            return Math.Exp((-x * x * 0.5) / (sigma * sigma)) / (Math.Sqrt(2 * Math.PI) * sigma);
         }
 
         private static void GaussinFilterTerm(int beg, int end, Term[] tp)
@@ -100,7 +101,7 @@ namespace ManyLens.SignalR
             {
                 for (int j = beg; j < end; ++j)
                 {
-                    double g = GetGaussin(j - i,0.9);
+                    double g = GetGaussin(j - i, 0.9);
                     tp[i].TempVirtualCount += tp[j].VirtualCount * g;
                 }
             }
@@ -155,7 +156,7 @@ namespace ManyLens.SignalR
                 //System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
                 //var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
                 //List<Point> points = new List<Point>();
-                for (int i = p, t = 0; t < tp.Length; i++,stepCount--, t++)
+                for (int i = p, t = 0; t < tp.Length; i++, stepCount--, t++)
                 {
                     //Gaussin smoothing
                     if (stepCount == 0)
@@ -213,7 +214,7 @@ namespace ManyLens.SignalR
                                 }
                             }
 
-                            
+
                             tp[begin].BeginPoint = tp[begin].ID;
                             tp[begin].EndPoint = tp[end].ID;
                             tp[begin].PointType += 1;
@@ -228,7 +229,7 @@ namespace ManyLens.SignalR
                             //if(interals.Count > 0)
                             //    interal.LastInterval = interals.Last().Value;
                             interals.Add(interal.ID, interal);
-                            
+
                             for (int k = begin + 1; k < end; ++k)
                             {
                                 tp[k].BeginPoint = tp[begin].ID;
@@ -237,7 +238,7 @@ namespace ManyLens.SignalR
                                 interal.AddTerm(tp[k]);
                             }
                             interal.SetEndDate(tp[end].TermDate);
-                            
+
                             LazyThreadForConditionalEntropy(interal);
                         }
                         else
@@ -321,10 +322,11 @@ namespace ManyLens.SignalR
             });
         }
 
-        public async Task ReOrganizePeak(bool state) 
+        public async Task ReOrganizePeak(bool state)
         {
             List<List<float[]>> intervalsInGroups = null;
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 if (state)
                 {
                     Clients.Caller.timeInterval();
@@ -369,7 +371,7 @@ namespace ManyLens.SignalR
 
                     int seedsNum = 3;
                     List<float[]> seeds = new List<float[]>(seedsNum);
-                    
+
                     //Random select the seeds
                     List<int> seedsIndex = new List<int>(seedsNum);
                     intervalsInGroups = new List<List<float[]>>();
@@ -386,7 +388,7 @@ namespace ManyLens.SignalR
                     }
 
                     int changeGroupNum = int.MaxValue;
-                    while(changeGroupNum >0 )
+                    while (changeGroupNum > 0)
                     {
                         changeGroupNum = 0;
                         for (int i = 0; i < seedsNum; ++i)
@@ -442,12 +444,12 @@ namespace ManyLens.SignalR
                         }
                     }
 
-                    
+
                     Clients.Caller.clusterInterval(intervalsGroup);
                 }
-                
+
             });
-            
+
 
         }
 
@@ -457,7 +459,7 @@ namespace ManyLens.SignalR
                 return -1;
             double dist = 0;
             for (int i = 0, len = a.Length; i < len; ++i)
-            { 
+            {
                 double dx = a[i] - b[i];
                 dist += dx * dx;
             }
@@ -475,7 +477,7 @@ namespace ManyLens.SignalR
                     visMap = visMaps[mapID];
                 else
                 {
-                   
+
                     Interval interal = interals[interalID];
 
                     interal.PreproccessingParallel(progress);
@@ -510,16 +512,16 @@ namespace ManyLens.SignalR
                 //    Debug.WriteLine(e.InnerException.Message);
                 //    Debug.WriteLine(e.Message);
                 //}
-                
+
                 Clients.Caller.showVIS(visMap.GetVisData());
 
             });
 
         }
 
-        public async Task<Dictionary<string,object>> GetLensData(string visMapID,string lensID, int[] unitsID, string baseData,string subData = null)
+        public async Task<Dictionary<string, object>> GetLensData(string visMapID, string lensID, int[] unitsID, string baseData, string subData = null)
         {
-            Dictionary<string,object> data = null;
+            Dictionary<string, object> data = null;
             Debug.WriteLine("baseData here is " + baseData);
             Debug.WriteLine("subData here is " + subData);
             await Task.Run(() =>
@@ -544,7 +546,7 @@ namespace ManyLens.SignalR
 
                 lens.BindUnits(units);
                 lens.MapID = visMapID;
-                data = lens.GetDataForVis(baseData,subData);
+                data = lens.GetDataForVis(baseData, subData);
             });
 
             return data;
@@ -552,10 +554,11 @@ namespace ManyLens.SignalR
 
         public async Task RemoveLensData(string visMapID, string lensID)
         {
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 lensdatas.Remove(lensID);
             });
-            
+
         }
 
         #region some code for test
@@ -586,13 +589,14 @@ namespace ManyLens.SignalR
         #endregion
 
         //Interactive for lens
-        public async Task cWordCloudPieLens(string lensID, string pieKey,string baseData,string subData)
+        public async Task cWordCloudPieLens(string lensID, string pieKey, string baseData, string subData)
         {
             HashSet<string> words = new HashSet<string>();
             Lens lens = lensdatas[lensID];
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 string t = baseData + "_" + subData;
-                switch(t)
+                switch (t)
                 {
                     case "keywordsDistribute_tweetLengthDistribute":
                         {
@@ -605,11 +609,11 @@ namespace ManyLens.SignalR
                             break;
                         }
                 }
-                
+
             });
 
-            Clients.Caller.interactiveOnLens(lensID,words.ToList());
-            
+            Clients.Caller.interactiveOnLens(lensID, words.ToList());
+
         }
 
         public async Task cMapPieLens(string lensID, string pieKey, string baseData, string subData)

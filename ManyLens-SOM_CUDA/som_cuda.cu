@@ -384,12 +384,9 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	const unsigned int input_index_of_this_batch,
 	const unsigned int batch_size,
 	unsigned int* d_BID,
-	float* d_result,
-	std::ofstream &fout)
+	float* d_result)
 {
 	cudaError_t cudaStatus;
-	fout << "real blocks in find_best_match_neuron " << (double)batch_size / (double)CHKSIZE << std::endl;
-	fout << "blocks in find_best_match_neuron " << ceil((double)batch_size / (double)CHKSIZE) << std::endl;
 	dim3 threads(DIMENSION);
 	dim3 blocks(ceil((double)batch_size / (double)CHKSIZE));
 	Calculate_Euclidean_Distance_Kernel <<<blocks, threads >>>(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
@@ -440,44 +437,6 @@ bool output_BID(const float* d_weights,
 }
 
 //Update weight of each neuron
-__global__ void Bad_Update_Map_Map_Kernel(const float* d_input_set, const int input_index_of_this_batch, const int* d_position, const unsigned int* bID, const unsigned int batch_size, const float fsigmaT, float* d_weights)
-{
-	int tx = threadIdx.x;
-	int bx = blockIdx.x;
-	float denominator = 0.f;
-	float numerator = 0.f;
-	int index_factor = gridDim.x - 1;
-	int DIMENSIONxCHKSIZE = DIMENSION*CHKSIZE;
-	__shared__ float tempDenominator[DIMENSION*CHKSIZE];		//DIMENSION*CHKSIZE
-	int j = 0;
-	while (tx < batch_size)
-	{
-
-		//Calculate the influence of each input vector
-		for (int i = 0; i < CHKSIZE; i++)
-		{
-			int bid = bID[tx];				//the id of best match neuron
-			int tempX = (d_position[2 * bx] - d_position[2 * bid]);
-			int tempY = (d_position[2 * bx + 1] - d_position[2 * bid + 1]);
-			float tempDist = tempX*tempX + tempY*tempY;
-			tempDenominator[tx + (i * DIMENSION)] = bx^bid ? expf(-tempDist / fsigmaT) : 1;
-		}
-		__syncthreads();
-
-		//Sum up the influence
-		for (int i = 0; i < DIMENSIONxCHKSIZE; i++)
-		{
-			numerator += tempDenominator[i] * d_input_set[threadIdx.x + ((input_index_of_this_batch + (j * DIMENSIONxCHKSIZE) + i) * DIMENSION)];
-			denominator += tempDenominator[i];
-		}
-		++j;
-		tx += DIMENSIONxCHKSIZE;
-	}
-	//Update the weight of each neuron
-	d_weights[threadIdx.x * gridDim.x + bx] = denominator;// numerator / 
-}
-
-//Update weight of each neuron
 __global__ void Update_Map_Map_Kernel(const float* d_input_set,
 	const int input_index_of_this_batch,
 	const float* d_distance,
@@ -523,60 +482,6 @@ __global__ void Update_Map_Map_Kernel(const float* d_input_set,
 	}
 	//Update the weight of each neuron
 	d_weights[threadIdx.x * gridDim.x + bx] = numerator / denominator;
-}
-
-__global__ void Update_Map_Map_Kernel_noRandomMapping(const float* d_input_set,
-	const int dimension,
-	const int input_index_of_this_batch,
-	const float* d_distance,
-	const unsigned int* bID,
-	const unsigned int batch_size,
-	const float fsigmaT,
-	float* d_weights)
-{
-	int tx = threadIdx.x;
-	int by = blockIdx.y;
-	int bx = blockIdx.x;
-	float denominator = 0.f;
-	float numerator = 0.f;
-	int index_factor = gridDim.y - 1;
-	__shared__ float tempDenominator[512];		//DIMENSION*CHKSIZE
-	int j = 0;
-	int tid = bx*blockDim.x + threadIdx.x;
-	int count = 0;
-	while (tx < batch_size)
-	{
-		int bid = bID[tx];				//the id of best match neuron
-		/* Find the bigger one between bid and by, 'a' is the bigger one*/
-		int a = by + bid;
-		int b = by < bid ? by : bid;
-		a = a - b;
-		int index = a + index_factor * b - 1 - (b + 1) * b * 0.5;
-
-		//Calculate the influence of each input vector
-		float tempDist = by^bid ? d_distance[index + 1] : 0;
-
-		tempDenominator[threadIdx.x] = by^bid ? expf(-tempDist / fsigmaT) : 1;
-		__syncthreads();
-
-
-		if (tid < dimension)
-		{
-			count = (j + 1) * 512 < batch_size ? 512 : (batch_size - j * 512);
-			//Sum up the influence
-			for (int i = 0; i < count; i++)
-			{
-				numerator += tempDenominator[i] * d_input_set[tid + ((input_index_of_this_batch + (j * 512) + i) * dimension)];
-				denominator += tempDenominator[i];
-			}
-		}
-
-		++j;
-		tx += blockDim.x;
-	}
-	if (tid < dimension)
-		//Update the weight of each neuron
-		d_weights[tid * gridDim.y + by] = numerator / denominator;
 }
 
 //Update weight of each neuron vector
@@ -864,10 +769,6 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	const float lambda,
 	const float iterNum)
 {
-	std::string logPath = "D:\\SOMLog\\";
-	std::ofstream fout(logPath + "somlog");
-	fout << "here we go" << std::endl;
-	
 	const unsigned int d_input_set_size = input_set_size;								//define the input set size on device
 	const unsigned int dimension_before_random_mapping = dimension;						//the original dimension of the input set
 	const unsigned int dimension_after_random_mapping = DIMENSION;						//dimension after random mapping, can not change
@@ -977,7 +878,6 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 			}
 
 			h_distance[t]  = h_distance[t] * h_distance[t] ;
-
 			//h_distance[t] = dX + dY;
 			++t;
 		}
@@ -985,39 +885,16 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	cudaMemcpy(d_distance, h_distance, distance_table_length * sizeof(float), cudaMemcpyHostToDevice);
 
 	/*-----------Initialize the weights of each neuron---------------------*/
-	//Test
-	float* h_temp_weights = new float[dimension_after_random_mapping * neuron_number];
-	cudaMemcpy(h_temp_weights, d_weights, neuron_number*dimension_after_random_mapping*sizeof(float), cudaMemcpyDeviceToHost);
-	for (int i = 0; i < neuron_number; ++i)
-	{
-		for (int j = 0; j < dimension_after_random_mapping; ++j)
-		{
-			h_weights[i + j*neuron_number] = h_temp_weights[i*dimension_after_random_mapping + j];
-		}
-	}
-
 	cudaMemcpy(d_weights, d_input_set, neuron_number* dimension_after_random_mapping  * sizeof(float), cudaMemcpyDeviceToDevice);
 	d_weights = Transpose(d_weights, dimension_after_random_mapping, neuron_number);
 
-	//Test
-	cudaMemcpy(h_temp_weights, d_weights, neuron_number*dimension_after_random_mapping*sizeof(float), cudaMemcpyDeviceToHost);
-	for (int i = 0; i < dimension_after_random_mapping; ++i)
-	{
-		for (int j = 0; j < neuron_number; ++j)
-		{
-			if (h_weights[i*neuron_number + j] != h_temp_weights[i*neuron_number + j])
-				fout << "transpose wrong at neuron " << j << ",  dimension " << i << std::endl;
-		}
-	}
-
-	fout << "cicle times " << floor(d_input_set_size / batch_size) << std::endl;
 	//Let's begin SOM
 	for (int i = 0; i < epochNum; i++)
 	{
 		for (unsigned int iCycle = 0; iCycle < ceil(d_input_set_size / batch_size); iCycle++)
 		{
 			int inputx = iCycle * batch_size;
-			if (!Find_Best_Match_Neuron(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result,fout))
+			if (!Find_Best_Match_Neuron(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result))
 			{
 				break;
 			}
@@ -1039,7 +916,7 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	for (unsigned int iCycle = 0; iCycle < ceil(input_set_size / batch_size); iCycle++)
 	{
 		int inputx = iCycle * batch_size;
-		if (!Find_Best_Match_Neuron(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result,fout))
+		if (!Find_Best_Match_Neuron(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result))
 		{
 			break;
 		}
@@ -1049,13 +926,13 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	
 	/*--------------- check the result of final weights update -----------------*/
 	std::ofstream fweightout("D:\\SOMLog\\weights_in_columnmajor");
-	for(int i = 0; i < neuron_number; ++i)
+	for (int i = 0; i < neuron_number; ++i)
 	{
-		for(int j = 0; j<  dimension_after_random_mapping; j++)
+		for (int j = 0; j< dimension_after_random_mapping; j++)
 		{
-			fweightout<<h_output[input_set_size + i + j * neuron_number] <<" ";
+			fweightout << h_output[input_set_size + i + j * neuron_number] << " ";
 		}
-		fweightout<<std::endl;
+		fweightout << std::endl;
 	}
 	fweightout.close();
 	std::ofstream fbid("D:\\SOMLog\\bid");
@@ -1063,9 +940,10 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	memcpy(bid, h_output, input_set_size*sizeof(unsigned int));
 	for (int i = 0; i < d_input_set_size; ++i)
 	{
-		fbid << bid[i]<< std::endl;
+		fbid << bid[i] << std::endl;
 	}
 	fbid.close();
+
 
 	cudaFree(d_weights);
 	cudaFree(d_input_set);
@@ -1078,8 +956,6 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	h_distance = NULL;
 	h_position = NULL;
 	h_weights = NULL;
-
-	fout.close();
 
 	return h_output;
 }

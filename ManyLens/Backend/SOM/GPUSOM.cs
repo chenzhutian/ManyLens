@@ -55,7 +55,6 @@ namespace ManyLens.SOM
             float lambda = 0.02f;
             float iterD = 1f;
 
-            Debug.WriteLine("batch size "+ batch_size);
             Debug.WriteLine("Let's have SOM");
             //use som train here
             IntPtr pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,

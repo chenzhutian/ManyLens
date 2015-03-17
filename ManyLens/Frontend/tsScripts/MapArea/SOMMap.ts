@@ -102,25 +102,25 @@ module ManyLens {
                 //console.log(d3.median(visData.unitsData, function (d) { return d.value; }));
                 //console.log(data0);
 
-                //var somMapWidth = 300.0;
-                //var somMapHeight = 300.0;
+                var somMapWidth = 300.0;
+                var somMapHeight = 300.0;
 
-                var xPadding = visData.width / (visData.width + 1);
-                var yPadding = visData.height / (visData.height + 1);
+                var xPadding = somMapWidth / (visData.width + 1);
+                var yPadding = somMapHeight / (visData.height + 1);
 
                 var svg = this._element
                     .append("g")
                     .data([{ mapID: visData.mapID, width: visData.width, height: visData.height, xPadding: xPadding, yPadding: yPadding }])
                     .attr("id", function (d) { return "mapSvg" + d.mapID; })
-                    .attr("width", visData.width)
-                    .attr("height", visData.height)
+                    .attr("width", somMapWidth)
+                    .attr("height", somMapHeight)
                 ;
 
                 svg.append("g")
                     .attr("class", "units")
-                    .selectAll("text")
+                    .selectAll("rect")
                     .data(visData.unitsData)
-                    .enter().append("text")
+                    .enter().append("rect")
                     .attr("class","unit")
                     .attr("x", function (d, i) { return d.x * 15; })
                     .attr("y", function (d, i) { return d.y * 15; })

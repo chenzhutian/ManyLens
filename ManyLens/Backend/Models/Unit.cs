@@ -66,26 +66,6 @@ namespace ManyLens.Models
                 this.unitID = value;
             }
         }
-        //TEST
-        public int Label
-        {
-            get
-            {
-                int[] labels = new int[20];
-                for (int i = 0, len = this.TweetsCount; i < len; ++i)
-                {
-                    labels[int.Parse(this.Tweets[i].TweetID)]++;
-                }
-                int max = -1;
-                for (int i = 0; i < 20; ++i)
-                {
-                    if (labels[i] > max)
-                        max = i;
-                }
-                return max;
-            }
-        }
-
         public float[] UnitSumVector
         {
             get { return unitSumVector; }
