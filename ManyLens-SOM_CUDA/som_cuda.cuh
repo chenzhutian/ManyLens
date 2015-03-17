@@ -62,6 +62,7 @@ extern "C"
 
 	SOM_CUDA_API float* SOMwithRandomMapping(const float* h_gaussin,
 													const float* h_inputSet,
+													const float* h_initial_weight,
 													const unsigned int input_set_size,
 													const unsigned int dimension,
 													const unsigned int height,

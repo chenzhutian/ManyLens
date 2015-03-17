@@ -111,6 +111,10 @@ namespace ManyLens.Models
             }
             private set
             {
+                //Just for test
+                if (value.Length == 1)
+                    this.mapWeightInColumnMajor = value;
+
                 if (value.Length != this.Width * this.Height * config.Parameter.DimensionAfterRandomMapping)
                     throw new Exception("the size of map weight matrix is wrong!");
                 else 
@@ -128,7 +132,7 @@ namespace ManyLens.Models
             this.interval = interval;
             this.Width = width;
             this.Height = height;
-            this.MapWeightInColumnMajor = mapWeightInColumnMajor;
+            this.MapWeightInColumnMajor = mapWeight;
             this.units = new Dictionary<int, Unit>();
             this.interval.VisMap = this;
         }

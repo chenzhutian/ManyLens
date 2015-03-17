@@ -389,7 +389,7 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	cudaError_t cudaStatus;
 	dim3 threads(DIMENSION);
 	dim3 blocks(ceil((double)batch_size / (double)CHKSIZE));
-	Calculate_Euclidean_Distance_Kernel <<<blocks, threads >>>(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
+	Calculate_Euclidean_Distance_Kernel << <blocks, threads >> >(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching EuclideanDistancesBMU!\n", cudaStatus);
@@ -397,7 +397,7 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	}
 
 	cudaFuncSetCacheConfig(Min_Reduce_Kernel, cudaFuncCachePreferL1);
-	Min_Reduce_Kernel <<<batch_size, 512 >>>(d_result, d_BID, neuron_number);
+	Min_Reduce_Kernel << <batch_size, 512 >> >(d_result, d_BID, neuron_number);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching min reduce!\n", cudaStatus);
@@ -500,9 +500,9 @@ bool Update_Map(const float* d_distance,
 	cudaFuncSetCacheConfig(Update_Map_Map_Kernel, cudaFuncCachePreferL1);
 	//dim3 blocks(ceil((double)dimension/512.0),neuron_number);
 	//Update_Map_Map_Kernel<<<blocks,512>>>(d_input_set,dimension,input_index_of_this_batch,d_distance,bID,batch_size,
-	Update_Map_Map_Kernel <<<neuron_number, DIMENSION>>>(d_input_set, input_index_of_this_batch, d_distance, bID, batch_size, fsigmaT, d_weights);
+	Update_Map_Map_Kernel << <neuron_number, DIMENSION >> >(d_input_set, input_index_of_this_batch, d_distance, bID, batch_size, fsigmaT, d_weights);
 	cudaStatus = cudaDeviceSynchronize();
-	if (cudaStatus != cudaSuccess) 
+	if (cudaStatus != cudaSuccess)
 	{
 		fprintf(stderr, "Update_Map_Map_Kernel returned error code %d after launching Update_Map_Map_Kernel!\n", cudaStatus);
 		std::cout << input_index_of_this_batch << " " << batch_size << " " << fsigmaT << std::endl;
@@ -562,7 +562,7 @@ float* RandomMapping(const float* h_gaussin,
 	return d_result;
 }
 
-const int TILE_DIM  = 32;
+const int TILE_DIM = 32;
 const int BLOCK_ROWS = 8;
 __global__ void transposeNoBankConflicts(float *odata, const float *idata)
 {
@@ -584,7 +584,7 @@ __global__ void transposeNoBankConflicts(float *odata, const float *idata)
 	for (int j = 0; j < TILE_DIM; j += BLOCK_ROWS)
 		odata[(y + j)*tWidth + x] = tile[threadIdx.x][threadIdx.y + j];
 }
-float* Transpose(float* d_temp_weight, const int oldX,const int oldY)
+float* Transpose(float* d_temp_weight, const int oldX, const int oldY)
 {
 	dim3 dimGrid(oldX / TILE_DIM, oldY / TILE_DIM, 1);
 	dim3 dimBlock(TILE_DIM, BLOCK_ROWS, 1);
@@ -760,6 +760,7 @@ float* Transpose(float* d_temp_weight, const int oldX,const int oldY)
 
 float* SOMwithRandomMapping(const float* h_gaussin,
 	const float* h_inputSet,
+	const float* h_initial_weight,
 	const unsigned int input_set_size,
 	const unsigned int dimension,
 	const unsigned int height,
@@ -868,7 +869,7 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 			int dX = (h_position[2 * i] - h_position[2 * j]) * (h_position[2 * i] - h_position[2 * j]);
 			int dY = (h_position[2 * i + 1] - h_position[2 * j + 1]) * (h_position[2 * i + 1] - h_position[2 * j + 1]);
 
-			if( sgn<int>(dX) == sgn<int>(dY))
+			if (sgn<int>(dX) == sgn<int>(dY))
 			{
 				h_distance[t] = abs(dX + dY);
 			}
@@ -877,7 +878,7 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 				h_distance[t] = abs(dX) > abs(dY) ? abs(dX) : abs(dY);
 			}
 
-			h_distance[t]  = h_distance[t] * h_distance[t] ;
+			h_distance[t] = h_distance[t] * h_distance[t];
 			//h_distance[t] = dX + dY;
 			++t;
 		}
@@ -885,8 +886,19 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	cudaMemcpy(d_distance, h_distance, distance_table_length * sizeof(float), cudaMemcpyHostToDevice);
 
 	/*-----------Initialize the weights of each neuron---------------------*/
-	cudaMemcpy(d_weights, d_input_set, neuron_number* dimension_after_random_mapping  * sizeof(float), cudaMemcpyDeviceToDevice);
-	d_weights = Transpose(d_weights, dimension_after_random_mapping, neuron_number);
+	if (h_initial_weight != 0)
+	{
+
+		cudaMemcpy(d_weights, h_initial_weight, neuron_number*dimension_after_random_mapping * sizeof(float), cudaMemcpyHostToDevice);
+	}
+	else
+	{
+		cudaMemcpy(d_weights, d_input_set, neuron_number* dimension_after_random_mapping * sizeof(float), cudaMemcpyDeviceToDevice);
+		d_weights = Transpose(d_weights, dimension_after_random_mapping, neuron_number);
+	}
+	//std::ofstream fout("D:\\SOMLog\\Nuilliswhat");
+	//fout << h_initial_weight;
+	//fout.close();
 
 	//Let's begin SOM
 	for (int i = 0; i < epochNum; i++)
@@ -912,7 +924,7 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	}
 
 	/*---------------Output -----------------*/
-    float* h_output = new float[input_set_size+dimension_after_random_mapping*neuron_number];
+	float* h_output = new float[input_set_size + dimension_after_random_mapping*neuron_number];
 	for (unsigned int iCycle = 0; iCycle < ceil(input_set_size / batch_size); iCycle++)
 	{
 		int inputx = iCycle * batch_size;
@@ -923,12 +935,12 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 		cudaMemcpy(h_output + inputx, d_BID, batch_size*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 	}
 	cudaMemcpy(h_output + input_set_size, d_weights, dimension_after_random_mapping*neuron_number*sizeof(float), cudaMemcpyDeviceToHost);
-	
+
 	/*--------------- check the result of final weights update -----------------*/
 	std::ofstream fweightout("D:\\SOMLog\\weights_in_columnmajor");
 	for (int i = 0; i < neuron_number; ++i)
 	{
-		for (int j = 0; j< dimension_after_random_mapping; j++)
+		for (int j = 0; j < dimension_after_random_mapping; j++)
 		{
 			fweightout << h_output[input_set_size + i + j * neuron_number] << " ";
 		}

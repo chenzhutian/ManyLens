@@ -23,6 +23,7 @@ namespace ManyLens.SOM
         [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern IntPtr SOMwithRandomMapping(float[] h_gaussin,
                                                          float[] h_inputSet,
+                                                         float[] h_initial_weight,
                                                          int input_set_size,
                                                          int dimension,
                                                          int height,
@@ -35,7 +36,7 @@ namespace ManyLens.SOM
         [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern void somFree(IntPtr pointer);
 
-        public static VisMap TweetSOM(Interval interval, string rootPath)
+        public static VisMap TweetSOM(Interval interval, VisMap lastMap = null)
         {
             InitializeCUDA();
             //generate the random matrix for random mapping
@@ -55,17 +56,39 @@ namespace ManyLens.SOM
             float iterD = 1f;
 
             Debug.WriteLine("Let's have SOM");
+            IntPtr pointer = IntPtr.Zero;
             //use som train here
-            IntPtr pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
-                    trainset,
-                    trainsetSize,
-                    config.Parameter.HashDimension,
-                    height,
-                    width,
-                    batch_size,
-                    iteration,
-                    lambda,
-                    iterD);
+            if (lastMap == null)
+            {
+                pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
+                                                trainset,
+                                                null,
+                                                trainsetSize,
+                                                config.Parameter.HashDimension,
+                                                height,
+                                                width,
+                                                batch_size,
+                                                iteration,
+                                                lambda,
+                                                iterD);
+            }
+            else
+            {
+                pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
+                                                trainset,
+                                                lastMap.MapWeightInColumnMajor,
+                                                trainsetSize,
+                                                config.Parameter.HashDimension,
+                                                height,
+                                                width,
+                                                batch_size,
+                                                iteration,
+                                                lambda,
+                                                iterD);
+            
+            }
+
+
             Debug.WriteLine("SOM Finish");
 
             int[] h_BID = new int[trainsetSize];
@@ -76,6 +99,7 @@ namespace ManyLens.SOM
             Marshal.Copy(newPointer, h_weight, 0, width * height * config.Parameter.DimensionAfterRandomMapping);
             Marshal.FreeHGlobal(pointer);
 
+            //*********************Check the marshal result ****************//
             StreamReader sr = new StreamReader("D:\\SOMLog\\bid");
             int k  = 0;
             while (!sr.EndOfStream)
@@ -99,6 +123,8 @@ namespace ManyLens.SOM
                 }
                 ++k;
             }
+            //*********************Check the marshal result end**************//
+
 
             //construct the som map for visualization
             VisMap visMap = new VisMap(interval.ID + "_0", width, height, h_weight, interval);
@@ -134,7 +160,7 @@ namespace ManyLens.SOM
 
             StreamReader sr = new StreamReader(rootPath + "Backend\\DataBase\\somOutput_"+interval.ID+".json");
             //construct the som map for visualization
-            VisMap visMap = new VisMap(interval.ID + "_0", width, height, new float[100] ,interval);
+            VisMap visMap = new VisMap(interval.ID + "_0", width, height, new float[1] ,interval);
             int i = 0;
             while (!sr.EndOfStream)
             {

@@ -15,11 +15,12 @@ namespace ManyLens.SignalR
 {
     public class ManyLensHub : Hub
     {
-        private static bool TestMode = false;
+        private static bool TestMode = true;
         
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
+        private static SortedDictionary<DateTime, VisMap> visMapsSortedByTime = new SortedDictionary<DateTime, VisMap>();
         private static Dictionary<string, Lens> lensDatas = new Dictionary<string, Lens>();
 
         public static List<TweetsIO.CityStruct> cities1000;
@@ -475,23 +476,28 @@ namespace ManyLens.SignalR
                     visMap = visMaps[mapID];
                 else
                 {
-
                     Interval interal = interals[interalID];
-
                     interal.PreproccessingParallel(progress);
-
+                    
                     //Test
                     if (TestMode)
                     {
+
                         visMap = GPUSOM.TestTweetSOM(interal, config.Parameter.RootFolder);// TweetSOM(interal, rootFolder);
                     }
                     else
                     {
-                        visMap = GPUSOM.TweetSOM(interal, config.Parameter.RootFolder);
+                        VisMap lastMap = null;
+                        if (visMapsSortedByTime.Count > 0)
+                        {
+                            lastMap = visMapsSortedByTime.Last().Value;
+                        }
+                        visMap = GPUSOM.TweetSOM(interal,lastMap);
                     }
 
                     Debug.WriteLine(interal.Entropy);
                     visMaps.Add(visMap.VisMapID, visMap);
+                    visMapsSortedByTime.Add(visMap.MapDate, visMap);
                 }
 
                 //try
