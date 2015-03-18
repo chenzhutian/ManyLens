@@ -1075,7 +1075,7 @@ var ManyLens;
             });
             BaseD3Lens.prototype.Render = function (color) {
                 this._lens_type_color = color;
-                this._sc_lc_svg = this._element.append("g").attr("class", "lens").attr("id", this.ID);
+                this._sc_lc_svg = this._element.append("g").data([{ tx: 0, ty: 0, scale: 1 }]).attr("class", "lens").attr("id", this.ID);
                 //Add this lens to the app class
                 this._manyLens.AddLens(this);
             };
@@ -1124,8 +1124,8 @@ var ManyLens;
                 var _this = this;
                 var transform = this._lens_circle_svg.attr("transform");
                 this._lens_circle_svg.attr("transform", function (d) {
-                    _this._lens_circle_cx = d.x = Math.max(_this._lens_circle_radius, Math.min(parseFloat(_this._element.style("width")) - _this._lens_circle_radius, d3.event.x));
-                    _this._lens_circle_cy = d.y = Math.max(_this._lens_circle_radius, Math.min(parseFloat(_this._element.style("height")) - _this._lens_circle_radius, d3.event.y));
+                    _this._lens_circle_cx = d.x = d3.event.x; //Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("width")) - this._lens_circle_radius, d3.event.x));
+                    _this._lens_circle_cy = d.y = d3.event.y; //Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("height")) - this._lens_circle_radius, d3.event.y));
                     transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
                     return transform;
                 });
@@ -1388,7 +1388,6 @@ var ManyLens;
                 }
             };
             BaseSingleLens.prototype.SelectCircleDragFunc = function () {
-                var _this = this;
                 if (!this._has_put_down)
                     return;
                 if (d3.event.sourceEvent.button != 0)
@@ -1396,9 +1395,9 @@ var ManyLens;
                 this._sc_lc_svg.select("g.lens-circle-g").remove();
                 this._sc_lc_svg.select("line").attr("x1", d3.event.x).attr("x2", d3.event.x).attr("y1", d3.event.y).attr("y2", d3.event.y);
                 this._select_circle.attr("cx", function (d) {
-                    return d.x = Math.max(0, Math.min(parseFloat(_this._element.style("width")), d3.event.x));
+                    return d.x = d3.event.x; //Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
                 }).attr("cy", function (d) {
-                    return d.y = Math.max(0, Math.min(parseFloat(_this._element.style("height")), d3.event.y));
+                    return d.y = d3.event.y; //Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
                 });
                 this._has_showed_lens = false;
                 var hostLens = this.DetachHostLens();
@@ -1482,20 +1481,31 @@ var ManyLens;
                 }
             };
             BaseSingleLens.prototype.GetElementByMouse = function () {
+                //this._element.select( "#rectForTest" ).remove();
                 var unitsID = [];
                 var mapID;
                 var rect = this._element.node().createSVGRect();
-                rect.x = this._select_circle_cx - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
-                rect.y = this._select_circle_cy - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
-                rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale;
+                var t = this._sc_lc_svg.data()[0];
+                var realX = this._select_circle_cx * t.scale + t.tx;
+                var realY = this._select_circle_cy * t.scale + t.ty;
+                rect.x = realX - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
+                rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
+                rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
+                //this._element.append( "rect" ).attr( {
+                //    id:"rectForTest",
+                //    x: rect.x,
+                //    y: rect.y,
+                //    width: rect.width,
+                //    height:rect.height
+                //});
                 var ele = this._element.node().getIntersectionList(rect, null);
                 var minDist2 = Number.MAX_VALUE;
                 var minUnitsID = -1;
                 for (var i = 0, len = ele.length; i < len; ++i) {
                     var node = d3.select(ele.item(i));
                     if (node.classed("unit")) {
-                        var dx = parseFloat(node.attr("x")) + parseFloat(node.attr("width")) * 0.5 - this._select_circle_cx;
-                        var dy = parseFloat(node.attr("y")) + parseFloat(node.attr("height")) * 0.5 - this._select_circle_cy;
+                        var dx = parseFloat(node.attr("x")) + parseFloat(node.attr("width")) * 0.5 - realX;
+                        var dy = parseFloat(node.attr("y")) + parseFloat(node.attr("height")) * 0.5 - realY;
                         var dist2 = dx * dx + dy * dy;
                         if (dist2 < (this._select_circle_radius * this._select_circle_scale * this._select_circle_radius * this._select_circle_scale)) {
                             var tID = node.data()[0]['unitID'];
@@ -1517,6 +1527,8 @@ var ManyLens;
                     res = { unitsID: [minUnitsID], mapID: mapID };
                 }
                 else {
+                    console.log(unitsID);
+                    console.log(mapID);
                     console.log("there is a bug here " + unitsID);
                 }
                 return res;
@@ -4896,11 +4908,14 @@ var ManyLens;
                 //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
                 this._maps = [];
                 this._heatMaps = [];
-                this._scale_level = 1;
+                this._scale = 1;
+                this._left_offset = 0;
+                this._top_offset = null;
+                this._translate_x = 0;
+                this._translate_y = 0;
+                this._map_gap = 10;
                 this._unit_width = 20;
                 this._unit_height = 20;
-                this._left_offset = 10;
-                this._map_gap = 10;
                 this._colorPalettes = ["rgb(198,219,239)", "rgb(158,202,225)", "rgb(107, 174, 214)", "rgb(66, 146, 198)", "rgb(33, 113, 181)", "rgb(8, 81, 156)", "rgb(8, 81, 156)"];
                 // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
                 this._element.attr("height", function () {
@@ -4911,27 +4926,35 @@ var ManyLens;
                 this._heatmap_container.id = "heatmap-container";
                 this._heatmap_container.style.left = this._element.node().offsetLeft.toString() + "px";
                 this._heatmap_container.style.top = this._element.node().offsetTop.toString() + "px";
-                //this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString()+"px";
-                //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString()+"px";
+                this._heatmap_container.style.height = this._element.node().offsetHeight.toString() + "px";
+                this._heatmap_container.style.width = this._element.node().offsetWidth.toString() + "px";
                 document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
                 this._center_x = 0.5 * parseFloat(this._element.style("width"));
                 this._center_y = 0.5 * parseFloat(this._element.style("height"));
-                var drag = d3.behavior.zoom().scale(this._scale_level).scaleExtent([0.5, 1.5]).on("zoomstart", function () {
+                this._zoom = d3.behavior.zoom().scaleExtent([0.5, 1.5]).on("zoomstart", function () {
                     var p = d3.mouse(_this._element.node());
-                    drag.center([p[0], _this._center_y]);
+                    _this._zoom.center([p[0], _this._center_y]);
                 }).on("zoom", function () {
+                    clearInterval(_this._move_view_timer);
                     var currentLevel = d3.event.scale;
                     _this._heatMaps.forEach(function (d, i) {
-                        if (_this._scale_level != currentLevel) {
+                        if (_this._scale != currentLevel) {
                             d.transform(currentLevel, 0, 0);
                         }
                         d.transformPan(d3.event.translate[0], d3.event.translate[1], currentLevel);
                     });
                     _this._element.selectAll(".units").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-                    _this._element.selectAll(".lens").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-                    _this._scale_level = currentLevel;
+                    _this._element.selectAll(".lens").attr("transform", function (d) {
+                        d.tx = d3.event.translate[0];
+                        d.ty = d3.event.translate[1];
+                        d.scale = d3.event.scale;
+                        return "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")";
+                    });
+                    _this._translate_x = d3.event.translate[0];
+                    _this._translate_y = d3.event.translate[1];
+                    _this._scale = currentLevel;
                 });
-                this._element.call(drag);
+                this._element.call(this._zoom);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
             SOMMap.prototype.Render = function () {
@@ -4940,36 +4963,47 @@ var ManyLens;
             SOMMap.prototype.ShowVis = function (visData) {
                 var _this = this;
                 this._maps.push(visData);
-                var top_offset = (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
-                this._heatMaps.push(new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.width, visData.height, this._unit_width, this._unit_height, top_offset, this._left_offset, visData.unitsData));
+                if (this._top_offset == null) {
+                    this._top_offset = (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
+                }
+                var newHeatMap = new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.width, visData.height, this._unit_width, this._unit_height, this._top_offset, this._left_offset, visData.unitsData);
+                newHeatMap.transform(this._scale, 0, 0);
+                newHeatMap.transformPan(this._translate_x, this._translate_y, this._scale);
+                this._heatMaps.push(newHeatMap);
                 var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height }]).attr("id", function (d) {
                     return "mapSvg" + d.mapID;
-                }).attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d) {
+                }).attr("class", "units").attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d) {
                     return _this._left_offset + d.x * _this._unit_width;
                 }).attr("y", function (d) {
-                    return top_offset + d.y * _this._unit_height;
+                    return _this._top_offset + d.y * _this._unit_height;
                 }).attr({
                     width: this._unit_width,
                     height: this._unit_height
                 }).style({
                     opacity: 0.5
                 });
-                this._left_offset += this._map_gap + this._unit_width * visData.width;
-                //if ( this._left_offset > this._total_width ) {
-                //    var scale = this._total_width /this._left_offset;
-                //    this._left_offset *= scale;
-                //    this.ScaleMaps(scale);
-                //}
-            };
-            SOMMap.prototype.ScaleMaps = function (scale) {
-                this._element.selectAll("rect").attr("x", function (d) {
-                    return scale * parseFloat(d3.select(this).attr("x"));
-                }).attr("y", function (d) {
-                    return scale * parseFloat(d3.select(this).attr("y"));
-                });
-                this._heatMaps.forEach(function (d) {
-                    d.ScaleCanvas(scale);
-                });
+                this._left_offset += this._unit_width * visData.width + this._map_gap;
+                var leftMost = this._left_offset * this._scale + this._translate_x;
+                if (leftMost > this._total_width) {
+                    var t = d3.interpolate(0, leftMost - this._total_width - this._map_gap);
+                    var i = 0;
+                    var sTx = this._translate_x;
+                    clearInterval(this._move_view_timer);
+                    this._move_view_timer = setInterval(function () {
+                        _this._translate_x = sTx - t(i / 100);
+                        _this._heatMaps.forEach(function (d) {
+                            d.transformPan(_this._translate_x, _this._translate_y, _this._scale);
+                        });
+                        _this._element.selectAll(".units").attr("transform", "translate(" + [_this._translate_x, _this._translate_y] + ")scale(" + _this._scale + ")");
+                        _this._zoom.scale(_this._scale).translate([_this._translate_x, _this._translate_y]);
+                        _this._element.call(_this._zoom);
+                        ++i;
+                        if (i >= 100) {
+                            clearInterval(_this._move_view_timer);
+                            _this._move_view_timer = -1;
+                        }
+                    }, 10);
+                }
             };
             return SOMMap;
         })(ManyLens.D3ChartObject);

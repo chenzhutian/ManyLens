@@ -96,7 +96,8 @@ svg#mapSvg {
 }
 div#heatmap-container {
       pointer-events:none;
-      position:absolute;             
+      position:absolute;           
+      overflow:hidden;  
 }
     div#heatmap-container > canvas {
         position:absolute;

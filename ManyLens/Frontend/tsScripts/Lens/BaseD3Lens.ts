@@ -151,7 +151,8 @@ module ManyLens {
             public Render(color: string): void {
                 this._lens_type_color = color;
                 this._sc_lc_svg = this._element
-                    .append("g")
+                    .append( "g" )
+                    .data( [{tx:0,ty:0,scale:1}])
                     .attr("class", "lens")
                     .attr("id", this.ID)
                 ;
@@ -239,10 +240,11 @@ module ManyLens {
             }
 
             protected LensCircleDragFunc(): void {
-                var transform = this._lens_circle_svg.attr("transform");
-                this._lens_circle_svg.attr("transform", (d) => {
-                    this._lens_circle_cx = d.x = Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("width")) - this._lens_circle_radius, d3.event.x));
-                    this._lens_circle_cy = d.y = Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("height")) - this._lens_circle_radius, d3.event.y));
+                var transform = this._lens_circle_svg.attr( "transform" );
+                this._lens_circle_svg.attr( "transform",( d ) => {
+
+                    this._lens_circle_cx = d.x = d3.event.x;//Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("width")) - this._lens_circle_radius, d3.event.x));
+                    this._lens_circle_cy = d.y = d3.event.y;//Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("height")) - this._lens_circle_radius, d3.event.y));
                     transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
                     return transform;
                 });

@@ -74,7 +74,7 @@ module ManyLens {
                         //console.log("sc_drag " + this._type);
                         d3.event.sourceEvent.stopPropagation();
                     })
-                    .on("dragend", (d) => {
+                    .on( "dragend",( d ) => {
                         this.SelectCircleDragendFunc(d);
                         //console.log("sc_dragend " + this._type);
                         d3.event.sourceEvent.stopPropagation();
@@ -224,10 +224,10 @@ module ManyLens {
 
                 this._select_circle
                     .attr("cx", (d) => {
-                        return d.x = Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
+                        return d.x = d3.event.x;//Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
                     })
                     .attr("cy", (d) => {
-                        return d.y = Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
+                        return d.y = d3.event.y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
                     })
                 ;
                 this._has_showed_lens = false;
@@ -362,22 +362,35 @@ module ManyLens {
             }
 
             protected GetElementByMouse(): { unitsID: number[]; mapID: string } {
+                //this._element.select( "#rectForTest" ).remove();
                 var unitsID = [];
                 var mapID;
-                var rect: SVGRect = (<SVGSVGElement>this._element.node()).createSVGRect();
+                var rect: SVGRect = ( <SVGSVGElement>this._element.node() ).createSVGRect();
+                
+                var t = this._sc_lc_svg.data()[0];
+                var realX =  this._select_circle_cx * t.scale + t.tx;
+                var realY =  this._select_circle_cy * t.scale + t.ty;
+               
+                rect.x = realX - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
+                rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
+                rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
 
-                rect.x = this._select_circle_cx - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
-                rect.y = this._select_circle_cy - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale;
-                rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale;
+                //this._element.append( "rect" ).attr( {
+                //    id:"rectForTest",
+                //    x: rect.x,
+                //    y: rect.y,
+                //    width: rect.width,
+                //    height:rect.height
+                //});
 
-                var ele = (<SVGSVGElement>this._element.node()).getIntersectionList(rect, null);
+                var ele = ( <SVGSVGElement>this._element.node() ).getIntersectionList( rect, null );
                 var minDist2 = Number.MAX_VALUE;
                 var minUnitsID = -1;
                 for (var i = 0, len = ele.length; i < len; ++i) {
                     var node = d3.select(ele.item(i));
                     if (node.classed("unit")) {
-                        var dx = parseFloat(node.attr("x")) + parseFloat(node.attr("width")) * 0.5 - this._select_circle_cx;
-                        var dy = parseFloat(node.attr("y")) + parseFloat(node.attr("height")) * 0.5 - this._select_circle_cy;
+                        var dx = parseFloat(node.attr("x")) + parseFloat(node.attr("width")) * 0.5 - realX;
+                        var dy = parseFloat(node.attr("y")) + parseFloat(node.attr("height")) * 0.5 - realY;
                         var dist2 = dx * dx + dy * dy;
                         if (dist2 < (this._select_circle_radius * this._select_circle_scale * this._select_circle_radius * this._select_circle_scale)) {
                             var tID = node.data()[0]['unitID'];
@@ -398,6 +411,8 @@ module ManyLens {
                 } else if (unitsID.length == 0 && mapID) {
                     res = { unitsID: [minUnitsID], mapID: mapID };
                 } else {
+                    console.log( unitsID );
+                    console.log( mapID );
                     console.log("there is a bug here "+ unitsID);
                 }
 
