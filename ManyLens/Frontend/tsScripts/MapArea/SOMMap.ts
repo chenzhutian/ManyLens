@@ -64,29 +64,33 @@ module ManyLens {
                 //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString()+"px";
                 document.getElementById( "mapView" ).insertBefore( this._heatmap_container,this._element.node() );
 
-                this._center_x = parseFloat( this._element.style( "width" ) );
-                this._center_y = parseFloat( this._element.style( "height" ) );
+                this._center_x = 0.5 * parseFloat( this._element.style( "width" ) );
+                this._center_y = 0.5 * parseFloat( this._element.style( "height" ) );
                 var drag: D3.Behavior.Zoom = d3.behavior.zoom()
                     //.translate( [this._center_x, this._center_y] )
-                    //.center([this._center_x,this._center_y])
+                    
                     .scale( this._scale_level )
-                    .scaleExtent( [0.1, 2] )
-                    .on( "zoom",() => {
+                    .scaleExtent( [0.5, 1.5] )
+                    .on( "zoomstart",() => {
                         var p = d3.mouse( this._element.node() );
-                        this._center_x = p[0];
-                        this._center_y = p[1];
+                        drag.center( [p[0], this._center_y] );
+                    })
+                    .on( "zoom",() => {
+
                         var currentLevel = d3.event.scale;
-                        this._heatMaps.forEach(( d ) => {
+                        this._heatMaps.forEach(( d,i ) => {
 
-                            if ( this._scale_level != currentLevel ) {
-
+                            if ( this._scale_level != currentLevel) {
                                 d.transform( currentLevel, 0, 0 );
-
                             }
-                            //else {
-                                d.transformPan( d3.event.translate[0], d3.event.translate[1] );
-                            //}
+
+                            d.transformPan( d3.event.translate[0], d3.event.translate[1],currentLevel );
+             
                         });
+                        this._element.selectAll( ".units" )
+                            .attr( "transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")" );
+                        this._element.selectAll(".lens")
+                            .attr( "transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")" );
                         this._scale_level = currentLevel;
                         
                     })
@@ -120,9 +124,6 @@ module ManyLens {
                     .append("g")
                     .data([{ mapID: visData.mapID, width: visData.width, height: visData.height}])
                     .attr("id", function (d) { return "mapSvg" + d.mapID; })
-                ;
-
-                svg.append("g")
                     .attr("class", "units")
                     .selectAll("rect")
                     .data(visData.unitsData)
@@ -135,7 +136,7 @@ module ManyLens {
                         height: this._unit_height
                     })
                     .style( {
-                        opacity:1e-6
+                        opacity:0.5
                     })
                 ;
 

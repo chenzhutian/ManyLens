@@ -121,8 +121,9 @@ module ManyLens {
 
                 this._lens_circle_zoom
                     .scaleExtent([1, 2])
-                    .on("zoom", () => {
+                    .on( "zoom",() => {
                         this.LensCircleZoomFunc();
+                        d3.event.sourceEvent.stopPropagation();
                     })
                 ;
 
@@ -131,14 +132,17 @@ module ManyLens {
                     .on("dragstart", () => {
                         
                         this.LensCircleDragstartFunc();
+                        d3.event.sourceEvent.stopPropagation();
                         //console.log("lc_dragstart " + this._type);
                     })
                     .on("drag", () => {
                         this.LensCircleDragFunc();
+                        d3.event.sourceEvent.stopPropagation();
                         //console.log("lc_drag " + this._type);
                     })
                     .on("dragend", () => {
                         this.LensCircleDragendFunc();
+                        d3.event.sourceEvent.stopPropagation();
                         //console.log("lc_dragend " + this._type);
                     })
                 ;

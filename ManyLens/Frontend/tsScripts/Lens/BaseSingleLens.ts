@@ -53,6 +53,7 @@ module ManyLens {
                     .on("zoom", () => {
                         this.SelectCircleZoomFunc();
                         //console.log("sc_zoom " + this._type);
+                        d3.event.sourceEvent.stopPropagation();
                     })
                 ;
 
@@ -62,6 +63,7 @@ module ManyLens {
                         //this._sc_drag_event_flag = false;
 
                         //console.log("sc_dragstart " + this._type);
+                        d3.event.sourceEvent.stopPropagation();
                     })
                     .on("drag", () => {
                         //if (this._sc_drag_event_flag) {
@@ -70,10 +72,12 @@ module ManyLens {
                         //    this._sc_drag_event_flag = true;
                         //}
                         //console.log("sc_drag " + this._type);
+                        d3.event.sourceEvent.stopPropagation();
                     })
                     .on("dragend", (d) => {
                         this.SelectCircleDragendFunc(d);
                         //console.log("sc_dragend " + this._type);
+                        d3.event.sourceEvent.stopPropagation();
                     })
                 ;
 

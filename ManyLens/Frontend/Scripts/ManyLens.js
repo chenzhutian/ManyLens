@@ -932,17 +932,21 @@ var ManyLens;
                 this._id = "lens_" + this._manyLens.LensIDGenerator;
                 this._lens_circle_zoom.scaleExtent([1, 2]).on("zoom", function () {
                     _this.LensCircleZoomFunc();
+                    d3.event.sourceEvent.stopPropagation();
                 });
                 this._lens_circle_drag.origin(function (d) {
                     return d;
                 }).on("dragstart", function () {
                     _this.LensCircleDragstartFunc();
+                    d3.event.sourceEvent.stopPropagation();
                     //console.log("lc_dragstart " + this._type);
                 }).on("drag", function () {
                     _this.LensCircleDragFunc();
+                    d3.event.sourceEvent.stopPropagation();
                     //console.log("lc_drag " + this._type);
                 }).on("dragend", function () {
                     _this.LensCircleDragendFunc();
+                    d3.event.sourceEvent.stopPropagation();
                     //console.log("lc_dragend " + this._type);
                 });
             }
@@ -1238,12 +1242,14 @@ var ManyLens;
                 this._select_circle_zoom.scaleExtent([1, 4]).on("zoom", function () {
                     _this.SelectCircleZoomFunc();
                     //console.log("sc_zoom " + this._type);
+                    d3.event.sourceEvent.stopPropagation();
                 });
                 this._select_circle_drag.origin(function (d) {
                     return d;
                 }).on("dragstart", function () {
                     //this._sc_drag_event_flag = false;
                     //console.log("sc_dragstart " + this._type);
+                    d3.event.sourceEvent.stopPropagation();
                 }).on("drag", function () {
                     //if (this._sc_drag_event_flag) {
                     _this.SelectCircleDragFunc();
@@ -1251,9 +1257,11 @@ var ManyLens;
                     //    this._sc_drag_event_flag = true;
                     //}
                     //console.log("sc_drag " + this._type);
+                    d3.event.sourceEvent.stopPropagation();
                 }).on("dragend", function (d) {
                     _this.SelectCircleDragendFunc(d);
                     //console.log("sc_dragend " + this._type);
+                    d3.event.sourceEvent.stopPropagation();
                 });
             }
             Object.defineProperty(BaseSingleLens.prototype, "AttributeName", {
@@ -4864,9 +4872,9 @@ var ManyLens;
                 //this._LoD.returnToInitial();
             };
             //平移操作
-            HeatMapLayer.prototype.transformPan = function (xDif, yDif) {
-                this._canvas.style.top = this._canvas_top_offset + yDif + 'px';
-                this._canvas.style.left = this._canvas_left_offset + xDif + 'px';
+            HeatMapLayer.prototype.transformPan = function (xDif, yDif, times) {
+                this._canvas.style.top = this._canvas_top_offset * times + yDif + 'px';
+                this._canvas.style.left = this._canvas_left_offset * times + xDif + 'px';
                 this._LoD.display(0, 0, 1.0, this._contourForIntensity);
             };
             return HeatMapLayer;
@@ -4906,21 +4914,21 @@ var ManyLens;
                 //this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString()+"px";
                 //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString()+"px";
                 document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
-                this._center_x = parseFloat(this._element.style("width"));
-                this._center_y = parseFloat(this._element.style("height"));
-                var drag = d3.behavior.zoom().center([this._center_x, this._center_y]).scale(this._scale_level).scaleExtent([0.1, 2]).on("zoom", function () {
+                this._center_x = 0.5 * parseFloat(this._element.style("width"));
+                this._center_y = 0.5 * parseFloat(this._element.style("height"));
+                var drag = d3.behavior.zoom().scale(this._scale_level).scaleExtent([0.5, 1.5]).on("zoomstart", function () {
                     var p = d3.mouse(_this._element.node());
-                    _this._center_x = p[0];
-                    _this._center_y = p[1];
+                    drag.center([p[0], _this._center_y]);
+                }).on("zoom", function () {
                     var currentLevel = d3.event.scale;
-                    _this._heatMaps.forEach(function (d) {
+                    _this._heatMaps.forEach(function (d, i) {
                         if (_this._scale_level != currentLevel) {
                             d.transform(currentLevel, 0, 0);
                         }
-                        //else {
-                        d.transformPan(d3.event.translate[0], d3.event.translate[1]);
-                        //}
+                        d.transformPan(d3.event.translate[0], d3.event.translate[1], currentLevel);
                     });
+                    _this._element.selectAll(".units").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                    _this._element.selectAll(".lens").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
                     _this._scale_level = currentLevel;
                 });
                 this._element.call(drag);
@@ -4936,8 +4944,7 @@ var ManyLens;
                 this._heatMaps.push(new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.width, visData.height, this._unit_width, this._unit_height, top_offset, this._left_offset, visData.unitsData));
                 var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height }]).attr("id", function (d) {
                     return "mapSvg" + d.mapID;
-                });
-                svg.append("g").attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d) {
+                }).attr("class", "units").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d) {
                     return _this._left_offset + d.x * _this._unit_width;
                 }).attr("y", function (d) {
                     return top_offset + d.y * _this._unit_height;
@@ -4945,7 +4952,7 @@ var ManyLens;
                     width: this._unit_width,
                     height: this._unit_height
                 }).style({
-                    opacity: 1e-6
+                    opacity: 0.5
                 });
                 this._left_offset += this._map_gap + this._unit_width * visData.width;
                 //if ( this._left_offset > this._total_width ) {

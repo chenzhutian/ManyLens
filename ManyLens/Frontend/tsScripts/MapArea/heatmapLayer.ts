@@ -236,6 +236,7 @@ module ManyLens {
                 //var heightScale = ( this._canvas_height / l ) * times;
                 this._canvas.width = this._canvas_width * times;
                 this._canvas.height = this._canvas_height * times;
+
                 this._LoD.changTimes( 0, 0, times );
                 this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
 
@@ -243,9 +244,9 @@ module ManyLens {
             }
 
             //平移操作
-            public transformPan( xDif: number, yDif: number ): void {
-                this._canvas.style.top = this._canvas_top_offset + yDif + 'px';
-                this._canvas.style.left = this._canvas_left_offset + xDif + 'px';
+            public transformPan( xDif: number, yDif: number,times:number ): void {
+                this._canvas.style.top = this._canvas_top_offset * times + yDif  + 'px';
+                this._canvas.style.left = this._canvas_left_offset * times + xDif + 'px';
                 this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
             }
         }
