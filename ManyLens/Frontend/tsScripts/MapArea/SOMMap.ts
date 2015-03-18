@@ -27,6 +27,9 @@ module ManyLens {
             //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
             private _maps: Array<MapData> = [];
             private _heatMaps: Array<HeatMapLayer> = [];
+            private _center_x: number;
+            private _center_y: number;
+            private _scale_level: number = 1;
 
             private _heatmap_container: HTMLElement;
             private _unit_width: number = 20;
@@ -61,6 +64,35 @@ module ManyLens {
                 //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString()+"px";
                 document.getElementById( "mapView" ).insertBefore( this._heatmap_container,this._element.node() );
 
+                this._center_x = parseFloat( this._element.style( "width" ) );
+                this._center_y = parseFloat( this._element.style( "height" ) );
+                var drag: D3.Behavior.Zoom = d3.behavior.zoom()
+                    //.translate( [this._center_x, this._center_y] )
+                    //.center([this._center_x,this._center_y])
+                    .scale( this._scale_level )
+                    .scaleExtent( [0.1, 2] )
+                    .on( "zoom",() => {
+                        var p = d3.mouse( this._element.node() );
+                        this._center_x = p[0];
+                        this._center_y = p[1];
+                        var currentLevel = d3.event.scale;
+                        this._heatMaps.forEach(( d ) => {
+
+                            if ( this._scale_level != currentLevel ) {
+
+                                d.transform( currentLevel, 0, 0 );
+
+                            }
+                            //else {
+                                d.transformPan( d3.event.translate[0], d3.event.translate[1] );
+                            //}
+                        });
+                        this._scale_level = currentLevel;
+                        
+                    })
+                ;
+                this._element
+                    .call( drag );
 
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
@@ -109,11 +141,11 @@ module ManyLens {
 
                 this._left_offset += this._map_gap + this._unit_width * visData.width;
 
-                if ( this._left_offset > this._total_width ) {
-                    var scale = this._total_width /this._left_offset;
-                    this._left_offset *= scale;
-                    this.ScaleMaps(scale);
-                }
+                //if ( this._left_offset > this._total_width ) {
+                //    var scale = this._total_width /this._left_offset;
+                //    this._left_offset *= scale;
+                //    this.ScaleMaps(scale);
+                //}
                 
             }
 
@@ -130,6 +162,8 @@ module ManyLens {
                     d.ScaleCanvas( scale );
                 });
             }
+
+
         }
     }
 

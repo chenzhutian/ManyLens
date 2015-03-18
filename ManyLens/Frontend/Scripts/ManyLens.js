@@ -4650,7 +4650,11 @@ void main(){\n\
                 return this._heights.clear();
             };
             WebGLHeatmap.prototype.changTimes = function (x, y, times) {
-                this._gl.viewport(-x * (times - 1), -(this._height - y) * (times - 1), this._width * times, this._height * times);
+                //this._width *= times;
+                //this._height *= times;
+                //this._gl.viewport( 0, 0, this._width, this._height );
+                this._gl.viewport(x, y, this._width * times, this._height * times);
+                //this._gl.viewport( -x * ( times - 1 ), -( this._height - y ) * ( times - 1 ), this._width * times, this._height * times );
             };
             WebGLHeatmap.prototype.returnToInitial = function () {
                 this._gl.viewport(0, 0, this._width, this._height);
@@ -4741,9 +4745,9 @@ var ManyLens;
                 //初始化像素矩阵
                 var width = Math.ceil(this._canvas_width);
                 var height = Math.ceil(this._canvas_height);
-                this._pixelMatrix = new Array(width);
+                this._pixelMatrix = new Array(height);
                 for (var i = 0; i < height; ++i) {
-                    this._pixelMatrix[i] = new Array(height);
+                    this._pixelMatrix[i] = new Array(width);
                 }
                 ;
                 this._nodeArray = this._nodeArray.map(function (d) {
@@ -4780,8 +4784,8 @@ var ManyLens;
                         this._pixelMatrix[i][j] = 0;
                 }
                 for (var i = 0, len = nodes.length; i < len; ++i) {
-                    var x = nodes[i].x; //* this._unit_size;
-                    var y = height - 1 - nodes[i].y; //* this._unit_size;
+                    var x = Math.floor(nodes[i].x); //* this._unit_size;
+                    var y = Math.floor(height - 1 - nodes[i].y); //* this._unit_size;
                     if (this._pixelMatrix[y][x] != null)
                         this._pixelMatrix[y][x] = nodes[i].value;
                     else
@@ -4833,6 +4837,38 @@ var ManyLens;
                     this._contourForIntensity[idx] = maxVal * rate[idx];
                 }
             };
+            //zoom in zoom out 操作
+            HeatMapLayer.prototype.transform = function (times, centerX, centerY) {
+                //if ( type == 1 ) {//zoom in 放大
+                //    //this._LoD.display( x / this._canvas.width * 2 - 1,( this._canvas.height - y ) / this._canvas.height * 2 - 1, 1 / ( 1 + times ), this._contourForIntensity );
+                //    var scale = ( 1 + times );
+                //    this._canvas.style.width = this._canvas_width * scale + "px";
+                //    this._canvas.style.height = this._canvas_height * scale + "px";
+                //    this._LoD.changTimes( x, y, scale );
+                //    this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
+                //}
+                //else if ( type == 0 ) {//zoom out 缩小
+                //    var scale = 1 / ( 1 + times );
+                //    this._canvas.style.width = this._canvas_width * scale + "px";
+                //    this._canvas.style.height = this._canvas_height * scale + "px";
+                //    this._LoD.changTimes( x, y, scale );
+                //    this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
+                //}
+                //var l = Math.sqrt( this._canvas_height * this._canvas_height + this._canvas_width * this._canvas_width );
+                //var widthScale = ( this._canvas_width / l ) * times;
+                //var heightScale = ( this._canvas_height / l ) * times;
+                this._canvas.width = this._canvas_width * times;
+                this._canvas.height = this._canvas_height * times;
+                this._LoD.changTimes(0, 0, times);
+                this._LoD.display(0, 0, 1.0, this._contourForIntensity);
+                //this._LoD.returnToInitial();
+            };
+            //平移操作
+            HeatMapLayer.prototype.transformPan = function (xDif, yDif) {
+                this._canvas.style.top = this._canvas_top_offset + yDif + 'px';
+                this._canvas.style.left = this._canvas_left_offset + xDif + 'px';
+                this._LoD.display(0, 0, 1.0, this._contourForIntensity);
+            };
             return HeatMapLayer;
         })();
         MapArea.HeatMapLayer = HeatMapLayer;
@@ -4846,11 +4882,13 @@ var ManyLens;
         var SOMMap = (function (_super) {
             __extends(SOMMap, _super);
             function SOMMap(element, manyLens) {
+                var _this = this;
                 _super.call(this, element, manyLens);
                 // private _lensPane: Pane.ClassicLensPane;
                 //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
                 this._maps = [];
                 this._heatMaps = [];
+                this._scale_level = 1;
                 this._unit_width = 20;
                 this._unit_height = 20;
                 this._left_offset = 10;
@@ -4868,6 +4906,24 @@ var ManyLens;
                 //this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString()+"px";
                 //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString()+"px";
                 document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
+                this._center_x = parseFloat(this._element.style("width"));
+                this._center_y = parseFloat(this._element.style("height"));
+                var drag = d3.behavior.zoom().center([this._center_x, this._center_y]).scale(this._scale_level).scaleExtent([0.1, 2]).on("zoom", function () {
+                    var p = d3.mouse(_this._element.node());
+                    _this._center_x = p[0];
+                    _this._center_y = p[1];
+                    var currentLevel = d3.event.scale;
+                    _this._heatMaps.forEach(function (d) {
+                        if (_this._scale_level != currentLevel) {
+                            d.transform(currentLevel, 0, 0);
+                        }
+                        //else {
+                        d.transformPan(d3.event.translate[0], d3.event.translate[1]);
+                        //}
+                    });
+                    _this._scale_level = currentLevel;
+                });
+                this._element.call(drag);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
             SOMMap.prototype.Render = function () {
@@ -4892,11 +4948,11 @@ var ManyLens;
                     opacity: 1e-6
                 });
                 this._left_offset += this._map_gap + this._unit_width * visData.width;
-                if (this._left_offset > this._total_width) {
-                    var scale = this._total_width / this._left_offset;
-                    this._left_offset *= scale;
-                    this.ScaleMaps(scale);
-                }
+                //if ( this._left_offset > this._total_width ) {
+                //    var scale = this._total_width /this._left_offset;
+                //    this._left_offset *= scale;
+                //    this.ScaleMaps(scale);
+                //}
             };
             SOMMap.prototype.ScaleMaps = function (scale) {
                 this._element.selectAll("rect").attr("x", function (d) {

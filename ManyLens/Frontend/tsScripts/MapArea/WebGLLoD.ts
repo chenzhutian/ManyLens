@@ -941,7 +941,11 @@ void main(){\n\
             }
 
             public changTimes( x, y, times ): void {
-                this._gl.viewport( -x * ( times - 1 ), -( this._height - y ) * ( times - 1 ), this._width * times, this._height * times );
+                //this._width *= times;
+                //this._height *= times;
+                //this._gl.viewport( 0, 0, this._width, this._height );
+                this._gl.viewport( x, y, this._width * times, this._height * times );
+                //this._gl.viewport( -x * ( times - 1 ), -( this._height - y ) * ( times - 1 ), this._width * times, this._height * times );
             }
 
             public returnToInitial(): void {

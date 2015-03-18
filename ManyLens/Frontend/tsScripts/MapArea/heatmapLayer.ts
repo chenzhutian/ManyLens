@@ -104,9 +104,9 @@ module ManyLens {
                 var width = Math.ceil( this._canvas_width );
                 var height = Math.ceil( this._canvas_height );
 
-                this._pixelMatrix = new Array( width );
+                this._pixelMatrix = new Array( height );
                 for ( var i = 0; i < height; ++i ) {
-                    this._pixelMatrix[i] = new Array( height );
+                    this._pixelMatrix[i] = new Array( width );
                 };
 
                 this._nodeArray = this._nodeArray.map(( d ) => {
@@ -158,8 +158,8 @@ module ManyLens {
                 //}
 
                 for ( var i = 0, len = nodes.length; i < len; ++i ) {
-                    var x = nodes[i].x;//* this._unit_size;
-                    var y = height - 1 - nodes[i].y; //* this._unit_size;
+                    var x = Math.floor( nodes[i].x);//* this._unit_size;
+                    var y = Math.floor( height - 1 - nodes[i].y ); //* this._unit_size;
                     if ( this._pixelMatrix[y][x] != null)
                         this._pixelMatrix[y][x] = nodes[i].value;
                     else
@@ -211,6 +211,42 @@ module ManyLens {
                 for ( var idx = 0, len = this._contourForIntensity.length; idx < len; idx++ ) {
                     this._contourForIntensity[idx] = maxVal * rate[idx];
                 }
+            }
+
+            //zoom in zoom out 操作
+            public transform( times: number, centerX: number, centerY: number ): void {
+                //if ( type == 1 ) {//zoom in 放大
+                //    //this._LoD.display( x / this._canvas.width * 2 - 1,( this._canvas.height - y ) / this._canvas.height * 2 - 1, 1 / ( 1 + times ), this._contourForIntensity );
+
+                //    var scale = ( 1 + times );
+                //    this._canvas.style.width = this._canvas_width * scale + "px";
+                //    this._canvas.style.height = this._canvas_height * scale + "px";
+                //    this._LoD.changTimes( x, y, scale );
+                //    this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
+                //}
+                //else if ( type == 0 ) {//zoom out 缩小
+                //    var scale = 1 / ( 1 + times );
+                //    this._canvas.style.width = this._canvas_width * scale + "px";
+                //    this._canvas.style.height = this._canvas_height * scale + "px";
+                //    this._LoD.changTimes( x, y, scale );
+                //    this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
+                //}
+                //var l = Math.sqrt( this._canvas_height * this._canvas_height + this._canvas_width * this._canvas_width );
+                //var widthScale = ( this._canvas_width / l ) * times;
+                //var heightScale = ( this._canvas_height / l ) * times;
+                this._canvas.width = this._canvas_width * times;
+                this._canvas.height = this._canvas_height * times;
+                this._LoD.changTimes( 0, 0, times );
+                this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
+
+                //this._LoD.returnToInitial();
+            }
+
+            //平移操作
+            public transformPan( xDif: number, yDif: number ): void {
+                this._canvas.style.top = this._canvas_top_offset + yDif + 'px';
+                this._canvas.style.left = this._canvas_left_offset + xDif + 'px';
+                this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
             }
         }
     }

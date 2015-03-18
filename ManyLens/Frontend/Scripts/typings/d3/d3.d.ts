@@ -2826,7 +2826,10 @@ declare module D3 {
                 */
                 (translate: number[]): Zoom;
             };
-
+            center: {
+                (): number[];
+                ( center: number[] ): Zoom;
+            }
             /**
             * Gets or set the allowed scale range
             */
