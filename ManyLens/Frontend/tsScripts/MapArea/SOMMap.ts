@@ -94,10 +94,14 @@ module ManyLens {
 
                         this._element.selectAll( ".lens" )
                             .attr( "transform", function ( d ) {
-                            d.tx = d3.event.translate[0];
-                            d.ty = d3.event.translate[1];
+                            if ( d.cx == 0 ) {
+                                d.cx = d3.event.translate[0];
+                                d.cy = d3.event.translate[1];
+                            }
+                            d.tx = d3.event.translate[0] - d.cx;
+                            d.ty = d3.event.translate[1] - d.cy;
                             d.scale = d3.event.scale;
-                            return "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")"
+                            return "translate(" + [d.tx,d.ty] + ")scale(" + d3.event.scale + ")"
                         });
 
                         this._translate_x = d3.event.translate[0];
@@ -172,6 +176,17 @@ module ManyLens {
                         });
                         this._element.selectAll( ".units" )
                             .attr( "transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")" );
+                        this._element.selectAll( ".lens" )
+                            .attr( "transform",  ( d )=> {
+                                if ( d.cx == 0 ) {
+                                    d.cx = d3.event.translate[0];
+                                    d.cy = d3.event.translate[1];
+                                }
+                                d.tx = d3.event.translate[0] - d.cx;
+                                d.ty = d3.event.translate[1] - d.cy;
+                                d.scale = d3.event.scale;
+                                return "translate(" + [d.tx, d.ty] + ")scale(" + d3.event.scale + ")"
+                            });
 
                         this._zoom
                             .scale( this._scale )

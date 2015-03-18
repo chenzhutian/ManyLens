@@ -1075,7 +1075,7 @@ var ManyLens;
             });
             BaseD3Lens.prototype.Render = function (color) {
                 this._lens_type_color = color;
-                this._sc_lc_svg = this._element.append("g").data([{ tx: 0, ty: 0, scale: 1 }]).attr("class", "lens").attr("id", this.ID);
+                this._sc_lc_svg = this._element.append("g").data([{ tx: 0, ty: 0, scale: 1, cx: 0, cy: 0 }]).attr("class", "lens").attr("id", this.ID);
                 //Add this lens to the app class
                 this._manyLens.AddLens(this);
             };
@@ -4945,10 +4945,14 @@ var ManyLens;
                     });
                     _this._element.selectAll(".units").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
                     _this._element.selectAll(".lens").attr("transform", function (d) {
-                        d.tx = d3.event.translate[0];
-                        d.ty = d3.event.translate[1];
+                        if (d.cx == 0) {
+                            d.cx = d3.event.translate[0];
+                            d.cy = d3.event.translate[1];
+                        }
+                        d.tx = d3.event.translate[0] - d.cx;
+                        d.ty = d3.event.translate[1] - d.cy;
                         d.scale = d3.event.scale;
-                        return "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")";
+                        return "translate(" + [d.tx, d.ty] + ")scale(" + d3.event.scale + ")";
                     });
                     _this._translate_x = d3.event.translate[0];
                     _this._translate_y = d3.event.translate[1];
@@ -4995,6 +4999,16 @@ var ManyLens;
                             d.transformPan(_this._translate_x, _this._translate_y, _this._scale);
                         });
                         _this._element.selectAll(".units").attr("transform", "translate(" + [_this._translate_x, _this._translate_y] + ")scale(" + _this._scale + ")");
+                        _this._element.selectAll(".lens").attr("transform", function (d) {
+                            if (d.cx == 0) {
+                                d.cx = d3.event.translate[0];
+                                d.cy = d3.event.translate[1];
+                            }
+                            d.tx = d3.event.translate[0] - d.cx;
+                            d.ty = d3.event.translate[1] - d.cy;
+                            d.scale = d3.event.scale;
+                            return "translate(" + [d.tx, d.ty] + ")scale(" + d3.event.scale + ")";
+                        });
                         _this._zoom.scale(_this._scale).translate([_this._translate_x, _this._translate_y]);
                         _this._element.call(_this._zoom);
                         ++i;
