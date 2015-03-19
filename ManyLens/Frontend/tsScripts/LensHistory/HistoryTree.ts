@@ -63,7 +63,7 @@ module ManyLens {
 
             public addNode(node: HistoryNode) {
                 var tree = this._trees[node.tree_id];
-                node.id = tree.nodes.length;
+                node.id = tree.nodes.length.toString();
 
                 var p = tree.nodes[Math.random() * tree.nodes.length | 0];
                 if (p.children) p.children.push(node); else p.children = [node];

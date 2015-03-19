@@ -127,6 +127,7 @@
     <Content Include="Frontend\Image\tile\Thumbs.db" />
     <Content Include="Frontend\Scripts\d3.fisheye.js" />
     <Content Include="Frontend\Scripts\ManyLens.js" />
+    <Content Include="Frontend\Scripts\d3.superformula.js" />
     <Content Include="Frontend\testData\us.json" />
     <Content Include="ClassDiagram1.cd" />
     <None Include="Web.Debug.config">

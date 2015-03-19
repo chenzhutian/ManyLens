@@ -303,7 +303,7 @@ namespace ManyLens.SignalR
                     //points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(5);
+                    Thread.Sleep(100);
 
                     //Gaussin smoothing
                     if (stepCount == 0)

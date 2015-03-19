@@ -190,6 +190,7 @@ var ManyLens;
 ///<reference path = "../Scripts/typings/d3/d3.d.ts" />
 ///<reference path = "../Scripts/typings/d3.cloud.layout/d3.cloud.layout.d.ts" />
 ///<reference path = "../Scripts/typings/d3.fisheye/d3.fisheye.d.ts" />
+///<reference path = "../Scripts/typings/d3/plugins/d3.superformula.d.ts" />
 ///<reference path = "../Scripts/typings/jquery/jquery.d.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -224,26 +225,42 @@ var ManyLens;
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
                 this._fisheye_scale = d3.fisheye.ordinal();
+                this._sub_view_x_scale = d3.scale.linear();
+                this._sub_view_y_scale = d3.scale.linear();
                 this._section_num = 50;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._coordinate_margin_left = 200;
-                this._subView_width = this._coordinate_margin_left + this._view_left_padding - 50;
+                this._coordinate_margin_left = 300;
                 this._stack_time_id_gen = 0;
                 this._stack_bar_width = 15;
                 this._data = new Array();
                 this._intervals = new Array();
                 this._stack_time = new Array();
+                this._stack_bar_nodes = new Array();
                 this._view_height = parseFloat(this._element.style("height")) - 30;
                 this._view_width = parseFloat(this._element.style("width"));
+                this._sub_view_height = this._view_height - this._view_botton_padding;
+                this._sub_view_width = this._coordinate_margin_left + this._view_left_padding;
                 this._x_scale.domain([0, this._section_num]).range([this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
                 this._x_axis_gen.scale(this._x_scale).ticks(0).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
-                this._fisheye_scale.rangeRoundBands([0, this._subView_width]).focus(this._coordinate_margin_left + this._view_left_padding);
+                this._fisheye_scale.rangeRoundBands([0, this._sub_view_width]).focus(this._coordinate_margin_left + this._view_left_padding);
                 this._time_formater = d3.time.format("%Y%m%d%H%M%S");
+                this._root = {
+                    id: "root",
+                    type: "year",
+                    date: null,
+                    parent: null,
+                    children: []
+                };
+                console.log(this._sub_view_width);
+                this._stack_bar_tree = d3.layout.tree().size([this._sub_view_width - 50, this._sub_view_height - 10]);
+                this._stack_bar_tree_diagonal = d3.svg.diagonal();
+                this._sub_view_x_scale.range([this._view_left_padding, this._view_left_padding + this._coordinate_margin_left]);
+                this._sub_view_y_scale.range([this._view_height - this._view_botton_padding, this._view_top_padding]);
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "clusterInterval", this.ClusterInterval);
@@ -269,20 +286,13 @@ var ManyLens;
                 configurable: true
             });
             Curve.prototype.Render = function () {
-                var _this = this;
                 _super.prototype.Render.call(this, null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 this._element.select(".progress").style("display", "none");
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "stackRectClip").append("rect").attr("width", this._coordinate_margin_left + this._view_left_padding).attr("height", this._view_height - this._view_botton_padding).attr("x", 0).attr("y", 0);
                 var timer;
-                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").on("mouseenter", function () {
-                    clearTimeout(timer);
-                }).on("mouseleave", function () {
-                    timer = setTimeout(function () {
-                        _this.ShrinkStackRect();
-                    }, 1000);
-                });
+                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
                 this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")").call(this._x_axis_gen);
@@ -309,19 +319,180 @@ var ManyLens;
                     this._data.shift();
                 }
             };
+            Curve.prototype.InserNode = function (name, data) {
+                var node = this._root[name], i;
+                if (!node) {
+                    node = this._root[name] = data || {
+                        id: this.StackID,
+                        date: null,
+                        name: "",
+                        parent: null,
+                        children: [],
+                        type: name
+                    };
+                    if (name.length) {
+                        node.parent = this.InserNode(name.substring(0, i = name.lastIndexOf("-")));
+                        node.parent.children.push(node);
+                        node.name = name.substring(i + 1);
+                    }
+                }
+                return node;
+            };
+            Curve.prototype.Toggle = function (d) {
+                if (d == null)
+                    return;
+                if (d.children) {
+                    d._children = d.children;
+                    d.children = null;
+                }
+                else {
+                    d.children = d._children;
+                    d._children = null;
+                }
+            };
+            Curve.prototype.FindMinCoParent = function (a, b) {
+                if (!a || !b)
+                    return null;
+                if (!a.parent || !b.parent)
+                    return null;
+                if (a.parent.id == b.parent.id) {
+                    if (!a.date)
+                        return a;
+                    else
+                        return null;
+                }
+                return this.FindMinCoParent(a.parent, b.parent);
+            };
+            Curve.prototype.Update = function (exitParent, mode) {
+                var _this = this;
+                if (mode === void 0) { mode = true; }
+                var duration = 1000;
+                //Nodes
+                var nodex = this._stack_bar_tree.nodes(this._root["year"]);
+                this._stack_bar_node = this._subView.selectAll(".node").data(nodex, function (d) {
+                    return d.id;
+                });
+                //Enter node
+                var enterNode = this._stack_bar_node.enter().append("g").attr("class", "node").attr("transform", function (d) {
+                    if (d.date && mode)
+                        return "translate(" + [_this._sub_view_width - 10, _this._sub_view_height - 10] + ")";
+                    if (!d.parent.x)
+                        return "translate(" + [d.x, d.y] + ")";
+                    return "translate(" + [d.parent.x, d.parent.y] + ")";
+                }).on("click", function (d) {
+                    _this.Toggle(d);
+                    _this.Update(d, false);
+                });
+                enterNode.transition().delay(duration * 0.5).duration(duration).attr("transform", function (d) {
+                    return "translate(" + [d.x, d.y] + ")";
+                });
+                enterNode.append("path").attr("d", function (d) {
+                    if (d.date && mode)
+                        return d3.superformula().type("rectangle").size(1000)(d);
+                    return d3.superformula().type("circle").size(50)(d);
+                }).attr("transform", function (d) {
+                    if (d.date && mode)
+                        return "scale(1,5)";
+                }).style({
+                    fill: "#2A9CC8",
+                    stroke: "#fff",
+                    "stroke-width": 2
+                }).transition().delay(duration * 0.5).duration(duration).attr("transform", null).attr("d", d3.superformula().type("circle").size(50));
+                enterNode.append("text").attr("x", function (d) {
+                    return d.children || d._children ? -10 : 10;
+                }).attr("dy", ".35em").attr("text-anchor", function (d) {
+                    return d.children || d._children ? "end" : "start";
+                }).text(function (d) {
+                    return d.name;
+                }).style("fill-opacity", 1e-6).transition().delay(duration * 0.5).duration(duration).style("fill-opacity", 1);
+                ;
+                //Update node
+                var colorScale = d3.scale.linear().domain([1, 8]).range(["#2574A9", "#2574A9"]);
+                function sumLength(d) {
+                    if (!d.children)
+                        return 1;
+                    var sum = 0;
+                    d.children.forEach(function (d) {
+                        sum += sumLength(d);
+                    });
+                    return sum;
+                }
+                this._stack_bar_node.transition().duration(duration).attr("transform", function (d) {
+                    return "translate(" + [d.x, d.y] + ")";
+                });
+                this._stack_bar_node.selectAll("path").filter(function (d) {
+                    return d.children;
+                }).style("fill", function (d) {
+                    return colorScale(sumLength(d));
+                });
+                //Exit node
+                var exitNode = this._stack_bar_node.exit().transition().duration(duration).attr("transform", function (d) {
+                    if (exitParent) {
+                        d.x = exitParent.x;
+                        d.y = exitParent.y;
+                    }
+                    return "translate(" + [d.x, d.y] + ")";
+                }).remove();
+                exitNode.select("circle").transition().attr("r", 1e-6);
+                exitNode.select("text").transition().style("fill-opacity", 1e-6);
+                //Links
+                this._stack_bar_link = this._subView.selectAll(".link").data(this._stack_bar_tree.links(nodex), function (d) {
+                    return d.source.id + "-" + d.target.id;
+                });
+                //Enter link
+                this._stack_bar_link.enter().insert("path", ".node").attr("class", "link").attr("d", function (d) {
+                    var o = { x: d.source.x, y: d.source.y };
+                    var result = _this._stack_bar_tree_diagonal({ source: o, target: o });
+                    return result;
+                }).style({
+                    fill: "none",
+                    stroke: "#000"
+                }).transition().delay(duration * 0.5).duration(duration).attr("d", this._stack_bar_tree_diagonal);
+                //Update link
+                this._stack_bar_link.transition().duration(duration).attr("d", this._stack_bar_tree_diagonal);
+                //Exit link
+                this._stack_bar_link.exit().transition().duration(duration).attr("d", function (d) {
+                    if (exitParent) {
+                        d.x = exitParent.x;
+                        d.y = exitParent.y;
+                    }
+                    var o = { x: d.x, y: d.y };
+                    return _this._stack_bar_tree_diagonal({ source: o, target: o });
+                }).remove();
+            };
             Curve.prototype.RefreshGraph = function (point) {
                 var _this = this;
                 //Refresh the stack rect view
                 if (this._data[0].type == 1 || this._data[0].type == 3) {
+                    //The stack date
+                    var date = this._time_formater.parse(this._data[0].beg);
                     var stackRect = {
                         id: this._data[0].beg,
-                        x: 0,
-                        ox: 0
+                        x: this._stack_time.length * this._stack_bar_width,
+                        ox: this._stack_time.length * this._stack_bar_width,
+                        type: 0,
+                        index: date.getDay(),
+                        isRemove: false,
+                        fill: null,
+                        date: date,
+                        intervals: null
                     };
                     this._intervals.push(stackRect);
-                    //The stack date
-                    var date = this._time_formater.parse(stackRect.id);
-                    this.StackBarByTime(date, 0, [stackRect]);
+                    var stackNode = {
+                        id: this._data[0].beg,
+                        date: date,
+                        size: 1,
+                        name: "H" + date.getHours(),
+                        parent: null,
+                        children: null,
+                        type: "year-mounth" + date.getMonth() + "-week" + this.GetWeek(date) + "-day" + date.getDay() + "-hour" + date.getHours(),
+                        index: date.getDay()
+                    };
+                    this.InserNode(stackNode.type, stackNode);
+                    var exitParent = this.FindMinCoParent(this._stack_bar_nodes[this._stack_bar_nodes.length - 1], stackNode);
+                    this.Toggle(exitParent);
+                    this._stack_bar_nodes.push(stackNode);
+                    this.Update(exitParent);
                 }
                 //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
@@ -486,7 +657,7 @@ var ManyLens;
                 nodes.exit().remove();
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(4).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(80).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
@@ -529,11 +700,12 @@ var ManyLens;
                 var _this = this;
                 if (stack_time_right === void 0) { stack_time_right = null; }
                 var num;
+                var newDate;
                 switch (depth) {
                     case 0:
                         {
-                            num = date.getDay();
                             stack_time_right = new Array();
+                            newDate = intervals[0];
                         }
                         break;
                     case 1:
@@ -544,17 +716,19 @@ var ManyLens;
                         break;
                     default: num = -1;
                 }
-                var newDate = {
-                    id: this.StackID,
-                    type: depth,
-                    index: num,
-                    isRemove: false,
-                    x: this._stack_time.length * this._stack_bar_width,
-                    ox: this._stack_time.length * this._stack_bar_width,
-                    fill: null,
-                    date: date,
-                    intervals: intervals
-                };
+                if (depth != 0) {
+                    newDate = {
+                        id: this.StackID,
+                        type: depth,
+                        index: num,
+                        isRemove: false,
+                        x: this._stack_time.length * this._stack_bar_width,
+                        ox: this._stack_time.length * this._stack_bar_width,
+                        fill: null,
+                        date: date,
+                        intervals: intervals
+                    };
+                }
                 var colorScale = d3.scale.ordinal().domain([0, 1, 2]).range(["#2A9CC8", "#2574A9", "#34495E"]);
                 stack_time_right.push(newDate);
                 var tempStackDate = [].concat(this._stack_time, stack_time_right.reverse()).sort(function (a, b) {
@@ -577,8 +751,8 @@ var ManyLens;
                 }).attr({
                     "class": "stack organize time",
                     width: this._stack_bar_width,
-                    height: this._view_height + this._view_top_padding,
-                    y: 0
+                    height: 50,
+                    y: this._view_height + this._view_top_padding - 50
                 }).style({
                     stroke: "#fff",
                     "stroke-width": 0.5
@@ -616,12 +790,10 @@ var ManyLens;
                                 break;
                             }
                         }
-                        var tempIntervals = [];
                         newStack.forEach(function (d) {
                             d.x = newStack[newStack.length - 1].x;
-                            tempIntervals = tempIntervals.concat(d.intervals);
                         });
-                        this.StackBarByTime(last_time_bar.date, ++depth, tempIntervals, stack_time_right);
+                        this.StackBarByTime(last_time_bar.date, ++depth, newStack, stack_time_right);
                     }
                     else {
                         this._stack_time.push(last_time_bar);
@@ -638,8 +810,8 @@ var ManyLens;
                 this._subView.selectAll("rect.stack.organize.time").data(this._stack_time).enter().append("rect").attr({
                     width: this._stack_bar_width,
                     "class": "stack organize time",
-                    height: this._view_height + this._view_top_padding,
-                    y: 0
+                    height: 50,
+                    y: this._view_height + this._view_top_padding - 50
                 }).style({
                     stroke: "#fff",
                     "stroke-width": 0.5
@@ -708,13 +880,14 @@ var ManyLens;
                 }).on("click", function (d) {
                     _this.SelectSegment(d);
                 }).transition().style("opacity", 1);
+                //  .style("fill", color)
                 var maxI = -1;
                 var temp_stack_bar = this._subView.selectAll("rect.stack.organize").filter(function (p, i) {
                     maxI = i > maxI ? i : maxI;
                     return p.x > d.x;
                 });
                 var offsetX = (data.length - 1) * this._stack_bar_width;
-                if ((maxI + data.length - 1) * this._stack_bar_width > this._subView_width) {
+                if ((maxI + data.length - 1) * this._stack_bar_width > this._sub_view_width) {
                     temp_stack_bar.attr("x", function (p) {
                         return p.x = p.x + offsetX;
                     });
@@ -789,7 +962,7 @@ var ManyLens;
             };
             HistoryTrees.prototype.addNode = function (node) {
                 var tree = this._trees[node.tree_id];
-                node.id = tree.nodes.length;
+                node.id = tree.nodes.length.toString();
                 var p = tree.nodes[Math.random() * tree.nodes.length | 0];
                 if (p.children)
                     p.children.push(node);
