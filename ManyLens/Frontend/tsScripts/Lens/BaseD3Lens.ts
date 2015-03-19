@@ -152,7 +152,7 @@ module ManyLens {
                 this._lens_type_color = color;
                 this._sc_lc_svg = this._element
                     .append( "g" )
-                    .data( [{tx:0,ty:0,scale:1}])
+                    .data( [{tx:0,ty:0,scale:1,cx:0,cy:0}])
                     .attr("class", "lens")
                     .attr("id", this.ID)
                 ;

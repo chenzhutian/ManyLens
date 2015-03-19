@@ -94,15 +94,16 @@ module ManyLens {
 
                         this._element.selectAll( ".lens" )
                             .attr( "transform", function ( d ) {
-                            if ( d.cx == 0 ) {
-                                d.cx = d3.event.translate[0];
-                                d.cy = d3.event.translate[1];
-                            }
-                            d.tx = d3.event.translate[0] - d.cx;
-                            d.ty = d3.event.translate[1] - d.cy;
-                            d.scale = d3.event.scale;
-                            return "translate(" + [d.tx,d.ty] + ")scale(" + d3.event.scale + ")"
-                        });
+                                if ( d.cx == 0 ) {
+                                    d.cx = d3.event.translate[0];
+                                    d.cy = d3.event.translate[1];
+                                }
+                                d.scale = d3.event.scale;
+                                d.tx = d3.event.translate[0] - d.cx * d.scale;
+                                d.ty = d3.event.translate[1] - d.cy * d.scale;
+                            
+                                return "translate(" + [d.tx,d.ty] + ")scale(" + d3.event.scale + ")"
+                            });
 
                         this._translate_x = d3.event.translate[0];
                         this._translate_y = d3.event.translate[1];
@@ -165,7 +166,7 @@ module ManyLens {
                 this._left_offset += this._unit_width * visData.width + this._map_gap;
                 var leftMost = this._left_offset * this._scale + this._translate_x;
                 if ( leftMost > this._total_width ) {
-                    var t = d3.interpolate( 0, leftMost - this._total_width - this._map_gap );
+                    var t = d3.interpolate( 0, leftMost - this._total_width + this._map_gap );
                     var i = 0;
                     var sTx = this._translate_x;
                     clearInterval( this._move_view_timer );
@@ -179,13 +180,14 @@ module ManyLens {
                         this._element.selectAll( ".lens" )
                             .attr( "transform",  ( d )=> {
                                 if ( d.cx == 0 ) {
-                                    d.cx = d3.event.translate[0];
-                                    d.cy = d3.event.translate[1];
+                                    d.cx = this._translate_x;
+                                    d.cy = this._translate_y;
                                 }
-                                d.tx = d3.event.translate[0] - d.cx;
-                                d.ty = d3.event.translate[1] - d.cy;
-                                d.scale = d3.event.scale;
-                                return "translate(" + [d.tx, d.ty] + ")scale(" + d3.event.scale + ")"
+                                d.scale = this._scale;
+                                d.tx = this._translate_x - d.cx * d.scale;
+                                d.ty = this._translate_y - d.cy * d.scale;
+                                
+                                return "translate(" + [d.tx, d.ty] + ")scale(" + this._scale + ")"
                             });
 
                         this._zoom

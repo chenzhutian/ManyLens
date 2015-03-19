@@ -113,7 +113,7 @@ module ManyLens {
                             this._has_put_down = true;
                             d.x = this._select_circle_cx = parseFloat(selectCircle.attr("cx"));
                             d.y = this._select_circle_cy = parseFloat(selectCircle.attr("cy"));
-                            container.on("mousemove", null);
+                            container.on( "mousemove", null );
                         }
                     })
                     .on("contextmenu", () => {
@@ -230,6 +230,7 @@ module ManyLens {
                         return d.y = d3.event.y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
                     })
                 ;
+                
                 this._has_showed_lens = false;
 
                 var hostLens: BaseCompositeLens = this.DetachHostLens()
