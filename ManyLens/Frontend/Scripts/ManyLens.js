@@ -372,11 +372,11 @@ var ManyLens;
                 var nodex = this._stack_bar_tree.nodes(this._root[""]).filter(function (d) {
                     return d.name != "";
                 });
-                this._stack_bar_node = this._subView.selectAll(".node").data(nodex, function (d) {
+                this._stack_bar_node = this._subView.selectAll(".stack.node").data(nodex, function (d) {
                     return d.id;
                 });
                 //Enter node
-                var enterNode = this._stack_bar_node.enter().append("g").attr("class", "node").attr("transform", function (d) {
+                var enterNode = this._stack_bar_node.enter().append("g").attr("class", "stack node").attr("transform", function (d) {
                     if (d.date && mode)
                         return "translate(" + [_this._sub_view_width - 10, _this._sub_view_height - 10] + ")";
                     if (!d.parent)
@@ -395,13 +395,14 @@ var ManyLens;
                 }).attr("transform", function (d) {
                     if (d.date && mode)
                         return "scale(1,5)";
-                }).style({
-                    fill: "#2A9CC8",
-                    stroke: "#fff",
-                    "stroke-width": 2
                 }).on("click", function (d) {
-                    _this.Toggle(d);
-                    _this.Update(d, false);
+                    if (d.date) {
+                        _this.SelectSegment(d);
+                    }
+                    else {
+                        _this.Toggle(d);
+                        _this.Update(d, false);
+                    }
                 }).transition().delay(duration * 0.5).duration(duration).attr("transform", null).attr("d", d3.superformula().type("circle").size(50));
                 enterNode.append("text").attr("x", function (d) {
                     return d.children || d._children ? -10 : 10;
@@ -450,17 +451,14 @@ var ManyLens;
                 exitNode.select("circle").transition().attr("r", 1e-6);
                 exitNode.select("text").transition().style("fill-opacity", 1e-6);
                 //Links
-                this._stack_bar_link = this._subView.selectAll(".link").data(this._stack_bar_tree.links(nodex), function (d) {
+                this._stack_bar_link = this._subView.selectAll(".stack.link").data(this._stack_bar_tree.links(nodex), function (d) {
                     return d.source.id + "-" + d.target.id;
                 });
                 //Enter link
-                this._stack_bar_link.enter().insert("path", ".node").attr("class", "link").attr("d", function (d) {
+                this._stack_bar_link.enter().insert("path", ".stack.node").attr("class", "stack link").attr("d", function (d) {
                     var o = { x: d.source.x, y: d.source.y };
                     var result = _this._stack_bar_tree_diagonal({ source: o, target: o });
                     return result;
-                }).style({
-                    fill: "none",
-                    stroke: "#000"
                 }).transition().delay(duration * 0.5).duration(duration).attr("d", this._stack_bar_tree_diagonal);
                 //Update link
                 this._stack_bar_link.transition().duration(duration).attr("d", this._stack_bar_tree_diagonal);
@@ -578,75 +576,71 @@ var ManyLens;
                     return _this._x_scale(d.beg);
                 }).attr("y", 0).attr("width", function (d, i) {
                     return _this._x_scale(d.end) - _this._x_scale(d.beg);
-                }).attr("height", this._view_height + this._view_top_padding).attr("class", "curve seg").style({
-                    fill: '#2A9CC8',
-                    stroke: "#fff",
-                    "stroke-width": 0.5
-                }).on("click", function (d) {
+                }).attr("height", this._view_height + this._view_top_padding).attr("class", "curve seg").on("click", function (d) {
                     _this.SelectSegment(d);
                 });
                 rects.exit().remove();
-                var lineFunc = d3.svg.line().x(function (d, i) {
-                    return _this._x_scale(d.index);
-                }).y(function (d, i) {
-                    return _this._y_scale(d.value);
-                }).interpolate("linear");
+                //var lineFunc = d3.svg.line()
+                //    .x(( d, i ) => {
+                //    return this._x_scale( d.index );
+                //})
+                //    .y(( d, i ) => {
+                //    return this._y_scale( d.value );
+                //})
+                //    .interpolate( "linear" )
+                //    ;
                 var truelineFunc = d3.svg.line().x(function (d, i) {
                     return _this._x_scale(d.index);
                 }).y(function (d, i) {
                     return _this._y_scale(d.trueValue);
-                }).interpolate("linear");
-                var path = this._mainView.selectAll(".curve.section.path").data(sectionData, function (d) {
-                    return d.id;
-                });
-                path.attr("d", function (d) {
-                    return lineFunc(d.pathPoints);
-                });
-                path.enter().append("path").style({
-                    'stroke': '#F6BB42',
-                    'stroke-width': 3,
-                    'fill': 'none'
-                }).attr("d", function (d) {
-                    return lineFunc(d.pathPoints);
-                }).attr("class", "curve section path");
-                path.exit().remove();
+                }).interpolate("basis");
+                //var path = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });
+                //path.attr( "d", function ( d ) {
+                //    return lineFunc( d.pathPoints );
+                //});
+                //path
+                //    .enter().append( "path" )
+                //    .style( {
+                //    'stroke': '#F6BB42',
+                //    'stroke-width': 3,
+                //    'fill': 'none'
+                //})
+                //    .attr( "d", function ( d ) { return lineFunc( d.pathPoints ); })
+                //    .attr( "class", "curve section path" )
+                //;
+                //path.exit().remove();
                 var truepath = this._mainView.selectAll(".curve.section.true.path").data(sectionData, function (d) {
                     return d.id;
                 });
                 truepath.attr("d", function (d) {
                     return truelineFunc(d.pathPoints);
                 });
-                truepath.enter().append("path").style({
-                    'stroke': '#fff',
-                    'stroke-width': 3,
-                    'fill': 'none'
-                }).attr("d", function (d) {
+                truepath.enter().append("path").attr("d", function (d) {
                     return truelineFunc(d.pathPoints);
-                }).attr("class", "curve section true path");
+                }).attr("class", "curve section true path").transition();
                 truepath.exit().remove();
-                var restPath = this._mainView.selectAll(".curve.rest.path").data(restPathData);
-                restPath.attr("d", function (d) {
-                    return lineFunc(d);
-                });
-                restPath.enter().append("path").style({
-                    'stroke': 'rgb(31, 145, 189)',
-                    'stroke-width': 3,
-                    'fill': 'none'
-                }).attr("d", function (d) {
-                    return lineFunc(d);
-                }).attr("class", "curve rest path");
-                restPath.exit().remove();
+                //var restPath = this._mainView.selectAll( ".curve.rest.path" ).data( restPathData );
+                //restPath.attr( "d", function ( d ) {
+                //    return lineFunc( d );
+                //})
+                //restPath
+                //    .enter().append( "path" )
+                //    .style( {
+                //    'stroke': 'rgb(31, 145, 189)',
+                //    'stroke-width': 3,
+                //    'fill': 'none'
+                //})
+                //    .attr( "d", function ( d ) { return lineFunc( d ); })
+                //    .attr( "class", "curve rest path" )
+                //;
+                //restPath.exit().remove();
                 var trueRestPath = this._mainView.selectAll(".curve.rest.true.path").data(restPathData);
                 trueRestPath.attr("d", function (d) {
                     return truelineFunc(d);
                 });
-                trueRestPath.enter().append("path").style({
-                    'stroke': 'rgb(31, 145, 189)',
-                    'stroke-width': 3,
-                    'fill': 'none'
-                }).attr("d", function (d) {
+                trueRestPath.enter().append("path").attr("d", function (d) {
                     return truelineFunc(d);
-                }).attr("class", "curve rest path");
+                }).attr("class", "curve rest true path");
                 trueRestPath.exit().remove();
                 //handle the seg node
                 var nodes = this._mainView.selectAll(".curve.node").data(nodesData, function (d) {
@@ -663,10 +657,6 @@ var ManyLens;
                     return _this._y_scale(d.value);
                 }).attr("r", function (d) {
                     return 3;
-                }).style({
-                    fill: "#fff",
-                    stroke: "rgb(31, 145, 189)",
-                    "stroke-width": 1.5
                 });
                 nodes.exit().remove();
                 // move the main view

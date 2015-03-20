@@ -139,29 +139,71 @@ div#tweetsView {
 
 /*-----------curve view------------*/
 div#curveView {
-    background-color:rgba(255, 255, 255, 0.8);"/*#3BAFDA;*/
+    background-color:#3EAFDB;
+    background-color:#BAEAFF;
+    background-color:rgba(255,255,255,0.6);
+}
 
+    div#curveView text {
+        fill:#000;
+    }
+
+.stack.node path{
+    fill:rgb(31, 145, 189);
+    stroke: #fff;
+    stroke-width: 0.5px;
+}
+
+
+/*rgb(31, 145, 189);*/
+path.stack.link,
+.curve.axis path,
+.curve.axis line {
+    fill: none;
+    stroke: #000;
+   
+}
+
+.curve.axis path,
+.curve.axis line {
+    shape-rendering: crispEdges;
+}
+
+.curve.axis text {
+    font-size: 12px;
+}
+
+rect.curve.seg {
+    fill: rgb(31, 145, 189);
+    stroke: #fff;
+    stroke-width: 0.5px;
+}
+
+path.curve.section.true.path {
+    stroke: #fff;
+    stroke-width: 3px;
+    fill: none;
+}
+
+path.curve.rest.true.path {
+    stroke: rgb(31, 145, 189);
+    stroke-width: 3px;
+    fill: none;
+}
+
+circle.curve.node {
+    fill: #fff;
+    stroke: rgb(31, 145, 189);
+    stroke-width: 1.5px;
 }
 
 .progress {
     border-radius:0px;
 }
 .progress-bar {
-    background-color:#3BAFDA;
+    background-color:#3EAFDB;
 }
 
-/*rgb(31, 145, 189);*/
-.curve.axis path,
-.curve.axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.curve.axis text {
-    fill:#000;
-    font-size: 12px;
-}
 
 /*-----------MapLens------------*/
 #states {

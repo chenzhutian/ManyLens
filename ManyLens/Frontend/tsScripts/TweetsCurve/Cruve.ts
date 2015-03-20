@@ -317,13 +317,13 @@ module ManyLens {
 
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) { return d.name != "";});
-                this._stack_bar_node = this._subView.selectAll( ".node" )
+                this._stack_bar_node = this._subView.selectAll( ".stack.node" )
                     .data( nodex, function ( d ) { return d.id; });
 
                 //Enter node
                 var enterNode = this._stack_bar_node
                     .enter().append( "g" )
-                    .attr( "class", "node" )
+                    .attr( "class", "stack node" )
                     .attr( "transform",( d ) => {
                     if ( d.date && mode)
                         return "translate(" + [this._sub_view_width - 10, this._sub_view_height - 10] + ")";
@@ -331,7 +331,6 @@ module ManyLens {
                         return "translate(" + [d.x, d.y+5] + ")";
                     return "translate(" + [d.parent.x, d.parent.y] + ")";
                     })
-
                     ;
 
                 enterNode.filter( function ( d ) { return d.parent;}).transition().delay( duration * 0.5 ).duration( duration )
@@ -347,17 +346,16 @@ module ManyLens {
                         return d3.superformula().type( "circle" ).size(50)( d );
                     })
                     .attr( "transform", function ( d ) {
-                    if ( d.date && mode)
-                        return "scale(1,5)";
-                    })
-                    .style( {
-                        fill:"#2A9CC8",
-                        stroke: "#fff",
-                        "stroke-width": 2
+                        if ( d.date && mode)
+                            return "scale(1,5)";
                     })
                     .on( "click",( d ) => {
-                        this.Toggle( d );
-                        this.Update( d, false );
+                        if ( d.date ) {
+                            this.SelectSegment( d );
+                        } else {
+                            this.Toggle( d );
+                            this.Update( d, false );
+                        }
                     })
                     .transition().delay( duration * 0.5 ).duration( duration )
                     .attr("transform",null)
@@ -422,21 +420,17 @@ module ManyLens {
                 exitNode.select( "text" ).transition().style( "fill-opacity", 1e-6 );
 
                 //Links
-                this._stack_bar_link = this._subView.selectAll( ".link" )
+                this._stack_bar_link = this._subView.selectAll( ".stack.link" )
                     .data( this._stack_bar_tree.links( nodex ), function ( d ) { return d.source.id + "-" + d.target.id; });
    
                 //Enter link
                 this._stack_bar_link
-                    .enter().insert( "path", ".node" )
-                    .attr( "class", "link" )
+                    .enter().insert( "path", ".stack.node" )
+                    .attr( "class", "stack link" )
                     .attr( "d",( d ) => {
                     var o = { x: d.source.x, y: d.source.y };
                     var result = this._stack_bar_tree_diagonal( { source: o, target: o });
                     return result;
-                })
-                    .style( {
-                    fill: "none",
-                    stroke: "#000"
                 })
                     .transition().delay( duration * 0.5 ).duration( duration )
                     .attr( "d", this._stack_bar_tree_diagonal );
@@ -597,26 +591,21 @@ module ManyLens {
                 })
                     .attr( "height", this._view_height + this._view_top_padding )
                     .attr( "class", "curve seg" )
-                    .style( {
-                    fill: '#2A9CC8',
-                    stroke: "#fff",
-                    "stroke-width": 0.5
-                })
                     .on( "click",( d: Section ) => {
                     this.SelectSegment( d );
                 })
                 ;
                 rects.exit().remove();
 
-                var lineFunc = d3.svg.line()
-                    .x(( d, i ) => {
-                    return this._x_scale( d.index );
-                })
-                    .y(( d, i ) => {
-                    return this._y_scale( d.value );
-                })
-                    .interpolate( "linear" )
-                    ;
+                //var lineFunc = d3.svg.line()
+                //    .x(( d, i ) => {
+                //    return this._x_scale( d.index );
+                //})
+                //    .y(( d, i ) => {
+                //    return this._y_scale( d.value );
+                //})
+                //    .interpolate( "linear" )
+                //    ;
                 var truelineFunc = d3.svg.line()
                     .x(( d, i ) => {
                     return this._x_scale( d.index );
@@ -624,25 +613,25 @@ module ManyLens {
                     .y(( d, i ) => {
                     return this._y_scale( d.trueValue );
                 })
-                    .interpolate( "linear" )
+                    .interpolate( "basis" )
                     ;
 
 
-                var path = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });
-                path.attr( "d", function ( d ) {
-                    return lineFunc( d.pathPoints );
-                });
-                path
-                    .enter().append( "path" )
-                    .style( {
-                    'stroke': '#F6BB42',
-                    'stroke-width': 3,
-                    'fill': 'none'
-                })
-                    .attr( "d", function ( d ) { return lineFunc( d.pathPoints ); })
-                    .attr( "class", "curve section path" )
-                ;
-                path.exit().remove();
+                //var path = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });
+                //path.attr( "d", function ( d ) {
+                //    return lineFunc( d.pathPoints );
+                //});
+                //path
+                //    .enter().append( "path" )
+                //    .style( {
+                //    'stroke': '#F6BB42',
+                //    'stroke-width': 3,
+                //    'fill': 'none'
+                //})
+                //    .attr( "d", function ( d ) { return lineFunc( d.pathPoints ); })
+                //    .attr( "class", "curve section path" )
+                //;
+                //path.exit().remove();
 
                 var truepath = this._mainView.selectAll( ".curve.section.true.path" ).data( sectionData, function ( d ) { return d.id; });
                 truepath.attr( "d", function ( d ) {
@@ -650,31 +639,36 @@ module ManyLens {
                 });
                 truepath
                     .enter().append( "path" )
-                    .style( {
-                    'stroke': '#fff',
-                    'stroke-width': 3,
-                    'fill': 'none'
-                })
                     .attr( "d", function ( d ) { return truelineFunc( d.pathPoints ); })
+                    //    .attr( "stroke-dasharray", function ( d ) {
+                    //    var totalLen = ( <SVGPathElement>d3.select( this ).node() ).getTotalLength();
+                    //    return totalLen + "," + totalLen;
+                    //})
+                    //    .attr( "stroke-dashoffset", function ( d ) {
+                    //    var totalLen = ( <SVGPathElement>d3.select( this ).node() ).getTotalLength();
+                    //    return totalLen;
+                    //})
                     .attr( "class", "curve section true path" )
+                    .transition()
+                    //.attr( "stroke-dashoffset", 0 );
                 ;
                 truepath.exit().remove();
 
-                var restPath = this._mainView.selectAll( ".curve.rest.path" ).data( restPathData );
-                restPath.attr( "d", function ( d ) {
-                    return lineFunc( d );
-                })
-                restPath
-                    .enter().append( "path" )
-                    .style( {
-                    'stroke': 'rgb(31, 145, 189)',
-                    'stroke-width': 3,
-                    'fill': 'none'
-                })
-                    .attr( "d", function ( d ) { return lineFunc( d ); })
-                    .attr( "class", "curve rest path" )
-                ;
-                restPath.exit().remove();
+                //var restPath = this._mainView.selectAll( ".curve.rest.path" ).data( restPathData );
+                //restPath.attr( "d", function ( d ) {
+                //    return lineFunc( d );
+                //})
+                //restPath
+                //    .enter().append( "path" )
+                //    .style( {
+                //    'stroke': 'rgb(31, 145, 189)',
+                //    'stroke-width': 3,
+                //    'fill': 'none'
+                //})
+                //    .attr( "d", function ( d ) { return lineFunc( d ); })
+                //    .attr( "class", "curve rest path" )
+                //;
+                //restPath.exit().remove();
 
                 var trueRestPath = this._mainView.selectAll( ".curve.rest.true.path" ).data( restPathData );
                 trueRestPath.attr( "d", function ( d ) {
@@ -682,13 +676,8 @@ module ManyLens {
                 })
                 trueRestPath
                     .enter().append( "path" )
-                    .style( {
-                    'stroke': 'rgb(31, 145, 189)',
-                    'stroke-width': 3,
-                    'fill': 'none'
-                })
                     .attr( "d", function ( d ) { return truelineFunc( d ); })
-                    .attr( "class", "curve rest path" )
+                    .attr( "class", "curve rest true path" )
                 ;
                 trueRestPath.exit().remove();
 
@@ -713,11 +702,6 @@ module ManyLens {
                 })
                     .attr( "r",( d ) => {
                     return 3;
-                })
-                    .style( {
-                    fill: "#fff",
-                    stroke: "rgb(31, 145, 189)",
-                    "stroke-width": 1.5
                 });
                 nodes.exit().remove();
 
@@ -734,7 +718,7 @@ module ManyLens {
 
             }
 
-            private SelectSegment( d: Section|StackRect ) {
+            private SelectSegment( d: Section|StackNode ) {
                 if ( d['end'] == -1 ) {
                     console.log( "Segmentation hasn't finished yet!" );
                 } else if ( d['end'] != null && d['end'] != -1 ) {
