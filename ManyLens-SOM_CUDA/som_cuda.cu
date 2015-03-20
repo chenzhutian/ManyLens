@@ -759,16 +759,16 @@ float* Transpose(float* d_temp_weight, const int oldX, const int oldY)
 //}
 
 float* SOMwithRandomMapping(const float* h_gaussin,
-	const float* h_inputSet,
-	const float* h_initial_weight,
-	const unsigned int input_set_size,
-	const unsigned int dimension,
-	const unsigned int height,
-	const unsigned int width,
-	const unsigned int batch_size,
-	const int epochNum,
-	const float lambda,
-	const float iterNum)
+							const float* h_inputSet,
+							const float* h_initial_weight,
+							const unsigned int input_set_size,
+							const unsigned int dimension,
+							const unsigned int height,
+							const unsigned int width,
+							const unsigned int batch_size,
+							const int epochNum,
+							const float lambda,
+							const float iterNum)
 {
 	const unsigned int d_input_set_size = input_set_size;								//define the input set size on device
 	const unsigned int dimension_before_random_mapping = dimension;						//the original dimension of the input set
@@ -932,8 +932,10 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 		{
 			break;
 		}
+		//Copy best match unit
 		cudaMemcpy(h_output + inputx, d_BID, batch_size*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 	}
+	//Copy the final weights
 	cudaMemcpy(h_output + input_set_size, d_weights, dimension_after_random_mapping*neuron_number*sizeof(float), cudaMemcpyDeviceToHost);
 
 	/*--------------- check the result of final weights update -----------------*/
@@ -972,23 +974,21 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	return h_output;
 }
 
-unsigned int* AbstractSOMClassificationwithRandomMapping(std::string mapWeight,
-	const float* h_gaussin,
-	const float* h_inputSet,
-	const unsigned int input_set_size,
-	const unsigned int dimension,
-	const unsigned int height,
-	const unsigned int width,
-	const unsigned int batch_size,
-	const unsigned int groupsNum)
+unsigned int* AbstractSOMClassificationwithRandomMapping(const float* h_gaussin,
+														 const float* h_inputSet,
+														 const float* h_classifier_weight,
+														 const unsigned int input_set_size,
+														 const unsigned int dimension,
+														 const unsigned int height,
+														 const unsigned int width,
+														 const unsigned int batch_size)
 {
-	unsigned int d_input_set_size = input_set_size;										//define the input set size on device
+	const unsigned int d_input_set_size = input_set_size;										//define the input set size on device
 	const unsigned int dimension_before_random_mapping = dimension;						//the original dimension of the input set
 	const unsigned int dimension_after_random_mapping = DIMENSION;						//dimension after random mapping, can not change
 	const unsigned int neuron_number = height * width;									//the number of neuron
 
-	float* h_weights = new float[dimension_after_random_mapping * neuron_number];		//weights of each neuron in host memory
-
+	const float* h_weights = h_classifier_weight;										//weights of each neuron in host memory
 	float* d_weights = 0;																//weights of each neuron in device memory
 	float* d_input_set = 0;																//input set in device memory
 	unsigned int* d_BID = 0;															//the id of best match neurons in device memory
@@ -997,37 +997,8 @@ unsigned int* AbstractSOMClassificationwithRandomMapping(std::string mapWeight,
 	cudaMalloc((void**)&d_BID, batch_size * sizeof(unsigned int));
 	cudaMalloc((void**)&d_intermediate_result, neuron_number * batch_size * sizeof(float));
 
-	float* temp_d_input_set = RandomMapping(h_gaussin, h_inputSet, dimension_after_random_mapping - groupsNum, dimension_before_random_mapping, input_set_size);
+	d_input_set = RandomMapping(h_gaussin, h_inputSet, dimension_after_random_mapping, dimension_before_random_mapping, input_set_size);
 
-	if (groupsNum == 0)
-	{
-		d_input_set = temp_d_input_set;
-		temp_d_input_set = NULL;
-	}
-	else
-	{
-		float* zero = new float[groupsNum];
-		for (int i = 0; i < groupsNum; ++i)
-		{
-			zero[i] = 0;
-		}
-
-		cudaMalloc((void**)&d_input_set, dimension_after_random_mapping*d_input_set_size*sizeof(float));
-		for (int i = 0; i < d_input_set_size; ++i)
-		{
-			cudaMemcpy(d_input_set + i*dimension_after_random_mapping,
-				temp_d_input_set + i*(dimension_after_random_mapping - groupsNum),
-				(dimension_after_random_mapping - groupsNum)*sizeof(float),
-				cudaMemcpyDeviceToDevice);
-			cudaMemcpy(d_input_set + (i + 1)*(dimension_after_random_mapping)-groupsNum,
-				zero,
-				groupsNum*sizeof(float),
-				cudaMemcpyHostToDevice);
-		}
-		delete[] zero;
-		zero = NULL;
-		cudaFree(temp_d_input_set);
-	}
 	/* ------------------- check inpout set --------------------*/
 	//float* h_checkRM = new float[dimension_after_random_mapping*input_set_size];
 	//cudaMemcpy(h_checkRM,d_input_set,dimension_after_random_mapping*input_set_size*sizeof(float),cudaMemcpyDeviceToHost);
@@ -1063,22 +1034,13 @@ unsigned int* AbstractSOMClassificationwithRandomMapping(std::string mapWeight,
 	//fout.close();
 
 	/*-----------Initialize the weights of each neuron---------------------*/
-	std::ifstream fin(mapWeight);
-	for (unsigned int i = 0; i < neuron_number; ++i)
-	{
-		for (unsigned int j = 0; j < dimension_after_random_mapping; ++j)
-		{
-			fin >> h_weights[i + j * neuron_number];
-		}
-	}
 	cudaMemcpy(d_weights, h_weights, neuron_number* dimension_after_random_mapping  * sizeof(float), cudaMemcpyHostToDevice);
-	std::cout << "Initialize the weights done" << std::endl;
 
+	/*---------------------------Let's have SOM----------------------------*/
 	unsigned int* h_output = new unsigned int[input_set_size];
-	for (unsigned int iCycle = 0; iCycle < (d_input_set_size / batch_size); iCycle++)
+	for (unsigned int iCycle = 0; iCycle < ceil(d_input_set_size / batch_size); iCycle++)
 	{
 		int inputx = iCycle * batch_size;
-		std::cout << inputx << std::endl;
 		if (!output_BID(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result))
 		{
 			break;
@@ -1086,54 +1048,29 @@ unsigned int* AbstractSOMClassificationwithRandomMapping(std::string mapWeight,
 		cudaMemcpy(h_output + inputx, d_BID, batch_size*sizeof(unsigned int), cudaMemcpyDeviceToHost);
 	}
 
-	std::cout << "everything done" << std::endl;
 	cudaFree(d_weights);
 	cudaFree(d_input_set);
 	cudaFree(d_BID);
 	cudaFree(d_intermediate_result);
-	delete[] h_weights;
-	h_weights = NULL;
 
 	return h_output;
 }
 
-
-unsigned int* SOMRefineClassificationwithRandomMapping(const float* h_gaussin,
+unsigned* SOMClassificationwithRandomMapping(const float* h_gaussin,
 	const float* h_inputSet,
+	const float* h_classifier_weight,
 	const unsigned int input_set_size,
 	const unsigned int dimension,
 	const unsigned int height,
 	const unsigned int width,
-	const unsigned int batch_size,
-	const unsigned int groupsNum)
+	const unsigned int batch_size)
 {
-	return AbstractSOMClassificationwithRandomMapping("../data/somweightsFinal",
-		h_gaussin,
-		h_inputSet,
-		input_set_size,
-		dimension,
-		height,
-		width,
-		batch_size,
-		groupsNum);
-}
-
-unsigned int* SOMClassificationwithRandomMapping(const float* h_gaussin,
-	const float* h_inputSet,
-	const unsigned int input_set_size,
-	const unsigned int dimension,
-	const unsigned int height,
-	const unsigned int width,
-	const unsigned int batch_size,
-	const unsigned int groupsNum)
-{
-	return AbstractSOMClassificationwithRandomMapping("../data/weightsFinal",
-		h_gaussin,
-		h_inputSet,
-		input_set_size,
-		dimension,
-		height,
-		width,
-		batch_size,
-		groupsNum);
+	return AbstractSOMClassificationwithRandomMapping(h_gaussin,
+													  h_inputSet,
+													  h_classifier_weight,
+													  input_set_size,
+													  dimension,
+													  height,
+													  width,
+													  batch_size);
 }

@@ -33,12 +33,20 @@ module ManyLens {
         private _lens: Map<string, Lens.BaseD3Lens> = new Map<string, Lens.BaseD3Lens>();
         private _lens_id_generator: number = 0;
         //private _lens_count: number = 0;
+        
+        private _current_classifier_map_id:string = null;
 
         public get LensIDGenerator(): number {
             return this._lens_id_generator++;
         }
         public get LensCount(): number {
             return this._lens.size;
+        }
+        public get CurrentClassifierMapID():string{
+            return this._current_classifier_map_id;
+        }
+        public set CurrentClassifierMapID(value:string){
+            this._current_classifier_map_id = value;
         }
 
         constructor() {
@@ -161,12 +169,12 @@ module ManyLens {
             //return this._manyLens_hub.server.testPullPoint();
         }
 
-        public ManyLensHubServerPullInterval(id: string): Hub.IPromise<void> {
+        public ManyLensHubServerPullInterval(id: string, classifierID:string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("pullInterval", id);
+            return this._manyLens_hub.proxy.invoke("pullInterval", id, classifierID);
             //return this._manyLens_hub.server.pullInterval(id);
         }
 

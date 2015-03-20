@@ -34,13 +34,74 @@ namespace ManyLens.SOM
                                                          float iterNum);
 
         [DllImport("ManyLens-SOM_CUDA.dll")]
+        public static extern IntPtr SOMClassificationwithRandomMapping(float[] h_gaussin,
+                                                                     float[] h_inputSet,
+                                                                     float[] h_classifier_weight,
+                                                                     int input_set_size,
+                                                                     int dimension,
+                                                                     int height,
+                                                                     int width,
+                                                                     int batch_size);
+
+        [DllImport("ManyLens-SOM_CUDA.dll")]
         public static extern void somFree(IntPtr pointer);
 
-        public static VisMap TweetSOM(Interval interval, VisMap lastMap = null)
+
+        public static VisMap TweetSOMClassification(Interval interval, VisMap classifier)
         {
             InitializeCUDA();
-            //generate the random matrix for random mapping
-            //interval.RMMatrix = config.Parameter.RmMatrix;
+            int trainsetSize = interval.TweetsCount;
+            float[] trainset = interval.GetHashVector(trainsetSize);
+            Debug.WriteLine("Set the parameter for SOM");
+            //set the resolution of SOM map
+            int width = 32;
+            int height = 16;
+            //set the batch size
+            int batch_size = trainsetSize;
+
+            IntPtr pointer = SOMClassificationwithRandomMapping(config.Parameter.RmMatrix,
+                                                                trainset,
+                                                                classifier.MapWeightInColumnMajor,
+                                                                trainsetSize, 
+                                                                config.Parameter.HashDimension, 
+                                                                height, 
+                                                                width, 
+                                                                batch_size);
+            Debug.WriteLine("SOM Finish");
+
+            int[] h_BID = new int[trainsetSize];
+            Marshal.Copy(pointer, h_BID, 0, trainsetSize);
+            Marshal.FreeHGlobal(pointer);
+
+            //construct the som map for visualization
+            VisMap visMap = new VisMap(interval.ID + "_0", width, height, classifier.MapWeightInColumnMajor, interval);
+            try
+            {
+                for (int i = 0; i < trainsetSize; ++i)
+                {
+                    //sw.WriteLine(h_output[i]);
+                    if (!visMap.TryAddTweetToUnit(h_BID[i], interval.Tweets[i]))
+                    {
+                        Unit unit = new Unit(h_BID[i] % width, h_BID[i] / width, h_BID[i], interval);
+                        Tweet tweet = interval.Tweets[i];
+                        unit.AddTweet(tweet);
+                        visMap.AddUnit(h_BID[i], unit);
+                    }
+                }
+            }
+            catch (NullReferenceException e)
+            {
+                Debug.WriteLine(e.InnerException);
+            }
+            //sw.Flush();
+            //sw.Close();
+            return visMap;
+
+        }
+
+        public static VisMap TweetSOMClustering(Interval interval, VisMap lastMap = null)
+        {
+            InitializeCUDA();
 
             int trainsetSize = interval.TweetsCount;
             float[] trainset = interval.GetHashVector(trainsetSize);
@@ -56,38 +117,22 @@ namespace ManyLens.SOM
             float iterD = 1f;
 
             Debug.WriteLine("Let's have SOM");
-            IntPtr pointer = IntPtr.Zero;
             //use som train here
-            if (lastMap == null)
-            {
-                pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
-                                                trainset,
-                                                null,
-                                                trainsetSize,
-                                                config.Parameter.HashDimension,
-                                                height,
-                                                width,
-                                                batch_size,
-                                                iteration,
-                                                lambda,
-                                                iterD);
+            float[] lastMapWeight = null;
+            if (lastMap != null) {
+                lastMapWeight = lastMap.MapWeightInColumnMajor;
             }
-            else
-            {
-                pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
-                                                trainset,
-                                                lastMap.MapWeightInColumnMajor,
-                                                trainsetSize,
-                                                config.Parameter.HashDimension,
-                                                height,
-                                                width,
-                                                batch_size,
-                                                iteration,
-                                                lambda,
-                                                iterD);
-            
-            }
-
+            IntPtr pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
+                                                    trainset,
+                                                    lastMapWeight,
+                                                    trainsetSize,
+                                                    config.Parameter.HashDimension,
+                                                    height,
+                                                    width,
+                                                    batch_size,
+                                                    iteration,
+                                                    lambda,
+                                                    iterD);
 
             Debug.WriteLine("SOM Finish");
 
@@ -125,7 +170,6 @@ namespace ManyLens.SOM
             }
             //*********************Check the marshal result end**************//
 
-
             //construct the som map for visualization
             VisMap visMap = new VisMap(interval.ID + "_0", width, height, h_weight, interval);
             try
@@ -133,12 +177,12 @@ namespace ManyLens.SOM
                 for (int i = 0; i < trainsetSize; ++i)
                 {
                     //sw.WriteLine(h_output[i]);
-                    if (!visMap.TryAddTweetToUnit((int)h_BID[i], interval.Tweets[i]))
+                    if (!visMap.TryAddTweetToUnit(h_BID[i], interval.Tweets[i]))
                     {
-                        Unit unit = new Unit((int)h_BID[i] % width, (int)h_BID[i] / width, (int)h_BID[i], interval);
+                        Unit unit = new Unit(h_BID[i] % width, h_BID[i] / width, h_BID[i], interval);
                         Tweet tweet = interval.Tweets[i];
                         unit.AddTweet(tweet);
-                        visMap.AddUnit((int)h_BID[i], unit);
+                        visMap.AddUnit(h_BID[i], unit);
                     }
                 }
             }

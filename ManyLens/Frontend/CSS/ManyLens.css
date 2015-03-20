@@ -94,6 +94,53 @@ div#mapView {
 svg#mapSvg {
     position:relative;
 }
+    svg#mapSvg .som-map rect.unit {
+        opacity:0.5;
+    }
+    svg#mapSvg .som-map path#control-layout {
+        fill: none;
+        pointer-events:visible;
+    }
+    svg#mapSvg .som-map path#control-layout:hover {
+        stroke: #F7CA18;
+        stroke-width:5px;
+
+    }
+
+g#som-map-context-menu rect#context-menu-base {
+    fill: #f7f7f7;
+    filter: url(#drop-shadow);
+}
+
+g#som-map-context-menu line {
+    stroke-width: 1px;
+    stroke:#dae3e9;
+}
+
+g#som-map-context-menu .context-menu-option text{
+    font-size:15px;
+    pointer-events:none;
+    cursor: default;
+}
+
+g#som-map-context-menu .context-menu-option rect{
+    fill:#f7f7f7;
+}
+
+g#som-map-context-menu .context-menu-option rect:hover {
+    fill:#59ABE3;
+}
+
+
+path.highlight-arrow {
+    stroke:#F5AB35;
+    fill:#F5AB35;
+}
+path#hightlight-arrow-line {
+    stroke-width:10px;
+    marker-end: url(#mark-end-arrow);
+}
+
 div#heatmap-container {
       pointer-events:none;
       position:absolute;           
@@ -103,10 +150,7 @@ div#heatmap-container {
         position:absolute;
     }
 
-div#historyView {
-    background-color: #fff;
-    height: 60%;
-}
+
 /*---------------tweets view-------------*/
 div#tweetsView {
     background-color: #fff;

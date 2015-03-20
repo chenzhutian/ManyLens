@@ -363,7 +363,7 @@ module ManyLens {
             }
 
             protected GetElementByMouse(): { unitsID: number[]; mapID: string } {
-                //this._element.select( "#rectForTest" ).remove();
+                
                 var unitsID = [];
                 var mapID;
                 var rect: SVGRect = ( <SVGSVGElement>this._element.node() ).createSVGRect();
@@ -376,13 +376,15 @@ module ManyLens {
                 rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
 
-                //this._element.append( "rect" ).attr( {
-                //    id:"rectForTest",
-                //    x: rect.x,
-                //    y: rect.y,
-                //    width: rect.width,
-                //    height:rect.height
-                //});
+                this._element.select( "#rectForTest" ).remove();
+                this._element.append( "rect" ).attr( {
+                    id:"rectForTest",
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height:rect.height
+                })
+                .style("pointer-events","none");
 
                 var ele = ( <SVGSVGElement>this._element.node() ).getIntersectionList( rect, null );
                 var minDist2 = Number.MAX_VALUE;

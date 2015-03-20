@@ -45,6 +45,9 @@ module ManyLens {
             private _zoom: D3.Behavior.Zoom;
             private _move_view_timer: number;
 
+            private _classifier_context_menu: D3.Selection = null;
+            private _hightlight_classifier_arrow:D3.Selection = null;
+
             private _colorPalettes: string[] = ["rgb(198,219,239)",
                 "rgb(158,202,225)",
                 "rgb(107, 174, 214)",
@@ -72,7 +75,7 @@ module ManyLens {
 
                 this._center_x = 0.5 * parseFloat( this._element.style( "width" ) );
                 this._center_y = 0.5 * parseFloat( this._element.style( "height" ) );
-                this._zoom = d3.behavior.zoom()  
+                this._zoom = d3.behavior.zoom() 
                     .scaleExtent( [0.5, 1.5] )
                     .on( "zoomstart",() => {
                         var p = d3.mouse( this._element.node() );
@@ -89,7 +92,7 @@ module ManyLens {
                             }
                             d.transformPan( d3.event.translate[0], d3.event.translate[1], currentLevel );
                         });
-                        this._element.selectAll( ".units" )
+                        this._element.selectAll( ".som-map" )
                             .attr( "transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")" );
 
                         this._element.selectAll( ".lens" )
@@ -110,9 +113,19 @@ module ManyLens {
                         this._scale = currentLevel;
 
                     })
-                    ;
+                ;
+  
                 this._element
+                    .on( "mousedown",() => {
+                        if(d3.event.button) d3.event.stopImmediatePropagation();
+                        if ( this._classifier_context_menu ) {
+                            this._classifier_context_menu.remove();
+                            this._classifier_context_menu = null;
+                        }
+                    })
                     .call( this._zoom );
+                ;
+
 
                 this._manyLens.ManyLensHubRegisterClientFunction( this, "showVis", this.ShowVis );
             }
@@ -121,11 +134,177 @@ module ManyLens {
                 //this._lensPane.Render();
             }
 
+            private ContextMenu(preMapID) {
+                var p = d3.mouse( this._element.node() );
+                if ( !this._classifier_context_menu ) {
+
+                    var contextWidth: number = 200;
+
+                    this._classifier_context_menu = this._element.append( "g" )
+                        .attr( "id", "som-map-context-menu" )
+                        .attr( "transform", "translate(" + [p[0], p[1]] + ")" )
+
+                    ;
+
+                    this._classifier_context_menu.append( "rect" )
+                        .attr( {
+                            id:"context-menu-base",
+                            width: contextWidth
+                        })
+                        .attr("height",()=>{
+                            if(this._manyLens.CurrentClassifierMapID)
+                                return 150;
+                            return 50;
+                        })
+                    ;
+
+                    // filters go in defs element
+                    var defs = this._classifier_context_menu.append( "defs" );
+                    // create filter with id #drop-shadow
+                    // height=130% so that the shadow is not clipped
+                    var filter = defs.append( "filter" )
+                        .attr( "id", "drop-shadow" )
+                        .attr( "height", "130%" );
+
+                    // SourceAlpha refers to opacity of graphic that this filter will be applied to
+                    // convolve that with a Gaussian with standard deviation 3 and store result
+                    // in blur
+                    filter.append( "feGaussianBlur" )
+                        .attr( "in", "SourceAlpha" )
+                        .attr( "stdDeviation", 2 )
+                        .attr( "result", "blur" );
+
+                    // translate output of Gaussian blur to the right and downwards with 2px
+                    // store result in offsetBlur
+                    filter.append( "feOffset" )
+                        .attr( "in", "blur" )
+                        .attr( "dx", 1 )
+                        .attr( "dy", 1 )
+                        .attr( "result", "offsetBlur" );
+
+                    // overlay original SourceGraphic over translated blurred opacity by using
+                    // feMerge filter. Order of specifying inputs is important!
+                    var feMerge = filter.append( "feMerge" );
+
+                    feMerge.append( "feMergeNode" )
+                        .attr( "in", "offsetBlur" )
+                    feMerge.append( "feMergeNode" )
+                        .attr( "in", "SourceGraphic" );
+
+                    var option = [
+                                    {mapID:preMapID,text:"Set this map as classifier"},
+                                    {mapID:this._manyLens.CurrentClassifierMapID,text:"Current classifier: "},
+                                    {mapID:this._manyLens.CurrentClassifierMapID,text:"Remove classifier"}
+                                ];
+
+                    var optionG = this._classifier_context_menu.selectAll(".context-menu-option")
+                        .data(option.filter(function(d){ return d.mapID != null;}))
+                        .enter().append("g")
+                        .attr("class","context-menu-option")
+                        .attr("transform",function(d,i){
+                            if(i == 2)
+                                return "translate(10,"+(i*50+10)+")";
+                            return "translate(10,"+(i*40+10)+")";
+                        })
+                    ;
+
+                    var textHeight;
+                    this._classifier_context_menu.append("text").text("text")
+                        .attr("x",function(d){
+                            var box = this.getBBox();
+                            textHeight = box.height;
+                        })
+                        .remove();
+
+                    optionG.append( "text" )
+                        .html(function(d){
+                            if(d.text[0] == "C"){
+                                return   '<tspan>Current classifier:</tspan><tspan x="40" dy='+textHeight+'>'+d.mapID+'</tspan>';
+                            }
+                            return d.text;
+                        })
+                        .attr( "y", textHeight)
+
+                    ;
+                    optionG.insert("rect",".context-menu-option text")
+                        .attr({
+                            width:contextWidth - 20
+                        })
+                        .attr("height",function(d,i) {
+                            if(i == 1)
+                                return 2*(textHeight + 6);
+                            return textHeight+6;
+                        })
+                        .on("mousedown",function(){ d3.event.stopPropagation();})
+                        .on("click",(d,i)=>{
+                            
+                            switch(i){
+                                case 0: {
+                                    this._manyLens.CurrentClassifierMapID = d.mapID;
+                                    if(this._hightlight_classifier_arrow) this._hightlight_classifier_arrow.remove();
+                                    this._hightlight_classifier_arrow = d3.select("#mapSvg"+d.mapID).append("g");
+                                    var defs = this._hightlight_classifier_arrow.append('svg:defs');
+                                    // define arrow markers for leading arrow
+                                    defs.append('svg:marker')
+                                        .attr({
+                                            'id': 'mark-end-arrow',
+                                            'viewBox': '0 -5 10 10',
+                                            'refX': 7,
+                                            'markerWidth': 3.5,
+                                            'markerHeight': 3.5,
+                                            'orient': 'auto'
+                                        })
+                                        .append('path')
+                                        .attr({
+                                            "class":"highlight-arrow",    
+                                            'd':'M0,-5L10,0L0,5z'
+                                        })
+                                    ;
+                                    this._hightlight_classifier_arrow
+                                        .append("path")
+                                        .attr({
+                                            id:"hightlight-arrow-line",
+                                            "class":"highlight-arrow"
+                                        })
+                                        .attr("d",function(d){
+                                            return 'M'+(-10+d.leftOffset)+',-10L'+(60+d.leftOffset)+',70';
+                                        })
+                                    ;
+                                }
+                                    break;
+                                case 1:{
+                                
+                                }
+                                    break;
+                                case 2:{
+                                    this._manyLens.CurrentClassifierMapID = null;
+                                    if(this._hightlight_classifier_arrow) this._hightlight_classifier_arrow.remove();
+                                }
+                                    break;
+                            }
+                            
+                            
+                            this._classifier_context_menu.remove();
+                            this._classifier_context_menu = null;
+                        })
+                    ;
+
+                    this._classifier_context_menu.append( "line" )
+                        .attr( {
+                            x1: 10,
+                            x2: 180,
+                            y1: 40,
+                            y2:40
+                        })
+                    ;
+                }
+
+                this._classifier_context_menu.attr( "transform", "translate(" + [p[0], p[1]] + ")" );
+            }
+
             public ShowVis( visData: MapData ): void {
                 this._maps.push( visData );
-                if ( this._top_offset == null ) {
-                    this._top_offset = ( parseFloat( this._element.style( "height" ) ) - visData.height * this._unit_height ) / 2;
-                }
+                this._top_offset = this._top_offset || ( parseFloat( this._element.style( "height" ) ) - visData.height * this._unit_height ) / 2;
 
                 var newHeatMap = new HeatMapLayer( "mapCanvas" + visData.mapID,
                     this._heatmap_container,
@@ -141,28 +320,55 @@ module ManyLens {
                 newHeatMap.transformPan( this._translate_x, this._translate_y, this._scale );
                 this._heatMaps.push( newHeatMap );
 
+
                 var svg = this._element
                     .append( "g" )
-                    .data( [{ mapID: visData.mapID, width: visData.width, height: visData.height }] )
+                    .data( [{ mapID: visData.mapID, width: visData.width, height: visData.height,leftOffset:this._left_offset }] )
                     .attr( "id", function ( d ) { return "mapSvg" + d.mapID; })
-                    .attr( "class", "units" )
+                    .attr( "class", "som-map" )
                     .attr( "transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")" )
-                    .selectAll( "rect" )
+                    ;
+
+                svg.selectAll( "rect.unit" )
                     .data( visData.unitsData )
                     .enter().append( "rect" )
-                    .attr( "class", "unit" )
                     .attr( "x",( d ) => { return this._left_offset + d.x * this._unit_width; })
                     .attr( "y",( d ) => { return this._top_offset + d.y * this._unit_height; })
-
                     .attr( {
+                        "class":"unit",
                         width: this._unit_width,
                         height: this._unit_height
                     })
-                    .style( {
-                        opacity: 0.5
+                    ;
+                
+                //Add the hightlight and contextmenu layout
+                var line = d3.svg.line()
+                    .x( function ( d ) { return d.x ; })
+                    .y( function ( d ) { return d.y; })
+                    .interpolate("linear-closed")
+                ;
+                svg.append( "path" )
+                    .data(
+                        [{
+                            mapID:visData.mapID,
+                            path: [
+                                { x: this._left_offset, y: this._top_offset },
+                                { x: this._left_offset, y: this._top_offset + this._unit_height * visData.height },
+                                { x: this._left_offset + this._unit_width * visData.width, y: this._top_offset + this._unit_height * visData.height },
+                                { x: this._left_offset + this._unit_width * visData.width, y: this._top_offset }
+                            ]
+                        }]
+                    )
+                    .attr( "d", function(d){ return line(d.path);} )
+                    .attr("id","control-layout")
+                    .on( "contextmenu",(d) => {
+                        this.ContextMenu(d.mapID);
+                        d3.event.preventDefault();
                     })
+
                     ;
 
+                //whether to move or not
                 this._left_offset += this._unit_width * visData.width + this._map_gap;
                 var leftMost = this._left_offset * this._scale + this._translate_x;
                 if ( leftMost > this._total_width ) {
@@ -175,7 +381,7 @@ module ManyLens {
                         this._heatMaps.forEach(( d ) => {
                             d.transformPan( this._translate_x, this._translate_y, this._scale );
                         });
-                        this._element.selectAll( ".units" )
+                        this._element.selectAll( ".som-map" )
                             .attr( "transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")" );
                         this._element.selectAll( ".lens" )
                             .attr( "transform",  ( d )=> {
@@ -199,11 +405,10 @@ module ManyLens {
                             clearInterval( this._move_view_timer );
                             this._move_view_timer = -1;
                         }
-                    }, 10 );
+                    }, 2 );
                     
                 }
             }
-
 
         }
     }

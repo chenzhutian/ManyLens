@@ -299,12 +299,12 @@ var ManyLens;
                 this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")").call(this._x_axis_gen);
                 this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + (this._coordinate_margin_left + this._view_left_padding) + ",0)").call(this._y_axis_gen);
             };
-            Curve.prototype.PullInterval = function (interalID) {
+            Curve.prototype.PullInterval = function (interalID, classifierID) {
                 var _this = this;
                 if (ManyLens.ManyLens.TestMode)
                     this._manyLens.ManyLensHubServerTestPullInterval(interalID);
                 else {
-                    this._manyLens.ManyLensHubServerPullInterval(interalID).progress(function (percent) {
+                    this._manyLens.ManyLensHubServerPullInterval(interalID, classifierID).progress(function (percent) {
                         _this._element.select(".progress-bar").style("width", percent * 100 + "%");
                     }).done(function () {
                         _this._element.select(".progress-bar").style("width", 0);
@@ -668,16 +668,16 @@ var ManyLens;
                 if (d['end'] == -1) {
                     console.log("Segmentation hasn't finished yet!");
                 }
-                else if (d['end'] != null && d['end'] != -1) {
+                else if (d['end'] == null || d['end'] != -1) {
                     this._curveSvg.style("margin-bottom", "0px");
                     this._element.select(".progress").style("display", "block");
-                    this.PullInterval(d.id);
+                    this.PullInterval(d.id, this._manyLens.CurrentClassifierMapID);
                 }
-                else if (d['end'] == null) {
-                    this._curveSvg.style("margin-bottom", "0px");
-                    this._element.select(".progress").style("display", "block");
-                    this.PullInterval(d.id);
-                }
+                //else if ( d['end'] == null ) {
+                //    this._curveSvg.style( "margin-bottom", "0px" )
+                //    this._element.select( ".progress" ).style( "display", "block" );
+                //    this.PullInterval( d.id );
+                //}
             };
             Curve.prototype.GetWeek = function (date) {
                 var d = new Date(+date);
@@ -1660,7 +1660,6 @@ var ManyLens;
                 }
             };
             BaseSingleLens.prototype.GetElementByMouse = function () {
-                //this._element.select( "#rectForTest" ).remove();
                 var unitsID = [];
                 var mapID;
                 var rect = this._element.node().createSVGRect();
@@ -1670,13 +1669,14 @@ var ManyLens;
                 rect.x = realX - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
-                //this._element.append( "rect" ).attr( {
-                //    id:"rectForTest",
-                //    x: rect.x,
-                //    y: rect.y,
-                //    width: rect.width,
-                //    height:rect.height
-                //});
+                this._element.select("#rectForTest").remove();
+                this._element.append("rect").attr({
+                    id: "rectForTest",
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height: rect.height
+                }).style("pointer-events", "none");
                 var ele = this._element.node().getIntersectionList(rect, null);
                 var minDist2 = Number.MAX_VALUE;
                 var minUnitsID = -1;
@@ -5095,6 +5095,8 @@ var ManyLens;
                 this._map_gap = 10;
                 this._unit_width = 20;
                 this._unit_height = 20;
+                this._classifier_context_menu = null;
+                this._hightlight_classifier_arrow = null;
                 this._colorPalettes = ["rgb(198,219,239)", "rgb(158,202,225)", "rgb(107, 174, 214)", "rgb(66, 146, 198)", "rgb(33, 113, 181)", "rgb(8, 81, 156)", "rgb(8, 81, 156)"];
                 // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
                 this._element.attr("height", function () {
@@ -5122,7 +5124,7 @@ var ManyLens;
                         }
                         d.transformPan(d3.event.translate[0], d3.event.translate[1], currentLevel);
                     });
-                    _this._element.selectAll(".units").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                    _this._element.selectAll(".som-map").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
                     _this._element.selectAll(".lens").attr("transform", function (d) {
                         if (d.cx == 0) {
                             d.cx = d3.event.translate[0];
@@ -5137,34 +5139,176 @@ var ManyLens;
                     _this._translate_y = d3.event.translate[1];
                     _this._scale = currentLevel;
                 });
-                this._element.call(this._zoom);
+                this._element.on("mousedown", function () {
+                    if (d3.event.button)
+                        d3.event.stopImmediatePropagation();
+                    if (_this._classifier_context_menu) {
+                        _this._classifier_context_menu.remove();
+                        _this._classifier_context_menu = null;
+                    }
+                }).call(this._zoom);
+                ;
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
             SOMMap.prototype.Render = function () {
                 //this._lensPane.Render();
             };
+            SOMMap.prototype.ContextMenu = function (preMapID) {
+                var _this = this;
+                var p = d3.mouse(this._element.node());
+                if (!this._classifier_context_menu) {
+                    var contextWidth = 200;
+                    this._classifier_context_menu = this._element.append("g").attr("id", "som-map-context-menu").attr("transform", "translate(" + [p[0], p[1]] + ")");
+                    this._classifier_context_menu.append("rect").attr({
+                        id: "context-menu-base",
+                        width: contextWidth
+                    }).attr("height", function () {
+                        if (_this._manyLens.CurrentClassifierMapID)
+                            return 150;
+                        return 50;
+                    });
+                    // filters go in defs element
+                    var defs = this._classifier_context_menu.append("defs");
+                    // create filter with id #drop-shadow
+                    // height=130% so that the shadow is not clipped
+                    var filter = defs.append("filter").attr("id", "drop-shadow").attr("height", "130%");
+                    // SourceAlpha refers to opacity of graphic that this filter will be applied to
+                    // convolve that with a Gaussian with standard deviation 3 and store result
+                    // in blur
+                    filter.append("feGaussianBlur").attr("in", "SourceAlpha").attr("stdDeviation", 2).attr("result", "blur");
+                    // translate output of Gaussian blur to the right and downwards with 2px
+                    // store result in offsetBlur
+                    filter.append("feOffset").attr("in", "blur").attr("dx", 1).attr("dy", 1).attr("result", "offsetBlur");
+                    // overlay original SourceGraphic over translated blurred opacity by using
+                    // feMerge filter. Order of specifying inputs is important!
+                    var feMerge = filter.append("feMerge");
+                    feMerge.append("feMergeNode").attr("in", "offsetBlur");
+                    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+                    var option = [
+                        { mapID: preMapID, text: "Set this map as classifier" },
+                        { mapID: this._manyLens.CurrentClassifierMapID, text: "Current classifier: " },
+                        { mapID: this._manyLens.CurrentClassifierMapID, text: "Remove classifier" }
+                    ];
+                    var optionG = this._classifier_context_menu.selectAll(".context-menu-option").data(option.filter(function (d) {
+                        return d.mapID != null;
+                    })).enter().append("g").attr("class", "context-menu-option").attr("transform", function (d, i) {
+                        if (i == 2)
+                            return "translate(10," + (i * 50 + 10) + ")";
+                        return "translate(10," + (i * 40 + 10) + ")";
+                    });
+                    var textHeight;
+                    this._classifier_context_menu.append("text").text("text").attr("x", function (d) {
+                        var box = this.getBBox();
+                        textHeight = box.height;
+                    }).remove();
+                    optionG.append("text").html(function (d) {
+                        if (d.text[0] == "C") {
+                            return '<tspan>Current classifier:</tspan><tspan x="40" dy=' + textHeight + '>' + d.mapID + '</tspan>';
+                        }
+                        return d.text;
+                    }).attr("y", textHeight);
+                    optionG.insert("rect", ".context-menu-option text").attr({
+                        width: contextWidth - 20
+                    }).attr("height", function (d, i) {
+                        if (i == 1)
+                            return 2 * (textHeight + 6);
+                        return textHeight + 6;
+                    }).on("mousedown", function () {
+                        d3.event.stopPropagation();
+                    }).on("click", function (d, i) {
+                        switch (i) {
+                            case 0:
+                                {
+                                    _this._manyLens.CurrentClassifierMapID = d.mapID;
+                                    if (_this._hightlight_classifier_arrow)
+                                        _this._hightlight_classifier_arrow.remove();
+                                    _this._hightlight_classifier_arrow = d3.select("#mapSvg" + d.mapID).append("g");
+                                    var defs = _this._hightlight_classifier_arrow.append('svg:defs');
+                                    // define arrow markers for leading arrow
+                                    defs.append('svg:marker').attr({
+                                        'id': 'mark-end-arrow',
+                                        'viewBox': '0 -5 10 10',
+                                        'refX': 7,
+                                        'markerWidth': 3.5,
+                                        'markerHeight': 3.5,
+                                        'orient': 'auto'
+                                    }).append('path').attr({
+                                        "class": "highlight-arrow",
+                                        'd': 'M0,-5L10,0L0,5z'
+                                    });
+                                    _this._hightlight_classifier_arrow.append("path").attr({
+                                        id: "hightlight-arrow-line",
+                                        "class": "highlight-arrow"
+                                    }).attr("d", function (d) {
+                                        return 'M' + (-10 + d.leftOffset) + ',-10L' + (60 + d.leftOffset) + ',70';
+                                    });
+                                }
+                                break;
+                            case 1:
+                                {
+                                }
+                                break;
+                            case 2:
+                                {
+                                    _this._manyLens.CurrentClassifierMapID = null;
+                                    if (_this._hightlight_classifier_arrow)
+                                        _this._hightlight_classifier_arrow.remove();
+                                }
+                                break;
+                        }
+                        _this._classifier_context_menu.remove();
+                        _this._classifier_context_menu = null;
+                    });
+                    this._classifier_context_menu.append("line").attr({
+                        x1: 10,
+                        x2: 180,
+                        y1: 40,
+                        y2: 40
+                    });
+                }
+                this._classifier_context_menu.attr("transform", "translate(" + [p[0], p[1]] + ")");
+            };
             SOMMap.prototype.ShowVis = function (visData) {
                 var _this = this;
                 this._maps.push(visData);
-                if (this._top_offset == null) {
-                    this._top_offset = (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
-                }
+                this._top_offset = this._top_offset || (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
                 var newHeatMap = new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.width, visData.height, this._unit_width, this._unit_height, this._top_offset, this._left_offset, visData.unitsData);
                 newHeatMap.transform(this._scale, 0, 0);
                 newHeatMap.transformPan(this._translate_x, this._translate_y, this._scale);
                 this._heatMaps.push(newHeatMap);
-                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height }]).attr("id", function (d) {
+                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, leftOffset: this._left_offset }]).attr("id", function (d) {
                     return "mapSvg" + d.mapID;
-                }).attr("class", "units").attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")").selectAll("rect").data(visData.unitsData).enter().append("rect").attr("class", "unit").attr("x", function (d) {
+                }).attr("class", "som-map").attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")");
+                svg.selectAll("rect.unit").data(visData.unitsData).enter().append("rect").attr("x", function (d) {
                     return _this._left_offset + d.x * _this._unit_width;
                 }).attr("y", function (d) {
                     return _this._top_offset + d.y * _this._unit_height;
                 }).attr({
+                    "class": "unit",
                     width: this._unit_width,
                     height: this._unit_height
-                }).style({
-                    opacity: 0.5
                 });
+                //Add the hightlight and contextmenu layout
+                var line = d3.svg.line().x(function (d) {
+                    return d.x;
+                }).y(function (d) {
+                    return d.y;
+                }).interpolate("linear-closed");
+                svg.append("path").data([{
+                    mapID: visData.mapID,
+                    path: [
+                        { x: this._left_offset, y: this._top_offset },
+                        { x: this._left_offset, y: this._top_offset + this._unit_height * visData.height },
+                        { x: this._left_offset + this._unit_width * visData.width, y: this._top_offset + this._unit_height * visData.height },
+                        { x: this._left_offset + this._unit_width * visData.width, y: this._top_offset }
+                    ]
+                }]).attr("d", function (d) {
+                    return line(d.path);
+                }).attr("id", "control-layout").on("contextmenu", function (d) {
+                    _this.ContextMenu(d.mapID);
+                    d3.event.preventDefault();
+                });
+                //whether to move or not
                 this._left_offset += this._unit_width * visData.width + this._map_gap;
                 var leftMost = this._left_offset * this._scale + this._translate_x;
                 if (leftMost > this._total_width) {
@@ -5177,7 +5321,7 @@ var ManyLens;
                         _this._heatMaps.forEach(function (d) {
                             d.transformPan(_this._translate_x, _this._translate_y, _this._scale);
                         });
-                        _this._element.selectAll(".units").attr("transform", "translate(" + [_this._translate_x, _this._translate_y] + ")scale(" + _this._scale + ")");
+                        _this._element.selectAll(".som-map").attr("transform", "translate(" + [_this._translate_x, _this._translate_y] + ")scale(" + _this._scale + ")");
                         _this._element.selectAll(".lens").attr("transform", function (d) {
                             if (d.cx == 0) {
                                 d.cx = _this._translate_x;
@@ -5195,7 +5339,7 @@ var ManyLens;
                             clearInterval(_this._move_view_timer);
                             _this._move_view_timer = -1;
                         }
-                    }, 10);
+                    }, 2);
                 }
             };
             return SOMMap;
@@ -5222,6 +5366,8 @@ var ManyLens;
             //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
             this._lens = new Map();
             this._lens_id_generator = 0;
+            //private _lens_count: number = 0;
+            this._current_classifier_map_id = null;
             /*--------------------------Initial all the hub------------------------------*/
             this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             /*------------------------Initial other Component--------------------------------*/
@@ -5256,7 +5402,6 @@ var ManyLens;
             });
         }
         Object.defineProperty(ManyLens.prototype, "LensIDGenerator", {
-            //private _lens_count: number = 0;
             get: function () {
                 return this._lens_id_generator++;
             },
@@ -5266,6 +5411,16 @@ var ManyLens;
         Object.defineProperty(ManyLens.prototype, "LensCount", {
             get: function () {
                 return this._lens.size;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ManyLens.prototype, "CurrentClassifierMapID", {
+            get: function () {
+                return this._current_classifier_map_id;
+            },
+            set: function (value) {
+                this._current_classifier_map_id = value;
             },
             enumerable: true,
             configurable: true
@@ -5338,12 +5493,12 @@ var ManyLens;
             return this._manyLens_hub.proxy.invoke("testPullPoint");
             //return this._manyLens_hub.server.testPullPoint();
         };
-        ManyLens.prototype.ManyLensHubServerPullInterval = function (id) {
+        ManyLens.prototype.ManyLensHubServerPullInterval = function (id, classifierID) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("pullInterval", id);
+            return this._manyLens_hub.proxy.invoke("pullInterval", id, classifierID);
             //return this._manyLens_hub.server.pullInterval(id);
         };
         ManyLens.prototype.ManyLensHubServerTestPullInterval = function (id) {

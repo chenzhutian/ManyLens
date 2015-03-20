@@ -15,7 +15,7 @@ namespace ManyLens.SignalR
 {
     public class ManyLensHub : Hub
     {
-        private static bool TestMode = true;
+        private static bool TestMode = false;
         
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
@@ -465,10 +465,12 @@ namespace ManyLens.SignalR
             return Math.Sqrt(dist);
         }
 
-        public async Task PullInterval(string interalID, IProgress<double> progress)
+        public async Task PullInterval(string interalID, string classifierID, IProgress<double> progress)
         {
             VisMap visMap;
+
             string mapID = interalID + "_0";
+            if (classifierID != null) mapID += "_" + classifierID;
 
             await Task.Run(() =>
             {
@@ -487,12 +489,21 @@ namespace ManyLens.SignalR
                     }
                     else
                     {
-                        VisMap lastMap = null;
-                        if (visMapsSortedByTime.Count > 0)
+                        if (classifierID != null)
                         {
-                            lastMap = visMapsSortedByTime.Last().Value;
+                            VisMap classifierMap = visMaps[classifierID];
+                            visMap = GPUSOM.TweetSOMClassification(interal, classifierMap);
                         }
-                        visMap = GPUSOM.TweetSOM(interal,lastMap);
+                        else
+                        {
+                            VisMap lastMap = null;
+                            if (visMapsSortedByTime.Count > 0)
+                            {
+                                lastMap = visMapsSortedByTime.Last().Value;
+                            }
+                            visMap = GPUSOM.TweetSOMClustering(interal, lastMap);
+                        }
+
                     }
 
                     Debug.WriteLine(interal.Entropy);

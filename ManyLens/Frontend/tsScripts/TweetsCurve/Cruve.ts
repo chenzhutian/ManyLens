@@ -242,23 +242,23 @@ module ManyLens {
 
             }
 
-            public PullInterval( interalID: string ): void {
+            public PullInterval( interalID: string, classifierID?:string ): void {
                 if ( ManyLens.TestMode )
                     this._manyLens.ManyLensHubServerTestPullInterval( interalID );
                 else {
-                    this._manyLens.ManyLensHubServerPullInterval( interalID )
+                    this._manyLens.ManyLensHubServerPullInterval( interalID,classifierID )
                         .progress(( percent ) => {
-                        this._element.select( ".progress-bar" )
-                            .style( "width", percent * 100 + "%" )
-                        ;
-                    })
+                            this._element.select( ".progress-bar" )
+                                .style( "width", percent * 100 + "%" )
+                            ;
+                        })
                         .done(() => {
-                        this._element.select( ".progress-bar" )
-                            .style( "width", 0 )
-                        ;
-                        this._element.select( ".progress" ).style( "display", "none" );
-                        this._curveSvg.style( "margin-bottom", "17px" )
-                    });
+                            this._element.select( ".progress-bar" )
+                                .style( "width", 0 )
+                            ;
+                            this._element.select( ".progress" ).style( "display", "none" );
+                            this._curveSvg.style( "margin-bottom", "17px" )
+                        });
                 }
             }
 
@@ -721,15 +721,16 @@ module ManyLens {
             private SelectSegment( d: Section|StackNode ) {
                 if ( d['end'] == -1 ) {
                     console.log( "Segmentation hasn't finished yet!" );
-                } else if ( d['end'] != null && d['end'] != -1 ) {
+                } else if ( d['end'] == null || d['end'] != -1 ) {
                     this._curveSvg.style( "margin-bottom", "0px" )
                     this._element.select( ".progress" ).style( "display", "block" );
-                    this.PullInterval( d.id );
-                } else if ( d['end'] == null ) {
-                    this._curveSvg.style( "margin-bottom", "0px" )
-                    this._element.select( ".progress" ).style( "display", "block" );
-                    this.PullInterval( d.id );
-                }
+                    this.PullInterval( d.id, this._manyLens.CurrentClassifierMapID );
+                } 
+                //else if ( d['end'] == null ) {
+                //    this._curveSvg.style( "margin-bottom", "0px" )
+                //    this._element.select( ".progress" ).style( "display", "block" );
+                //    this.PullInterval( d.id );
+                //}
             }
 
             private GetWeek( date: Date ): number {
