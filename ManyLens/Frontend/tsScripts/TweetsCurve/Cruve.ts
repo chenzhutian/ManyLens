@@ -74,14 +74,14 @@ module ManyLens {
             private _sub_view_x_scale: D3.Scale.LinearScale = d3.scale.linear();
             private _sub_view_y_scale: D3.Scale.LinearScale = d3.scale.linear();
 
-            private _section_num: number = 50;
+            private _section_num: number = 30;
             private _view_height: number;
             private _view_width: number;
             private _view_top_padding: number = 15;
             private _view_botton_padding: number = 5;
             private _view_left_padding: number = 50;
             private _view_right_padding: number = 50;
-            private _coordinate_margin_left: number = 300;
+            private _coordinate_margin_left: number = 400;
 
             private _intervals: Array<StackRect>;
             protected _data: Array<Point>;
@@ -99,7 +99,8 @@ module ManyLens {
             private _stack_bar_tree_diagonal: D3.Svg.Diagonal;
             private _stack_bar_node: D3.UpdateSelection;
             private _stack_bar_link: D3.UpdateSelection;
-
+            private week_days_name: string[] = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fir.", "Sat."];
+            private month_names: string[] = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
 
             private _stack_content: Map<number, StackRect[]>;
 
@@ -157,15 +158,15 @@ module ManyLens {
 
                 this._root = {
                     id: "root",
-                    type: "year",
+                    name:"",
+                    type: "null",
                     date: null,
                     parent:null,
                     children: [] 
                 }
                 
-                console.log( this._sub_view_width );
                 this._stack_bar_tree = d3.layout.tree()
-                    .size( [this._sub_view_width-50, this._sub_view_height-10] );
+                    .size( [this._sub_view_width-50, this._sub_view_height-20] );
                 this._stack_bar_tree_diagonal = d3.svg.diagonal();
 
                 this._sub_view_x_scale.range([this._view_left_padding,this._view_left_padding + this._coordinate_margin_left]);
@@ -197,11 +198,11 @@ module ManyLens {
                     .attr( "y", 0 )
                 ;
 
-                var timer;
                 this._subView = this._curveSvg.append( "g" )
                     .attr( "clip-path", "url(#stackRectClip)" )
                     .append( "g" )
                     .attr( "id", "curve.subView" )
+                    .attr("transform","translate(0,-20)")
                     //.on( "mouseenter",() => {
                     //    clearTimeout( timer );
                     //})
@@ -311,11 +312,11 @@ module ManyLens {
             }
 
             private Update( exitParent: StackNode ,mode:boolean = true) {
-                var duration = 1000;
+                var duration = 500;
                 
 
                 //Nodes
-                var nodex = this._stack_bar_tree.nodes( this._root["year"] );
+                var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) { return d.name != "";});
                 this._stack_bar_node = this._subView.selectAll( ".node" )
                     .data( nodex, function ( d ) { return d.id; });
 
@@ -326,17 +327,14 @@ module ManyLens {
                     .attr( "transform",( d ) => {
                     if ( d.date && mode)
                         return "translate(" + [this._sub_view_width - 10, this._sub_view_height - 10] + ")";
-                    if ( !d.parent.x )
-                        return "translate(" + [d.x, d.y] + ")";
+                    if ( !d.parent )
+                        return "translate(" + [d.x, d.y+5] + ")";
                     return "translate(" + [d.parent.x, d.parent.y] + ")";
                     })
-                    .on( "click",( d ) => {
-                        this.Toggle( d );
-                        this.Update( d,false );
-                    })
+
                     ;
 
-                enterNode.transition().delay( duration * 0.5 ).duration( duration )
+                enterNode.filter( function ( d ) { return d.parent;}).transition().delay( duration * 0.5 ).duration( duration )
                     .attr( "transform",( d ) => {
                     return "translate(" + [d.x, d.y] + ")";
                 })
@@ -357,16 +355,31 @@ module ManyLens {
                         stroke: "#fff",
                         "stroke-width": 2
                     })
+                    .on( "click",( d ) => {
+                        this.Toggle( d );
+                        this.Update( d, false );
+                    })
                     .transition().delay( duration * 0.5 ).duration( duration )
                     .attr("transform",null)
-                    .attr( "d", d3.superformula().type("circle").size(50))
+                    .attr( "d", d3.superformula().type( "circle" ).size( 50 ) )
+
                 ;
 
                 enterNode.append( "text" )
                     .attr( "x", function ( d ) { return d.children || d._children ? -10 : 10; })
                     .attr( "dy", ".35em" )
                     .attr( "text-anchor", function ( d ) { return d.children || d._children ? "end" : "start"; })
-                    .text( function ( d ) { return d.name; })
+                    .text(( d:StackNode ) => {
+                    if ( d.name[0] == "y" ) {
+                        return d.name.substring( 4 );
+                    }else if ( d.name[0] == "d" ) {
+                        return this.week_days_name[parseInt( d.name[d.name.length - 1] )];
+                    } else if ( d.name[0] == "m" ) {
+                        return this.month_names[parseInt( d.name[d.name.length - 1] )];
+                    }
+
+                        return d.name;
+                    })
                     .style( "fill-opacity", 1e-6 )
                     .transition().delay( duration * 0.5 ).duration( duration )
                     .style( "fill-opacity", 1 );
@@ -453,19 +466,19 @@ module ManyLens {
 
                     //The stack date
                     var date = this._time_formater.parse( this._data[0].beg );
-                    var stackRect: StackDate = {
-                        id: this._data[0].beg,
-                        x: this._stack_time.length * this._stack_bar_width,
-                        ox: this._stack_time.length * this._stack_bar_width,
-                        type: 0,
-                        index: date.getDay(),
-                        isRemove: false,
-                        fill: null,
-                        date:date,
-                        intervals: null
-                    }
+                    //var stackRect: StackDate = {
+                    //    id: this._data[0].beg,
+                    //    x: this._stack_time.length * this._stack_bar_width,
+                    //    ox: this._stack_time.length * this._stack_bar_width,
+                    //    type: 0,
+                    //    index: date.getDay(),
+                    //    isRemove: false,
+                    //    fill: null,
+                    //    date:date,
+                    //    intervals: null
+                    //}
                                          
-                    this._intervals.push( stackRect );
+                    //this._intervals.push( stackRect );
 
                     var stackNode: StackNode = {
                         id: this._data[0].beg,
@@ -474,7 +487,7 @@ module ManyLens {
                         name:"H"+date.getHours(),
                         parent:null,
                         children: null,
-                        type: "year-mounth"+date.getMonth()+"-week"+this.GetWeek(date)+"-day"+date.getDay()+"-hour"+date.getHours(),
+                        type: ""+"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-week"+this.GetWeek(date)+"-day"+date.getDay()+"-hour"+date.getHours(),
                         index: date.getDay()
                     }
                     this.InserNode( stackNode.type, stackNode );
@@ -735,6 +748,14 @@ module ManyLens {
                 }
             }
 
+            private GetWeek( date: Date ): number {
+                var d = new Date( +date );
+                d.setHours( 0, 0, 0 );
+                d.setDate( d.getDate() + 4 - ( d.getDay() || 7 ) );
+                return Math.ceil(( ( ( d.getTime() - new Date( d.getFullYear(), 0, 1 ).getTime() ) / 8.64e7 ) + 1 ) / 7 );
+            }
+
+
             private ShrinkStackRect( filterX: number = -1 ) {
                 if ( this._subView ) {
                     this._subView
@@ -764,11 +785,6 @@ module ManyLens {
 
                     this._subView.on( "mousemove", null );
                 }
-            }
-
-            private GetWeek( date: Date ): number {
-                var onejan = new Date( date.getFullYear(), 0, 1 );
-                return Math.ceil(( ( ( date.getTime() - onejan.getTime() ) / 86400000 ) + onejan.getDay() + 1 ) / 7 );
             }
 
             private StackBarByTime( date: Date, depth: number, intervals: Array<StackDate>, stack_time_right: Array<StackDate> = null ) {

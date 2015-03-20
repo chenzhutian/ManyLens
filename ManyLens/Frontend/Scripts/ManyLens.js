@@ -227,14 +227,16 @@ var ManyLens;
                 this._fisheye_scale = d3.fisheye.ordinal();
                 this._sub_view_x_scale = d3.scale.linear();
                 this._sub_view_y_scale = d3.scale.linear();
-                this._section_num = 50;
+                this._section_num = 30;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._coordinate_margin_left = 300;
+                this._coordinate_margin_left = 400;
                 this._stack_time_id_gen = 0;
                 this._stack_bar_width = 15;
+                this.week_days_name = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fir.", "Sat."];
+                this.month_names = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
                 this._data = new Array();
                 this._intervals = new Array();
                 this._stack_time = new Array();
@@ -251,13 +253,13 @@ var ManyLens;
                 this._time_formater = d3.time.format("%Y%m%d%H%M%S");
                 this._root = {
                     id: "root",
-                    type: "year",
+                    name: "",
+                    type: "null",
                     date: null,
                     parent: null,
                     children: []
                 };
-                console.log(this._sub_view_width);
-                this._stack_bar_tree = d3.layout.tree().size([this._sub_view_width - 50, this._sub_view_height - 10]);
+                this._stack_bar_tree = d3.layout.tree().size([this._sub_view_width - 50, this._sub_view_height - 20]);
                 this._stack_bar_tree_diagonal = d3.svg.diagonal();
                 this._sub_view_x_scale.range([this._view_left_padding, this._view_left_padding + this._coordinate_margin_left]);
                 this._sub_view_y_scale.range([this._view_height - this._view_botton_padding, this._view_top_padding]);
@@ -291,8 +293,7 @@ var ManyLens;
                 this._element.select(".progress").style("display", "none");
                 this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "stackRectClip").append("rect").attr("width", this._coordinate_margin_left + this._view_left_padding).attr("height", this._view_height - this._view_botton_padding).attr("x", 0).attr("y", 0);
-                var timer;
-                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView");
+                this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").attr("transform", "translate(0,-20)");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
                 this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")").call(this._x_axis_gen);
@@ -366,9 +367,11 @@ var ManyLens;
             Curve.prototype.Update = function (exitParent, mode) {
                 var _this = this;
                 if (mode === void 0) { mode = true; }
-                var duration = 1000;
+                var duration = 500;
                 //Nodes
-                var nodex = this._stack_bar_tree.nodes(this._root["year"]);
+                var nodex = this._stack_bar_tree.nodes(this._root[""]).filter(function (d) {
+                    return d.name != "";
+                });
                 this._stack_bar_node = this._subView.selectAll(".node").data(nodex, function (d) {
                     return d.id;
                 });
@@ -376,14 +379,13 @@ var ManyLens;
                 var enterNode = this._stack_bar_node.enter().append("g").attr("class", "node").attr("transform", function (d) {
                     if (d.date && mode)
                         return "translate(" + [_this._sub_view_width - 10, _this._sub_view_height - 10] + ")";
-                    if (!d.parent.x)
-                        return "translate(" + [d.x, d.y] + ")";
+                    if (!d.parent)
+                        return "translate(" + [d.x, d.y + 5] + ")";
                     return "translate(" + [d.parent.x, d.parent.y] + ")";
-                }).on("click", function (d) {
-                    _this.Toggle(d);
-                    _this.Update(d, false);
                 });
-                enterNode.transition().delay(duration * 0.5).duration(duration).attr("transform", function (d) {
+                enterNode.filter(function (d) {
+                    return d.parent;
+                }).transition().delay(duration * 0.5).duration(duration).attr("transform", function (d) {
                     return "translate(" + [d.x, d.y] + ")";
                 });
                 enterNode.append("path").attr("d", function (d) {
@@ -397,12 +399,24 @@ var ManyLens;
                     fill: "#2A9CC8",
                     stroke: "#fff",
                     "stroke-width": 2
+                }).on("click", function (d) {
+                    _this.Toggle(d);
+                    _this.Update(d, false);
                 }).transition().delay(duration * 0.5).duration(duration).attr("transform", null).attr("d", d3.superformula().type("circle").size(50));
                 enterNode.append("text").attr("x", function (d) {
                     return d.children || d._children ? -10 : 10;
                 }).attr("dy", ".35em").attr("text-anchor", function (d) {
                     return d.children || d._children ? "end" : "start";
                 }).text(function (d) {
+                    if (d.name[0] == "y") {
+                        return d.name.substring(4);
+                    }
+                    else if (d.name[0] == "d") {
+                        return _this.week_days_name[parseInt(d.name[d.name.length - 1])];
+                    }
+                    else if (d.name[0] == "m") {
+                        return _this.month_names[parseInt(d.name[d.name.length - 1])];
+                    }
                     return d.name;
                 }).style("fill-opacity", 1e-6).transition().delay(duration * 0.5).duration(duration).style("fill-opacity", 1);
                 ;
@@ -466,18 +480,18 @@ var ManyLens;
                 if (this._data[0].type == 1 || this._data[0].type == 3) {
                     //The stack date
                     var date = this._time_formater.parse(this._data[0].beg);
-                    var stackRect = {
-                        id: this._data[0].beg,
-                        x: this._stack_time.length * this._stack_bar_width,
-                        ox: this._stack_time.length * this._stack_bar_width,
-                        type: 0,
-                        index: date.getDay(),
-                        isRemove: false,
-                        fill: null,
-                        date: date,
-                        intervals: null
-                    };
-                    this._intervals.push(stackRect);
+                    //var stackRect: StackDate = {
+                    //    id: this._data[0].beg,
+                    //    x: this._stack_time.length * this._stack_bar_width,
+                    //    ox: this._stack_time.length * this._stack_bar_width,
+                    //    type: 0,
+                    //    index: date.getDay(),
+                    //    isRemove: false,
+                    //    fill: null,
+                    //    date:date,
+                    //    intervals: null
+                    //}
+                    //this._intervals.push( stackRect );
                     var stackNode = {
                         id: this._data[0].beg,
                         date: date,
@@ -485,7 +499,7 @@ var ManyLens;
                         name: "H" + date.getHours(),
                         parent: null,
                         children: null,
-                        type: "year-mounth" + date.getMonth() + "-week" + this.GetWeek(date) + "-day" + date.getDay() + "-hour" + date.getHours(),
+                        type: "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-week" + this.GetWeek(date) + "-day" + date.getDay() + "-hour" + date.getHours(),
                         index: date.getDay()
                     };
                     this.InserNode(stackNode.type, stackNode);
@@ -675,6 +689,12 @@ var ManyLens;
                     this.PullInterval(d.id);
                 }
             };
+            Curve.prototype.GetWeek = function (date) {
+                var d = new Date(+date);
+                d.setHours(0, 0, 0);
+                d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+                return Math.ceil((((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / 8.64e7) + 1) / 7);
+            };
             Curve.prototype.ShrinkStackRect = function (filterX) {
                 if (filterX === void 0) { filterX = -1; }
                 if (this._subView) {
@@ -691,10 +711,6 @@ var ManyLens;
                     }).attr("width", this._stack_bar_width);
                     this._subView.on("mousemove", null);
                 }
-            };
-            Curve.prototype.GetWeek = function (date) {
-                var onejan = new Date(date.getFullYear(), 0, 1);
-                return Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
             };
             Curve.prototype.StackBarByTime = function (date, depth, intervals, stack_time_right) {
                 var _this = this;
