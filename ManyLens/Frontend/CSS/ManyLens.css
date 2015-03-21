@@ -43,6 +43,7 @@ div#page-content {
     text-align:center;
     border: none;
     border-radius: 0;
+    cursor:default;
 }
 
 .view-title-md-red {
@@ -97,14 +98,22 @@ svg#mapSvg {
     svg#mapSvg .som-map rect.unit {
         opacity:0.5;
     }
-    svg#mapSvg .som-map path#control-layout {
+    svg#mapSvg .som-map path.control-layout {
         fill: none;
         pointer-events:visible;
     }
-    svg#mapSvg .som-map path#control-layout:hover {
+    svg#mapSvg .som-map path.classifier-link {
+        stroke:#BFBFBF;
+        stroke-width:2;
+        fill:none;
+        pointer-events:visible;
+        marker-end: url(#mark-end-arrow)
+    }
+
+    svg#mapSvg .som-map path.control-layout:hover,
+    svg#mapSvg .som-map path.control-layout:hover ~ path.classifier-link{
         stroke: #F7CA18;
         stroke-width:5px;
-
     }
 
 g#som-map-context-menu rect#context-menu-base {
@@ -150,37 +159,6 @@ div#heatmap-container {
         position:absolute;
     }
 
-
-/*---------------tweets view-------------*/
-div#tweetsView {
-    background-color: #fff;
-    max-height: 37%;
-}
-
-
-.list-group {
-    margin-bottom: 0px;
-}
-
-.list-group-item {
-    border: none;
-    margin-bottom: 0px;
-    border-bottom: 1px solid #ddd;
-}
-
-    .list-group-item:first-child {
-        border-radius: 0;
-    }
-
-    .list-group-item:last-child {
-        border-radius: 0;
-        border-bottom: none;
-    }
-
-.pagination {
-    margin: 0px;
-}
-
 /*-----------curve view------------*/
 div#curveView {
     background-color:#3EAFDB;
@@ -190,12 +168,18 @@ div#curveView {
 
     div#curveView text {
         fill:#000;
+        cursor:default;
+        pointer-events:none;
     }
 
 .stack.node path{
     fill:rgb(31, 145, 189);
     stroke: #fff;
     stroke-width: 0.5px;
+}
+.stack.node path:hover{
+    stroke: #F5AB35;
+    stroke-width: 1.5px;
 }
 
 
@@ -205,7 +189,6 @@ path.stack.link,
 .curve.axis line {
     fill: none;
     stroke: #000;
-   
 }
 
 .curve.axis path,
@@ -433,4 +416,36 @@ circle.curve.node {
 
 .row-12 {
     height: 100%;
+}
+
+
+
+/*---------------tweets view-------------*/
+div#tweetsView {
+    background-color: #fff;
+    max-height: 37%;
+}
+
+
+.list-group {
+    margin-bottom: 0px;
+}
+
+.list-group-item {
+    border: none;
+    margin-bottom: 0px;
+    border-bottom: 1px solid #ddd;
+}
+
+    .list-group-item:first-child {
+        border-radius: 0;
+    }
+
+    .list-group-item:last-child {
+        border-radius: 0;
+        border-bottom: none;
+    }
+
+.pagination {
+    margin: 0px;
 }

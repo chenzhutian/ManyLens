@@ -47,7 +47,7 @@ namespace ManyLens.SOM
         public static extern void somFree(IntPtr pointer);
 
 
-        public static VisMap TweetSOMClassification(Interval interval, VisMap classifier)
+        public static VisMap TweetSOMClassification(string mapID,Interval interval, VisMap classifier)
         {
             InitializeCUDA();
             int trainsetSize = interval.TweetsCount;
@@ -74,7 +74,7 @@ namespace ManyLens.SOM
             Marshal.FreeHGlobal(pointer);
 
             //construct the som map for visualization
-            VisMap visMap = new VisMap(interval.ID + "_0", width, height, classifier.MapWeightInColumnMajor, interval);
+            VisMap visMap = new VisMap(mapID, width, height, classifier.MapWeightInColumnMajor, interval);
             try
             {
                 for (int i = 0; i < trainsetSize; ++i)
@@ -99,7 +99,7 @@ namespace ManyLens.SOM
 
         }
 
-        public static VisMap TweetSOMClustering(Interval interval, VisMap lastMap = null)
+        public static VisMap TweetSOMClustering(string mapID,Interval interval, VisMap lastMap = null)
         {
             InitializeCUDA();
 
@@ -171,7 +171,7 @@ namespace ManyLens.SOM
             //*********************Check the marshal result end**************//
 
             //construct the som map for visualization
-            VisMap visMap = new VisMap(interval.ID + "_0", width, height, h_weight, interval);
+            VisMap visMap = new VisMap(mapID, width, height, h_weight, interval);
             try
             {
                 for (int i = 0; i < trainsetSize; ++i)

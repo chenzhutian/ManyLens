@@ -13,6 +13,13 @@ using System.Diagnostics;
 
 namespace ManyLens.SignalR
 {
+
+    class MapPack
+    {
+        public VisMap clusteringMap { get; set; }
+        public VisMap classificationMap { get; set; }
+    }
+
     public class ManyLensHub : Hub
     {
         private static bool TestMode = false;
@@ -20,7 +27,7 @@ namespace ManyLens.SignalR
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
-        private static SortedDictionary<DateTime, VisMap> visMapsSortedByTime = new SortedDictionary<DateTime, VisMap>();
+        private static SortedDictionary<DateTime, MapPack> visMapsSortedByTime = new SortedDictionary<DateTime, MapPack>();
         private static Dictionary<string, Lens> lensDatas = new Dictionary<string, Lens>();
 
         public static List<TweetsIO.CityStruct> cities1000;
@@ -469,7 +476,7 @@ namespace ManyLens.SignalR
         {
             VisMap visMap;
 
-            string mapID = interalID + "_0";
+            string mapID = interalID;
             if (classifierID != null) mapID += "_" + classifierID;
 
             await Task.Run(() =>
@@ -492,23 +499,34 @@ namespace ManyLens.SignalR
                         if (classifierID != null)
                         {
                             VisMap classifierMap = visMaps[classifierID];
-                            visMap = GPUSOM.TweetSOMClassification(interal, classifierMap);
+                            visMap = GPUSOM.TweetSOMClassification(mapID, interal, classifierMap);
+                            if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
+                            {
+                                visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
+                            }
+                            visMapsSortedByTime[visMap.MapDate].classificationMap = visMap;
                         }
                         else
                         {
                             VisMap lastMap = null;
                             if (visMapsSortedByTime.Count > 0)
                             {
-                                lastMap = visMapsSortedByTime.Last().Value;
+                                lastMap = visMapsSortedByTime.Last().Value.clusteringMap;
                             }
-                            visMap = GPUSOM.TweetSOMClustering(interal, lastMap);
+                            visMap = GPUSOM.TweetSOMClustering(mapID,interal, lastMap);
+
+                            if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
+                            {
+                                visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
+                            }
+                            visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
                         }
 
                     }
 
                     Debug.WriteLine(interal.Entropy);
                     visMaps.Add(visMap.VisMapID, visMap);
-                    visMapsSortedByTime.Add(visMap.MapDate, visMap);
+                   
                 }
 
                 //try
@@ -528,7 +546,7 @@ namespace ManyLens.SignalR
                 //    Debug.WriteLine(e.Message);
                 //}
 
-                Clients.Caller.showVIS(visMap.GetVisData());
+                Clients.Caller.showVIS(visMap.GetVisData(),classifierID);
 
             });
 

@@ -5148,6 +5148,19 @@ var ManyLens;
                     }
                 }).call(this._zoom);
                 ;
+                var defs = this._element.append('svg:defs');
+                // define arrow markers for leading arrow
+                defs.append('svg:marker').attr({
+                    'id': 'mark-end-arrow',
+                    'viewBox': '0 -5 10 10',
+                    'refX': 7,
+                    'markerWidth': 3.5,
+                    'markerHeight': 3.5,
+                    'orient': 'auto'
+                }).append('path').attr({
+                    "class": "highlight-arrow",
+                    'd': 'M0,-5L10,0L0,5z'
+                });
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
             }
             SOMMap.prototype.Render = function () {
@@ -5171,14 +5184,21 @@ var ManyLens;
                     var defs = this._classifier_context_menu.append("defs");
                     // create filter with id #drop-shadow
                     // height=130% so that the shadow is not clipped
-                    var filter = defs.append("filter").attr("id", "drop-shadow").attr("height", "130%");
+                    var filter = defs.append("filter").attr({
+                        "id": "drop-shadow",
+                        "height": "130%"
+                    });
                     // SourceAlpha refers to opacity of graphic that this filter will be applied to
                     // convolve that with a Gaussian with standard deviation 3 and store result
                     // in blur
-                    filter.append("feGaussianBlur").attr("in", "SourceAlpha").attr("stdDeviation", 2).attr("result", "blur");
+                    filter.append("feGaussianBlur").attr({
+                        "in": "SourceAlpha",
+                        "stdDeviation": 2,
+                        "result": "blur"
+                    });
                     // translate output of Gaussian blur to the right and downwards with 2px
                     // store result in offsetBlur
-                    filter.append("feOffset").attr("in", "blur").attr("dx", 1).attr("dy", 1).attr("result", "offsetBlur");
+                    filter.append("feOffset").attr({ "in": "blur", "dx": 1, "dy": 1, "result": "offsetBlur" });
                     // overlay original SourceGraphic over translated blurred opacity by using
                     // feMerge filter. Order of specifying inputs is important!
                     var feMerge = filter.append("feMerge");
@@ -5207,9 +5227,7 @@ var ManyLens;
                         }
                         return d.text;
                     }).attr("y", textHeight);
-                    optionG.insert("rect", ".context-menu-option text").attr({
-                        width: contextWidth - 20
-                    }).attr("height", function (d, i) {
+                    optionG.insert("rect", ".context-menu-option text").attr("width", contextWidth - 20).attr("height", function (d, i) {
                         if (i == 1)
                             return 2 * (textHeight + 6);
                         return textHeight + 6;
@@ -5222,25 +5240,11 @@ var ManyLens;
                                     _this._manyLens.CurrentClassifierMapID = d.mapID;
                                     if (_this._hightlight_classifier_arrow)
                                         _this._hightlight_classifier_arrow.remove();
-                                    _this._hightlight_classifier_arrow = d3.select("#mapSvg" + d.mapID).append("g");
-                                    var defs = _this._hightlight_classifier_arrow.append('svg:defs');
-                                    // define arrow markers for leading arrow
-                                    defs.append('svg:marker').attr({
-                                        'id': 'mark-end-arrow',
-                                        'viewBox': '0 -5 10 10',
-                                        'refX': 7,
-                                        'markerWidth': 3.5,
-                                        'markerHeight': 3.5,
-                                        'orient': 'auto'
-                                    }).append('path').attr({
-                                        "class": "highlight-arrow",
-                                        'd': 'M0,-5L10,0L0,5z'
-                                    });
-                                    _this._hightlight_classifier_arrow.append("path").attr({
+                                    _this._hightlight_classifier_arrow = d3.select("#mapSvg" + d.mapID).append("path").attr({
                                         id: "hightlight-arrow-line",
                                         "class": "highlight-arrow"
                                     }).attr("d", function (d) {
-                                        return 'M' + (-10 + d.leftOffset) + ',-10L' + (60 + d.leftOffset) + ',70';
+                                        return 'M' + (-50 + d.leftOffset + d.width * _this._unit_width * 0.5) + ',-10L' + (d.leftOffset + d.width * _this._unit_width * 0.5) + ',70';
                                     });
                                 }
                                 break;
@@ -5268,7 +5272,7 @@ var ManyLens;
                 }
                 this._classifier_context_menu.attr("transform", "translate(" + [p[0], p[1]] + ")");
             };
-            SOMMap.prototype.ShowVis = function (visData) {
+            SOMMap.prototype.ShowVis = function (visData, classifierID) {
                 var _this = this;
                 this._maps.push(visData);
                 this._top_offset = this._top_offset || (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
@@ -5276,7 +5280,7 @@ var ManyLens;
                 newHeatMap.transform(this._scale, 0, 0);
                 newHeatMap.transformPan(this._translate_x, this._translate_y, this._scale);
                 this._heatMaps.push(newHeatMap);
-                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, leftOffset: this._left_offset }]).attr("id", function (d) {
+                var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, leftOffset: this._left_offset, topOffset: this._top_offset }]).attr("id", function (d) {
                     return "mapSvg" + d.mapID;
                 }).attr("class", "som-map").attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")");
                 svg.selectAll("rect.unit").data(visData.unitsData).enter().append("rect").attr("x", function (d) {
@@ -5304,10 +5308,39 @@ var ManyLens;
                     ]
                 }]).attr("d", function (d) {
                     return line(d.path);
-                }).attr("id", "control-layout").on("contextmenu", function (d) {
+                }).attr("class", "control-layout").on("contextmenu", function (d) {
                     _this.ContextMenu(d.mapID);
                     d3.event.preventDefault();
                 });
+                //Whether to add the connection link
+                if (classifierID) {
+                    console.log(classifierID);
+                    var classifierMap = d3.select("#mapSvg" + classifierID).data()[0];
+                    //var linkArrow = svg.append("g").attr("class","classifier-link");
+                    //var defs = linkArrow.append('svg:defs');
+                    //                // define arrow markers for leading arrow
+                    //                defs.append('svg:marker')
+                    //                    .attr({
+                    //                        'id': 'classifier-mark-end-arrow',
+                    //                        'viewBox': '0 -5 10 10',
+                    //                        'refX': 7,
+                    //                        'markerWidth': 3.5,
+                    //                        'markerHeight': 3.5,
+                    //                        'orient': 'auto'
+                    //                    })
+                    //                    .append('path')
+                    //                    .attr({
+                    //                        'd':'M0,-5L10,0L0,5z'
+                    //                    })
+                    //                ;
+                    var scale = d3.scale.linear().domain([classifierMap.width * this._unit_width, classifierMap.width * this._unit_width * 7]).range([0, -classifierMap.topOffset * 6]);
+                    var gapWidth = 0.5 * (this._left_offset + classifierMap.leftOffset + (visData.width + classifierMap.width) * this._unit_width * 0.5);
+                    svg.append("path").attr("class", "classifier-link").datum([
+                        [classifierMap.leftOffset + classifierMap.width * this._unit_width * 0.5, classifierMap.topOffset],
+                        [gapWidth, scale(gapWidth)],
+                        [this._left_offset + visData.width * this._unit_width * 0.5, classifierMap.topOffset - 10]
+                    ]).attr("d", d3.svg.line().interpolate("basis"));
+                }
                 //whether to move or not
                 this._left_offset += this._unit_width * visData.width + this._map_gap;
                 var leftMost = this._left_offset * this._scale + this._translate_x;
