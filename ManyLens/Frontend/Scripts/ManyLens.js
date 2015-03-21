@@ -1503,13 +1503,14 @@ var ManyLens;
                         container.on("mousemove", null);
                     }
                 }).on("contextmenu", function () {
+                    d3.event.preventDefault();
+                    d3.event.stopPropagation();
                     _this._sc_lc_svg.remove();
                     _this._manyLens.RemoveLens(_this);
                     var hostLens = _this.DetachHostLens();
                     if (hostLens) {
                         _this._manyLens.DetachCompositeLens(_this._element, hostLens, _this);
                     }
-                    d3.event.preventDefault();
                 }).call(this._select_circle_zoom).on("dblclick.zoom", null).on("mousedown.zoom", null).call(this._select_circle_drag);
                 this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
                 container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
@@ -5112,7 +5113,7 @@ var ManyLens;
                 document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
                 this._center_x = 0.5 * parseFloat(this._element.style("width"));
                 this._center_y = 0.5 * parseFloat(this._element.style("height"));
-                this._zoom = d3.behavior.zoom().scaleExtent([0.5, 1.5]).on("zoomstart", function () {
+                this._zoom = d3.behavior.zoom().scaleExtent([0.2, 1.5]).on("zoomstart", function () {
                     var p = d3.mouse(_this._element.node());
                     _this._zoom.center([p[0], _this._center_y]);
                 }).on("zoom", function () {

@@ -40,31 +40,47 @@ extern "C"
 #endif
 
 	//Initialize CUDA runtime
-	SOM_CUDA_API int InitializeCUDA(void);   
-	
+	SOM_CUDA_API int InitializeCUDA(void);
+
 	//Do cleanup when close the program
-	SOM_CUDA_API int CleanUp(void); 	
-	
+	SOM_CUDA_API int CleanUp(void);
+
 	SOM_CUDA_API float* SOMwithRandomMapping(const float* h_gaussin,
-											const float* h_inputSet,
-											const float* h_initial_weight,
-											const unsigned int input_set_size,
-											const unsigned int dimension,
-											const unsigned int height,
-											const unsigned int width,
-											const unsigned int batch_size,
-											const int epochNum,
-											const float lambda,
-											const float iterNum);
+		const float* h_inputSet,
+		const float* h_initial_weight,
+		const unsigned int input_set_size,
+		const unsigned int dimension,
+		const unsigned int height,
+		const unsigned int width,
+		const unsigned int batch_size,
+		const int epochNum,
+		const float lambda,
+		const float iterNum);
 
 	SOM_CUDA_API unsigned int* SOMClassificationwithRandomMapping(const float* h_gaussin,
-																	const float* h_inputSet,
-																	const float* h_classifier_weight,
-																	const unsigned int input_set_size,
-																	const unsigned int dimension,
-																	const unsigned int height,
-																	const unsigned int width,
-																	const unsigned int batch_size);
+		const float* h_inputSet,
+		const float* h_classifier_weight,
+		const unsigned int input_set_size,
+		const unsigned int dimension,
+		const unsigned int height,
+		const unsigned int width,
+		const unsigned int batch_size);
+
+	SOM_CUDA_API float* SOMRefinewithRandomMapping(const float* h_gaussin,
+		const float* h_inputSet,
+		const float* h_BID,
+		const float* h_initial_weight,
+		const unsigned int input_set_size,
+		const unsigned int dimension,
+		const unsigned int height,
+		const unsigned int width,
+		const unsigned int batch_size);
+
+	SOM_CUDA_API unsigned int* FindBID(const float* h_gaussin,
+															float* input_vector, unsigned int input_vector_size, unsigned int input_dimension,
+															float* weights, unsigned int weights_size);
+	
+
 	SOM_CUDA_API void somFree(float* pointer);
 
 #ifdef __cplusplus

@@ -489,13 +489,13 @@ namespace ManyLens.SignalR
                     interal.PreproccessingParallel(progress);
                     
                     //Test
-                    if (TestMode)
-                    {
+                    //if (TestMode)
+                    //{
 
-                        visMap = GPUSOM.TestTweetSOM(interal, config.Parameter.RootFolder);// TweetSOM(interal, rootFolder);
-                    }
-                    else
-                    {
+                    //    visMap = GPUSOM.TestTweetSOM(interal, config.Parameter.RootFolder);// TweetSOM(interal, rootFolder);
+                    //}
+                    //else
+                    //{
                         if (classifierID != null)
                         {
                             VisMap classifierMap = visMaps[classifierID];
@@ -521,8 +521,7 @@ namespace ManyLens.SignalR
                             }
                             visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
                         }
-
-                    }
+                    //}
 
                     Debug.WriteLine(interal.Entropy);
                     visMaps.Add(visMap.VisMapID, visMap);

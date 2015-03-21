@@ -76,7 +76,7 @@ module ManyLens {
                 this._center_x = 0.5 * parseFloat( this._element.style( "width" ) );
                 this._center_y = 0.5 * parseFloat( this._element.style( "height" ) );
                 this._zoom = d3.behavior.zoom() 
-                    .scaleExtent( [0.5, 1.5] )
+                    .scaleExtent( [0.2, 1.5] )
                     .on( "zoomstart",() => {
                         var p = d3.mouse( this._element.node() );
                         this._zoom
@@ -144,15 +144,11 @@ module ManyLens {
                     })
             ;
 
-
                 this._manyLens.ManyLensHubRegisterClientFunction( this, "showVis", this.ShowVis );
             }
 
             public Render() {
                 //this._lensPane.Render();
-
-
-
             }
 
             private ContextMenu(preMapID) {

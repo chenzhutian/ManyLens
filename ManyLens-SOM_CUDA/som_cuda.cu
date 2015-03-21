@@ -208,92 +208,6 @@ __global__ void Calculate_Euclidean_Distance_Kernel(const float *d_weights,
 	}
 }
 
-//Has not finish yet
-__global__ void Calculate_Cosine_Distance_Kernel(const float *d_weights,
-	const float *d_input_set,
-	const unsigned input_index_of_this_batch,
-	const int batch_size,
-	const int neuron_number,
-	float *d_result)
-{
-	__shared__ float shared_input_set[CHKSIZE * DIMENSION];		//enough shared storage for CHKSIZE vectors of d_input_set	
-	int bx = blockIdx.x;										//one block per CHKSIZE rows of d_input_set
-	int tx = threadIdx.x;
-	float result[CHKSIZE];
-
-	int numCHKSIZE = (bx + 1) * CHKSIZE < batch_size ? CHKSIZE : batch_size - bx*CHKSIZE;
-#pragma unroll
-	for (int i = 0; i < numCHKSIZE; ++i)
-		shared_input_set[(i * DIMENSION) + tx] = d_input_set[((input_index_of_this_batch + (bx * CHKSIZE) + i) * DIMENSION) + tx];
-	__syncthreads();
-
-	//loop across all vectors in d_weights
-	while (tx < neuron_number)
-	{
-#pragma unroll
-		for (int i = 0; i < numCHKSIZE; ++i)
-			result[i] = 0.0f;
-
-		for (int i = 0; i < DIMENSION; ++i)
-		{
-			float Atemp = d_weights[(neuron_number * i) + tx];
-			//compute all CHKSIZE d_input_set vectors with read of d_weights
-#pragma unroll
-			for (int j = 0; j < numCHKSIZE; ++j)
-			{
-				float temp = Atemp - shared_input_set[i + (j * DIMENSION)];
-				result[j] += temp * temp;
-			}
-		}
-
-		//store CHKSIZE results
-#pragma unroll
-		for (int i = 0; i < numCHKSIZE; ++i)
-			d_result[(i + (bx * CHKSIZE)) * neuron_number + tx] = result[i];
-
-		tx += blockDim.x;
-	}
-}
-
-__global__ void Calculate_Euclidean_Distance_Kernel_noRandomMapping(const float *d_weights,
-	const int dimension,
-	const float *d_input_set,
-	const unsigned input_index_of_this_batch,
-	const int batch_size,
-	const int neuron_number,
-	float *d_result)
-{
-	extern __shared__ float shared_input_set[];		//enough shared storage for CHKSIZE vectors of d_input_set	
-	int bx = blockIdx.x;										//one block per CHKSIZE rows of d_input_set
-	int tx = threadIdx.x;
-	float result = 0.0f;
-
-	while (tx < dimension)
-	{
-		shared_input_set[tx] = d_input_set[(input_index_of_this_batch + bx) * dimension + tx];
-		tx += blockDim.x;
-	}
-	__syncthreads();
-	tx = threadIdx.x;
-
-	//loop across all vectors in d_weights
-	while (tx < neuron_number)
-	{
-
-		for (int i = 0; i < dimension; i++)
-		{
-			float Atemp = d_weights[(neuron_number * i) + tx];
-			//compute all CHKSIZE d_input_set vectors with read of d_weights
-			float temp = Atemp - shared_input_set[i];
-			result += temp * temp;
-		}
-
-		//store CHKSIZE results								
-		d_result[bx * neuron_number + tx] = result;
-		tx += blockDim.x;
-	}
-}
-
 //Find out the index of min element
 __global__ void Min_Reduce_Kernel(const float* d_result, unsigned int* d_BID, const size_t neuronNum)
 {
@@ -373,7 +287,6 @@ __global__ void Min_Reduce_Kernel(const float* d_result, unsigned int* d_BID, co
 	if (tx == 0)
 	{
 		d_BID[blockIdx.x] = sIndex[0] - stride;
-		//d_error[blockIdx.x] = sValue[0];
 	}
 }
 
@@ -397,7 +310,7 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	}
 
 	cudaFuncSetCacheConfig(Min_Reduce_Kernel, cudaFuncCachePreferL1);
-	Min_Reduce_Kernel << <batch_size, 512 >> >(d_result, d_BID, neuron_number);
+	Min_Reduce_Kernel <<<batch_size, 512 >>>(d_result, d_BID,neuron_number);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching min reduce!\n", cudaStatus);
@@ -407,17 +320,102 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	return true;
 }
 
+//Find out the index of min element
+__global__ void Output_Min_Reduce_Kernel(const float* d_result, unsigned int* d_BID, float* d_error, const size_t neuronNum)
+{
+	__shared__ float sValue[512];
+	__shared__ int sIndex[512];
+
+	int tx = threadIdx.x;
+	int stride = blockIdx.x*neuronNum;
+	int gid = tx + stride;
+	int upper = stride + neuronNum;
+
+	sValue[tx] = FLT_MAX;
+	sIndex[tx] = gid;
+	float temp;
+	while (gid < upper) {
+		temp = d_result[gid];
+
+		sIndex[tx] = sValue[tx] > temp ? gid : sIndex[tx];
+		sValue[tx] = sValue[tx] > temp ? temp : sValue[tx];
+
+		gid += blockDim.x;
+	}
+	__syncthreads();
+
+	if (tx < 256)
+	{
+		sIndex[tx] = sValue[tx] > sValue[tx + 256] ? sIndex[tx + 256] : sIndex[tx];
+		sValue[tx] = sValue[tx] > sValue[tx + 256] ? sValue[tx + 256] : sValue[tx];
+	}
+	__syncthreads();
+	if (tx < 128)
+	{
+		sIndex[tx] = sValue[tx] > sValue[tx + 128] ? sIndex[tx + 128] : sIndex[tx];
+		sValue[tx] = sValue[tx] > sValue[tx + 128] ? sValue[tx + 128] : sValue[tx];
+	}
+	__syncthreads();
+	if (tx < 64)
+	{
+		sIndex[tx] = sValue[tx] > sValue[tx + 64] ? sIndex[tx + 64] : sIndex[tx];
+		sValue[tx] = sValue[tx] > sValue[tx + 64] ? sValue[tx + 64] : sValue[tx];
+	}
+	__syncthreads();
+	if (tx < 32)
+	{
+		if (sValue[tx] > sValue[tx + 32])
+		{
+			sValue[tx] = sValue[tx + 32];
+			sIndex[tx] = sIndex[tx + 32];
+		}
+		if (sValue[tx] > sValue[tx + 16])
+		{
+			sValue[tx] = sValue[tx + 16];
+			sIndex[tx] = sIndex[tx + 16];
+		}
+		if (sValue[tx] > sValue[tx + 8])
+		{
+			sValue[tx] = sValue[tx + 8];
+			sIndex[tx] = sIndex[tx + 8];
+		}
+		if (sValue[tx] > sValue[tx + 4])
+		{
+			sValue[tx] = sValue[tx + 4];
+			sIndex[tx] = sIndex[tx + 4];
+		}
+
+		if (sValue[tx] > sValue[tx + 2])
+		{
+			sValue[tx] = sValue[tx + 2];
+			sIndex[tx] = sIndex[tx + 2];
+		}
+		//sIndex[tx] = sValue[tx] > sValue[tx+2] ? sIndex[tx+2] : sIndex[tx];
+		//sValue[tx] = sValue[tx] > sValue[tx+2] ? sValue[tx+2] : sValue[tx];
+
+		sIndex[tx] = sValue[tx] > sValue[tx + 1] ? sIndex[tx + 1] : sIndex[tx];
+		sValue[tx] = sValue[tx] > sValue[tx + 1] ? sValue[tx + 1] : sValue[tx];
+	}
+	if (tx == 0)
+	{
+		d_BID[blockIdx.x] = sIndex[0] - stride;
+		d_error[blockIdx.x] = sValue[0];
+	}
+}
+
 //Find the best match neuron by using bathc kernel function.
-bool output_BID(const float* d_weights,
+bool Output_BID_Error(const float* d_weights,
 	const unsigned int neuron_number,
 	const float* d_input_set,
-	unsigned int input_index_of_this_batch,
-	unsigned int batch_size, unsigned int* d_BID, float* d_result)
+	const unsigned int input_index_of_this_batch,
+	const unsigned int batch_size,
+	unsigned int* d_BID,
+	float* d_result,
+	float* d_error)
 {
 	cudaError_t cudaStatus;
 	dim3 threads(DIMENSION);
 	dim3 blocks(ceil((double)batch_size / (double)CHKSIZE));
-	//Calculate_Euclidean_Distance_Kernel_noRandomMapping<<<batch_size,1024,dimension*sizeof(float)>>>(d_weights,dimension,d_input_set,input_index_of_this_batch,batch_size,neuron_number,d_result);
 	Calculate_Euclidean_Distance_Kernel << <blocks, threads >> >(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
@@ -425,8 +423,9 @@ bool output_BID(const float* d_weights,
 		return false;
 	}
 
+
 	cudaFuncSetCacheConfig(Min_Reduce_Kernel, cudaFuncCachePreferL1);
-	Min_Reduce_Kernel << <batch_size, 512 >> >(d_result, d_BID, neuron_number);
+	Output_Min_Reduce_Kernel << <batch_size, 512 >> >(d_result, d_BID, d_error, neuron_number);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching min reduce!\n", cudaStatus);
@@ -778,7 +777,6 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 
 	int distance_table_length = (int)(1 +
 		neuron_number * (neuron_number - 1) * 0.5);										//the length of distance Table
-	float* h_weights = new float[dimension_after_random_mapping * neuron_number];		//weights of each neuron in host memory
 	float* h_distance = new float[distance_table_length];								//distance table in host memory
 	int* h_position = new int[2 * neuron_number];										//position--(x,y)--of each neuron in host memory
 
@@ -888,7 +886,6 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	/*-----------Initialize the weights of each neuron---------------------*/
 	if (h_initial_weight != 0)
 	{
-
 		cudaMemcpy(d_weights, h_initial_weight, neuron_number*dimension_after_random_mapping * sizeof(float), cudaMemcpyHostToDevice);
 	}
 	else
@@ -924,19 +921,22 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	}
 
 	/*---------------Output -----------------*/
-	float* h_output = new float[input_set_size + dimension_after_random_mapping*neuron_number];
+	float* h_output = new float[input_set_size * 2 + dimension_after_random_mapping*neuron_number];
+	float* d_error = 0;
+	cudaMalloc((void**)&d_error, batch_size * sizeof(float));
 	for (unsigned int iCycle = 0; iCycle < ceil(input_set_size / batch_size); iCycle++)
 	{
 		int inputx = iCycle * batch_size;
-		if (!Find_Best_Match_Neuron(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result))
+		if (!Output_BID_Error(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result,d_error))
 		{
 			break;
 		}
 		//Copy best match unit
 		cudaMemcpy(h_output + inputx, d_BID, batch_size*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_output + inputx + input_set_size, d_error, batch_size*sizeof(float), cudaMemcpyDeviceToHost);
 	}
 	//Copy the final weights
-	cudaMemcpy(h_output + input_set_size, d_weights, dimension_after_random_mapping*neuron_number*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_output + input_set_size*2, d_weights, dimension_after_random_mapping*neuron_number*sizeof(float), cudaMemcpyDeviceToHost);
 
 	/*--------------- check the result of final weights update -----------------*/
 	std::ofstream fweightout("D:\\SOMLog\\weights_in_columnmajor");
@@ -944,7 +944,7 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	{
 		for (int j = 0; j < dimension_after_random_mapping; j++)
 		{
-			fweightout << h_output[input_set_size + i + j * neuron_number] << " ";
+			fweightout << h_output[input_set_size*2 + i + j * neuron_number] << " ";
 		}
 		fweightout << std::endl;
 	}
@@ -958,37 +958,34 @@ float* SOMwithRandomMapping(const float* h_gaussin,
 	}
 	fbid.close();
 
-
 	cudaFree(d_weights);
 	cudaFree(d_input_set);
 	cudaFree(d_BID);
 	cudaFree(d_intermediate_result);
 	cudaFree(d_distance);
+	cudaFree(d_error);
 	delete[] h_position;
-	delete[] h_weights;
 	delete[] h_distance;
 	h_distance = NULL;
 	h_position = NULL;
-	h_weights = NULL;
 
 	return h_output;
 }
 
-unsigned int* AbstractSOMClassificationwithRandomMapping(const float* h_gaussin,
-														 const float* h_inputSet,
-														 const float* h_classifier_weight,
-														 const unsigned int input_set_size,
-														 const unsigned int dimension,
-														 const unsigned int height,
-														 const unsigned int width,
-														 const unsigned int batch_size)
+unsigned int* SOMClassificationwithRandomMapping(const float* h_gaussin,
+	const float* h_inputSet,
+	const float* h_classifier_weight,
+	const unsigned int input_set_size,
+	const unsigned int dimension,
+	const unsigned int height,
+	const unsigned int width,
+	const unsigned int batch_size)
 {
 	const unsigned int d_input_set_size = input_set_size;										//define the input set size on device
 	const unsigned int dimension_before_random_mapping = dimension;						//the original dimension of the input set
 	const unsigned int dimension_after_random_mapping = DIMENSION;						//dimension after random mapping, can not change
 	const unsigned int neuron_number = height * width;									//the number of neuron
 
-	const float* h_weights = h_classifier_weight;										//weights of each neuron in host memory
 	float* d_weights = 0;																//weights of each neuron in device memory
 	float* d_input_set = 0;																//input set in device memory
 	unsigned int* d_BID = 0;															//the id of best match neurons in device memory
@@ -1034,43 +1031,185 @@ unsigned int* AbstractSOMClassificationwithRandomMapping(const float* h_gaussin,
 	//fout.close();
 
 	/*-----------Initialize the weights of each neuron---------------------*/
-	cudaMemcpy(d_weights, h_weights, neuron_number* dimension_after_random_mapping  * sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_weights, h_classifier_weight, neuron_number* dimension_after_random_mapping  * sizeof(float), cudaMemcpyHostToDevice);
 
-	/*---------------------------Let's have SOM----------------------------*/
-	unsigned int* h_output = new unsigned int[input_set_size];
+	/*---------------------------Output----------------------------*/
+	unsigned int* h_output = new unsigned int[input_set_size * 2];
+	float* d_error = 0;
+	cudaMalloc((void**)&d_error, batch_size * sizeof(float));
 	for (unsigned int iCycle = 0; iCycle < ceil(d_input_set_size / batch_size); iCycle++)
 	{
 		int inputx = iCycle * batch_size;
-		if (!output_BID(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result))
+		if (!Output_BID_Error(d_weights, neuron_number, d_input_set, inputx, batch_size, d_BID, d_intermediate_result, d_error))
 		{
 			break;
 		}
 		cudaMemcpy(h_output + inputx, d_BID, batch_size*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_output + inputx + input_set_size, d_error, batch_size*sizeof(float), cudaMemcpyDeviceToHost);
 	}
 
 	cudaFree(d_weights);
 	cudaFree(d_input_set);
 	cudaFree(d_BID);
 	cudaFree(d_intermediate_result);
+	cudaFree(d_error);
+	return h_output;
+}
+
+float* SOMRefinewithRandomMapping(const float* h_gaussin,
+														const float* h_inputSet,
+														const float* h_BID,
+														const float* h_initial_weight,
+														const unsigned int input_set_size,
+														const unsigned int dimension,
+														const unsigned int height,
+														const unsigned int width,
+														const unsigned int batch_size)
+{
+	const unsigned int d_input_set_size = input_set_size;								//define the input set size on device
+	const unsigned int dimension_before_random_mapping = dimension;						//the original dimension of the input set
+	const unsigned int dimension_after_random_mapping = DIMENSION;						//dimension after random mapping, can not change
+	const unsigned int neuron_number = height * width;									//the number of neuron
+
+	int distance_table_length = (int)(1 +
+		neuron_number * (neuron_number - 1) * 0.5);										//the length of distance Table
+	float* h_distance = new float[distance_table_length];								//distance table in host memory
+	int* h_position = new int[2 * neuron_number];										//position--(x,y)--of each neuron in host memory
+
+	float* d_weights = 0;																//weights of each neuron in device memory
+	float* d_distance = 0;																//distance table in device memory
+	unsigned int* d_BID = 0;															//the id of best match neurons in device memory
+	float* d_input_set = 0;																//input set in device memory
+
+	cudaMalloc((void**)&d_weights, dimension_after_random_mapping * neuron_number * sizeof(float));
+	cudaMalloc((void**)&d_distance, distance_table_length * sizeof(float));
+	cudaMalloc((void**)&d_BID, batch_size * sizeof(unsigned int));
+	d_input_set = RandomMapping(h_gaussin, h_inputSet, dimension_after_random_mapping, dimension_before_random_mapping, input_set_size);
+
+	/*----------------- Initialize the position table --------------------*/
+	bool flag = true;
+	int x = 0;
+	int y = 0;
+	for (int i = 0, t = 0; i < height; ++i)
+	{
+		//x = (i+1)/2;
+		x = 0;
+		for (int j = 0; j < 2 * width; ++j)
+		{
+			if (flag)
+			{
+				h_position[t] = x;
+				flag = false;
+				++x;
+				++t;
+			}
+			else
+			{
+				h_position[t] = y;
+				flag = true;
+				++t;
+			}
+		}
+		y++;
+	}
+
+	/*----------------- Initialize the distance table --------------------*/
+	h_distance[0] = 0;
+	for (unsigned int i = 0, t = 1; i < neuron_number - 1; ++i)
+	{
+		for (unsigned int j = i + 1; j < neuron_number; ++j)
+		{
+			int dX = (h_position[2 * i] - h_position[2 * j]) * (h_position[2 * i] - h_position[2 * j]);
+			int dY = (h_position[2 * i + 1] - h_position[2 * j + 1]) * (h_position[2 * i + 1] - h_position[2 * j + 1]);
+
+			if (sgn<int>(dX) == sgn<int>(dY))
+			{
+				h_distance[t] = abs(dX + dY);
+			}
+			else
+			{
+				h_distance[t] = abs(dX) > abs(dY) ? abs(dX) : abs(dY);
+			}
+
+			h_distance[t] = h_distance[t] * h_distance[t];
+			//h_distance[t] = dX + dY;
+			++t;
+		}
+	}
+	cudaMemcpy(d_distance, h_distance, distance_table_length * sizeof(float), cudaMemcpyHostToDevice);
+
+	/*-----------Initialize the weights of each neuron---------------------*/
+	cudaMemcpy(d_weights, h_initial_weight, neuron_number* dimension_after_random_mapping * sizeof(float), cudaMemcpyHostToDevice);
+
+	/*-----------Initialize the d_BID of each input vector---------------------*/
+	cudaMemcpy(d_BID, h_BID, d_input_set_size * sizeof(unsigned int), cudaMemcpyHostToDevice);
+
+	//Let's begin SOM
+	float sigmaT = 2.0 ;
+	Update_Map(d_distance, neuron_number, d_input_set, 0, d_BID, batch_size, dimension_after_random_mapping, sigmaT, d_weights);
+
+	/*---------------Output -----------------*/
+	float* h_output = new float[dimension_after_random_mapping*neuron_number];
+	//Copy the final weights
+	cudaMemcpy(h_output, d_weights, dimension_after_random_mapping*neuron_number*sizeof(float), cudaMemcpyDeviceToHost);
+
+	/*--------------- check the result of final weights update -----------------*/
+	std::ofstream fweightout("D:\\SOMLog\\weights_in_columnmajor");
+	for (int i = 0; i < neuron_number; ++i)
+	{
+		for (int j = 0; j < dimension_after_random_mapping; j++)
+		{
+			fweightout << h_output[ i + j * neuron_number] << " ";
+		}
+		fweightout << std::endl;
+	}
+	fweightout.close();
+
+	cudaFree(d_weights);
+	cudaFree(d_input_set);
+	cudaFree(d_BID);
+	cudaFree(d_distance);
+	delete[] h_position;
+	delete[] h_distance;
+	h_distance = NULL;
+	h_position = NULL;
 
 	return h_output;
 }
 
-unsigned* SOMClassificationwithRandomMapping(const float* h_gaussin,
-	const float* h_inputSet,
-	const float* h_classifier_weight,
-	const unsigned int input_set_size,
-	const unsigned int dimension,
-	const unsigned int height,
-	const unsigned int width,
-	const unsigned int batch_size)
+
+unsigned int* FindBID(const float* h_gaussin,
+								float* input_vector, unsigned int input_vector_size, unsigned int input_dimension,
+								float* weights, unsigned int weights_size)
 {
-	return AbstractSOMClassificationwithRandomMapping(h_gaussin,
-													  h_inputSet,
-													  h_classifier_weight,
-													  input_set_size,
-													  dimension,
-													  height,
-													  width,
-													  batch_size);
+	const unsigned int dimension_before_random_mapping = input_dimension;			//the original dimension of the input set
+	const unsigned int dimension_after_random_mapping = DIMENSION;			//dimension after random mapping, can not change
+
+	float* d_weights = 0;																//weights of each neuron in device memory
+	float* d_input_set = 0;																//input set in device memory
+	unsigned int* d_BID = 0;															//the id of best match neurons in device memory
+	float* d_intermediate_result = 0;
+	cudaMalloc((void**)&d_weights, dimension_after_random_mapping * weights_size * sizeof(float));
+	cudaMalloc((void**)&d_BID, input_vector_size * sizeof(unsigned int));
+	cudaMalloc((void**)&d_intermediate_result, input_vector_size * weights_size * sizeof(float));
+
+	d_input_set = RandomMapping(h_gaussin, input_vector, dimension_after_random_mapping, dimension_before_random_mapping, input_vector_size);
+
+	/*-----------Initialize the weights of each neuron---------------------*/
+	cudaMemcpy(d_weights, weights, weights_size* dimension_after_random_mapping  * sizeof(float), cudaMemcpyHostToDevice);
+
+	/*---------------------------Output----------------------------*/
+	unsigned int* h_output = new unsigned int[input_vector_size * 2];
+	float* d_error = 0;
+	cudaMalloc((void**)&d_error, input_vector_size * sizeof(float));
+	Output_BID_Error(d_weights, weights_size, d_input_set, 0, input_vector_size, d_BID, d_intermediate_result, d_error);
+	cudaMemcpy(h_output , d_BID, input_vector_size*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_output + input_vector_size, d_error, input_vector_size*sizeof(float), cudaMemcpyDeviceToHost);
+
+	cudaFree(d_weights);
+	cudaFree(d_input_set);
+	cudaFree(d_BID);
+	cudaFree(d_intermediate_result);
+	cudaFree(d_error);
+	return h_output;
 }

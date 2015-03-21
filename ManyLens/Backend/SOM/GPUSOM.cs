@@ -14,14 +14,14 @@ namespace ManyLens.SOM
     {
         //Initialize CUDA runtime
         [DllImport("ManyLens-SOM_CUDA.dll")]
-        public static extern int InitializeCUDA();
+        private static extern int InitializeCUDA();
 
         //Do cleanup when close the program
         [DllImport("ManyLens-SOM_CUDA.dll")]
-        public static extern int CleanUp();
+        private static extern int CleanUp();
 
         [DllImport("ManyLens-SOM_CUDA.dll")]
-        public static extern IntPtr SOMwithRandomMapping(float[] h_gaussin,
+        private static extern IntPtr SOMwithRandomMapping(float[] h_gaussin,
                                                          float[] h_inputSet,
                                                          float[] h_initial_weight,
                                                          int input_set_size,
@@ -34,7 +34,7 @@ namespace ManyLens.SOM
                                                          float iterNum);
 
         [DllImport("ManyLens-SOM_CUDA.dll")]
-        public static extern IntPtr SOMClassificationwithRandomMapping(float[] h_gaussin,
+        private static extern IntPtr SOMClassificationwithRandomMapping(float[] h_gaussin,
                                                                      float[] h_inputSet,
                                                                      float[] h_classifier_weight,
                                                                      int input_set_size,
@@ -44,8 +44,38 @@ namespace ManyLens.SOM
                                                                      int batch_size);
 
         [DllImport("ManyLens-SOM_CUDA.dll")]
-        public static extern void somFree(IntPtr pointer);
+        private static extern IntPtr SOMRefinewithRandomMapping(float[] h_gaussin,
+                                                                     float[] h_inputSet,
+                                                                     float[] h_BID,
+                                                                     float[] h_classifier_weight,
+                                                                     int input_set_size,
+                                                                     int dimension,
+                                                                     int height,
+                                                                     int width,
+                                                                     int batch_size);
 
+        [DllImport("ManyLens-SOM_CUDA.dll")]
+        private static extern IntPtr FindBID(float[] h_gaussin,
+                                                        float[] input_vector, int input_set_size,int dimension,
+                                                        float[] weights,int weights_size);
+
+        [DllImport("ManyLens-SOM_CUDA.dll")]
+        private static extern void somFree(IntPtr pointer);
+
+        private static float Sum(float[] a)
+        {
+            float sum = 0;
+            for (int i = 0, len = a.Length; i < len; ++i)
+            {
+                sum += a[i];
+            }
+            return sum;
+        }
+        private static float Averrage(float[] a)
+        {
+            float sum = Sum(a);
+            return sum / a.Length;
+        }
 
         public static VisMap TweetSOMClassification(string mapID,Interval interval, VisMap classifier)
         {
@@ -56,6 +86,7 @@ namespace ManyLens.SOM
             //set the resolution of SOM map
             int width = 32;
             int height = 16;
+            int neuronNum = width * height;
             //set the batch size
             int batch_size = trainsetSize;
 
@@ -71,20 +102,31 @@ namespace ManyLens.SOM
 
             int[] h_BID = new int[trainsetSize];
             Marshal.Copy(pointer, h_BID, 0, trainsetSize);
+
+            float[] h_error = new float[trainsetSize];
+            Marshal.Copy(IntPtr.Add(pointer, trainsetSize * sizeof(int)), h_error, 0, trainsetSize);
             Marshal.FreeHGlobal(pointer);
 
+
+            float[] h_weight = classifier.MapWeightInColumnMajor;
+
             //construct the som map for visualization
-            VisMap visMap = new VisMap(mapID, width, height, classifier.MapWeightInColumnMajor, interval);
+            VisMap visMap = new VisMap(mapID, width, height, Averrage(h_error),h_weight, h_BID,h_error,interval);
             try
             {
                 for (int i = 0; i < trainsetSize; ++i)
                 {
                     //sw.WriteLine(h_output[i]);
-                    if (!visMap.TryAddTweetToUnit(h_BID[i], interval.Tweets[i]))
+                    if (!visMap.TryAddTweetToUnit(h_BID[i], h_error[i],interval.Tweets[i]))
                     {
-                        Unit unit = new Unit(h_BID[i] % width, h_BID[i] / width, h_BID[i], interval);
+                        float[] unitWeightVector = new float[config.Parameter.DimensionAfterRandomMapping];
+                        for (int j = 0, lenj = config.Parameter.DimensionAfterRandomMapping; j < lenj; ++j)
+                        {
+                            unitWeightVector[j] = h_weight[j * neuronNum + h_BID[i]];
+                        }
+                        Unit unit = new Unit(h_BID[i] % width, h_BID[i] / width, h_BID[i], unitWeightVector,interval);
                         Tweet tweet = interval.Tweets[i];
-                        unit.AddTweet(tweet);
+                        unit.AddTweet(h_error[i],tweet);
                         visMap.AddUnit(h_BID[i], unit);
                     }
                 }
@@ -109,6 +151,7 @@ namespace ManyLens.SOM
             //set the resolution of SOM map
             int width = 32;
             int height = 16;
+            int neuronNum = width * height;
             //set the batch size
             int batch_size = trainsetSize;
             //set the number of iteration
@@ -139,9 +182,11 @@ namespace ManyLens.SOM
             int[] h_BID = new int[trainsetSize];
             Marshal.Copy(pointer, h_BID, 0, trainsetSize);
 
-            float[] h_weight = new float[width * height * config.Parameter.DimensionAfterRandomMapping];
-            IntPtr newPointer = IntPtr.Add(pointer, trainsetSize * sizeof(int));
-            Marshal.Copy(newPointer, h_weight, 0, width * height * config.Parameter.DimensionAfterRandomMapping);
+            float[] h_error = new float[trainsetSize];
+            Marshal.Copy(IntPtr.Add(pointer, trainsetSize * sizeof(int)), h_error, 0,trainsetSize);
+
+            float[] h_weight = new float[neuronNum * config.Parameter.DimensionAfterRandomMapping];
+            Marshal.Copy( IntPtr.Add(pointer, 2* trainsetSize * sizeof(int)), h_weight, 0, neuronNum * config.Parameter.DimensionAfterRandomMapping);
             Marshal.FreeHGlobal(pointer);
 
             //*********************Check the marshal result ****************//
@@ -161,7 +206,7 @@ namespace ManyLens.SOM
                 string[] s = sr.ReadLine().Split(' ');
                 for (int j = 0; j < config.Parameter.DimensionAfterRandomMapping; ++j)
                 {
-                    if (Math.Abs(float.Parse(s[j]) - h_weight[j * width * height + k]) > 1e-6)
+                    if (Math.Abs(float.Parse(s[j]) - h_weight[j * neuronNum + k]) > 1e-6)
                     {
                         Debug.WriteLine("weight is wrong here!" + k.ToString());
                     }
@@ -171,17 +216,22 @@ namespace ManyLens.SOM
             //*********************Check the marshal result end**************//
 
             //construct the som map for visualization
-            VisMap visMap = new VisMap(mapID, width, height, h_weight, interval);
+            VisMap visMap = new VisMap(mapID, width, height, Averrage(h_error), h_weight, h_BID, h_error,interval);
             try
             {
                 for (int i = 0; i < trainsetSize; ++i)
                 {
                     //sw.WriteLine(h_output[i]);
-                    if (!visMap.TryAddTweetToUnit(h_BID[i], interval.Tweets[i]))
+                    if (!visMap.TryAddTweetToUnit(h_BID[i], h_error[i], interval.Tweets[i]))
                     {
-                        Unit unit = new Unit(h_BID[i] % width, h_BID[i] / width, h_BID[i], interval);
+                        float[] unitWeightVector = new float[config.Parameter.DimensionAfterRandomMapping];
+                        for (int j = 0, lenj = config.Parameter.DimensionAfterRandomMapping; j < lenj; ++j)
+                        {
+                            unitWeightVector[j] = h_weight[j * neuronNum + h_BID[i]];
+                        }
+                        Unit unit = new Unit(h_BID[i] % width, h_BID[i] / width, h_BID[i],unitWeightVector, interval);
                         Tweet tweet = interval.Tweets[i];
-                        unit.AddTweet(tweet);
+                        unit.AddTweet(h_error[i],tweet);
                         visMap.AddUnit(h_BID[i], unit);
                     }
                 }
@@ -195,32 +245,53 @@ namespace ManyLens.SOM
             return visMap;
         }
 
-        public static VisMap TestTweetSOM(Interval interval, string rootPath)
+        public class GPUFindBIDPack
         {
-            
-            int trainsetSize = interval.TweetsCount;
-            int width = 32;
-            int height = 16;
-
-            StreamReader sr = new StreamReader(rootPath + "Backend\\DataBase\\somOutput_"+interval.ID+".json");
-            //construct the som map for visualization
-            VisMap visMap = new VisMap(interval.ID + "_0", width, height, new float[1] ,interval);
-            int i = 0;
-            while (!sr.EndOfStream)
-            {
-                int BID = int.Parse(sr.ReadLine());
-                if (!visMap.TryAddTweetToUnit(BID, interval.Tweets[i]))
-                {
-                    Unit unit = new Unit(BID % width, BID/ width,BID, interval);
-                    Tweet tweet = interval.Tweets[i];
-                    unit.AddTweet(tweet);
-                    visMap.AddUnit(BID, unit);
-                }
-                i++;
-            }  
-            return visMap;
-        
+            public int[] BID { get; set; }
+            public float[] error { get; set; }
         }
+        public static GPUFindBIDPack GPUFindBID(float[] inputVector, float[] weight)
+        {
+            IntPtr pointer = FindBID(config.Parameter.RmMatrix,
+                                               inputVector, inputVector.Length,config.Parameter.HashDimension,
+                                               weight, weight.Length);
+
+            int[] h_BID = new int[inputVector.Length];
+            Marshal.Copy(pointer, h_BID, 0, inputVector.Length);
+
+            float[] h_error = new float[inputVector.Length];
+            Marshal.Copy(IntPtr.Add(pointer, inputVector.Length * sizeof(int)), h_error, 0, inputVector.Length);
+            Marshal.FreeHGlobal(pointer);
+
+            return new GPUFindBIDPack() { BID=h_BID, error = h_error};
+        }
+
+        //public static VisMap TestTweetSOM(Interval interval, string rootPath)
+        //{
+            
+        //    int trainsetSize = interval.TweetsCount;
+        //    int width = 32;
+        //    int height = 16;
+
+        //    StreamReader sr = new StreamReader(rootPath + "Backend\\DataBase\\somOutput_"+interval.ID+".json");
+        //    //construct the som map for visualization
+        //    VisMap visMap = new VisMap(interval.ID + "_0", width, height, new float[1] ,interval);
+        //    int i = 0;
+        //    while (!sr.EndOfStream)
+        //    {
+        //        int BID = int.Parse(sr.ReadLine());
+        //        if (!visMap.TryAddTweetToUnit(BID, ,interval.Tweets[i]))
+        //        {
+        //            Unit unit = new Unit(BID % width, BID/ width,BID, interval);
+        //            Tweet tweet = interval.Tweets[i];
+        //            unit.AddTweet(tweet);
+        //            visMap.AddUnit(BID, unit);
+        //        }
+        //        i++;
+        //    }  
+        //    return visMap;
+        
+        //}
 
         //public static VisMap TweetReOrganizeSOM(VisMap visMap,int[] selectedUnits)
         //{

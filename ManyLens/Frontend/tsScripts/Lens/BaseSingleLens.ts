@@ -117,6 +117,9 @@ module ManyLens {
                         }
                     })
                     .on("contextmenu", () => {
+                        d3.event.preventDefault();
+                        d3.event.stopPropagation();
+
                         this._sc_lc_svg.remove();
                         this._manyLens.RemoveLens(this);
 
@@ -124,7 +127,7 @@ module ManyLens {
                         if (hostLens) {
                             this._manyLens.DetachCompositeLens(this._element, hostLens, this);
                         }
-                        d3.event.preventDefault();
+                        
                     })
                     .call(this._select_circle_zoom)
                     .on("dblclick.zoom", null)
@@ -135,7 +138,6 @@ module ManyLens {
                     .attr("stoke-width", 2)
                     .attr("stroke", "red")
                 ;
-
 
                 container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 function moveSelectCircle() {
