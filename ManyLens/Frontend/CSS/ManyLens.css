@@ -159,6 +159,12 @@ div#heatmap-container {
         position:absolute;
     }
 
+.brush .extent {
+  fill-opacity: .1;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}
+
 /*-----------curve view------------*/
 div#curveView {
     background-color:#3EAFDB;

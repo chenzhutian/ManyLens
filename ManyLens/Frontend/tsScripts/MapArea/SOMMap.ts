@@ -36,6 +36,7 @@ module ManyLens {
             private _translate_x: number = 0;
             private _translate_y: number = 0;
             private _total_width: number;
+            private _total_heiglt:number;
             private _map_gap: number = 10;
 
             private _heatmap_container: HTMLElement;
@@ -44,6 +45,9 @@ module ManyLens {
 
             private _zoom: D3.Behavior.Zoom;
             private _move_view_timer: number;
+
+            private _brush_svg:D3.Selection;
+            private _brush:D3.Svg.Brush;
 
             private _classifier_context_menu: D3.Selection = null;
             private _hightlight_classifier_arrow:D3.Selection = null;
@@ -64,6 +68,7 @@ module ManyLens {
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
                 this._total_width = parseFloat( this._element.style( "width" ));
+                this._total_heiglt = parseFloat(this._element.style("height"));
 
                 this._heatmap_container = document.createElement( 'div' );
                 this._heatmap_container.id = "heatmap-container";
@@ -75,6 +80,77 @@ module ManyLens {
 
                 this._center_x = 0.5 * parseFloat( this._element.style( "width" ) );
                 this._center_y = 0.5 * parseFloat( this._element.style( "height" ) );
+                this._brush = d3.svg.brush()
+                    .on("brushstart",()=>{
+                        console.log(d3.event);
+                        if(d3.event.sourceEvent.altKey){
+                            var extent = (<any>d3.event.target).extent();
+                            var rect:SVGRect = ( <SVGSVGElement>this._element.node() ).createSVGRect();
+                            rect.x = extent[0][0] * this._scale + this._translate_x;
+                            rect.y = extent[0][1] * this._scale + this._translate_y;
+                            rect.width = (extent[1][0] - extent[0][0]) * this._scale;
+                            rect.height = (extent[1][1] - extent[0][1]) * this._scale;
+
+                            this._element.select( "#rectForTest" ).remove();
+                            this._element.append( "rect" ).attr( {
+                                id:"rectForTest",
+                                x: rect.x,
+                                y: rect.y,
+                                width: rect.width,
+                                height:rect.height
+                            })
+                            .style("pointer-events","none");
+
+
+                            var ele = ( <SVGSVGElement>this._element.node() ).getIntersectionList( rect, null );
+                            var res = []
+                            for(var i = 0, len = ele.length; i < len; ++i){
+                                var node = d3.select(ele.item(i));
+                                if(node.classed("unit")){
+                                   res.push(node.data()[0]['unitID']);
+                                }
+                            }
+                            console.log(res);
+                        }
+                        d3.event.sourceEvent.stopPropagation();
+                    })
+                    .on("brush",()=>{
+                        d3.event.sourceEvent.stopImmediatePropagation();
+                    })
+                    .on("brushend",()=>{
+                        if(d3.event.sourceEvent.altKey){
+                            var extent = (<any>d3.event.target).extent();
+                            var rect:SVGRect = ( <SVGSVGElement>this._element.node() ).createSVGRect();
+                            rect.x = extent[0][0] * this._scale + this._translate_x;
+                            rect.y = extent[0][1] * this._scale + this._translate_y;
+                            rect.width = (extent[1][0] - extent[0][0]) * this._scale;
+                            rect.height = (extent[1][1] - extent[0][1]) * this._scale;
+
+                            this._element.select( "#rectForTest" ).remove();
+                            this._element.append( "rect" ).attr( {
+                                id:"rectForTest",
+                                x: rect.x,
+                                y: rect.y,
+                                width: rect.width,
+                                height:rect.height
+                            })
+                            .style("pointer-events","none");
+
+
+                            var ele = ( <SVGSVGElement>this._element.node() ).getIntersectionList( rect, null );
+                            var res = [];
+                            for(var i = 0, len = ele.length; i < len; ++i){
+                                var node = d3.select(ele.item(i));
+                                if(node.classed("unit")){
+                                   res.push(node.data()[0]['unitID']);
+                                }
+                            }
+                            console.log(res);
+                        }
+                        d3.event.sourceEvent.stopPropagation();    
+                    })
+                ;
+
                 this._zoom = d3.behavior.zoom() 
                     .scaleExtent( [0.2, 1.5] )
                     .on( "zoomstart",() => {
@@ -123,8 +199,12 @@ module ManyLens {
                             this._classifier_context_menu = null;
                         }
                     })
-                    .call( this._zoom );
-                ;
+                  
+                    ;
+                
+                this._element
+                      .call( this._zoom );
+
 
                 var defs = this._element.append('svg:defs');
                  // define arrow markers for leading arrow
@@ -150,6 +230,47 @@ module ManyLens {
 
             public Render() {
                 //this._lensPane.Render();
+            }
+
+            public AddBrush(){
+
+                this._element
+                    .style("cursor","pointer")
+                    .on("click",()=>{
+                        var p = d3.mouse(document.body);
+                        console.log(p[0],p[1]);
+                        var data = d3.select(document.elementFromPoint(p[0],p[1])).data();
+                        if(data && data.length > 0 && data[0]){
+                            var mapID = data[0].mapID;
+                            var map = d3.select("#mapSvg"+mapID);
+
+   
+                            if(map){
+
+                                var mapData:{mapID:string;width:number;height:number;leftOffset:number;topOffset:number} = map.data()[0];
+
+                                if(this._brush_svg){
+                                    this._brush.clear();
+                                    this._brush_svg.remove();
+                                }
+                                this._brush.x(d3.scale.identity().domain([mapData.leftOffset, mapData.width * this._unit_width + mapData.leftOffset]))
+                                           .y(d3.scale.identity().domain([mapData.topOffset,mapData.height * this._unit_height + mapData.topOffset]));
+
+                                this._brush_svg =  map.append("g")
+                                    .attr("class","brush")
+                                    .on("contextmenu",()=>{
+                                        this._brush.clear();
+                                        this._brush_svg.remove();
+                                        d3.event.preventDefault();
+                                    })
+                                    .call(this._brush);
+                            }
+                        }
+                        this._element.style("cursor","default")
+                            .on("click",null);
+                    })
+                ;
+
             }
 
             private ContextMenu(preMapID) {
@@ -329,6 +450,8 @@ module ManyLens {
             public ShowVisMap( visData: MapData, classifierID:string ): void {
                 this._maps.push( visData );
                 this._top_offset = this._top_offset || ( parseFloat( this._element.style( "height" ) ) - visData.height * this._unit_height ) / 2;
+
+
 
                 var newHeatMap = new HeatMapLayer( "mapCanvas" + visData.mapID,
                     this._heatmap_container,

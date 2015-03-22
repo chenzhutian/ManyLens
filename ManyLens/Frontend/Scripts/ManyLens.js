@@ -48,6 +48,15 @@ var ManyLens;
                 });
                 this._brand = this._element.append("div").attr("class", "nav-brand").text(this._brand_name);
                 this._menu_list = this._element.append("div").attr("class", "menu-list").append("ul").attr("id", "side-menu-content").attr("class", "menu-content");
+                this._refine_btn = this._element.append("button").attr({
+                    type: "button",
+                    class: "btn btn-primary"
+                }).style({
+                    "margin-top": "30px",
+                    "margin-bottom": "90px"
+                }).text("RefineMap").on("click", function () {
+                    _this._manyLens.AddBrushToMap();
+                });
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
             }
@@ -5138,6 +5147,7 @@ var ManyLens;
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
                 this._total_width = parseFloat(this._element.style("width"));
+                this._total_heiglt = parseFloat(this._element.style("height"));
                 this._heatmap_container = document.createElement('div');
                 this._heatmap_container.id = "heatmap-container";
                 this._heatmap_container.style.left = this._element.node().offsetLeft.toString() + "px";
@@ -5147,6 +5157,64 @@ var ManyLens;
                 document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
                 this._center_x = 0.5 * parseFloat(this._element.style("width"));
                 this._center_y = 0.5 * parseFloat(this._element.style("height"));
+                this._brush = d3.svg.brush().on("brushstart", function () {
+                    console.log(d3.event);
+                    if (d3.event.sourceEvent.altKey) {
+                        var extent = d3.event.target.extent();
+                        var rect = _this._element.node().createSVGRect();
+                        rect.x = extent[0][0] * _this._scale + _this._translate_x;
+                        rect.y = extent[0][1] * _this._scale + _this._translate_y;
+                        rect.width = (extent[1][0] - extent[0][0]) * _this._scale;
+                        rect.height = (extent[1][1] - extent[0][1]) * _this._scale;
+                        _this._element.select("#rectForTest").remove();
+                        _this._element.append("rect").attr({
+                            id: "rectForTest",
+                            x: rect.x,
+                            y: rect.y,
+                            width: rect.width,
+                            height: rect.height
+                        }).style("pointer-events", "none");
+                        var ele = _this._element.node().getIntersectionList(rect, null);
+                        var res = [];
+                        for (var i = 0, len = ele.length; i < len; ++i) {
+                            var node = d3.select(ele.item(i));
+                            if (node.classed("unit")) {
+                                res.push(node.data()[0]['unitID']);
+                            }
+                        }
+                        console.log(res);
+                    }
+                    d3.event.sourceEvent.stopPropagation();
+                }).on("brush", function () {
+                    d3.event.sourceEvent.stopImmediatePropagation();
+                }).on("brushend", function () {
+                    if (d3.event.sourceEvent.altKey) {
+                        var extent = d3.event.target.extent();
+                        var rect = _this._element.node().createSVGRect();
+                        rect.x = extent[0][0] * _this._scale + _this._translate_x;
+                        rect.y = extent[0][1] * _this._scale + _this._translate_y;
+                        rect.width = (extent[1][0] - extent[0][0]) * _this._scale;
+                        rect.height = (extent[1][1] - extent[0][1]) * _this._scale;
+                        _this._element.select("#rectForTest").remove();
+                        _this._element.append("rect").attr({
+                            id: "rectForTest",
+                            x: rect.x,
+                            y: rect.y,
+                            width: rect.width,
+                            height: rect.height
+                        }).style("pointer-events", "none");
+                        var ele = _this._element.node().getIntersectionList(rect, null);
+                        var res = [];
+                        for (var i = 0, len = ele.length; i < len; ++i) {
+                            var node = d3.select(ele.item(i));
+                            if (node.classed("unit")) {
+                                res.push(node.data()[0]['unitID']);
+                            }
+                        }
+                        console.log(res);
+                    }
+                    d3.event.sourceEvent.stopPropagation();
+                });
                 this._zoom = d3.behavior.zoom().scaleExtent([0.2, 1.5]).on("zoomstart", function () {
                     var p = d3.mouse(_this._element.node());
                     _this._zoom.center([p[0], _this._center_y]);
@@ -5181,8 +5249,8 @@ var ManyLens;
                         _this._classifier_context_menu.remove();
                         _this._classifier_context_menu = null;
                     }
-                }).call(this._zoom);
-                ;
+                });
+                this._element.call(this._zoom);
                 var defs = this._element.append('svg:defs');
                 // define arrow markers for leading arrow
                 defs.append('svg:marker').attr({
@@ -5201,6 +5269,32 @@ var ManyLens;
             }
             SOMMap.prototype.Render = function () {
                 //this._lensPane.Render();
+            };
+            SOMMap.prototype.AddBrush = function () {
+                var _this = this;
+                this._element.style("cursor", "pointer").on("click", function () {
+                    var p = d3.mouse(document.body);
+                    console.log(p[0], p[1]);
+                    var data = d3.select(document.elementFromPoint(p[0], p[1])).data();
+                    if (data && data.length > 0 && data[0]) {
+                        var mapID = data[0].mapID;
+                        var map = d3.select("#mapSvg" + mapID);
+                        if (map) {
+                            var mapData = map.data()[0];
+                            if (_this._brush_svg) {
+                                _this._brush.clear();
+                                _this._brush_svg.remove();
+                            }
+                            _this._brush.x(d3.scale.identity().domain([mapData.leftOffset, mapData.width * _this._unit_width + mapData.leftOffset])).y(d3.scale.identity().domain([mapData.topOffset, mapData.height * _this._unit_height + mapData.topOffset]));
+                            _this._brush_svg = map.append("g").attr("class", "brush").on("contextmenu", function () {
+                                _this._brush.clear();
+                                _this._brush_svg.remove();
+                                d3.event.preventDefault();
+                            }).call(_this._brush);
+                        }
+                    }
+                    _this._element.style("cursor", "default").on("click", null);
+                });
             };
             SOMMap.prototype.ContextMenu = function (preMapID) {
                 var _this = this;
@@ -5515,6 +5609,9 @@ var ManyLens;
             enumerable: true,
             configurable: true
         });
+        ManyLens.prototype.AddBrushToMap = function () {
+            this._mapArea.AddBrush();
+        };
         /* -------------------- Lens related Function -----------------------*/
         ManyLens.prototype.GetLens = function (id) {
             return this._lens.get(id);

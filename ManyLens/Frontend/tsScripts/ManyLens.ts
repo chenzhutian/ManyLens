@@ -90,6 +90,10 @@ module ManyLens {
             });
         }
 
+        public AddBrushToMap(){
+            this._mapArea.AddBrush();
+        }
+
         /* -------------------- Lens related Function -----------------------*/
         public GetLens(id: string): Lens.BaseD3Lens {
             return this._lens.get(id);

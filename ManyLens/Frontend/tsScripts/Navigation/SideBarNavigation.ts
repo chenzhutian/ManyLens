@@ -27,6 +27,9 @@ module ManyLens {
             private _menu_list: D3.Selection;
             private _menu_list_data: MenuListData;
 
+            /*--------------Map menu---------------*/
+            private _refine_btn:D3.Selection;
+
             private _map_Svg: D3.Selection;
 
             constructor(element: D3.Selection, brandName: string, mapSvg: D3.Selection, manyLens: ManyLens) {
@@ -40,7 +43,8 @@ module ManyLens {
                     this._manyLens.ManyLensHubServerReOrganizePeak(state);
                 });
 
-                this._launchDataBtn = this._element.select("#curve-btns").append("button")
+                this._launchDataBtn = this._element.select("#curve-btns")
+                    .append("button")
                     .attr({
                         type: "button",
                         class: "btn btn-primary btn-block disabled"
@@ -66,6 +70,22 @@ module ManyLens {
                     .attr("id", "side-menu-content")
                     .attr("class", "menu-content")
                 ;
+
+                this._refine_btn = this._element.append("button")
+                    .attr({
+                        type: "button",
+                        class: "btn btn-primary"
+                    })
+                    .style({
+                        "margin-top": "30px",
+                        "margin-bottom": "90px"
+                    })
+                    .text("RefineMap")
+                    .on("click", () => {
+                        this._manyLens.AddBrushToMap();
+                    })
+                ;
+
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
             }

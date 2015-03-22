@@ -172,9 +172,6 @@ module ManyLens {
                         if(a.parent == b.parent){
                             if(a.children && b._children)
                                 return 5/(a.depth+1);
-
-                            //if(!a.children && !a.children && !b.children && !b._children)
-                            //    return 1/(a.depth+1);
                         }
                         return 1/(a.depth+1);
                     })
