@@ -166,7 +166,19 @@ module ManyLens {
                 }
                 
                 this._stack_bar_tree = d3.layout.tree()
-                    .size( [this._sub_view_width-50, this._sub_view_height-20] );
+                    .size( [this._sub_view_width-50, this._sub_view_height-0] )
+                    //.nodeSize([10,10])
+                    .separation(function(a,b){
+                        if(a.parent == b.parent){
+                            if(a.children && b._children)
+                                return 5/(a.depth+1);
+
+                            //if(!a.children && !a.children && !b.children && !b._children)
+                            //    return 1/(a.depth+1);
+                        }
+                        return 1/(a.depth+1);
+                    })
+                ;
                 this._stack_bar_tree_diagonal = d3.svg.diagonal();
 
                 this._sub_view_x_scale.range([this._view_left_padding,this._view_left_padding + this._coordinate_margin_left]);
@@ -311,10 +323,9 @@ module ManyLens {
                 return this.FindMinCoParent( a.parent, b.parent );
             }
 
-            private Update( exitParent: StackNode ,mode:boolean = true) {
+            private UpdateSubviewTree( exitParent: StackNode ,mode:boolean = true) {
                 var duration = 500;
                 
-
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) { return d.name != "";});
                 this._stack_bar_node = this._subView.selectAll( ".stack.node" )
@@ -325,41 +336,61 @@ module ManyLens {
                     .enter().append( "g" )
                     .attr( "class", "stack node" )
                     .attr( "transform",( d ) => {
-                    if ( d.date && mode)
-                        return "translate(" + [this._sub_view_width - 10, this._sub_view_height - 10] + ")";
-                    if ( !d.parent )
-                        return "translate(" + [d.x, d.y+5] + ")";
-                    return "translate(" + [d.parent.x, d.parent.y] + ")";
+                        //d.y = d.y * (d.depth+3)/8;
+                        if ( d.date && mode)
+                            return "translate(" + [this._sub_view_width - 10, this._sub_view_height - 120] + ")";
+                        return "translate(" + [d.parent.x, d.parent.y] + ")";
                     })
                     ;
 
-                enterNode.filter( function ( d ) { return d.parent;}).transition().delay( duration * 0.5 ).duration( duration )
+                enterNode.filter( function ( d ) { return d.parent;})
+                    .transition().duration( duration )
                     .attr( "transform",( d ) => {
-                    return "translate(" + [d.x, d.y] + ")";
-                })
+                        return "translate(" + [d.x, d.y] + ")";
+                    })
                 ;
 
-                enterNode.append( "path" )
-                    .attr( "d", function ( d ) {
+                enterNode.append( "rect" )
+                    //.attr( "d", function ( d ) {
+                    //    if ( d.date && mode)
+                    //        return d3.superformula().type("rectangle").size(1000)( d );
+                    //    return d3.superformula().type( "circle" ).size(50)( d );
+                    //})
+                    //.attr( "transform", function ( d ) {
+                    //    if ( d.date && mode)
+                    //        return "scale(1,5)";
+                    //})
+                    .attr("x",function(d){
                         if ( d.date && mode)
-                            return d3.superformula().type("rectangle").size(1000)( d );
-                        return d3.superformula().type( "circle" ).size(50)( d );
+                            return -10;
+                        return -5;
                     })
-                    .attr( "transform", function ( d ) {
-                        if ( d.date && mode)
-                            return "scale(1,5)";
+                    .attr("width",function(d){
+                         if ( d.date && mode)
+                             return 20;
+                        return 10;
+                    })
+                    .attr("height",function(d){
+                         if ( d.date && mode)
+                            return 150;
+                        return 10;
                     })
                     .on( "click",( d ) => {
                         if ( d.date ) {
                             this.SelectSegment( d );
                         } else {
                             this.Toggle( d );
-                            this.Update( d, false );
+                            this.UpdateSubviewTree( d, false );
                         }
                     })
-                    .transition().delay( duration * 0.5 ).duration( duration )
-                    .attr("transform",null)
-                    .attr( "d", d3.superformula().type( "circle" ).size( 50 ) )
+                    .transition().duration( duration )
+                    .attr({
+                        x:-5,
+                        width:10,
+                        height:10
+                    })
+                    //.attr("transform",null)
+                    //.attr( "d", d3.superformula().type( "circle" ).size( 50 ) )
 
                 ;
 
@@ -379,7 +410,7 @@ module ManyLens {
                         return d.name;
                     })
                     .style( "fill-opacity", 1e-6 )
-                    .transition().delay( duration * 0.5 ).duration( duration )
+                    .transition().duration( duration )
                     .style( "fill-opacity", 1 );
                 ;
 
@@ -388,20 +419,38 @@ module ManyLens {
                     .range( ["#2574A9", "#2574A9"] );
 
                 function sumLength( d ) {
-                    if ( !d.children )
-                        return 1;
-                    var sum = 0;
-                    d.children.forEach(( d ) => {
-                        sum += sumLength( d );
-                    })
+                    if(!d) return 0;
+                    if ( !d.children  && !d._children) return 1;
+                    var sum = 0; 
+                    if(d.children)
+                        d.children.forEach(( d ) => {
+                            sum += sumLength( d );
+                        });
+                    else if(d._children)
+                        d._children.forEach(( d ) => {
+                            sum += sumLength( d );
+                        });
                     return sum;
                 }
                 this._stack_bar_node
                     .transition().duration( duration )
-                    .attr( "transform", function ( d ) { return "translate(" + [d.x, d.y] + ")"; })
+                    .attr( "transform", function ( d ) { 
+                        //d.y = d.y * (d.depth+3)/8;
+                        return "translate(" + [d.x, d.y] + ")"; 
+                    })
                 ;
-                this._stack_bar_node.selectAll( "path" )
-                    .filter( function ( d ) { return d.children; })
+                var heightScale = d3.scale.linear();
+                this._stack_bar_node.selectAll( "rect" )
+                    .filter( function ( d ) { return d.children || d._children; })
+                    .transition().duration(duration)
+                    .attr("height",function( d ){ 
+                        if(d._children){
+                            //heightScale.range([d.y,d.y - d._children[0].y]).domain([0,sumLength(d.parent)]);
+
+                            return 10 * sumLength(d);
+                        }
+                        return 10;
+                    })
                     .style( "fill", function ( d ) { return colorScale( sumLength(d) ); });
 
                 //Exit node
@@ -416,7 +465,7 @@ module ManyLens {
                 })
                     .remove()
                     ;
-                exitNode.select( "circle" ).transition().attr( "r", 1e-6 );
+                exitNode.select( "rect" ).transition().attr( "r", 1e-6 );
                 exitNode.select( "text" ).transition().style( "fill-opacity", 1e-6 );
 
                 //Links
@@ -432,7 +481,7 @@ module ManyLens {
                     var result = this._stack_bar_tree_diagonal( { source: o, target: o });
                     return result;
                 })
-                    .transition().delay( duration * 0.5 ).duration( duration )
+                    .transition().duration( duration )
                     .attr( "d", this._stack_bar_tree_diagonal );
 
                 //Update link
@@ -489,7 +538,7 @@ module ManyLens {
                     this.Toggle( exitParent );
                     this._stack_bar_nodes.push( stackNode );
 
-                    this.Update( exitParent );
+                    this.UpdateSubviewTree( exitParent );
                     //console.log( printTree( this._root["year"] ));
                     //function printTree( node:StackNode ) {
                     //    var s = '{"id":"' + node.id+'","type":"'+node.type;

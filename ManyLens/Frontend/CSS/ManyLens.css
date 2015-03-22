@@ -172,12 +172,12 @@ div#curveView {
         pointer-events:none;
     }
 
-.stack.node path{
+.stack.node rect{
     fill:rgb(31, 145, 189);
     stroke: #fff;
     stroke-width: 0.5px;
 }
-.stack.node path:hover{
+.stack.node rect:hover{
     stroke: #F5AB35;
     stroke-width: 1.5px;
 }

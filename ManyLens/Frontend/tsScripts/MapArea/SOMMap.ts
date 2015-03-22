@@ -144,7 +144,8 @@ module ManyLens {
                     })
             ;
 
-                this._manyLens.ManyLensHubRegisterClientFunction( this, "showVis", this.ShowVis );
+                this._manyLens.ManyLensHubRegisterClientFunction( this, "showVisMap", this.ShowVisMap );
+                this._manyLens.ManyLensHubRegisterClientFunction(this,"updateVisMap",this.UpdateVisMap);
             }
 
             public Render() {
@@ -304,7 +305,28 @@ module ManyLens {
                 this._classifier_context_menu.attr( "transform", "translate(" + [p[0], p[1]] + ")" );
             }
 
-            public ShowVis( visData: MapData, classifierID:string ): void {
+            public UpdateVisMap(index:number,visData:MapData):void{
+                this._maps[index] = visData;
+                this._heatMaps[index].UpdateNodeArray(visData.width,visData.height,visData.unitsData);
+                
+                var mapData = d3.select("#mapSvg"+visData.mapID).data()[0];
+                var units = d3.select("#mapSvg"+visData.mapID).selectAll("rect.unit")
+                .data(visData.unitsData,function(d){return d.unitID;});
+                
+                units.exit().remove();
+                units.enter().append("rect")
+                    .attr( "x",( d ) => { return mapData.leftOffset + d.x * this._unit_width; })
+                    .attr( "y",( d ) => { return mapData.topOffset + d.y * this._unit_height; })
+                    .attr( {
+                        "class":"unit",
+                        width: this._unit_width,
+                        height: this._unit_height
+                    })
+                ;
+
+            }
+
+            public ShowVisMap( visData: MapData, classifierID:string ): void {
                 this._maps.push( visData );
                 this._top_offset = this._top_offset || ( parseFloat( this._element.style( "height" ) ) - visData.height * this._unit_height ) / 2;
 
@@ -322,7 +344,6 @@ module ManyLens {
                 newHeatMap.transformPan( this._translate_x, this._translate_y, this._scale );
                 this._heatMaps.push( newHeatMap );
 
-
                 var svg = this._element
                     .append( "g" )
                     .data( [{ mapID: visData.mapID, width: visData.width, height: visData.height,leftOffset:this._left_offset,topOffset:this._top_offset }] )
@@ -332,7 +353,7 @@ module ManyLens {
                     ;
 
                 svg.selectAll( "rect.unit" )
-                    .data( visData.unitsData )
+                    .data( visData.unitsData, function(d){return d.unitID;})
                     .enter().append( "rect" )
                     .attr( "x",( d ) => { return this._left_offset + d.x * this._unit_width; })
                     .attr( "y",( d ) => { return this._top_offset + d.y * this._unit_height; })

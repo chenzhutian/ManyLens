@@ -120,15 +120,8 @@ namespace ManyLens.Models
             {
                 return this.mapWeightInColumnMajor;
             }
-            private set
+            set
             {
-                //Just for test
-                if (value.Length == 1)
-                {
-                    this.mapWeightInColumnMajor = value;
-                    return;
-                }
-
                 if (value.Length != this.Width * this.Height * config.Parameter.DimensionAfterRandomMapping)
                     throw new Exception("the size of map weight matrix is wrong!");
                 else 
@@ -149,14 +142,29 @@ namespace ManyLens.Models
         }
         #endregion
 
-        public VisMap(string visMapID, int width, int height, float aError, float[] mapWeight, int[] bID,float[] errors,Interval interval, VisMap parentNote = null)
+        private static float Sum(float[] a)
+        {
+            float sum = 0;
+            for (int i = 0, len = a.Length; i < len; ++i)
+            {
+                sum += a[i];
+            }
+            return sum;
+        }
+        private static float Averrage(float[] a)
+        {
+            float sum = Sum(a);
+            return sum / a.Length;
+        }
+
+        public VisMap(string visMapID, int width, int height, float[] mapWeight, int[] bID,float[] errors,Interval interval, VisMap parentNote = null)
         {
             this.ParentNote = parentNote;
             this.VisMapID = visMapID;
             this.interval = interval;
             this.Width = width;
             this.Height = height;
-            this.AverrageError = aError;
+            this.AverrageError = Averrage(errors);
             this.MapWeightInColumnMajor = mapWeight;
             this.BID = bID;
             this.Errors = errors;
@@ -179,12 +187,12 @@ namespace ManyLens.Models
             return false;
         }
 
-        public void RefineTheMap(int[] fromUnitID, int[] toUnitID)
+        public void RefineTheMap(int[] fromUnitsID, int[] toUnitsID)
         {
             List<Tweet> fromTweets = new List<Tweet>();
-            for (int i = 0, len = fromUnitID.Length; i < len; ++i)
+            for (int i = 0, len = fromUnitsID.Length; i < len; ++i)
             {
-                Unit unit = this.units[fromUnitID[i]];
+                Unit unit = this.units[fromUnitsID[i]];
                 fromTweets.AddRange(unit.GetTweetsBelowAverrageError(this.AverrageError));
             }
 
@@ -193,16 +201,17 @@ namespace ManyLens.Models
             for (int i = 0, len = fromTweets.Count; i < len; ++i)
             {
                 int index = this.Interval.Tweets.IndexOf(fromTweets[i]);
-                for (int j = 0, lenj = dimension; j < len; ++j)
-                {
-                    inputVectors[j + i * dimension] = this.Interval.HashVecotrs[index][j];
-                }
+                this.Interval.HashVecotrs[index].CopyTo(inputVectors, i * dimension);
+                //for (int j = 0, lenj = dimension; j < len; ++j)
+                //{
+                //    inputVectors[j + i * dimension] = this.Interval.HashVecotrs[index][j];
+                //}
             }
 
-            float[] inputWeights = new float[dimension * toUnitID.Length];
-            for (int i = 0, len = toUnitID.Length; i < len; ++i)
+            float[] inputWeights = new float[dimension * toUnitsID.Length];
+            for (int i = 0, len = toUnitsID.Length; i < len; ++i)
             {
-                Unit unit = this.GetUnitAt(toUnitID[i]);
+                Unit unit = this.GetUnitAt(toUnitsID[i]);
                 float[] unitWeightVector = unit.UnitWeightVector;
                 for (int j = 0; j < dimension; ++j)
                 {
@@ -215,14 +224,12 @@ namespace ManyLens.Models
             {
                 int index = this.Interval.Tweets.IndexOf(fromTweets[i]);
                 this.Errors[index] = pack.error[i];
-                this.BID[index] = pack.BID[toUnitID[i]];
-                this.TryAddTweetToUnit(this.BID[index], pack.error[i], fromTweets[i]);
+                this.BID[index] = toUnitsID[pack.BID[i]];
+                this.TryAddTweetToUnit(this.BID[index], this.Errors[index], fromTweets[i]);
             }
             // ready to Update map
-
+            SOM.GPUSOM.TweetSOMUpdateMap(this);
         }
-
-
 
         public Unit GetUnitAt(int index)
         {

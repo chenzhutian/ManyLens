@@ -128,17 +128,6 @@ namespace ManyLens.Models
             this.SparseVector.Add(Interval.SparseVector[index]);
             float[] tfv = Interval.TFIDFVectors[index];
             this.tfidfVectors.Add(tfv);
-            //if (this.UnitSumVector == null)
-            //{
-            //    this.UnitSumVector = tfv;
-            //}
-            //else
-            //{
-            //    for (int i = tfv.Length - 1; i >= 0; --i)
-            //    {
-            //        this.UnitSumVector[i] += tfv[i];
-            //    }
-            //}
 
             string[] words = tweet.DerivedContent.Split(' ');
             for (int i = 0; i < words.Length; ++i)
@@ -208,7 +197,7 @@ namespace ManyLens.Models
 
         public List<Tweet> GetTweetsBelowAverrageError(float aError)
         {
-            List<Tweet> result = new List<Tweet>();
+            
             float[] keys = this.tweetsWithError.Keys.ToArray();
             int t = -1;
             for (int i = 0, len = keys.Length; i < len; ++i)
@@ -238,6 +227,7 @@ namespace ManyLens.Models
                 }
             }
 
+            List<Tweet> result = new List<Tweet>();
             for (int i = t, len = keys.Length; i < len; ++i)
             {
                 HashSet<Tweet> tweets = this.tweetsWithError[keys[i]];

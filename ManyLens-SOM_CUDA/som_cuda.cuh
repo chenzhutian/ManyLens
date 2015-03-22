@@ -68,7 +68,7 @@ extern "C"
 
 	SOM_CUDA_API float* SOMRefinewithRandomMapping(const float* h_gaussin,
 		const float* h_inputSet,
-		const float* h_BID,
+		const unsigned int* h_BID,
 		const float* h_initial_weight,
 		const unsigned int input_set_size,
 		const unsigned int dimension,
@@ -77,8 +77,8 @@ extern "C"
 		const unsigned int batch_size);
 
 	SOM_CUDA_API unsigned int* FindBID(const float* h_gaussin,
-															float* input_vector, unsigned int input_vector_size, unsigned int input_dimension,
-															float* weights, unsigned int weights_size);
+										float* input_vector, unsigned int input_vector_size, unsigned int input_dimension,
+										float* weights, unsigned int weights_size);
 	
 
 	SOM_CUDA_API void somFree(float* pointer);

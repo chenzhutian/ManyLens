@@ -259,7 +259,13 @@ var ManyLens;
                     parent: null,
                     children: []
                 };
-                this._stack_bar_tree = d3.layout.tree().size([this._sub_view_width - 50, this._sub_view_height - 20]);
+                this._stack_bar_tree = d3.layout.tree().size([this._sub_view_width - 50, this._sub_view_height - 0]).separation(function (a, b) {
+                    if (a.parent == b.parent) {
+                        if (a.children && b._children)
+                            return 5 / (a.depth + 1);
+                    }
+                    return 1 / (a.depth + 1);
+                });
                 this._stack_bar_tree_diagonal = d3.svg.diagonal();
                 this._sub_view_x_scale.range([this._view_left_padding, this._view_left_padding + this._coordinate_margin_left]);
                 this._sub_view_y_scale.range([this._view_height - this._view_botton_padding, this._view_top_padding]);
@@ -364,7 +370,7 @@ var ManyLens;
                 }
                 return this.FindMinCoParent(a.parent, b.parent);
             };
-            Curve.prototype.Update = function (exitParent, mode) {
+            Curve.prototype.UpdateSubviewTree = function (exitParent, mode) {
                 var _this = this;
                 if (mode === void 0) { mode = true; }
                 var duration = 500;
@@ -377,33 +383,41 @@ var ManyLens;
                 });
                 //Enter node
                 var enterNode = this._stack_bar_node.enter().append("g").attr("class", "stack node").attr("transform", function (d) {
+                    //d.y = d.y * (d.depth+3)/8;
                     if (d.date && mode)
-                        return "translate(" + [_this._sub_view_width - 10, _this._sub_view_height - 10] + ")";
-                    if (!d.parent)
-                        return "translate(" + [d.x, d.y + 5] + ")";
+                        return "translate(" + [_this._sub_view_width - 10, _this._sub_view_height - 120] + ")";
                     return "translate(" + [d.parent.x, d.parent.y] + ")";
                 });
                 enterNode.filter(function (d) {
                     return d.parent;
-                }).transition().delay(duration * 0.5).duration(duration).attr("transform", function (d) {
+                }).transition().duration(duration).attr("transform", function (d) {
                     return "translate(" + [d.x, d.y] + ")";
                 });
-                enterNode.append("path").attr("d", function (d) {
+                enterNode.append("rect").attr("x", function (d) {
                     if (d.date && mode)
-                        return d3.superformula().type("rectangle").size(1000)(d);
-                    return d3.superformula().type("circle").size(50)(d);
-                }).attr("transform", function (d) {
+                        return -10;
+                    return -5;
+                }).attr("width", function (d) {
                     if (d.date && mode)
-                        return "scale(1,5)";
+                        return 20;
+                    return 10;
+                }).attr("height", function (d) {
+                    if (d.date && mode)
+                        return 150;
+                    return 10;
                 }).on("click", function (d) {
                     if (d.date) {
                         _this.SelectSegment(d);
                     }
                     else {
                         _this.Toggle(d);
-                        _this.Update(d, false);
+                        _this.UpdateSubviewTree(d, false);
                     }
-                }).transition().delay(duration * 0.5).duration(duration).attr("transform", null).attr("d", d3.superformula().type("circle").size(50));
+                }).transition().duration(duration).attr({
+                    x: -5,
+                    width: 10,
+                    height: 10
+                });
                 enterNode.append("text").attr("x", function (d) {
                     return d.children || d._children ? -10 : 10;
                 }).attr("dy", ".35em").attr("text-anchor", function (d) {
@@ -419,24 +433,39 @@ var ManyLens;
                         return _this.month_names[parseInt(d.name[d.name.length - 1])];
                     }
                     return d.name;
-                }).style("fill-opacity", 1e-6).transition().delay(duration * 0.5).duration(duration).style("fill-opacity", 1);
+                }).style("fill-opacity", 1e-6).transition().duration(duration).style("fill-opacity", 1);
                 ;
                 //Update node
                 var colorScale = d3.scale.linear().domain([1, 8]).range(["#2574A9", "#2574A9"]);
                 function sumLength(d) {
-                    if (!d.children)
+                    if (!d)
+                        return 0;
+                    if (!d.children && !d._children)
                         return 1;
                     var sum = 0;
-                    d.children.forEach(function (d) {
-                        sum += sumLength(d);
-                    });
+                    if (d.children)
+                        d.children.forEach(function (d) {
+                            sum += sumLength(d);
+                        });
+                    else if (d._children)
+                        d._children.forEach(function (d) {
+                            sum += sumLength(d);
+                        });
                     return sum;
                 }
                 this._stack_bar_node.transition().duration(duration).attr("transform", function (d) {
+                    //d.y = d.y * (d.depth+3)/8;
                     return "translate(" + [d.x, d.y] + ")";
                 });
-                this._stack_bar_node.selectAll("path").filter(function (d) {
-                    return d.children;
+                var heightScale = d3.scale.linear();
+                this._stack_bar_node.selectAll("rect").filter(function (d) {
+                    return d.children || d._children;
+                }).transition().duration(duration).attr("height", function (d) {
+                    if (d._children) {
+                        //heightScale.range([d.y,d.y - d._children[0].y]).domain([0,sumLength(d.parent)]);
+                        return 10 * sumLength(d);
+                    }
+                    return 10;
                 }).style("fill", function (d) {
                     return colorScale(sumLength(d));
                 });
@@ -448,7 +477,7 @@ var ManyLens;
                     }
                     return "translate(" + [d.x, d.y] + ")";
                 }).remove();
-                exitNode.select("circle").transition().attr("r", 1e-6);
+                exitNode.select("rect").transition().attr("r", 1e-6);
                 exitNode.select("text").transition().style("fill-opacity", 1e-6);
                 //Links
                 this._stack_bar_link = this._subView.selectAll(".stack.link").data(this._stack_bar_tree.links(nodex), function (d) {
@@ -459,7 +488,7 @@ var ManyLens;
                     var o = { x: d.source.x, y: d.source.y };
                     var result = _this._stack_bar_tree_diagonal({ source: o, target: o });
                     return result;
-                }).transition().delay(duration * 0.5).duration(duration).attr("d", this._stack_bar_tree_diagonal);
+                }).transition().duration(duration).attr("d", this._stack_bar_tree_diagonal);
                 //Update link
                 this._stack_bar_link.transition().duration(duration).attr("d", this._stack_bar_tree_diagonal);
                 //Exit link
@@ -504,7 +533,7 @@ var ManyLens;
                     var exitParent = this.FindMinCoParent(this._stack_bar_nodes[this._stack_bar_nodes.length - 1], stackNode);
                     this.Toggle(exitParent);
                     this._stack_bar_nodes.push(stackNode);
-                    this.Update(exitParent);
+                    this.UpdateSubviewTree(exitParent);
                 }
                 //Refresh the curve view
                 this._y_scale.domain([0, d3.max([
@@ -4933,28 +4962,33 @@ var ManyLens;
                 }
                 ;
             };
-            HeatMapLayer.prototype.ScaleCanvas = function (scale) {
-                this._canvas_width *= scale;
-                this._canvas_height *= scale;
-                this._canvas_top_offset *= (1 + scale);
-                this._canvas_left_offset *= scale;
-                this._canvas.height = this._canvas_height;
-                this._canvas.width = this._canvas_width;
-                this._canvas.style.top = this._canvas_top_offset + 'px';
-                this._canvas.style.left = this._canvas_left_offset + 'px';
-                //初始化像素矩阵
-                var width = Math.ceil(this._canvas_width);
-                var height = Math.ceil(this._canvas_height);
-                this._pixelMatrix = new Array(height);
-                for (var i = 0; i < height; ++i) {
-                    this._pixelMatrix[i] = new Array(width);
-                }
-                ;
-                this._nodeArray = this._nodeArray.map(function (d) {
-                    return { x: d.x * scale, y: d.y * scale, value: d.value };
+            HeatMapLayer.prototype.UpdateNodeArray = function (unitWidth, unitHeight, nodeArray) {
+                this._nodeArray = nodeArray.map(function (d) {
+                    return { x: d.x * unitWidth, y: d.y * unitHeight, value: d.value };
                 });
                 this.DrawCanvas();
             };
+            //public ScaleCanvas( scale:number): void {
+            //    this._canvas_width *= scale;
+            //    this._canvas_height *= scale;
+            //    this._canvas_top_offset *= (1+scale);
+            //    this._canvas_left_offset *= scale;
+            //    this._canvas.height = this._canvas_height;
+            //    this._canvas.width = this._canvas_width;
+            //    this._canvas.style.top = this._canvas_top_offset + 'px';
+            //    this._canvas.style.left = this._canvas_left_offset + 'px';
+            //    //初始化像素矩阵
+            //    var width = Math.ceil( this._canvas_width );
+            //    var height = Math.ceil( this._canvas_height );
+            //    this._pixelMatrix = new Array( height );
+            //    for ( var i = 0; i < height; ++i ) {
+            //        this._pixelMatrix[i] = new Array( width );
+            //    };
+            //    this._nodeArray = this._nodeArray.map(( d ) => {
+            //        return { x: d.x * scale, y: d.y * scale, value: d.value };
+            //    });
+            //    this.DrawCanvas();
+            //}
             //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
             HeatMapLayer.prototype.DrawCanvas = function () {
                 var dStart = new Date();
@@ -5162,7 +5196,8 @@ var ManyLens;
                     "class": "highlight-arrow",
                     'd': 'M0,-5L10,0L0,5z'
                 });
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "showVis", this.ShowVis);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "showVisMap", this.ShowVisMap);
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "updateVisMap", this.UpdateVisMap);
             }
             SOMMap.prototype.Render = function () {
                 //this._lensPane.Render();
@@ -5273,7 +5308,26 @@ var ManyLens;
                 }
                 this._classifier_context_menu.attr("transform", "translate(" + [p[0], p[1]] + ")");
             };
-            SOMMap.prototype.ShowVis = function (visData, classifierID) {
+            SOMMap.prototype.UpdateVisMap = function (index, visData) {
+                var _this = this;
+                this._maps[index] = visData;
+                this._heatMaps[index].UpdateNodeArray(visData.width, visData.height, visData.unitsData);
+                var mapData = d3.select("#mapSvg" + visData.mapID).data()[0];
+                var units = d3.select("#mapSvg" + visData.mapID).selectAll("rect.unit").data(visData.unitsData, function (d) {
+                    return d.unitID;
+                });
+                units.exit().remove();
+                units.enter().append("rect").attr("x", function (d) {
+                    return mapData.leftOffset + d.x * _this._unit_width;
+                }).attr("y", function (d) {
+                    return mapData.topOffset + d.y * _this._unit_height;
+                }).attr({
+                    "class": "unit",
+                    width: this._unit_width,
+                    height: this._unit_height
+                });
+            };
+            SOMMap.prototype.ShowVisMap = function (visData, classifierID) {
                 var _this = this;
                 this._maps.push(visData);
                 this._top_offset = this._top_offset || (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
@@ -5284,7 +5338,9 @@ var ManyLens;
                 var svg = this._element.append("g").data([{ mapID: visData.mapID, width: visData.width, height: visData.height, leftOffset: this._left_offset, topOffset: this._top_offset }]).attr("id", function (d) {
                     return "mapSvg" + d.mapID;
                 }).attr("class", "som-map").attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")");
-                svg.selectAll("rect.unit").data(visData.unitsData).enter().append("rect").attr("x", function (d) {
+                svg.selectAll("rect.unit").data(visData.unitsData, function (d) {
+                    return d.unitID;
+                }).enter().append("rect").attr("x", function (d) {
                     return _this._left_offset + d.x * _this._unit_width;
                 }).attr("y", function (d) {
                     return _this._top_offset + d.y * _this._unit_height;
@@ -5542,6 +5598,13 @@ var ManyLens;
             }
             return this._manyLens_hub.proxy.invoke("testPullInterval", id);
             //return this._manyLens_hub.server.testPullInterval(id);
+        };
+        ManyLens.prototype.ManyLensHubServerRefineMap = function (mapId, mapIndex, fromUnitsId, toUnitsID) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("refineTheMap", mapId, mapIndex, fromUnitsId, toUnitsID);
         };
         ManyLens.prototype.ManyLensHubServerGetLensData = function (visMapID, lensID, unitsID, baseData, subData) {
             if (!this._manyLens_hub) {

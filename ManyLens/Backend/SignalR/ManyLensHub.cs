@@ -475,9 +475,8 @@ namespace ManyLens.SignalR
         public async Task PullInterval(string interalID, string classifierID, IProgress<double> progress)
         {
             VisMap visMap;
-
             string mapID = interalID;
-            if (classifierID != null) mapID += "_" + classifierID;
+            if (classifierID != null) mapID =mapID + "_" + classifierID;
 
             await Task.Run(() =>
             {
@@ -487,41 +486,32 @@ namespace ManyLens.SignalR
                 {
                     Interval interal = interals[interalID];
                     interal.PreproccessingParallel(progress);
-                    
-                    //Test
-                    //if (TestMode)
-                    //{
 
-                    //    visMap = GPUSOM.TestTweetSOM(interal, config.Parameter.RootFolder);// TweetSOM(interal, rootFolder);
-                    //}
-                    //else
-                    //{
-                        if (classifierID != null)
+                    if (classifierID != null)
+                    {
+                        VisMap classifierMap = visMaps[classifierID];
+                        visMap = GPUSOM.TweetSOMClassification(mapID, interal, classifierMap);
+                        if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
                         {
-                            VisMap classifierMap = visMaps[classifierID];
-                            visMap = GPUSOM.TweetSOMClassification(mapID, interal, classifierMap);
-                            if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
-                            {
-                                visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
-                            }
-                            visMapsSortedByTime[visMap.MapDate].classificationMap = visMap;
+                            visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
                         }
-                        else
+                        visMapsSortedByTime[visMap.MapDate].classificationMap = visMap;
+                    }
+                    else
+                    {
+                        VisMap lastMap = null;
+                        if (visMapsSortedByTime.Count > 0)
                         {
-                            VisMap lastMap = null;
-                            if (visMapsSortedByTime.Count > 0)
-                            {
-                                lastMap = visMapsSortedByTime.Last().Value.clusteringMap;
-                            }
-                            visMap = GPUSOM.TweetSOMClustering(mapID,interal, lastMap);
+                            lastMap = visMapsSortedByTime.Last().Value.clusteringMap;
+                        }
+                        visMap = GPUSOM.TweetSOMClustering(mapID,interal, lastMap);
 
-                            if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
-                            {
-                                visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
-                            }
-                            visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
+                        if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
+                        {
+                            visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
                         }
-                    //}
+                        visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
+                    }
 
                     Debug.WriteLine(interal.Entropy);
                     visMaps.Add(visMap.VisMapID, visMap);
@@ -545,10 +535,29 @@ namespace ManyLens.SignalR
                 //    Debug.WriteLine(e.Message);
                 //}
 
-                Clients.Caller.showVIS(visMap.GetVisData(),classifierID);
+                Clients.Caller.showVisMap(visMap.GetVisData(), classifierID);
 
             });
 
+        }
+
+        public async Task RefineTheMap(string visMapID, int index,int[] fromUnitsID, int[] toUnitsID)
+        {
+            VisMap refineMap;
+            await Task.Run(() => 
+            {
+                if (visMaps.ContainsKey(visMapID))
+                {
+                    refineMap = visMaps[visMapID];
+                    refineMap.RefineTheMap(fromUnitsID, toUnitsID);
+                    Clients.Caller.updateVisMap(index,refineMap.GetVisData());
+                }
+                else
+                {
+                    throw new Exception("This map is miss");
+                }
+            });
+        
         }
 
         public async Task<Dictionary<string, object>> GetLensData(string visMapID, string lensID, int[] unitsID, string baseData, string subData = null)

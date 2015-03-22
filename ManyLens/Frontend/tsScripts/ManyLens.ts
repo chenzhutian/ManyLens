@@ -187,6 +187,16 @@ module ManyLens {
             //return this._manyLens_hub.server.testPullInterval(id);
         }
 
+        public ManyLensHubServerRefineMap(mapId:string, mapIndex:number,fromUnitsId:number[],toUnitsID:number[]){
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("refineTheMap", mapId,mapIndex,fromUnitsId,toUnitsID);
+        
+        }
+
+
         public ManyLensHubServerGetLensData(visMapID:string,lensID:string, unitsID: number[],baseData:string,subData?:string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
