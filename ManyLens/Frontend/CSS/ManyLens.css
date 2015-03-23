@@ -96,7 +96,7 @@ svg#mapSvg {
     position:relative;
 }
     svg#mapSvg .som-map rect.unit {
-        opacity:0.5;
+        opacity:0;
     }
     svg#mapSvg .som-map path.control-layout {
         fill: none;

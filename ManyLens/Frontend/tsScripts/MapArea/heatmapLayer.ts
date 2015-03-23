@@ -5,7 +5,8 @@ module ManyLens {
             public static kernelBandwidth = 64;
             public static intensity = 3;
             public static shaderStyle = 0;
-            public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
+            //public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
+            public static stops = [0.000, 0.02, 0.067, 0.115, 0.24, 0.41, 0.5];
             public static LoDMap;
             public static setKernelBandWidth( val ) {
                 config.kernelBandwidth = val;

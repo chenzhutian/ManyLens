@@ -29,6 +29,7 @@ module ManyLens {
 
             /*--------------Map menu---------------*/
             private _refine_btn:D3.Selection;
+            private _som_geo_switchBtn:JQuery;
 
             private _map_Svg: D3.Selection;
 
@@ -37,6 +38,19 @@ module ManyLens {
                 this._manyLens = manyLens;
                 this._brand_name = brandName;
                 this._map_Svg = mapSvg;
+
+                this._element.select("#curve-btns").append("input")
+                    .attr({
+                        "id":"intervals-organize-switch",
+                        type:"checkbox",
+                        "data-on-color":"info",
+                         "data-off-color":"danger",
+                         "data-on-text":"Time",
+                         "data-off-text":"Content"
+                    })
+                    .property("checked",true)
+                ;
+                $("#intervals-organize-switch").bootstrapSwitch("disabled",true);
 
                 this._reorganizeIntervalBtn = $("#intervals-organize-switch")
                 .on("switchChange.bootstrapSwitch",  (event,state)=> {
@@ -60,31 +74,53 @@ module ManyLens {
                     })
                 ;
 
-                this._brand = this._element.append("div")
+
+                this._brand = this._element.select("#map-btns").append("div")
                     .attr("class", "nav-brand")
                     .text(this._brand_name)
                 ;
-                this._menu_list = this._element.append("div")
+                this._menu_list = this._element.select("#map-btns").append("div")
                     .attr("class", "menu-list")
                     .append("ul")
                     .attr("id", "side-menu-content")
                     .attr("class", "menu-content")
                 ;
 
-                this._refine_btn = this._element.append("button")
+                var mapBtns = this._element.select("#map-btns").append("div")
+                    .style("text-align","center");
+
+                this._refine_btn = mapBtns.append("button")
                     .attr({
                         type: "button",
                         class: "btn btn-primary"
                     })
                     .style({
                         "margin-top": "30px",
-                        "margin-bottom": "90px"
+                        "margin-bottom":"30px",
+                        "padding":"9px 18px"
                     })
-                    .text("RefineMap")
+                    .text(" Refine  Map ")
                     .on("click", () => {
                         this._manyLens.AddBrushToMap();
                     })
                 ;
+
+                mapBtns.append("input")
+                    .attr({
+                        "id":"maps-switch",
+                        type:"checkbox",
+                        "data-on-color":"info",
+                         "data-off-color":"danger",
+                         "data-on-text":"SOM",
+                         "data-off-text":"GEO"
+                    })
+                    .property("checked",true)
+                ;
+                $("#maps-switch").bootstrapSwitch();
+                this._som_geo_switchBtn = $("#maps-switch")
+                            .on("switchChange.bootstrapSwitch",  (event,state)=> {
+                                this._manyLens.SwitchMap();
+                            });
 
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);

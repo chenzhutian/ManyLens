@@ -29,14 +29,52 @@ namespace PreprocessingData
 
         static void Main(string[] args)
         {
+            string ROOT_DIR = "D:\\Data\\";
+            string inputFile = ROOT_DIR + "FIFAShortAttributes";
+            string output_dir = ROOT_DIR + "\\SortByTime\\";
+            StreamReader sr = new StreamReader(inputFile);
+            //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
+            //\t 8follower \9 13V \t 10gpsA \t 11gpsB
+            Dictionary<string, StreamWriter> sws = new Dictionary<string, StreamWriter>();
+            StreamWriter sw;
+
+            var lines = File.ReadLines(inputFile);
+            foreach (string currentLine in lines)
+            {
+                string[] tweetsAttribute = currentLine.Split('\t');
+                DateTime date = DateTime.Parse(tweetsAttribute[4]);
+                string fileName = date.ToString("yyyyMMdd");
+                if (File.Exists(output_dir + fileName))
+                {
+                    sw = sws[output_dir + fileName];
+                }
+                else
+                {
+                    sw =  new StreamWriter(output_dir + fileName,true);
+                    sws.Add(output_dir + fileName, sw);
+                }
+                sw.WriteLine(currentLine);
+                sw.Flush();
+            }
+
+            foreach (KeyValuePair<string, StreamWriter> sw1 in sws)
+            {
+                sw1.Value.Close();
+            }
+
+        }
+
+
+        public void AddTheCountryName()
+        {
             List<City> cities1000 = new List<City>();
             string cities1000File = "C:\\Users\\xiaot_000\\Documents\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Frontend\\testData\\cities1000.txt";
             StreamWriter sw = new StreamWriter(cities1000File + ".short");
-            foreach(string line in File.ReadLines(cities1000File))
+            foreach (string line in File.ReadLines(cities1000File))
             {
                 // /4lon or lat /5lon or lat /8country name
                 string[] s = line.Split('\t');
-                cities1000.Add(new City(){ lon = double.Parse(s[4]),lat = double.Parse(s[5]), countryName = s[8]});
+                cities1000.Add(new City() { lon = double.Parse(s[4]), lat = double.Parse(s[5]), countryName = s[8] });
                 sw.WriteLine(s[4] + '\t' + s[5] + '\t' + s[8]);
             }
             sw.Close();
@@ -75,6 +113,7 @@ namespace PreprocessingData
             sw.Flush();
             sw.Close();
 
+        
         }
 
         public void ExtractRetweetNetwork()

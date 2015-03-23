@@ -74,7 +74,7 @@ module ManyLens {
             private _sub_view_x_scale: D3.Scale.LinearScale = d3.scale.linear();
             private _sub_view_y_scale: D3.Scale.LinearScale = d3.scale.linear();
 
-            private _section_num: number = 30;
+            private _section_num: number = 70;
             private _view_height: number;
             private _view_width: number;
             private _view_top_padding: number = 15;

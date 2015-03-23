@@ -10,7 +10,8 @@ module ManyLens{
 
         export class WorldMap extends D3ChartObject{
             private _map:D3.Selection;
-
+       
+            private _state:boolean = false;
             private _total_width:number;
             private _total_height:number;
             private _center_xy:number[];
@@ -56,31 +57,57 @@ module ManyLens{
                         //d3.event.sourceEvent.stopPropagation();
                     })
                 ;
-                
+               
+            }
+
+            private init(){
+                this._element.on("mousedown",null);
                 this._element
                     .on("dblclick",(d:Country)=>{
                         this.Country_Clicked(d);
                     })
                     .call(this._zoom)
-                    .on("dblclick.zoom", null);
+                    .on("dblclick.zoom", null)
+                ;
+            
             }
 
+            public Toggle(){
+                if(this._state){
+                    this.RemoveMap();
+                }else{
+                    this.init();
+                    this.Render();
+                }
+                this._state = !this._state;
+            }
+
+            public RemoveMap(){
+                this._map.transition().style("opacity",0).remove();
+            }
 
             public Render(){
                 if(this._world_topojson_data){
+                        this._projection
+                            .scale(1)
+                            .rotate([80,0])
+                            .translate([0,0])
+                        ;
+
                         // Compute the bounds of a feature of interest, then derive scale & translate.
                         var bounds = this._path.bounds(this._world_topojson_data);
                         var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
                         this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
+                        
 
                         this._projection
                             .scale(s)
                             .translate(this._center_xy);
  
-                        
                         this._map =  this._element.append("g")
-                            .attr("id","world-countries")
-                            .selectAll("path")
+                            .attr("id","world-countries");
+
+                        this._map.selectAll("path")
                             .data(this._world_topojson_data.features,function(d){return d.id;})
                             .enter()
                             .append("path")
@@ -90,14 +117,14 @@ module ManyLens{
                                 d3.event.stopPropagation();
                                 this.Country_Clicked(d);
                             })
-                           ;
+                        ;
                 }else{
                     d3.json(this._world_topojson_path, (error,world)=>{
                         this._world_topojson_data = topojson.feature(world,world.objects.countries);
 
                         // Compute the bounds of a feature of interest, then derive scale & translate.
                         var bounds = this._path.bounds(this._world_topojson_data);
-                        var s = 0.96 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
+                        var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
                         this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
 
                         this._projection

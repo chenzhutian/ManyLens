@@ -25,6 +25,8 @@ module ManyLens {
 
             // private _lensPane: Pane.ClassicLensPane;
             //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
+            private _state:boolean = true;
+
             private _maps: Array<MapData> = [];
             private _heatMaps: Array<HeatMapLayer> = [];
 
@@ -82,7 +84,6 @@ module ManyLens {
                 this._center_y = 0.5 * parseFloat( this._element.style( "height" ) );
                 this._brush = d3.svg.brush()
                     .on("brushstart",()=>{
-                        console.log(d3.event);
                         if(d3.event.sourceEvent.altKey){
                             var extent = (<any>d3.event.target).extent();
                             var rect:SVGRect = ( <SVGSVGElement>this._element.node() ).createSVGRect();
@@ -190,22 +191,8 @@ module ManyLens {
 
                     })
                 ;
-  
-                this._element
-                    .on( "mousedown",() => {
-                        if(d3.event.button) d3.event.stopImmediatePropagation();
-                        if ( this._classifier_context_menu ) {
-                            this._classifier_context_menu.remove();
-                            this._classifier_context_menu = null;
-                        }
-                    })
-                  
-                    ;
                 
-                this._element
-                      .call( this._zoom )
-                      .on("dblclick.zoom", null);
-
+                this.init();
 
                 var defs = this._element.append('svg:defs');
                  // define arrow markers for leading arrow
@@ -227,6 +214,44 @@ module ManyLens {
 
                 this._manyLens.ManyLensHubRegisterClientFunction( this, "showVisMap", this.ShowVisMap );
                 this._manyLens.ManyLensHubRegisterClientFunction(this,"updateVisMap",this.UpdateVisMap);
+            }
+
+            private init(){
+                this._element.on("dblclick",null);
+
+
+                this._element
+                    .on( "mousedown",() => {
+                        if(d3.event.button) d3.event.stopImmediatePropagation();
+                        if ( this._classifier_context_menu ) {
+                            this._classifier_context_menu.remove();
+                            this._classifier_context_menu = null;
+                        }
+                    })
+                ;
+
+                this._element
+                      .call( this._zoom )
+                      .on("dblclick.zoom", null);
+            
+            }
+
+            public Toggle(){
+                if(this._state){
+                    this.RemoveMap();
+                }else{
+                    this.init();
+                    this.Render();
+                }
+                this._state = !this._state;
+            }
+
+            public RemoveMap(){
+                this._element.selectAll("*").remove();
+                this._heatmap_container.innerHTML = "";
+                this._left_offset = 0;
+                this._heatMaps = [];
+                this._maps = [];
             }
 
             public Render() {

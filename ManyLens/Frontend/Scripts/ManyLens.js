@@ -33,6 +33,15 @@ var ManyLens;
                 this._manyLens = manyLens;
                 this._brand_name = brandName;
                 this._map_Svg = mapSvg;
+                this._element.select("#curve-btns").append("input").attr({
+                    "id": "intervals-organize-switch",
+                    type: "checkbox",
+                    "data-on-color": "info",
+                    "data-off-color": "danger",
+                    "data-on-text": "Time",
+                    "data-off-text": "Content"
+                }).property("checked", true);
+                $("#intervals-organize-switch").bootstrapSwitch("disabled", true);
                 this._reorganizeIntervalBtn = $("#intervals-organize-switch").on("switchChange.bootstrapSwitch", function (event, state) {
                     _this._manyLens.ManyLensHubServerReOrganizePeak(state);
                 });
@@ -46,16 +55,30 @@ var ManyLens;
                     _this._launchDataBtn.classed("disabled", true);
                     _this.PullData();
                 });
-                this._brand = this._element.append("div").attr("class", "nav-brand").text(this._brand_name);
-                this._menu_list = this._element.append("div").attr("class", "menu-list").append("ul").attr("id", "side-menu-content").attr("class", "menu-content");
-                this._refine_btn = this._element.append("button").attr({
+                this._brand = this._element.select("#map-btns").append("div").attr("class", "nav-brand").text(this._brand_name);
+                this._menu_list = this._element.select("#map-btns").append("div").attr("class", "menu-list").append("ul").attr("id", "side-menu-content").attr("class", "menu-content");
+                var mapBtns = this._element.select("#map-btns").append("div").style("text-align", "center");
+                this._refine_btn = mapBtns.append("button").attr({
                     type: "button",
                     class: "btn btn-primary"
                 }).style({
                     "margin-top": "30px",
-                    "margin-bottom": "90px"
-                }).text("RefineMap").on("click", function () {
+                    "margin-bottom": "30px",
+                    "padding": "9px 18px"
+                }).text(" Refine  Map ").on("click", function () {
                     _this._manyLens.AddBrushToMap();
+                });
+                mapBtns.append("input").attr({
+                    "id": "maps-switch",
+                    type: "checkbox",
+                    "data-on-color": "info",
+                    "data-off-color": "danger",
+                    "data-on-text": "SOM",
+                    "data-off-text": "GEO"
+                }).property("checked", true);
+                $("#maps-switch").bootstrapSwitch();
+                this._som_geo_switchBtn = $("#maps-switch").on("switchChange.bootstrapSwitch", function (event, state) {
+                    _this._manyLens.SwitchMap();
                 });
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
@@ -236,7 +259,7 @@ var ManyLens;
                 this._fisheye_scale = d3.fisheye.ordinal();
                 this._sub_view_x_scale = d3.scale.linear();
                 this._sub_view_y_scale = d3.scale.linear();
-                this._section_num = 30;
+                this._section_num = 70;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
@@ -4925,7 +4948,8 @@ var ManyLens;
             config.kernelBandwidth = 64;
             config.intensity = 3;
             config.shaderStyle = 0;
-            config.stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
+            //public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
+            config.stops = [0.000, 0.02, 0.067, 0.115, 0.24, 0.41, 0.5];
             return config;
         })();
         MapArea.config = config;
@@ -5129,6 +5153,7 @@ var ManyLens;
                 _super.call(this, element, manyLens);
                 // private _lensPane: Pane.ClassicLensPane;
                 //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
+                this._state = true;
                 this._maps = [];
                 this._heatMaps = [];
                 this._scale = 1;
@@ -5158,7 +5183,6 @@ var ManyLens;
                 this._center_x = 0.5 * parseFloat(this._element.style("width"));
                 this._center_y = 0.5 * parseFloat(this._element.style("height"));
                 this._brush = d3.svg.brush().on("brushstart", function () {
-                    console.log(d3.event);
                     if (d3.event.sourceEvent.altKey) {
                         var extent = d3.event.target.extent();
                         var rect = _this._element.node().createSVGRect();
@@ -5242,15 +5266,7 @@ var ManyLens;
                     _this._translate_y = d3.event.translate[1];
                     _this._scale = currentLevel;
                 });
-                this._element.on("mousedown", function () {
-                    if (d3.event.button)
-                        d3.event.stopImmediatePropagation();
-                    if (_this._classifier_context_menu) {
-                        _this._classifier_context_menu.remove();
-                        _this._classifier_context_menu = null;
-                    }
-                });
-                this._element.call(this._zoom).on("dblclick.zoom", null);
+                this.init();
                 var defs = this._element.append('svg:defs');
                 // define arrow markers for leading arrow
                 defs.append('svg:marker').attr({
@@ -5267,6 +5283,36 @@ var ManyLens;
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVisMap", this.ShowVisMap);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "updateVisMap", this.UpdateVisMap);
             }
+            SOMMap.prototype.init = function () {
+                var _this = this;
+                this._element.on("dblclick", null);
+                this._element.on("mousedown", function () {
+                    if (d3.event.button)
+                        d3.event.stopImmediatePropagation();
+                    if (_this._classifier_context_menu) {
+                        _this._classifier_context_menu.remove();
+                        _this._classifier_context_menu = null;
+                    }
+                });
+                this._element.call(this._zoom).on("dblclick.zoom", null);
+            };
+            SOMMap.prototype.Toggle = function () {
+                if (this._state) {
+                    this.RemoveMap();
+                }
+                else {
+                    this.init();
+                    this.Render();
+                }
+                this._state = !this._state;
+            };
+            SOMMap.prototype.RemoveMap = function () {
+                this._element.selectAll("*").remove();
+                this._heatmap_container.innerHTML = "";
+                this._left_offset = 0;
+                this._heatMaps = [];
+                this._maps = [];
+            };
             SOMMap.prototype.Render = function () {
                 //this._lensPane.Render();
             };
@@ -5556,10 +5602,10 @@ var ManyLens;
             this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
             /*------------------------Initial other Component--------------------------------*/
             this._mapSvg = d3.select("#" + this._mapSvg_id);
-            //this._SOM_mapArea = new MapArea.SOMMap(this._mapSvg, this);
-            //this._SOM_mapArea.Render();
+            this._SOM_mapArea = new _ManyLens.MapArea.SOMMap(this._mapSvg, this);
+            this._SOM_mapArea.Render();
             this._GEO_mapArea = new _ManyLens.MapArea.WorldMap(this._mapSvg, this);
-            this._GEO_mapArea.Render();
+            //this._GEO_mapArea.Render();
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
             this._curve.Render();
@@ -5612,7 +5658,11 @@ var ManyLens;
             configurable: true
         });
         ManyLens.prototype.AddBrushToMap = function () {
-            //  this._mapArea.AddBrush();
+            this._SOM_mapArea.AddBrush();
+        };
+        ManyLens.prototype.SwitchMap = function () {
+            this._SOM_mapArea.Toggle();
+            this._GEO_mapArea.Toggle();
         };
         /* -------------------- Lens related Function -----------------------*/
         ManyLens.prototype.GetLens = function (id) {
@@ -5973,6 +6023,7 @@ var ManyLens;
             function WorldMap(element, manyLens) {
                 var _this = this;
                 _super.call(this, element, manyLens);
+                this._state = false;
                 this._projection = d3.geo.equirectangular();
                 this._path = d3.geo.path();
                 this._world_topojson_path = "./testData/countriesAlpha2.topo.json";
@@ -5991,19 +6042,38 @@ var ManyLens;
                 }).on("zoomend", function () {
                     //d3.event.sourceEvent.stopPropagation();
                 });
+            }
+            WorldMap.prototype.init = function () {
+                var _this = this;
+                this._element.on("mousedown", null);
                 this._element.on("dblclick", function (d) {
                     _this.Country_Clicked(d);
                 }).call(this._zoom).on("dblclick.zoom", null);
-            }
+            };
+            WorldMap.prototype.Toggle = function () {
+                if (this._state) {
+                    this.RemoveMap();
+                }
+                else {
+                    this.init();
+                    this.Render();
+                }
+                this._state = !this._state;
+            };
+            WorldMap.prototype.RemoveMap = function () {
+                this._map.transition().style("opacity", 0).remove();
+            };
             WorldMap.prototype.Render = function () {
                 var _this = this;
                 if (this._world_topojson_data) {
+                    this._projection.scale(1).rotate([80, 0]).translate([0, 0]);
                     // Compute the bounds of a feature of interest, then derive scale & translate.
                     var bounds = this._path.bounds(this._world_topojson_data);
                     var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
                     this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
                     this._projection.scale(s).translate(this._center_xy);
-                    this._map = this._element.append("g").attr("id", "world-countries").selectAll("path").data(this._world_topojson_data.features, function (d) {
+                    this._map = this._element.append("g").attr("id", "world-countries");
+                    this._map.selectAll("path").data(this._world_topojson_data.features, function (d) {
                         return d.id;
                     }).enter().append("path").attr("id", function (d) {
                         return d.id;
@@ -6017,7 +6087,7 @@ var ManyLens;
                         _this._world_topojson_data = topojson.feature(world, world.objects.countries);
                         // Compute the bounds of a feature of interest, then derive scale & translate.
                         var bounds = _this._path.bounds(_this._world_topojson_data);
-                        var s = 0.96 / Math.max((bounds[1][0] - bounds[0][0]) / _this._total_width, (bounds[1][1] - bounds[0][1]) / (_this._total_height));
+                        var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / _this._total_width, (bounds[1][1] - bounds[0][1]) / (_this._total_height));
                         _this._center_xy = [(_this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (_this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
                         _this._projection.scale(s).translate(_this._center_xy);
                         _this._map = _this._element.append("g").attr("id", "world-countries");
