@@ -159,10 +159,15 @@ div#heatmap-container {
         position:absolute;
     }
 
+
 .brush .extent {
   fill-opacity: .1;
   stroke: #fff;
   shape-rendering: crispEdges;
+}
+
+svg#mapSvg g#world-countries {
+    
 }
 
 /*-----------curve view------------*/

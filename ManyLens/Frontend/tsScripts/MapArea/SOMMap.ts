@@ -36,7 +36,7 @@ module ManyLens {
             private _translate_x: number = 0;
             private _translate_y: number = 0;
             private _total_width: number;
-            private _total_heiglt:number;
+            private _total_height:number;
             private _map_gap: number = 10;
 
             private _heatmap_container: HTMLElement;
@@ -68,7 +68,7 @@ module ManyLens {
                     return this.parentNode.clientHeight - this.offsetTop + 20;
                 });
                 this._total_width = parseFloat( this._element.style( "width" ));
-                this._total_heiglt = parseFloat(this._element.style("height"));
+                this._total_height = parseFloat(this._element.style("height"));
 
                 this._heatmap_container = document.createElement( 'div' );
                 this._heatmap_container.id = "heatmap-container";
@@ -203,7 +203,8 @@ module ManyLens {
                     ;
                 
                 this._element
-                      .call( this._zoom );
+                      .call( this._zoom )
+                      .on("dblclick.zoom", null);
 
 
                 var defs = this._element.append('svg:defs');

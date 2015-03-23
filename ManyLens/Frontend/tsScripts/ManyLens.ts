@@ -21,7 +21,8 @@ module ManyLens {
 
         private _mapSvg_id: string = "mapSvg";
         private _mapSvg: D3.Selection;
-        private _mapArea: MapArea.SOMMap;
+        private _SOM_mapArea: MapArea.SOMMap;
+        private _GEO_mapArea: MapArea.WorldMap;
 
         private _historyView_id: string = "historyView";
         private _historyView: D3.Selection;
@@ -55,8 +56,12 @@ module ManyLens {
 
             /*------------------------Initial other Component--------------------------------*/
             this._mapSvg = d3.select("#" + this._mapSvg_id);
-            this._mapArea = new MapArea.SOMMap(this._mapSvg, this);
-            this._mapArea.Render();
+            //this._SOM_mapArea = new MapArea.SOMMap(this._mapSvg, this);
+            //this._SOM_mapArea.Render();
+
+            this._GEO_mapArea = new MapArea.WorldMap(this._mapSvg,this);
+            this._GEO_mapArea.Render();
+
 
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new TweetsCurve.Curve(this._curveView, this);
@@ -91,7 +96,7 @@ module ManyLens {
         }
 
         public AddBrushToMap(){
-            this._mapArea.AddBrush();
+          //  this._mapArea.AddBrush();
         }
 
         /* -------------------- Lens related Function -----------------------*/

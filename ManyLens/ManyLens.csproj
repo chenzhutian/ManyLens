@@ -271,6 +271,7 @@
     <TypeScriptCompile Include="Frontend\tsScripts\MapArea\HeatmapLayer.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\MapArea\SOMMap.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\MapArea\WebGLLoD.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\MapArea\WorldMap.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Navigation\SideBarNavigation.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\BlossomLensPane.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Pane\ClassicLensPane.ts" />

@@ -3,8 +3,6 @@
 module ManyLens {
     export module Lens {
 
-
-
         export class MapLens extends BaseSingleLens {
 
             public static Type: string = "MapLens";
