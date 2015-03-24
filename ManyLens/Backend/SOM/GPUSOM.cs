@@ -45,19 +45,19 @@ namespace ManyLens.SOM
 
         [DllImport("ManyLens-SOM_CUDA.dll")]
         private static extern IntPtr SOMRefinewithRandomMapping(float[] h_gaussin,
-                                                                     float[] h_inputSet,
-                                                                     int[] h_BID,
-                                                                     float[] h_classifier_weight,
-                                                                     int input_set_size,
-                                                                     int dimension,
-                                                                     int height,
-                                                                     int width,
-                                                                     int batch_size);
+                                                                float[] h_inputSet,
+                                                                int[] h_BID,
+                                                                float[] h_classifier_weight,
+                                                                int input_set_size,
+                                                                int dimension,
+                                                                int height,
+                                                                int width,
+                                                                int batch_size);
 
         [DllImport("ManyLens-SOM_CUDA.dll")]
         private static extern IntPtr FindBID(float[] h_gaussin,
-                                                        float[] input_vector, int input_set_size,int dimension,
-                                                        float[] weights,int weights_size);
+                                            float[] input_vector, int input_set_size,int dimension,
+                                            float[] weights,int weights_size);
 
         [DllImport("ManyLens-SOM_CUDA.dll")]
         private static extern void somFree(IntPtr pointer);
@@ -242,21 +242,24 @@ namespace ManyLens.SOM
             InitializeCUDA();
 
             IntPtr pointer = FindBID(config.Parameter.RmMatrix,
-                                    inputVector, inputVector.Length,config.Parameter.HashDimension,
+                                    inputVector, inputVector.Length, config.Parameter.HashDimension,
                                     weight, weight.Length);
+            Debug.WriteLine("SOM Finish");
 
             int[] h_BID = new int[inputVector.Length];
-            Marshal.Copy(pointer, h_BID, 0, inputVector.Length);
+            //Marshal.Copy(pointer, h_BID, 0, inputVector.Length);
 
             float[] h_error = new float[inputVector.Length];
-            Marshal.Copy(IntPtr.Add(pointer, inputVector.Length * sizeof(int)), h_error, 0, inputVector.Length);
-            Marshal.FreeHGlobal(pointer);
+            //Marshal.Copy(IntPtr.Add(pointer, inputVector.Length * sizeof(int)), h_error, 0, inputVector.Length);
+            //Marshal.FreeHGlobal(pointer);
 
             return new GPUFindBIDPack() { BID=h_BID, error = h_error};
         }
 
         public static void TweetSOMUpdateMap(VisMap refineMap)
         {
+            InitializeCUDA();
+
             Interval interval = refineMap.Interval;
             int trainsetSize = interval.TweetsCount;
             float[] trainset = interval.GetHashVector(trainsetSize);
@@ -271,11 +274,15 @@ namespace ManyLens.SOM
             Debug.WriteLine("Let's have SOM");
             //use som train here
             IntPtr pointer = SOMRefinewithRandomMapping(config.Parameter.RmMatrix,
-                trainset,refineMap.BID,
-                refineMap.MapWeightInColumnMajor,
-                trainsetSize,
-                config.Parameter.HashDimension,
-                height,width,batch_size);
+                                                        trainset,
+                                                        refineMap.BID,
+                                                        refineMap.MapWeightInColumnMajor,
+                                                        trainsetSize,
+                                                        config.Parameter.HashDimension,
+                                                        height,
+                                                        width,
+                                                        batch_size);
+            Debug.WriteLine("SOM Finish");
 
             float[] h_weight = new float[neuronNum * config.Parameter.DimensionAfterRandomMapping];
             Marshal.Copy(pointer, h_weight, 0, neuronNum * config.Parameter.DimensionAfterRandomMapping);

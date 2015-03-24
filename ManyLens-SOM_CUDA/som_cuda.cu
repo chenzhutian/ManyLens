@@ -1058,7 +1058,7 @@ unsigned int* SOMClassificationwithRandomMapping(const float* h_gaussin,
 
 float* SOMRefinewithRandomMapping(const float* h_gaussin,
 														const float* h_inputSet,
-														const float* h_BID,
+														const unsigned int* h_BID,
 														const float* h_initial_weight,
 														const unsigned int input_set_size,
 														const unsigned int dimension,
@@ -1179,8 +1179,11 @@ float* SOMRefinewithRandomMapping(const float* h_gaussin,
 
 
 unsigned int* FindBID(const float* h_gaussin,
-								float* input_vector, unsigned int input_vector_size, unsigned int input_dimension,
-								float* weights, unsigned int weights_size)
+					  const float* input_vector, 
+					  const unsigned int input_vector_size, 
+					  const unsigned int input_dimension,
+					  const float* weights, 
+					  const unsigned int weights_size)
 {
 	const unsigned int dimension_before_random_mapping = input_dimension;			//the original dimension of the input set
 	const unsigned int dimension_after_random_mapping = DIMENSION;			//dimension after random mapping, can not change

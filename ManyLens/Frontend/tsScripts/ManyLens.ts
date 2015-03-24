@@ -142,8 +142,6 @@ module ManyLens {
 
         }
 
-
-
         /* -------------------- Hub related Function -----------------------*/
         public ManyLensHubRegisterClientFunction(registerObj: any, funcName: string, func: (...any) => any) {
             if (!this._manyLens_hub) {

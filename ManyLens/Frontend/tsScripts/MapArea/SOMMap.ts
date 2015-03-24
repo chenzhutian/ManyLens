@@ -29,6 +29,7 @@ module ManyLens {
 
             private _maps: Array<MapData> = [];
             private _heatMaps: Array<HeatMapLayer> = [];
+            private _mapIDs: Array<string> = [];
 
             private _center_x: number;
             private _center_y: number;
@@ -50,6 +51,8 @@ module ManyLens {
 
             private _brush_svg:D3.Selection;
             private _brush:D3.Svg.Brush;
+            private _fromUnitsID:number[];
+            private _toUnitsID:number[];
 
             private _classifier_context_menu: D3.Selection = null;
             private _hightlight_classifier_arrow:D3.Selection = null;
@@ -92,15 +95,15 @@ module ManyLens {
                             rect.width = (extent[1][0] - extent[0][0]) * this._scale;
                             rect.height = (extent[1][1] - extent[0][1]) * this._scale;
 
-                            this._element.select( "#rectForTest" ).remove();
-                            this._element.append( "rect" ).attr( {
-                                id:"rectForTest",
-                                x: rect.x,
-                                y: rect.y,
-                                width: rect.width,
-                                height:rect.height
-                            })
-                            .style("pointer-events","none");
+                            //this._element.select( "#rectForTest" ).remove();
+                            //this._element.append( "rect" ).attr( {
+                            //    id:"rectForTest",
+                            //    x: rect.x,
+                            //    y: rect.y,
+                            //    width: rect.width,
+                            //    height:rect.height
+                            //})
+                            //.style("pointer-events","none");
 
 
                             var ele = ( <SVGSVGElement>this._element.node() ).getIntersectionList( rect, null );
@@ -111,7 +114,7 @@ module ManyLens {
                                    res.push(node.data()[0]['unitID']);
                                 }
                             }
-                            console.log(res);
+                            this._fromUnitsID = res;
                         }
                         d3.event.sourceEvent.stopPropagation();
                     })
@@ -127,26 +130,29 @@ module ManyLens {
                             rect.width = (extent[1][0] - extent[0][0]) * this._scale;
                             rect.height = (extent[1][1] - extent[0][1]) * this._scale;
 
-                            this._element.select( "#rectForTest" ).remove();
-                            this._element.append( "rect" ).attr( {
-                                id:"rectForTest",
-                                x: rect.x,
-                                y: rect.y,
-                                width: rect.width,
-                                height:rect.height
-                            })
-                            .style("pointer-events","none");
+                            //this._element.select( "#rectForTest" ).remove();
+                            //this._element.append( "rect" ).attr( {
+                            //    id:"rectForTest",
+                            //    x: rect.x,
+                            //    y: rect.y,
+                            //    width: rect.width,
+                            //    height:rect.height
+                            //})
+                            //.style("pointer-events","none");
 
 
                             var ele = ( <SVGSVGElement>this._element.node() ).getIntersectionList( rect, null );
                             var res = [];
+                            var mapID:string;
                             for(var i = 0, len = ele.length; i < len; ++i){
                                 var node = d3.select(ele.item(i));
                                 if(node.classed("unit")){
                                    res.push(node.data()[0]['unitID']);
+                                    mapID = node.data()[0]['mapID'];
                                 }
                             }
-                            console.log(res);
+                            this._toUnitsID = res;
+                            this._manyLens.ManyLensHubServerRefineMap(mapID,this._mapIDs.indexOf(mapID),this._fromUnitsID,this._toUnitsID);
                         }
                         d3.event.sourceEvent.stopPropagation();    
                     })
@@ -455,7 +461,9 @@ module ManyLens {
             public UpdateVisMap(index:number,visData:MapData):void{
                 this._maps[index] = visData;
                 this._heatMaps[index].UpdateNodeArray(visData.width,visData.height,visData.unitsData);
-                
+                this._heatMaps[index].transform( this._scale, 0, 0 );
+                this._heatMaps[index].transformPan( this._translate_x, this._translate_y, this._scale );
+
                 var mapData = d3.select("#mapSvg"+visData.mapID).data()[0];
                 var units = d3.select("#mapSvg"+visData.mapID).selectAll("rect.unit")
                 .data(visData.unitsData,function(d){return d.unitID;});
@@ -475,9 +483,8 @@ module ManyLens {
 
             public ShowVisMap( visData: MapData, classifierID:string ): void {
                 this._maps.push( visData );
+                this._mapIDs.push(visData.mapID);
                 this._top_offset = this._top_offset || ( parseFloat( this._element.style( "height" ) ) - visData.height * this._unit_height ) / 2;
-
-
 
                 var newHeatMap = new HeatMapLayer( "mapCanvas" + visData.mapID,
                     this._heatmap_container,

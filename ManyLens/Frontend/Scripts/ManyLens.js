@@ -5465,6 +5465,7 @@ var ManyLens;
                 this._state = true;
                 this._maps = [];
                 this._heatMaps = [];
+                this._mapIDs = [];
                 this._scale = 1;
                 this._left_offset = 0;
                 this._top_offset = null;
@@ -5499,14 +5500,15 @@ var ManyLens;
                         rect.y = extent[0][1] * _this._scale + _this._translate_y;
                         rect.width = (extent[1][0] - extent[0][0]) * _this._scale;
                         rect.height = (extent[1][1] - extent[0][1]) * _this._scale;
-                        _this._element.select("#rectForTest").remove();
-                        _this._element.append("rect").attr({
-                            id: "rectForTest",
-                            x: rect.x,
-                            y: rect.y,
-                            width: rect.width,
-                            height: rect.height
-                        }).style("pointer-events", "none");
+                        //this._element.select( "#rectForTest" ).remove();
+                        //this._element.append( "rect" ).attr( {
+                        //    id:"rectForTest",
+                        //    x: rect.x,
+                        //    y: rect.y,
+                        //    width: rect.width,
+                        //    height:rect.height
+                        //})
+                        //.style("pointer-events","none");
                         var ele = _this._element.node().getIntersectionList(rect, null);
                         var res = [];
                         for (var i = 0, len = ele.length; i < len; ++i) {
@@ -5515,7 +5517,7 @@ var ManyLens;
                                 res.push(node.data()[0]['unitID']);
                             }
                         }
-                        console.log(res);
+                        _this._fromUnitsID = res;
                     }
                     d3.event.sourceEvent.stopPropagation();
                 }).on("brush", function () {
@@ -5528,23 +5530,27 @@ var ManyLens;
                         rect.y = extent[0][1] * _this._scale + _this._translate_y;
                         rect.width = (extent[1][0] - extent[0][0]) * _this._scale;
                         rect.height = (extent[1][1] - extent[0][1]) * _this._scale;
-                        _this._element.select("#rectForTest").remove();
-                        _this._element.append("rect").attr({
-                            id: "rectForTest",
-                            x: rect.x,
-                            y: rect.y,
-                            width: rect.width,
-                            height: rect.height
-                        }).style("pointer-events", "none");
+                        //this._element.select( "#rectForTest" ).remove();
+                        //this._element.append( "rect" ).attr( {
+                        //    id:"rectForTest",
+                        //    x: rect.x,
+                        //    y: rect.y,
+                        //    width: rect.width,
+                        //    height:rect.height
+                        //})
+                        //.style("pointer-events","none");
                         var ele = _this._element.node().getIntersectionList(rect, null);
                         var res = [];
+                        var mapID;
                         for (var i = 0, len = ele.length; i < len; ++i) {
                             var node = d3.select(ele.item(i));
                             if (node.classed("unit")) {
                                 res.push(node.data()[0]['unitID']);
+                                mapID = node.data()[0]['mapID'];
                             }
                         }
-                        console.log(res);
+                        _this._toUnitsID = res;
+                        _this._manyLens.ManyLensHubServerRefineMap(mapID, _this._mapIDs.indexOf(mapID), _this._fromUnitsID, _this._toUnitsID);
                     }
                     d3.event.sourceEvent.stopPropagation();
                 });
@@ -5761,6 +5767,8 @@ var ManyLens;
                 var _this = this;
                 this._maps[index] = visData;
                 this._heatMaps[index].UpdateNodeArray(visData.width, visData.height, visData.unitsData);
+                this._heatMaps[index].transform(this._scale, 0, 0);
+                this._heatMaps[index].transformPan(this._translate_x, this._translate_y, this._scale);
                 var mapData = d3.select("#mapSvg" + visData.mapID).data()[0];
                 var units = d3.select("#mapSvg" + visData.mapID).selectAll("rect.unit").data(visData.unitsData, function (d) {
                     return d.unitID;
@@ -5779,6 +5787,7 @@ var ManyLens;
             SOMMap.prototype.ShowVisMap = function (visData, classifierID) {
                 var _this = this;
                 this._maps.push(visData);
+                this._mapIDs.push(visData.mapID);
                 this._top_offset = this._top_offset || (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
                 var newHeatMap = new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.width, visData.height, this._unit_width, this._unit_height, this._top_offset, this._left_offset, visData.unitsData);
                 newHeatMap.transform(this._scale, 0, 0);
@@ -6120,53 +6129,6 @@ var manyLens;
 document.addEventListener('DOMContentLoaded', function () {
     manyLens = new ManyLens.ManyLens();
 });
-///<reference path = "./BaseHackLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var ListLens = (function (_super) {
-            __extends(ListLens, _super);
-            function ListLens(element, attributeName, manyLens) {
-                _super.call(this, element, attributeName, Lens.BarChartLens.Type, manyLens);
-                this._x_axis_gen = d3.svg.axis();
-                this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
-                this._bar_chart_height = this._bar_chart_width;
-            }
-            ListLens.prototype.Render = function (color) {
-                _super.prototype.Render.call(this, color);
-            };
-            ListLens.prototype.ExtractData = function () {
-                var data = d3.range(12).map(function (d) {
-                    return 10 + 70 * Math.random();
-                });
-                this._data = data;
-                this.DisplayLens();
-            };
-            ListLens.prototype.DisplayLens = function () {
-                var _this = this;
-                if (!_super.prototype.DisplayLens.call(this))
-                    return;
-                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data]);
-                this._x_axis_gen.scale(x).ticks(0).orient("bottom");
-                this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
-                    return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
-                }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
-                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
-                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
-                var bar = this._lens_circle_svg.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
-                    return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
-                });
-                bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
-                    return barHeight(d);
-                }).attr("fill", "steelblue");
-            };
-            ListLens.Type = "ListLens";
-            return ListLens;
-        })(Lens.BaseHackLens);
-        Lens.ListLens = ListLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
 ///<reference path = "./Lens/LensList.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -6362,6 +6324,53 @@ var ManyLens;
         return LensAssemblyFactory;
     })();
     ManyLens.LensAssemblyFactory = LensAssemblyFactory;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseHackLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var ListLens = (function (_super) {
+            __extends(ListLens, _super);
+            function ListLens(element, attributeName, manyLens) {
+                _super.call(this, element, attributeName, Lens.BarChartLens.Type, manyLens);
+                this._x_axis_gen = d3.svg.axis();
+                this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
+                this._bar_chart_height = this._bar_chart_width;
+            }
+            ListLens.prototype.Render = function (color) {
+                _super.prototype.Render.call(this, color);
+            };
+            ListLens.prototype.ExtractData = function () {
+                var data = d3.range(12).map(function (d) {
+                    return 10 + 70 * Math.random();
+                });
+                this._data = data;
+                this.DisplayLens();
+            };
+            ListLens.prototype.DisplayLens = function () {
+                var _this = this;
+                if (!_super.prototype.DisplayLens.call(this))
+                    return;
+                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data]);
+                this._x_axis_gen.scale(x).ticks(0).orient("bottom");
+                this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
+                    return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
+                }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
+                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
+                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
+                var bar = this._lens_circle_svg.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
+                    return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
+                });
+                bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
+                    return barHeight(d);
+                }).attr("fill", "steelblue");
+            };
+            ListLens.Type = "ListLens";
+            return ListLens;
+        })(Lens.BaseHackLens);
+        Lens.ListLens = ListLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />s 
 var ManyLens;

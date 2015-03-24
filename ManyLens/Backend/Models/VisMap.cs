@@ -208,6 +208,7 @@ namespace ManyLens.Models
                 //}
             }
 
+            dimension = config.Parameter.DimensionAfterRandomMapping;
             float[] inputWeights = new float[dimension * toUnitsID.Length];
             for (int i = 0, len = toUnitsID.Length; i < len; ++i)
             {
@@ -220,15 +221,15 @@ namespace ManyLens.Models
             }
 
             var pack = SOM.GPUSOM.GPUFindBID(inputVectors, inputWeights);
-            for (int i = 0, len = fromTweets.Count; i < len; ++i)
-            {
-                int index = this.Interval.Tweets.IndexOf(fromTweets[i]);
-                this.Errors[index] = pack.error[i];
-                this.BID[index] = toUnitsID[pack.BID[i]];
-                this.TryAddTweetToUnit(this.BID[index], this.Errors[index], fromTweets[i]);
-            }
+            //for (int i = 0, len = fromTweets.Count; i < len; ++i)
+            //{
+            //    int index = this.Interval.Tweets.IndexOf(fromTweets[i]);
+            //    this.Errors[index] = pack.error[i];
+            //    this.BID[index] = toUnitsID[pack.BID[i]];
+            //    this.TryAddTweetToUnit(this.BID[index], this.Errors[index], fromTweets[i]);
+            //}
             // ready to Update map
-            SOM.GPUSOM.TweetSOMUpdateMap(this);
+            //SOM.GPUSOM.TweetSOMUpdateMap(this);
         }
 
         public Unit GetUnitAt(int index)

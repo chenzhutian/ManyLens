@@ -228,15 +228,18 @@ namespace ManyLens.Models
             }
 
             List<Tweet> result = new List<Tweet>();
+            if (t == -1)
+                return result;
+
+
             for (int i = t, len = keys.Length; i < len; ++i)
             {
                 HashSet<Tweet> tweets = this.tweetsWithError[keys[i]];
                 Tweet[] ta = tweets.ToArray();
                 for (int j = 0, lenj = ta.Length; j < lenj; ++j)
                 {
-                    this.RemoveTweet(ta[j]);
+                    result.Add(this.RemoveTweet(ta[j]));
                 }
-                result.AddRange(tweets);
             }
 
             return result;
