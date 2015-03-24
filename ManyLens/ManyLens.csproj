@@ -246,6 +246,7 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\BarChartLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseCompositeLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseD3Lens.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseHackLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseSingleLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cBaseMapLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cBoundleLens.ts" />
@@ -261,6 +262,7 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cWordCloudNetworkLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\cWordCloudPieLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\LensList.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Lens\ListLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\MapLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\NetworkLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\PieChartLens.ts" />

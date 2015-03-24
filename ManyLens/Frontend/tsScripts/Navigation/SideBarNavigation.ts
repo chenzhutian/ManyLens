@@ -7,7 +7,7 @@ module ManyLens {
             name?: string;
             attributeName?: string;
             icon?: string;
-            lensConstructFunc?:  new (element: D3.Selection, attributeName: string, manyLens: ManyLens)=> Lens.BaseSingleLens ;
+            lensConstructFunc?:  new (element: D3.Selection, attributeName: string, manyLens: ManyLens)=> any ;
             extractDataFunc?: Lens.ExtractDataFunc;
             children?: Array<MenuListData>;
         }
@@ -180,7 +180,7 @@ module ManyLens {
                                 {
                                     name: "Network",
                                     attributeName: "Retweet Network",
-                                    lensConstructFunc: Lens.NetworkLens,
+                                    lensConstructFunc: Lens.BarChartLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("retweetNetwork")
                                 }
                             ]

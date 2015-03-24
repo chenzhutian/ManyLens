@@ -171,9 +171,9 @@ module ManyLens {
                     .separation(function(a,b){
                         if(a.parent == b.parent){
                             if(a.children && b._children)
-                                return 5/(a.depth+1);
+                                return 3/((a.depth+1)*(a.depth + 1));
                         }
-                        return 1/(a.depth+1);
+                        return 1/((a.depth+1)*(a.depth + 1));
                     })
                 ;
                 this._stack_bar_tree_diagonal = d3.svg.diagonal();
@@ -202,7 +202,7 @@ module ManyLens {
                     .attr( "id", "stackRectClip" )
                     .append( "rect" )
                     .attr( "width", this._coordinate_margin_left + this._view_left_padding )
-                    .attr( "height", this._view_height - this._view_botton_padding )
+                    .attr( "height", this._view_height )
                     .attr( "x", 0 )
                     .attr( "y", 0 )
                 ;
@@ -324,7 +324,10 @@ module ManyLens {
                 var duration = 500;
                 
                 //Nodes
-                var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) { return d.name != "";});
+                var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) {
+
+                     return d.name != "" ;//&& d.name != "day1" && d.name != "day2";
+                });
                 this._stack_bar_node = this._subView.selectAll( ".stack.node" )
                     .data( nodex, function ( d ) { return d.id; });
 
@@ -392,18 +395,27 @@ module ManyLens {
                 ;
 
                 enterNode.append( "text" )
-                    .attr( "x", function ( d ) { return d.children || d._children ? -10 : 10; })
-                    .attr( "dy", ".35em" )
-                    .attr( "text-anchor", function ( d ) { return d.children || d._children ? "end" : "start"; })
+                    .attr( "x", function ( d ) { 
+                        if(d.date || (d.name[0] == "d" && d._children))
+                              return -15;
+                        return  5; 
+                    })
+                    .attr( "dy", function(d){ 
+                        if(d.date || (d.name[0] == "d" && d._children))
+                              return "25";
+                        return  ".35em";
+                    } )
+                    .attr( "text-anchor", function ( d ) { return  "start";})
                     .text(( d:StackNode ) => {
-                    if ( d.name[0] == "y" ) {
-                        return d.name.substring( 4 );
-                    }else if ( d.name[0] == "d" ) {
-                        return this.week_days_name[parseInt( d.name[d.name.length - 1] )];
-                    } else if ( d.name[0] == "m" ) {
-                        return this.month_names[parseInt( d.name[d.name.length - 1] )];
-                    }
-
+                        if ( d.name[0] == "y" ) {
+                            return d.name.substring( 4 );
+                        } else if ( d.name[0] == "m" ) {
+                            return this.month_names[parseInt( d.name[d.name.length - 1] )];
+                        } else if ( d.name[0] == "d" ) {
+                            return this.week_days_name[parseInt( d.name[d.name.length - 1] )];
+                        }else if( d.name[0] == "h"){
+                            return d.name.substring(4)+":00";
+                        }
                         return d.name;
                     })
                     .style( "fill-opacity", 1e-6 )

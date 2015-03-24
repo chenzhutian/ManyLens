@@ -14,6 +14,8 @@ module ManyLens {
             private _color: D3.Scale.QuantizeScale = d3.scale.quantize();
             private _centered_state: Object;
 
+            private _hack_color:string[];
+
             private _map_data: {
                 raw: any;
             };
@@ -42,7 +44,7 @@ module ManyLens {
                     .clipAngle(90)
                     .precision(.1)
                     .scale(100)
-                    .rotate([96, -20])
+                    .rotate([90, -20])
                   //  .center([-0.6, 38.7])
                  .translate([0, 0])
                 ;
@@ -60,6 +62,11 @@ module ManyLens {
                         // "rgb(8, 81, 156)"
                         // "rgb(8, 48, 107)"
                     ]);
+                this._hack_color = ["rgb(198,219,239)",
+                        "rgb(158,202,225)",
+                        "rgb(107, 174, 214)",
+                        "rgb(66, 146, 198)",
+                        "rgb(33, 113, 181)"];
             }
 
             protected AfterExtractData(): void {
@@ -74,7 +81,7 @@ module ManyLens {
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
                 if (this._map_data) {
-
+                    console.log("asdf");
                     this._lens_circle_svg.append("g")
                         .attr("id", "country")
                         .selectAll("path")
@@ -83,6 +90,7 @@ module ManyLens {
                         .attr("d", this._path)
                         .attr("fill", (d) => {
                             var color = this._color(this._data[d.id] || 0);
+                            //var color = this._hack_color[Math.floor(Math.random()*5)];
                             return color;
                         })
                         .on("click", (d) => {
@@ -111,6 +119,7 @@ module ManyLens {
                             .attr("d", this._path)
                             .attr("fill", (d) => {
                                 var color = this._color(this._data[d.id]||0);
+                                //var color = this._hack_color[Math.floor(Math.random()*5)];
                                 return color;
                             })
                             .on("click", (d) => {

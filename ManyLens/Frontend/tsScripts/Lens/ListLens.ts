@@ -1,10 +1,10 @@
-﻿///<reference path = "./BaseHackLens.ts" />
+﻿ ///<reference path = "./BaseHackLens.ts" />
 module ManyLens {
     export module Lens {
 
-        export class BarChartLens extends BaseHackLens {
+        export class ListLens extends BaseHackLens {
 
-            public static Type: string = "BarChartLens";
+            public static Type: string = "ListLens";
 
             private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _x_axis: D3.Selection;
