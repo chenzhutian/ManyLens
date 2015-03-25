@@ -177,29 +177,29 @@ namespace ManyLens.SOM
             Marshal.FreeHGlobal(pointer);
 
             //*********************Check the marshal result ****************//
-            StreamReader sr = new StreamReader("D:\\SOMLog\\bid");
-            int k  = 0;
-            while (!sr.EndOfStream)
-            {
-                int bid = int.Parse(sr.ReadLine());
-                if (bid != h_BID[k])
-                    Debug.WriteLine("bid is wrong here!" + k.ToString());
-                ++k;
-            }
-            sr = new StreamReader("D:\\SOMLog\\weights_in_columnmajor");
-            k = 0;
-            while (!sr.EndOfStream)
-            {
-                string[] s = sr.ReadLine().Split(' ');
-                for (int j = 0; j < config.Parameter.DimensionAfterRandomMapping; ++j)
-                {
-                    if (Math.Abs(float.Parse(s[j]) - h_weight[j * neuronNum + k]) > 1e-6)
-                    {
-                        Debug.WriteLine("weight is wrong here!" + k.ToString());
-                    }
-                }
-                ++k;
-            }
+            //StreamReader sr = new StreamReader("D:\\SOMLog\\bid");
+            //int k  = 0;
+            //while (!sr.EndOfStream)
+            //{
+            //    int bid = int.Parse(sr.ReadLine());
+            //    if (bid != h_BID[k])
+            //        Debug.WriteLine("bid is wrong here!" + k.ToString());
+            //    ++k;
+            //}
+            //sr = new StreamReader("D:\\SOMLog\\weights_in_columnmajor");
+            //k = 0;
+            //while (!sr.EndOfStream)
+            //{
+            //    string[] s = sr.ReadLine().Split(' ');
+            //    for (int j = 0; j < config.Parameter.DimensionAfterRandomMapping; ++j)
+            //    {
+            //        if (Math.Abs(float.Parse(s[j]) - h_weight[j * neuronNum + k]) > 1e-6)
+            //        {
+            //            Debug.WriteLine("weight is wrong here!" + k.ToString());
+            //        }
+            //    }
+            //    ++k;
+            //}
             //*********************Check the marshal result end**************//
 
             //construct the som map for visualization
@@ -237,21 +237,21 @@ namespace ManyLens.SOM
             public int[] BID { get; set; }
             public float[] error { get; set; }
         }
-        public static GPUFindBIDPack GPUFindBID(float[] inputVector, float[] weight)
+        public static GPUFindBIDPack GPUFindBID(float[] inputVector, int inputSize,float[] weight,int weightSize)
         {
             InitializeCUDA();
 
             IntPtr pointer = FindBID(config.Parameter.RmMatrix,
-                                    inputVector, inputVector.Length, config.Parameter.HashDimension,
-                                    weight, weight.Length);
+                                    inputVector, inputSize, config.Parameter.HashDimension,
+                                    weight, weightSize);
             Debug.WriteLine("SOM Finish");
 
-            int[] h_BID = new int[inputVector.Length];
-            //Marshal.Copy(pointer, h_BID, 0, inputVector.Length);
+            int[] h_BID = new int[inputSize];
+            Marshal.Copy(pointer, h_BID, 0, inputSize);
 
-            float[] h_error = new float[inputVector.Length];
-            //Marshal.Copy(IntPtr.Add(pointer, inputVector.Length * sizeof(int)), h_error, 0, inputVector.Length);
-            //Marshal.FreeHGlobal(pointer);
+            float[] h_error = new float[inputSize];
+            Marshal.Copy(IntPtr.Add(pointer, inputSize * sizeof(int)), h_error, 0, inputSize);
+            Marshal.FreeHGlobal(pointer);
 
             return new GPUFindBIDPack() { BID=h_BID, error = h_error};
         }

@@ -97,32 +97,6 @@ module ManyLens {
                 });
                 this.DrawCanvas();
             }
-            //public ScaleCanvas( scale:number): void {
-            //    this._canvas_width *= scale;
-            //    this._canvas_height *= scale;
-            //    this._canvas_top_offset *= (1+scale);
-            //    this._canvas_left_offset *= scale;
-
-            //    this._canvas.height = this._canvas_height;
-            //    this._canvas.width = this._canvas_width;
-            //    this._canvas.style.top = this._canvas_top_offset + 'px';
-            //    this._canvas.style.left = this._canvas_left_offset + 'px';
-
-            //    //初始化像素矩阵
-            //    var width = Math.ceil( this._canvas_width );
-            //    var height = Math.ceil( this._canvas_height );
-
-            //    this._pixelMatrix = new Array( height );
-            //    for ( var i = 0; i < height; ++i ) {
-            //        this._pixelMatrix[i] = new Array( width );
-            //    };
-
-            //    this._nodeArray = this._nodeArray.map(( d ) => {
-            //        return { x: d.x * scale, y: d.y * scale, value: d.value };
-            //    });
-
-            //    this.DrawCanvas();
-            //}
 
             //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
             public DrawCanvas(): void {
@@ -170,8 +144,10 @@ module ManyLens {
                     var y = Math.floor( height - 1 - nodes[i].y ); //* this._unit_size;
                     if ( this._pixelMatrix[y][x] != null)
                         this._pixelMatrix[y][x] = nodes[i].value;
-                    else
+                    else{
+                        console.log(nodes[i]);
                         console.log( this._pixelMatrix[y] );
+                    }
                 }
 
                 //获得当前bing Map的放大倍数

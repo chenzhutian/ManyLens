@@ -152,7 +152,12 @@ module ManyLens {
                                 }
                             }
                             this._toUnitsID = res;
-                            this._manyLens.ManyLensHubServerRefineMap(mapID,this._mapIDs.indexOf(mapID),this._fromUnitsID,this._toUnitsID);
+                            if(this._fromUnitsID && this._toUnitsID){
+                                this._manyLens.ManyLensHubServerRefineMap(mapID,
+                                    this._mapIDs.indexOf(mapID),
+                                    this._fromUnitsID,
+                                    this._toUnitsID);
+                            }
                         }
                         d3.event.sourceEvent.stopPropagation();    
                     })
@@ -460,7 +465,7 @@ module ManyLens {
 
             public UpdateVisMap(index:number,visData:MapData):void{
                 this._maps[index] = visData;
-                this._heatMaps[index].UpdateNodeArray(visData.width,visData.height,visData.unitsData);
+                this._heatMaps[index].UpdateNodeArray(this._unit_width,this._unit_height,visData.unitsData);
                 this._heatMaps[index].transform( this._scale, 0, 0 );
                 this._heatMaps[index].transformPan( this._translate_x, this._translate_y, this._scale );
 

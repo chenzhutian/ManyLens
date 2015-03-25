@@ -5310,27 +5310,6 @@ var ManyLens;
                 });
                 this.DrawCanvas();
             };
-            //public ScaleCanvas( scale:number): void {
-            //    this._canvas_width *= scale;
-            //    this._canvas_height *= scale;
-            //    this._canvas_top_offset *= (1+scale);
-            //    this._canvas_left_offset *= scale;
-            //    this._canvas.height = this._canvas_height;
-            //    this._canvas.width = this._canvas_width;
-            //    this._canvas.style.top = this._canvas_top_offset + 'px';
-            //    this._canvas.style.left = this._canvas_left_offset + 'px';
-            //    //初始化像素矩阵
-            //    var width = Math.ceil( this._canvas_width );
-            //    var height = Math.ceil( this._canvas_height );
-            //    this._pixelMatrix = new Array( height );
-            //    for ( var i = 0; i < height; ++i ) {
-            //        this._pixelMatrix[i] = new Array( width );
-            //    };
-            //    this._nodeArray = this._nodeArray.map(( d ) => {
-            //        return { x: d.x * scale, y: d.y * scale, value: d.value };
-            //    });
-            //    this.DrawCanvas();
-            //}
             //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
             HeatMapLayer.prototype.DrawCanvas = function () {
                 var dStart = new Date();
@@ -5364,8 +5343,10 @@ var ManyLens;
                     var y = Math.floor(height - 1 - nodes[i].y); //* this._unit_size;
                     if (this._pixelMatrix[y][x] != null)
                         this._pixelMatrix[y][x] = nodes[i].value;
-                    else
+                    else {
+                        console.log(nodes[i]);
                         console.log(this._pixelMatrix[y]);
+                    }
                 }
                 //获得当前bing Map的放大倍数
                 var zoomLevel = 5; //this._map.getZoom();
@@ -5550,7 +5531,9 @@ var ManyLens;
                             }
                         }
                         _this._toUnitsID = res;
-                        _this._manyLens.ManyLensHubServerRefineMap(mapID, _this._mapIDs.indexOf(mapID), _this._fromUnitsID, _this._toUnitsID);
+                        if (_this._fromUnitsID && _this._toUnitsID) {
+                            _this._manyLens.ManyLensHubServerRefineMap(mapID, _this._mapIDs.indexOf(mapID), _this._fromUnitsID, _this._toUnitsID);
+                        }
                     }
                     d3.event.sourceEvent.stopPropagation();
                 });
@@ -5766,7 +5749,7 @@ var ManyLens;
             SOMMap.prototype.UpdateVisMap = function (index, visData) {
                 var _this = this;
                 this._maps[index] = visData;
-                this._heatMaps[index].UpdateNodeArray(visData.width, visData.height, visData.unitsData);
+                this._heatMaps[index].UpdateNodeArray(this._unit_width, this._unit_height, visData.unitsData);
                 this._heatMaps[index].transform(this._scale, 0, 0);
                 this._heatMaps[index].transformPan(this._translate_x, this._translate_y, this._scale);
                 var mapData = d3.select("#mapSvg" + visData.mapID).data()[0];
@@ -6129,6 +6112,78 @@ var manyLens;
 document.addEventListener('DOMContentLoaded', function () {
     manyLens = new ManyLens.ManyLens();
 });
+///<reference path = "./BaseHackLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var ListLens = (function (_super) {
+            __extends(ListLens, _super);
+            function ListLens(element, attributeName, manyLens) {
+                _super.call(this, element, attributeName, Lens.BarChartLens.Type, manyLens);
+                this._x_axis_gen = d3.svg.axis();
+                this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
+                this._bar_chart_height = this._bar_chart_width;
+            }
+            ListLens.prototype.Render = function (color) {
+                _super.prototype.Render.call(this, color);
+            };
+            ListLens.prototype.ExtractData = function () {
+                var data = d3.range(12).map(function (d) {
+                    return 10 + 70 * Math.random();
+                });
+                this._data = data;
+                this.DisplayLens();
+            };
+            ListLens.prototype.DisplayLens = function () {
+                var _this = this;
+                if (!_super.prototype.DisplayLens.call(this))
+                    return;
+                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data]);
+                this._x_axis_gen.scale(x).ticks(0).orient("bottom");
+                this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
+                    return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
+                }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
+                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
+                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
+                var bar = this._lens_circle_svg.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
+                    return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
+                });
+                bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
+                    return barHeight(d);
+                }).attr("fill", "steelblue");
+            };
+            ListLens.Type = "ListLens";
+            return ListLens;
+        })(Lens.BaseHackLens);
+        Lens.ListLens = ListLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseSingleLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var TweetsListLens = (function (_super) {
+            __extends(TweetsListLens, _super);
+            function TweetsListLens(element, attributeName, manyLens) {
+                _super.call(this, element, manyLens);
+            }
+            TweetsListLens.prototype.Render = function (color) {
+                if (color === void 0) { color = "red"; }
+                _super.prototype.Render.call(this, color);
+            };
+            // data shape {text: size:}
+            TweetsListLens.prototype.AfterExtractData = function () {
+            };
+            TweetsListLens.prototype.DisplayLens = function () {
+            };
+            TweetsListLens.Type = "TweetsListLens";
+            return TweetsListLens;
+        })(ManyLens.D3ChartObject);
+        Lens.TweetsListLens = TweetsListLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
+})(ManyLens || (ManyLens = {}));
 ///<reference path = "./Lens/LensList.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -6324,53 +6379,6 @@ var ManyLens;
         return LensAssemblyFactory;
     })();
     ManyLens.LensAssemblyFactory = LensAssemblyFactory;
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./BaseHackLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var ListLens = (function (_super) {
-            __extends(ListLens, _super);
-            function ListLens(element, attributeName, manyLens) {
-                _super.call(this, element, attributeName, Lens.BarChartLens.Type, manyLens);
-                this._x_axis_gen = d3.svg.axis();
-                this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
-                this._bar_chart_height = this._bar_chart_width;
-            }
-            ListLens.prototype.Render = function (color) {
-                _super.prototype.Render.call(this, color);
-            };
-            ListLens.prototype.ExtractData = function () {
-                var data = d3.range(12).map(function (d) {
-                    return 10 + 70 * Math.random();
-                });
-                this._data = data;
-                this.DisplayLens();
-            };
-            ListLens.prototype.DisplayLens = function () {
-                var _this = this;
-                if (!_super.prototype.DisplayLens.call(this))
-                    return;
-                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data]);
-                this._x_axis_gen.scale(x).ticks(0).orient("bottom");
-                this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
-                    return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
-                }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
-                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
-                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
-                var bar = this._lens_circle_svg.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
-                    return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
-                });
-                bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
-                    return barHeight(d);
-                }).attr("fill", "steelblue");
-            };
-            ListLens.Type = "ListLens";
-            return ListLens;
-        })(Lens.BaseHackLens);
-        Lens.ListLens = ListLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />s 
 var ManyLens;
