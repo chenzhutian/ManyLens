@@ -1,4 +1,5 @@
-﻿
+﻿///<reference path = "../../Scripts/typings/jquery/jquery.d.ts" />
+///<reference path = "../../Scripts/typings/html2canvas/html2canvas.d.ts" />
 module ManyLens {
 
     export module Navigation {
@@ -29,7 +30,8 @@ module ManyLens {
 
             /*--------------Map menu---------------*/
             private _refine_btn:D3.Selection;
-            private _som_geo_switchBtn:JQuery;
+            private _som_geo_switch_btn:JQuery;
+            private _screen_shot_btn:D3.Selection;
 
             private _map_Svg: D3.Selection;
 
@@ -117,10 +119,79 @@ module ManyLens {
                     .property("checked",true)
                 ;
                 $("#maps-switch").bootstrapSwitch();
-                this._som_geo_switchBtn = $("#maps-switch")
+                this._som_geo_switch_btn = $("#maps-switch")
                             .on("switchChange.bootstrapSwitch",  (event,state)=> {
                                 this._manyLens.SwitchMap();
-                            });
+                             });
+
+                var screenShotBtns = mapBtns.append("button")
+                    .attr({
+                        type: "button",
+                        class: "btn btn-primary"
+                    })
+                    .style({
+                        "margin-top": "30px",
+                        "margin-bottom":"30px",
+                        "padding":"9px 18px"
+                    })
+                    .text(" Screen  Shot ")
+                    .on("click", () => {
+                        take($("#mapView"));
+
+                        function take(targetElem) {
+                        // First render all SVGs to canvases
+                        var elements = targetElem.find('svg').map(function() {
+                            var svg = $(this);
+                            var canvas = $('<canvas></canvas>');
+                            svg.replaceWith(canvas);
+
+                            // Get the raw SVG string and curate it
+                            var content = svg.wrap('<p></p>').parent().html();
+                            content = content.replace(/xlink:title="hide\/show"/g, "");
+                            content = encodeURIComponent(content);
+                            svg.unwrap();
+
+                            // Create an image from the svg
+                            var image = new Image();
+                            image.src = 'data:image/svg+xml,' + content;
+                            image.onload = function() {
+                                canvas[0]['width'] = image.width;
+                                canvas[0]['height']= image.height;
+
+                                // Render the image to the canvas
+                                var context = (<HTMLCanvasElement>canvas[0]).getContext('2d');
+                                context.drawImage(image, 0, 0);
+                            };
+                            return {
+                                svg: svg,
+                                canvas: canvas
+                            };
+                        });
+                        targetElem.imagesLoaded(function() {
+                            // At this point the container has no SVG, it only has HTML and Canvases.
+                            html2canvas(targetElem[0], {
+                                onrendered: function(canvas) {
+                                    // Put the SVGs back in place
+                                    elements.each(function() {
+                                        this.canvas.replaceWith(this.svg);
+                                    });
+
+                                    // Do something with the canvas, for example put it at the bottom
+                                 $(canvas).appendTo('body');
+                                }
+                            })
+                        })
+                    }
+
+
+                        //html2canvas(document.getElementById("mapView"), {
+                        //        onrendered: function(canvas) {
+                        //                document.body.appendChild(canvas);
+                        //      },
+                        //    allowTaint: true
+                        //});
+                    })
+                ;
 
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
@@ -180,9 +251,21 @@ module ManyLens {
                                 {
                                     name: "Network",
                                     attributeName: "Retweet Network",
-                                    lensConstructFunc: Lens.BarChartLens,
+                                    lensConstructFunc: Lens.NetworkLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("retweetNetwork")
                                 }
+                            ]
+                        },
+                        {
+                            name:"Tweets Content",
+                            icon:"fui-windows-8",
+                            children:[
+                                {
+                                    name:"List",
+                                    attributeName:"Tweets Content",
+                                    lensConstructFunc:Lens.TweetsListLens,
+                                    extractDataFunc:new Lens.ExtractDataFunc("tweetsContent")
+                                }    
                             ]
                         },
                         {

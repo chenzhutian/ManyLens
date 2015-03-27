@@ -322,12 +322,15 @@ module ManyLens {
 
             private UpdateSubviewTree( exitParent: StackNode ,mode:boolean = true) {
                 var duration = 500;
-                
+                console.log(this._root[""]);
+                console.log(nodex);
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) {
 
-                     return d.name != "" ;//&& d.name != "day1" && d.name != "day2";
+                     return d.name != "year2014" && d.name != "" ;//&& d.name != "day2";
                 });
+
+
                 this._stack_bar_node = this._subView.selectAll( ".stack.node" )
                     .data( nodex, function ( d ) { return d.id; });
 
@@ -415,6 +418,8 @@ module ManyLens {
                             return this.week_days_name[parseInt( d.name[d.name.length - 1] )];
                         }else if( d.name[0] == "h"){
                             return d.name.substring(4)+":00";
+                        }else if(d.name[0] == "M"){
+                            return d.name.substring(3);
                         }
                         return d.name;
                     })
@@ -518,19 +523,6 @@ module ManyLens {
 
                     //The stack date
                     var date = this._time_formater.parse( this._data[0].beg );
-                    //var stackRect: StackDate = {
-                    //    id: this._data[0].beg,
-                    //    x: this._stack_time.length * this._stack_bar_width,
-                    //    ox: this._stack_time.length * this._stack_bar_width,
-                    //    type: 0,
-                    //    index: date.getDay(),
-                    //    isRemove: false,
-                    //    fill: null,
-                    //    date:date,
-                    //    intervals: null
-                    //}
-                                         
-                    //this._intervals.push( stackRect );
 
                     var stackNode: StackNode = {
                         id: this._data[0].beg,
@@ -539,7 +531,7 @@ module ManyLens {
                         name:"H"+date.getHours(),
                         parent:null,
                         children: null,
-                        type: ""+"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-week"+this.GetWeek(date)+"-day"+date.getDay()+"-hour"+date.getHours(),
+                        type: ""+"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-week"+this.GetWeek(date)+"-day"+date.getDay()+"-hour"+date.getHours()+"-Min"+date.getMinutes(),
                         index: date.getDay()
                     }
                     this.InserNode( stackNode.type, stackNode );

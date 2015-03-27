@@ -63,6 +63,14 @@ module ManyLens {
             this._GEO_mapArea = new MapArea.WorldMap(this._mapSvg,this);
             //this._GEO_mapArea.Render();
 
+            //var listViewContainer = d3.select("#tweetsView")
+            //                                .style({
+            //                                        left:(<HTMLElement>this._mapSvg.node()).offsetLeft.toString()+"px",
+            //                                        top:(<HTMLElement>this._mapSvg.node()).offsetTop.toString()+"px",
+            //                                        height:(<HTMLElement>this._mapSvg.node()).offsetHeight.toString()+"px",
+            //                                        width:(<HTMLElement>this._mapSvg.node()).offsetWidth.toString()+"px"
+            //                                    });
+
 
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new TweetsCurve.Curve(this._curveView, this);

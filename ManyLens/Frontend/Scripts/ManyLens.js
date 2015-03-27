@@ -20,6 +20,8 @@ var ManyLens;
         Hub.ManyLensHub = ManyLensHub;
     })(Hub = ManyLens.Hub || (ManyLens.Hub = {}));
 })(ManyLens || (ManyLens = {}));
+///<reference path = "../../Scripts/typings/jquery/jquery.d.ts" />
+///<reference path = "../../Scripts/typings/html2canvas/html2canvas.d.ts" />
 var ManyLens;
 (function (ManyLens) {
     var Navigation;
@@ -77,8 +79,64 @@ var ManyLens;
                     "data-off-text": "GEO"
                 }).property("checked", true);
                 $("#maps-switch").bootstrapSwitch();
-                this._som_geo_switchBtn = $("#maps-switch").on("switchChange.bootstrapSwitch", function (event, state) {
+                this._som_geo_switch_btn = $("#maps-switch").on("switchChange.bootstrapSwitch", function (event, state) {
                     _this._manyLens.SwitchMap();
+                });
+                var screenShotBtns = mapBtns.append("button").attr({
+                    type: "button",
+                    class: "btn btn-primary"
+                }).style({
+                    "margin-top": "30px",
+                    "margin-bottom": "30px",
+                    "padding": "9px 18px"
+                }).text(" Screen  Shot ").on("click", function () {
+                    take($("#mapView"));
+                    function take(targetElem) {
+                        // First render all SVGs to canvases
+                        var elements = targetElem.find('svg').map(function () {
+                            var svg = $(this);
+                            var canvas = $('<canvas></canvas>');
+                            svg.replaceWith(canvas);
+                            // Get the raw SVG string and curate it
+                            var content = svg.wrap('<p></p>').parent().html();
+                            content = content.replace(/xlink:title="hide\/show"/g, "");
+                            content = encodeURIComponent(content);
+                            svg.unwrap();
+                            // Create an image from the svg
+                            var image = new Image();
+                            image.src = 'data:image/svg+xml,' + content;
+                            image.onload = function () {
+                                canvas[0]['width'] = image.width;
+                                canvas[0]['height'] = image.height;
+                                // Render the image to the canvas
+                                var context = canvas[0].getContext('2d');
+                                context.drawImage(image, 0, 0);
+                            };
+                            return {
+                                svg: svg,
+                                canvas: canvas
+                            };
+                        });
+                        targetElem.imagesLoaded(function () {
+                            // At this point the container has no SVG, it only has HTML and Canvases.
+                            html2canvas(targetElem[0], {
+                                onrendered: function (canvas) {
+                                    // Put the SVGs back in place
+                                    elements.each(function () {
+                                        this.canvas.replaceWith(this.svg);
+                                    });
+                                    // Do something with the canvas, for example put it at the bottom
+                                    $(canvas).appendTo('body');
+                                }
+                            });
+                        });
+                    }
+                    //html2canvas(document.getElementById("mapView"), {
+                    //        onrendered: function(canvas) {
+                    //                document.body.appendChild(canvas);
+                    //      },
+                    //    allowTaint: true
+                    //});
                 });
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
@@ -137,8 +195,20 @@ var ManyLens;
                                 {
                                     name: "Network",
                                     attributeName: "Retweet Network",
-                                    lensConstructFunc: ManyLens.Lens.BarChartLens,
+                                    lensConstructFunc: ManyLens.Lens.NetworkLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("retweetNetwork")
+                                }
+                            ]
+                        },
+                        {
+                            name: "Tweets Content",
+                            icon: "fui-windows-8",
+                            children: [
+                                {
+                                    name: "List",
+                                    attributeName: "Tweets Content",
+                                    lensConstructFunc: ManyLens.Lens.TweetsListLens,
+                                    extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetsContent")
                                 }
                             ]
                         },
@@ -406,9 +476,11 @@ var ManyLens;
                 var _this = this;
                 if (mode === void 0) { mode = true; }
                 var duration = 500;
+                console.log(this._root[""]);
+                console.log(nodex);
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes(this._root[""]).filter(function (d) {
-                    return d.name != ""; //&& d.name != "day1" && d.name != "day2";
+                    return d.name != "year2014" && d.name != ""; //&& d.name != "day2";
                 });
                 this._stack_bar_node = this._subView.selectAll(".stack.node").data(nodex, function (d) {
                     return d.id;
@@ -472,6 +544,9 @@ var ManyLens;
                     }
                     else if (d.name[0] == "h") {
                         return d.name.substring(4) + ":00";
+                    }
+                    else if (d.name[0] == "M") {
+                        return d.name.substring(3);
                     }
                     return d.name;
                 }).style("fill-opacity", 1e-6).transition().duration(duration).style("fill-opacity", 1);
@@ -548,18 +623,6 @@ var ManyLens;
                 if (this._data[0].type == 1 || this._data[0].type == 3) {
                     //The stack date
                     var date = this._time_formater.parse(this._data[0].beg);
-                    //var stackRect: StackDate = {
-                    //    id: this._data[0].beg,
-                    //    x: this._stack_time.length * this._stack_bar_width,
-                    //    ox: this._stack_time.length * this._stack_bar_width,
-                    //    type: 0,
-                    //    index: date.getDay(),
-                    //    isRemove: false,
-                    //    fill: null,
-                    //    date:date,
-                    //    intervals: null
-                    //}
-                    //this._intervals.push( stackRect );
                     var stackNode = {
                         id: this._data[0].beg,
                         date: date,
@@ -567,7 +630,7 @@ var ManyLens;
                         name: "H" + date.getHours(),
                         parent: null,
                         children: null,
-                        type: "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-week" + this.GetWeek(date) + "-day" + date.getDay() + "-hour" + date.getHours(),
+                        type: "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-week" + this.GetWeek(date) + "-day" + date.getDay() + "-hour" + date.getHours() + "-Min" + date.getMinutes(),
                         index: date.getDay()
                     };
                     this.InserNode(stackNode.type, stackNode);
@@ -2024,14 +2087,15 @@ var ManyLens;
                 rect.x = realX - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
-                this._element.select("#rectForTest").remove();
-                this._element.append("rect").attr({
-                    id: "rectForTest",
-                    x: rect.x,
-                    y: rect.y,
-                    width: rect.width,
-                    height: rect.height
-                }).style("pointer-events", "none");
+                //this._element.select( "#rectForTest" ).remove();
+                //this._element.append( "rect" ).attr( {
+                //    id:"rectForTest",
+                //    x: rect.x,
+                //    y: rect.y,
+                //    width: rect.width,
+                //    height:rect.height
+                //})
+                //.style("pointer-events","none");
                 var ele = this._element.node().getIntersectionList(rect, null);
                 var minDist2 = Number.MAX_VALUE;
                 var minUnitsID = -1;
@@ -5555,10 +5619,26 @@ var ManyLens;
                             d.cx = d3.event.translate[0];
                             d.cy = d3.event.translate[1];
                         }
-                        d.scale = d3.event.scale;
+                        d.scale = currentLevel;
                         d.tx = d3.event.translate[0] - d.cx * d.scale;
                         d.ty = d3.event.translate[1] - d.cy * d.scale;
-                        return "translate(" + [d.tx, d.ty] + ")scale(" + d3.event.scale + ")";
+                        return "translate(" + [d.tx, d.ty] + ")scale(" + currentLevel + ")";
+                    });
+                    d3.select("#mapView").selectAll(".list-group").style("left", function (d) {
+                        var x = d.ox + d3.event.translate[0];
+                        return x + "px";
+                    }).style("top", function (d) {
+                        var y = d.oy + d3.event.translate[1];
+                        return y + "px";
+                    }).style("width", function (d) {
+                        var w = d.oWidth * currentLevel;
+                        w = w < 260 ? 260 : w;
+                        return w + "px";
+                    }).selectAll("p").style("font-size", function (d) {
+                        var fontSize = d3.select(this).style("font-size");
+                        fontSize = parseFloat(fontSize.substring(0, fontSize.length - 2));
+                        fontSize = fontSize * currentLevel > 18 ? 18 : fontSize * currentLevel;
+                        return fontSize + "px";
                     });
                     _this._translate_x = d3.event.translate[0];
                     _this._translate_y = d3.event.translate[1];
@@ -5907,6 +5987,13 @@ var ManyLens;
             this._SOM_mapArea.Render();
             this._GEO_mapArea = new _ManyLens.MapArea.WorldMap(this._mapSvg, this);
             //this._GEO_mapArea.Render();
+            //var listViewContainer = d3.select("#tweetsView")
+            //                                .style({
+            //                                        left:(<HTMLElement>this._mapSvg.node()).offsetLeft.toString()+"px",
+            //                                        top:(<HTMLElement>this._mapSvg.node()).offsetTop.toString()+"px",
+            //                                        height:(<HTMLElement>this._mapSvg.node()).offsetHeight.toString()+"px",
+            //                                        width:(<HTMLElement>this._mapSvg.node()).offsetWidth.toString()+"px"
+            //                                    });
             this._curveView = d3.select("#" + this._curveView_id);
             this._curve = new _ManyLens.TweetsCurve.Curve(this._curveView, this);
             this._curve.Render();
@@ -6112,78 +6199,6 @@ var manyLens;
 document.addEventListener('DOMContentLoaded', function () {
     manyLens = new ManyLens.ManyLens();
 });
-///<reference path = "./BaseHackLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var ListLens = (function (_super) {
-            __extends(ListLens, _super);
-            function ListLens(element, attributeName, manyLens) {
-                _super.call(this, element, attributeName, Lens.BarChartLens.Type, manyLens);
-                this._x_axis_gen = d3.svg.axis();
-                this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
-                this._bar_chart_height = this._bar_chart_width;
-            }
-            ListLens.prototype.Render = function (color) {
-                _super.prototype.Render.call(this, color);
-            };
-            ListLens.prototype.ExtractData = function () {
-                var data = d3.range(12).map(function (d) {
-                    return 10 + 70 * Math.random();
-                });
-                this._data = data;
-                this.DisplayLens();
-            };
-            ListLens.prototype.DisplayLens = function () {
-                var _this = this;
-                if (!_super.prototype.DisplayLens.call(this))
-                    return;
-                var x = d3.scale.linear().range([0, this._bar_chart_width]).domain([0, this._data]);
-                this._x_axis_gen.scale(x).ticks(0).orient("bottom");
-                this._x_axis = this._lens_circle_svg.append("g").attr("class", "x-axis").attr("transform", function () {
-                    return "translate(" + [-_this._bar_chart_width / 2, _this._bar_chart_height / 2] + ")";
-                }).attr("fill", "none").attr("stroke", "black").attr("stroke-width", 1).call(this._x_axis_gen);
-                this._bar_width = (this._bar_chart_width - 20) / this._data.length;
-                var barHeight = d3.scale.linear().range([10, this._bar_chart_height]).domain(d3.extent(this._data));
-                var bar = this._lens_circle_svg.selectAll(".bar").data(this._data).enter().append("g").attr("transform", function (d, i) {
-                    return "translate(" + [10 + i * _this._bar_width - _this._bar_chart_width / 2, _this._bar_chart_height / 2 - barHeight(d)] + ")";
-                });
-                bar.append("rect").attr("width", this._bar_width).attr("height", function (d) {
-                    return barHeight(d);
-                }).attr("fill", "steelblue");
-            };
-            ListLens.Type = "ListLens";
-            return ListLens;
-        })(Lens.BaseHackLens);
-        Lens.ListLens = ListLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./BaseSingleLens.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var Lens;
-    (function (Lens) {
-        var TweetsListLens = (function (_super) {
-            __extends(TweetsListLens, _super);
-            function TweetsListLens(element, attributeName, manyLens) {
-                _super.call(this, element, manyLens);
-            }
-            TweetsListLens.prototype.Render = function (color) {
-                if (color === void 0) { color = "red"; }
-                _super.prototype.Render.call(this, color);
-            };
-            // data shape {text: size:}
-            TweetsListLens.prototype.AfterExtractData = function () {
-            };
-            TweetsListLens.prototype.DisplayLens = function () {
-            };
-            TweetsListLens.Type = "TweetsListLens";
-            return TweetsListLens;
-        })(ManyLens.D3ChartObject);
-        Lens.TweetsListLens = TweetsListLens;
-    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
-})(ManyLens || (ManyLens = {}));
 ///<reference path = "./Lens/LensList.ts" />
 var ManyLens;
 (function (ManyLens) {
@@ -6379,6 +6394,351 @@ var ManyLens;
         return LensAssemblyFactory;
     })();
     ManyLens.LensAssemblyFactory = LensAssemblyFactory;
+})(ManyLens || (ManyLens = {}));
+///<reference path = "./BaseSingleLens.ts" />
+var ManyLens;
+(function (ManyLens) {
+    var Lens;
+    (function (Lens) {
+        var TweetsListLens = (function (_super) {
+            __extends(TweetsListLens, _super);
+            function TweetsListLens(element, attributeName, manyLens) {
+                var _this = this;
+                _super.call(this, element, manyLens);
+                this._units_id = [];
+                this._num_of_tweets_in_a_page = 3;
+                this._sc_lc_svg = null;
+                this._select_circle_radius = 0;
+                this._select_circle_cx = -10;
+                this._select_circle_cy = -10;
+                this._select_circle_scale = 1;
+                this._select_circle_zoom = d3.behavior.zoom();
+                this._select_circle_drag = d3.behavior.drag();
+                this._list_width = 260;
+                this._list_drag = d3.behavior.drag();
+                this._has_put_down = false;
+                this._has_showed_lens = false;
+                this._sc_lc_default_dist = 200;
+                this._extract_data_map_func = null;
+                this._id = "lens_" + this._manyLens.LensIDGenerator;
+                this._current_tweets = [];
+                this._select_circle_radius = 10;
+                this._attribute_name = attributeName;
+                this._select_circle_zoom.scaleExtent([1, 4]).on("zoom", function () {
+                    _this.SelectCircleZoomFunc();
+                    d3.event.sourceEvent.stopPropagation();
+                });
+                this._select_circle_drag.origin(function (d) {
+                    return d;
+                }).on("dragstart", function () {
+                    d3.event.sourceEvent.stopPropagation();
+                }).on("drag", function () {
+                    _this.SelectCircleDragFunc();
+                    d3.event.sourceEvent.stopPropagation();
+                }).on("dragend", function (d) {
+                    _this.SelectCircleDragendFunc(d);
+                    d3.event.sourceEvent.stopPropagation();
+                });
+                this._list_drag.origin(function (d) {
+                    return { x: d.ox, y: d.oy };
+                }).on("dragstart", function () {
+                }).on("drag", function (d) {
+                    _this._list_x = d.ox = d3.event.x;
+                    _this._list_y = d.oy = d3.event.y;
+                    var tData = d3.select("#" + _this.ID).data()[0];
+                    _this._list_container.style({
+                        left: (tData.tx + _this._list_x) + "px",
+                        top: (tData.ty + _this._list_y) + "px",
+                    });
+                    _this._sc_lc_svg.select("line").attr("x1", _this._select_circle_cx).attr("y1", _this._select_circle_cy).attr("x2", tData.tx + _this._list_x / tData.scale).attr("y2", tData.ty + _this._list_y / tData.scale);
+                }).on("dragend", function () {
+                });
+            }
+            Object.defineProperty(TweetsListLens.prototype, "ID", {
+                get: function () {
+                    return this._id;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(TweetsListLens.prototype, "MapID", {
+                get: function () {
+                    return this._map_id;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(TweetsListLens.prototype, "UnitsID", {
+                get: function () {
+                    return this._units_id.sort();
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(TweetsListLens.prototype, "AttributeName", {
+                get: function () {
+                    return this._attribute_name;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            TweetsListLens.prototype.Render = function (color) {
+                var _this = this;
+                _super.prototype.Render.call(this, color);
+                var container = this._element;
+                var hasShow = false;
+                this._sc_lc_svg = this._element.append("g").data([{ tx: 0, ty: 0, scale: 1, cx: 0, cy: 0 }]).attr("class", "lens").attr("id", this.ID);
+                this._select_circle_svg = this._sc_lc_svg.append("g").attr("class", "select-circle");
+                var selectCircle = this._select_circle = this._select_circle_svg.append("circle").data([{ x: this._select_circle_cx, y: this._select_circle_cy }]);
+                selectCircle.attr("r", this._select_circle_radius).attr("fill", color).attr("fill-opacity", 0.7).attr("stroke", "black").attr("stroke-width", 1).attr({
+                    cx: -50,
+                    cy: -50
+                }).on("mouseup", function (d) {
+                    if (!_this._has_put_down) {
+                        _this._has_put_down = true;
+                        d.x = _this._select_circle_cx = parseFloat(selectCircle.attr("cx"));
+                        d.y = _this._select_circle_cy = parseFloat(selectCircle.attr("cy"));
+                        container.on("mousemove", null);
+                    }
+                }).on("contextmenu", function () {
+                    d3.event.preventDefault();
+                    d3.event.stopPropagation();
+                    _this._list_container.remove();
+                    _this._sc_lc_svg.remove();
+                }).call(this._select_circle_zoom).on("dblclick.zoom", null).on("mousedown.zoom", null).call(this._select_circle_drag);
+                this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
+                container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
+                function moveSelectCircle() {
+                    var p = d3.mouse(container[0][0]);
+                    selectCircle.attr("cx", p[0]).attr("cy", p[1]);
+                }
+            };
+            TweetsListLens.prototype.DataAccesser = function (map) {
+                if (map == null)
+                    return this._extract_data_map_func;
+                this._extract_data_map_func = map;
+                return this;
+            };
+            TweetsListLens.prototype.ExtractData = function () {
+                var _this = this;
+                var data = this.GetElementByMouse();
+                if (!data) {
+                    this._data = null;
+                    this.DisplayLens();
+                    return null;
+                }
+                console.log(data.unitsID);
+                console.log(data.mapID);
+                this._units_id = data.unitsID.sort();
+                this._map_id = data.mapID;
+                var promise = this._manyLens.ManyLensHubServerGetLensData(this.MapID, this.ID, this.UnitsID, this._extract_data_map_func.TargetAttribute);
+                promise.done(function (d) {
+                    console.log("promise done in basesingleLens");
+                    _this._data = d;
+                    _this.AfterExtractData();
+                    _this.DisplayLens();
+                });
+            };
+            TweetsListLens.prototype.AfterExtractData = function () {
+                this._page_count = Math.ceil(this._extract_data_map_func.Extract(this._data).length / this._num_of_tweets_in_a_page);
+                this._current_tweets = this.GetTweetsInPage(0);
+            };
+            TweetsListLens.prototype.GetTweetsInPage = function (index) {
+                var allTweets = this._extract_data_map_func.Extract(this._data);
+                var tweetsForShow = [];
+                for (var i = 0; i < this._num_of_tweets_in_a_page; ++i) {
+                    if (allTweets[index + i])
+                        tweetsForShow.push(allTweets[index + i]);
+                }
+                return tweetsForShow;
+            };
+            TweetsListLens.prototype.DisplayLens = function () {
+                var _this = this;
+                if (this._data) {
+                    var theta = Math.PI / 4; //Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
+                    var cosTheta = Math.cos(theta); //this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
+                    var sinTheta = Math.sin(theta); //this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
+                    var cx = this._select_circle_cx + (this._select_circle_radius * cosTheta * this._select_circle_scale);
+                    var cy = this._select_circle_cy + (this._select_circle_radius * sinTheta * this._select_circle_scale);
+                    console.log("displaylens");
+                    this._sc_lc_svg.select("line").attr("x1", cx).attr("y1", cy).attr("x2", cx).attr("y2", cy).attr("stoke-width", 2).attr("stroke", "red").transition().duration(300).attr("x2", function () {
+                        return cx + (_this._sc_lc_default_dist * cosTheta);
+                    }).attr("y2", function () {
+                        return cy + (_this._sc_lc_default_dist * sinTheta);
+                    });
+                    var tData = d3.select("#" + this.ID).data()[0];
+                    this._list_container = d3.select("#mapView").append("div").data([{
+                        ox: this._list_x,
+                        oy: this._list_y,
+                        oWidth: this._list_width
+                    }]).attr({
+                        "id": "listView-" + this.ID,
+                        "class": "list-group"
+                    }).style({
+                        left: (tData.tx + this._list_x * tData.scale) + "px",
+                        top: (tData.ty + this._list_y * tData.scale) + "px",
+                    }).style("width", function (d) {
+                        var w = _this._list_width * tData.scale;
+                        w = w < 260 ? 260 : w;
+                        return w + "px";
+                    }).call(this._list_drag);
+                    this._list_container.selectAll(".list-group-item").data(this._current_tweets, function (d) {
+                        return d;
+                    }).enter().append("a").attr("class", "list-group-item").append("p").attr("class", "list-group-item-text").text(function (d) {
+                        return d;
+                    });
+                    this._list_container.append("div").style("text-align", "center").append("div").attr("id", "pagination");
+                    this._list_container.selectAll("p").style("font-size", function (d) {
+                        var fontSize = d3.select(this).style("font-size");
+                        fontSize = parseFloat(fontSize.substring(0, fontSize.length - 2));
+                        fontSize = fontSize * tData.scale > 18 ? 18 : fontSize * tData.scale;
+                        return fontSize + "px";
+                    });
+                    $("#pagination").bootstrapPaginator({
+                        currentPage: 1,
+                        totalPages: this._page_count,
+                        size: 'large',
+                        shouldShowPage: function (type, page, current) {
+                            switch (type) {
+                                case "first":
+                                case "last":
+                                    return false;
+                                default:
+                                    return true;
+                            }
+                        },
+                        onPageClicked: function (e, originalEvent, type, page) {
+                            _this.ChangePage(page);
+                        }
+                    });
+                    return true;
+                }
+                else {
+                    return null;
+                }
+            };
+            TweetsListLens.prototype.ChangePage = function (index) {
+                this._current_tweets = this.GetTweetsInPage(index);
+                var tData = d3.select("#" + this.ID).data()[0];
+                var newTweets = this._list_container.selectAll(".list-group-item").data(this._current_tweets, function (d) {
+                    return d;
+                });
+                newTweets.enter().insert("a", "div").attr("class", "list-group-item").append("p").attr("class", "list-group-item-text").text(function (d) {
+                    return d;
+                });
+                this._list_container.selectAll("p").style("font-size", function (d) {
+                    var fontSize = d3.select(this).style("font-size");
+                    fontSize = parseFloat(fontSize.substring(0, fontSize.length - 2));
+                    fontSize = fontSize * tData.scale > 18 ? 18 : fontSize * tData.scale;
+                    return fontSize + "px";
+                });
+                newTweets.exit().remove();
+            };
+            TweetsListLens.prototype.SelectCircleDragFunc = function () {
+                if (!this._has_put_down)
+                    return;
+                if (d3.event.sourceEvent.button != 0)
+                    return;
+                d3.select("#mapView").select("div#listView-" + this.ID).remove();
+                this._sc_lc_svg.select("line").attr("x1", d3.event.x).attr("x2", d3.event.x).attr("y1", d3.event.y).attr("y2", d3.event.y);
+                this._select_circle.attr("cx", function (d) {
+                    return d.x = d3.event.x; //Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
+                }).attr("cy", function (d) {
+                    return d.y = d3.event.y; //Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
+                });
+                this._has_showed_lens = false;
+            };
+            //The entrance of new data
+            TweetsListLens.prototype.SelectCircleDragendFunc = function (selectCircle) {
+                if (!this._has_put_down)
+                    return;
+                if (d3.event.sourceEvent.button != 0)
+                    return;
+                //传递数据给Lens显示
+                if (!this._has_showed_lens) {
+                    this._select_circle_cx = selectCircle.x;
+                    this._select_circle_cy = selectCircle.y;
+                    var theta = Math.PI / 4;
+                    var cosTheta = Math.cos(theta);
+                    var sinTheta = Math.sin(theta);
+                    this._list_x = this._select_circle_cx + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist) * cosTheta;
+                    this._list_y = this._select_circle_cy + (this._select_circle_radius * this._select_circle_scale + this._sc_lc_default_dist) * sinTheta;
+                    this.ExtractData(); //it will invoke display automatically when finishing extractdata
+                    this._has_showed_lens = true;
+                }
+            };
+            TweetsListLens.prototype.SelectCircleZoomFunc = function () {
+                if (d3.event.sourceEvent.type != "wheel") {
+                    return;
+                }
+                if (d3.event.scale == this._select_circle_scale) {
+                    return;
+                }
+                this._select_circle_scale = d3.event.scale;
+                var theta = Math.PI / 4; //Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
+                var cosTheta = Math.cos(theta); //this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
+                var sinTheta = Math.sin(theta); //this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
+                this._select_circle.attr("r", this._select_circle_radius * this._select_circle_scale);
+                this._sc_lc_svg.select("line").attr("x1", this._select_circle_cx + this._select_circle_radius * d3.event.scale * cosTheta).attr("y1", this._select_circle_cy + this._select_circle_radius * d3.event.scale * sinTheta);
+            };
+            TweetsListLens.prototype.GetElementByMouse = function () {
+                var unitsID = [];
+                var mapID;
+                var rect = this._element.node().createSVGRect();
+                var t = this._sc_lc_svg.data()[0];
+                var realX = this._select_circle_cx * t.scale + t.tx;
+                var realY = this._select_circle_cy * t.scale + t.ty;
+                rect.x = realX - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
+                rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
+                rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
+                this._element.select("#rectForTest").remove();
+                this._element.append("rect").attr({
+                    id: "rectForTest",
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height: rect.height
+                }).style("pointer-events", "none");
+                var ele = this._element.node().getIntersectionList(rect, null);
+                var minDist2 = Number.MAX_VALUE;
+                var minUnitsID = -1;
+                for (var i = 0, len = ele.length; i < len; ++i) {
+                    var node = d3.select(ele.item(i));
+                    if (node.classed("unit")) {
+                        var dx = parseFloat(node.attr("x")) + parseFloat(node.attr("width")) * 0.5 - realX;
+                        var dy = parseFloat(node.attr("y")) + parseFloat(node.attr("height")) * 0.5 - realY;
+                        var dist2 = dx * dx + dy * dy;
+                        if (dist2 < (this._select_circle_radius * this._select_circle_scale * this._select_circle_radius * this._select_circle_scale)) {
+                            var tID = node.data()[0]['unitID'];
+                            unitsID.push(tID);
+                            mapID = node.data()[0]['mapID'];
+                        }
+                        else if (dist2 < minDist2) {
+                            mapID = node.data()[0]['mapID'];
+                            minDist2 = dist2;
+                            minUnitsID = node.data()[0]['unitID'];
+                        }
+                    }
+                }
+                var res = null;
+                if (unitsID.length > 0 && mapID) {
+                    res = { unitsID: unitsID, mapID: mapID };
+                }
+                else if (unitsID.length == 0 && mapID) {
+                    res = { unitsID: [minUnitsID], mapID: mapID };
+                }
+                else {
+                    console.log(unitsID);
+                    console.log(mapID);
+                    console.log("there is a bug here " + unitsID);
+                }
+                return res;
+            };
+            TweetsListLens.Type = "TweetsListLens";
+            return TweetsListLens;
+        })(ManyLens.D3ChartObject);
+        Lens.TweetsListLens = TweetsListLens;
+    })(Lens = ManyLens.Lens || (ManyLens.Lens = {}));
 })(ManyLens || (ManyLens = {}));
 ///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />s 
 var ManyLens;

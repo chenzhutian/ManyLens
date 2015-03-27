@@ -510,6 +510,11 @@ namespace ManyLens.Models
                             data.Add("tweetsLocationDistribute", this.TweetsLocationDistribute);
                             break;
                         }
+                    case "tweetsContent":
+                        {
+                            data.Add("tweetsContent", this.TweetContents);
+                            break;
+                        }
                 }
             }
             return data;

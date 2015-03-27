@@ -40,7 +40,7 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
             lensDatas.Clear();
-            string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
+            string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFACASE";
             string cities1000File = config.Parameter.RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
             string stopwordFile = config.Parameter.RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
             Debug.WriteLine(tweetFile);
@@ -125,7 +125,7 @@ namespace ManyLens.SignalR
             //set the parameter
             double alpha = 0.125;
             double beta = 2.0;
-            config.Parameter.TimeSpan = 2;
+           ///config.Parameter.TimeSpan = 3;
 
             await Task.Run(() =>
             {

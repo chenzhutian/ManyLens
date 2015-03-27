@@ -8,7 +8,7 @@ namespace ManyLens.config
 {
     class Parameter
     {
-        private static int timeSpan = 3;
+        private static int timeSpan = 4;
         private static int hashDimension = 8192;
         private static int dimensionAfterRandomMapping = 1024;
         private static float[] rmMatrix = myMath.GaussianRandom.GetRMMatrix(DimensionAfterRandomMapping, HashDimension);

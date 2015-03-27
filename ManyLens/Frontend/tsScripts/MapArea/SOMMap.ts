@@ -189,12 +189,30 @@ module ManyLens {
                                     d.cx = d3.event.translate[0];
                                     d.cy = d3.event.translate[1];
                                 }
-                                d.scale = d3.event.scale;
+                                d.scale = currentLevel;
                                 d.tx = d3.event.translate[0] - d.cx * d.scale;
                                 d.ty = d3.event.translate[1] - d.cy * d.scale;
                             
-                                return "translate(" + [d.tx,d.ty] + ")scale(" + d3.event.scale + ")"
+                                return "translate(" + [d.tx,d.ty] + ")scale(" + currentLevel + ")"
                             });
+                        
+                        d3.select("#mapView")
+                            .selectAll(".list-group")
+                            .style("left",function(d){  var x = d.ox  + d3.event.translate[0]; return x+"px";})
+                            .style("top",function(d){  var y = d.oy  + d3.event.translate[1]; return y+"px";})
+                            .style("width",function(d){
+                                var w = d.oWidth * currentLevel;
+                                w = w  < 260 ? 260 : w;
+                                return w+"px";
+                            })
+                            .selectAll("p")
+                            .style("font-size",function(d){
+                                var fontSize:any = d3.select(this).style("font-size");
+                                fontSize = parseFloat(fontSize.substring(0,fontSize.length-2));
+                                fontSize = fontSize * currentLevel > 18 ? 18: fontSize *currentLevel;
+                                return fontSize + "px";
+                            })
+                        ;
 
                         this._translate_x = d3.event.translate[0];
                         this._translate_y = d3.event.translate[1];

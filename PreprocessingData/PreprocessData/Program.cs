@@ -30,9 +30,96 @@ namespace PreprocessingData
         static void Main(string[] args)
         {
             string ROOT_DIR = "D:\\Data\\";
+            string[] inputFiles = new string[]{ ROOT_DIR+"2014070904", ROOT_DIR+"2014070905", ROOT_DIR+"2014070906" };
+            string outputFiles = ROOT_DIR + "FIFACASE";
+            StreamWriter sw = new StreamWriter(outputFiles);
+            for (int i = 0; i < inputFiles.Length; ++i)
+            {
+                foreach (string line in File.ReadLines(inputFiles[i]))
+                {
+                    sw.WriteLine(line);
+                }
+            }
+            sw.Flush();
+            sw.Close();
+
+        }
+
+        public void SplitOneDayTo24Hous()
+        {
+            string ROOT_DIR = "D:\\Data\\";
+            string inputFile = ROOT_DIR + "20140709soted";
+            string output_dir = ROOT_DIR + "20140709\\";
+            StreamReader sr = new StreamReader(inputFile);
+            Dictionary<string, StreamWriter> sws = new Dictionary<string, StreamWriter>();
+            StreamWriter sw;
+            var lines = File.ReadLines(inputFile);
+            foreach (string currentLine in lines)
+            {
+                string[] tweetsAttribute = currentLine.Split('\t');
+                DateTime date = DateTime.Parse(tweetsAttribute[4]);
+                string fileName = date.ToString("yyyyMMddHH");
+                if (File.Exists(output_dir + fileName))
+                {
+                    sw = sws[output_dir + fileName];
+                }
+                else
+                {
+                    sw = new StreamWriter(output_dir + fileName, true);
+                    sws.Add(output_dir + fileName, sw);
+                }
+                sw.WriteLine(currentLine);
+                sw.Flush();
+            }
+
+            foreach (KeyValuePair<string, StreamWriter> sw1 in sws)
+            {
+                sw1.Value.Close();
+            }
+            
+        }
+
+
+        public void SortTweetsInOneDay()
+        {
+            string ROOT_DIR = "D:\\Data\\";
+            string inputFile = ROOT_DIR + "20140709";
+            string outputFile = inputFile + "soted";
+            StreamReader sr = new StreamReader(inputFile);
+            //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
+            //\t 8follower \9 13V \t 10gpsA \t 11gpsB
+            SortedDictionary<DateTime, List<string>> sortedTweets = new SortedDictionary<DateTime, List<string>>();
+            StreamWriter sw = new StreamWriter(outputFile);
+            foreach (string currentLine in File.ReadLines(inputFile))
+            {
+                string[] tweetsAttribute = currentLine.Split('\t');
+                DateTime date = DateTime.Parse(tweetsAttribute[4]);
+                if (!sortedTweets.ContainsKey(date))
+                {
+                    sortedTweets.Add(date, new List<string>());
+                }
+                sortedTweets[date].Add(currentLine);
+            }
+
+            foreach (KeyValuePair<DateTime, List<string>> item in sortedTweets)
+            {
+                List<string> tweets = item.Value;
+                for (int i = 0, len = tweets.Count; i < len; ++i)
+                {
+                    sw.WriteLine(tweets[i]);
+                }
+            }
+            sw.Flush();
+            sw.Close();
+        
+        }
+
+
+        public void SortByTime()
+        {
+            string ROOT_DIR = "D:\\Data\\";
             string inputFile = ROOT_DIR + "FIFAShortAttributes";
             string output_dir = ROOT_DIR + "\\SortByTime\\";
-            StreamReader sr = new StreamReader(inputFile);
             //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
             //\t 8follower \9 13V \t 10gpsA \t 11gpsB
             Dictionary<string, StreamWriter> sws = new Dictionary<string, StreamWriter>();
@@ -50,7 +137,7 @@ namespace PreprocessingData
                 }
                 else
                 {
-                    sw =  new StreamWriter(output_dir + fileName,true);
+                    sw = new StreamWriter(output_dir + fileName, true);
                     sws.Add(output_dir + fileName, sw);
                 }
                 sw.WriteLine(currentLine);
@@ -61,9 +148,7 @@ namespace PreprocessingData
             {
                 sw1.Value.Close();
             }
-
         }
-
 
         public void AddTheCountryName()
         {

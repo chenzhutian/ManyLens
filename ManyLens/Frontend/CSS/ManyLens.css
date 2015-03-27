@@ -96,7 +96,7 @@ svg#mapSvg {
     position:relative;
 }
     svg#mapSvg .som-map rect.unit {
-        opacity:0.5;
+        opacity:0;
     }
     svg#mapSvg .som-map path.control-layout {
         fill: none;
@@ -432,14 +432,20 @@ circle.curve.node {
 
 
 /*---------------tweets view-------------*/
-div#tweetsView {
-    background-color: #fff;
-    max-height: 37%;
-}
+/*div#tweetsView {
+    position:absolute;
+    overflow:hidden;
+    pointer-events:none;
+}*/
 
 
 .list-group {
+    background-color:#fff;
     margin-bottom: 0px;
+    position:absolute;
+    border:1px solid #E8E9EE;
+    padding-right:0;
+    cursor:default;
 }
 
 .list-group-item {
