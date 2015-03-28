@@ -6,7 +6,7 @@ module ManyLens {
             public static intensity = 3;
             public static shaderStyle = 0;
             //public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
-            public static stops = [0.000, 0.02, 0.067, 0.115, 0.24, 0.41, 0.5];
+            public static stops = [0.000, 0.067, 0.117, 0.24, 0.44, 0.51, 0.6];
             public static LoDMap;
             public static setKernelBandWidth( val ) {
                 config.kernelBandwidth = val;
@@ -53,7 +53,7 @@ module ManyLens {
                 //this._unit_size = unitSize;
 
                 this._nodeArray = nodeArray.map(( d ) => {
-                    return { x: d.x * unitWidth, y: d.y * unitHeight, value: d.value };
+                    return { x: d.x * unitWidth+unitWidth * 0.5, y: d.y * unitHeight+unitHeight * 0.5, value: d.value };
                 });
                 this.addAndInitCanvas();
                 this.DrawCanvas();
@@ -93,7 +93,7 @@ module ManyLens {
 
             public UpdateNodeArray(unitWidth:number,unitHeight:number,nodeArray:{ x: number; y: number; value:number }[]){
                 this._nodeArray = nodeArray.map(( d ) => {
-                    return { x: d.x * unitWidth, y: d.y * unitHeight, value: d.value };
+                    return { x: d.x * unitWidth+unitWidth * 0.5, y: d.y * unitHeight+unitHeight * 0.5, value: d.value };
                 });
                 this.DrawCanvas();
             }

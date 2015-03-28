@@ -117,7 +117,16 @@ namespace ManyLens.IO
                     continue;
 
                 DateTime postDate = tweet.PostDate;
-                DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], postDate.Second);
+                int sec = 0;
+                if (postDate.Second > 29)
+                {
+                    sec = 30;
+                }
+                else
+                {
+                    sec = 0;
+                }
+                DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], 0);
 
                 if (sortedTerm.ContainsKey(date))
                 {

@@ -11,13 +11,19 @@ module ManyLens {
             mapID: string;
         }
 
+        interface Label{
+            label:string;
+            x:number;
+            y:number;
+        }
+
         interface MapData {
             mapID: string;
             width: number;
             height: number;
             max: number;
             min: number;
-
+            labels:Array<Label>;
             unitsData: Array<UnitData>;
         }
 
@@ -259,9 +265,9 @@ module ManyLens {
                     })
                 ;
 
-                this._element
-                      .call( this._zoom )
-                      .on("dblclick.zoom", null);
+                //this._element
+                //      .call( this._zoom )
+                //      .on("dblclick.zoom", null);
             
             }
 
@@ -502,6 +508,7 @@ module ManyLens {
                     })
                 ;
 
+
             }
 
             public ShowVisMap( visData: MapData, classifierID:string ): void {
@@ -543,6 +550,19 @@ module ManyLens {
                     })
                     ;
                 
+                svg.selectAll("text.unit.label")
+                    .data(visData.labels,function(d){return d.x + "-"+d.y;})
+                    .enter().append("text")
+                    .attr("x",(d)=>{return this._left_offset + d.x * this._unit_width;})
+                    .attr("y",(d)=>{return this._top_offset + d.y*this._unit_height;})
+                    .attr("dy",(d)=>{return this._unit_width})
+                    .attr({
+                        "class":"unit label"
+                    })
+                    .text(function(d){return d.label;})
+                ;
+                console.log(visData);
+
                 //Add the hightlight and contextmenu layout
                 var line = d3.svg.line()
                     .x( function ( d ) { return d.x ; })

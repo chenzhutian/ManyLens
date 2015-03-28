@@ -30,7 +30,25 @@ namespace PreprocessingData
         static void Main(string[] args)
         {
             string ROOT_DIR = "D:\\Data\\";
-            string[] inputFiles = new string[]{ ROOT_DIR+"2014070904", ROOT_DIR+"2014070905", ROOT_DIR+"2014070906" };
+            string inputFile = ROOT_DIR + "FIFACASE";
+            string outputFile = inputFile + "Sample";
+            StreamWriter sw = new StreamWriter(outputFile);
+            Random rnd = new Random();
+            foreach (string line in File.ReadLines(inputFile))
+            {
+                if (rnd.NextDouble() > 0.7) 
+                {
+                    sw.WriteLine(line);
+                }
+            }
+            sw.Flush();
+            sw.Close();
+        }
+
+        public void CombineHoursFiles()
+        {
+            string ROOT_DIR = "D:\\Data\\";
+            string[] inputFiles = new string[] { ROOT_DIR + "2014070904", ROOT_DIR + "2014070905", ROOT_DIR + "2014070906" };
             string outputFiles = ROOT_DIR + "FIFACASE";
             StreamWriter sw = new StreamWriter(outputFiles);
             for (int i = 0; i < inputFiles.Length; ++i)
@@ -42,7 +60,7 @@ namespace PreprocessingData
             }
             sw.Flush();
             sw.Close();
-
+        
         }
 
         public void SplitOneDayTo24Hous()

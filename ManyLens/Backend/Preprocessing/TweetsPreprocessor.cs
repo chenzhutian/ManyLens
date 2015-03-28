@@ -29,26 +29,10 @@ namespace ManyLens.Preprocessing
             //load stopwords
             HashSet<string> stopWords = ManyLens.SignalR.ManyLensHub.stopWords;
 
-            //int percent = 0;
-            //int tweetsCount = interval.TweetsCount - 1;
-            ////Remove the repeat tweets
-            //for (int i = tweetsCount; i >= 0; --i)
-            //{
-            //    if (tweetsDict.ContainsKey(interval.GetTweetIDAt(i)))
-            //        interval.RemoveTweetAt(i);
-            //    else
-            //        tweetsDict.Add(interval.GetTweetIDAt(i), true);
-
-            //    if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 10.0)
-            //    {
-            //        progress.Report((double)percent / 100.0);
-            //        ++percent;
-            //    }
-            //}
-
             int percent = 0;
             int tweetsCount = interval.TweetsCount - 1;
             //clear the tweets content
+            //Dictionary<string, string> oW2dW = new Dictionary<string, string>();
             Parallel.ForEach(interval.Tweets, tweet =>
             {
                 string derivedContent = FilterSpecialToken(tweet.OriginalContent);
@@ -65,8 +49,13 @@ namespace ManyLens.Preprocessing
                         originalWord = originalWord.Substring(1, originalWord.Length - 1);
                     }
                     string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
+                    //if (!oW2dW.ContainsKey(originalWord))
+                    //{
+                    //    oW2dW.Add(originalWord, deriveWord);
+                    //}
                     newContent = newContent + " " + deriveWord;
                 }
+                
 
                 if (newContent != null && newContent.Length > 2)
                 {
@@ -94,6 +83,7 @@ namespace ManyLens.Preprocessing
                 }
             }
 
+            //interval.oW2dW = oW2dW;
             interval.HasPreprocessed = true;
         }
 
@@ -113,6 +103,7 @@ namespace ManyLens.Preprocessing
             int percent = 0;
             int tweetsCount = interval.TweetsCount - 1;
             //clear the tweets content
+            //Dictionary<string, string> oW2dW = new Dictionary<string, string>();
             for (int i = tweetsCount; i >= 0; --i)
             {
                 Tweet tweet = interval.Tweets[i];
@@ -130,6 +121,10 @@ namespace ManyLens.Preprocessing
                         originalWord = originalWord.Substring(1, originalWord.Length - 1);
                     }
                     string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
+                    //if (!oW2dW.ContainsKey(originalWord))
+                    //{
+                    //    oW2dW.Add(originalWord, deriveWord);
+                    //}
                     newContent = newContent + " " + deriveWord;
                 }
 
@@ -159,7 +154,7 @@ namespace ManyLens.Preprocessing
                     ++percent;
                 }
             }
-
+            //interval.oW2dW = oW2dW;
             interval.HasPreprocessed = true;
         }
 
@@ -230,7 +225,7 @@ namespace ManyLens.Preprocessing
                 tweetContent = tweetContent.Replace(mentions1[i].Value, " ");
 
             tweetContent = tweetContent.Replace("_", " ");
-            tweetContent = tweetContent.Replace("-", " ");
+            //tweetContent = tweetContent.Replace("-", " ");
             tweetContent = tweetContent.Replace("!", " ");
             tweetContent = tweetContent.Replace("\"", " ");
             tweetContent = tweetContent.Replace("?", " ");
@@ -255,18 +250,18 @@ namespace ManyLens.Preprocessing
             tweetContent = tweetContent.Replace("�", " ");
             //tweetContent = tweetContent.Replace("#", " ");
 
-            //replace pure number, such as 100
-            Regex numreg = new Regex(@"\b\d+\b");
-            MatchCollection nums = numreg.Matches(tweetContent);
-            for (int i = 0; i < nums.Count; i++)
-                tweetContent = tweetContent.Replace(nums[i].Value, " ");
+            ////replace pure number, such as 100
+            //Regex numreg = new Regex(@"\b\d+\b");
+            //MatchCollection nums = numreg.Matches(tweetContent);
+            //for (int i = 0; i < nums.Count; i++)
+            //    tweetContent = tweetContent.Replace(nums[i].Value, " ");
 
-            //replace number or words start with number
-            //such as 2010, 20g
-            Regex numreg1 = new Regex(@"\b\d+\w*\b");
-            MatchCollection nums1 = numreg1.Matches(tweetContent);
-            for (int i = 0; i < nums1.Count; i++)
-                tweetContent = tweetContent.Replace(nums1[i].Value, " ");
+            ////replace number or words start with number
+            ////such as 2010, 20g
+            //Regex numreg1 = new Regex(@"\b\d+\w*\b");
+            //MatchCollection nums1 = numreg1.Matches(tweetContent);
+            //for (int i = 0; i < nums1.Count; i++)
+            //    tweetContent = tweetContent.Replace(nums1[i].Value, " ");
 
             //repleace words with a same character repeated more than 3 times,such as "boook"
             //\b: start form a word

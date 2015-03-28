@@ -327,21 +327,21 @@ var ManyLens;
                 this._y_scale = d3.scale.linear();
                 this._y_axis_gen = d3.svg.axis();
                 this._fisheye_scale = d3.fisheye.ordinal();
-                this._sub_view_x_scale = d3.scale.linear();
-                this._sub_view_y_scale = d3.scale.linear();
-                this._section_num = 70;
+                //private _sub_view_x_scale: D3.Scale.LinearScale = d3.scale.linear();
+                //private _sub_view_y_scale: D3.Scale.LinearScale = d3.scale.linear();
+                this._section_num = 30;
                 this._view_top_padding = 15;
                 this._view_botton_padding = 5;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._coordinate_margin_left = 400;
+                this._coordinate_margin_left = 500;
+                //private _stack_time: Array<StackDate>;
                 this._stack_time_id_gen = 0;
-                this._stack_bar_width = 15;
                 this.week_days_name = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fir.", "Sat."];
                 this.month_names = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
                 this._data = new Array();
                 this._intervals = new Array();
-                this._stack_time = new Array();
+                //this._stack_time = new Array<StackDate>();
                 this._stack_bar_nodes = new Array();
                 this._view_height = parseFloat(this._element.style("height")) - 30;
                 this._view_width = parseFloat(this._element.style("width"));
@@ -349,7 +349,7 @@ var ManyLens;
                 this._sub_view_width = this._coordinate_margin_left + this._view_left_padding;
                 this._x_scale.domain([0, this._section_num]).range([this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding]);
                 this._y_scale.domain([0, 20]).range([this._view_height - this._view_botton_padding, this._view_top_padding]);
-                this._x_axis_gen.scale(this._x_scale).ticks(0).orient("bottom");
+                this._x_axis_gen.scale(d3.time.scale().domain([0, this._section_num]).range([this._view_left_padding + this._coordinate_margin_left, this._view_width - this._view_right_padding])).ticks(0).orient("bottom");
                 this._y_axis_gen.scale(this._y_scale).ticks(2).orient("left");
                 this._fisheye_scale.rangeRoundBands([0, this._sub_view_width]).focus(this._coordinate_margin_left + this._view_left_padding);
                 this._time_formater = d3.time.format("%Y%m%d%H%M%S");
@@ -369,12 +369,12 @@ var ManyLens;
                     return 1 / ((a.depth + 1) * (a.depth + 1));
                 });
                 this._stack_bar_tree_diagonal = d3.svg.diagonal();
-                this._sub_view_x_scale.range([this._view_left_padding, this._view_left_padding + this._coordinate_margin_left]);
-                this._sub_view_y_scale.range([this._view_height - this._view_botton_padding, this._view_top_padding]);
+                //this._sub_view_x_scale.range([this._view_left_padding,this._view_left_padding + this._coordinate_margin_left]);
+                //this._sub_view_y_scale.range( [this._view_height - this._view_botton_padding, this._view_top_padding] );
                 /*---Please register all the client function here---*/
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "addPoint", this.AddPoint);
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "clusterInterval", this.ClusterInterval);
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "timeInterval", this.TimeInterval);
+                //this._manyLens.ManyLensHubRegisterClientFunction( this, "clusterInterval", this.ClusterInterval );
+                //this._manyLens.ManyLensHubRegisterClientFunction( this, "timeInterval", this.TimeInterval );
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
                 get: function () {
@@ -476,11 +476,9 @@ var ManyLens;
                 var _this = this;
                 if (mode === void 0) { mode = true; }
                 var duration = 500;
-                console.log(this._root[""]);
-                console.log(nodex);
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes(this._root[""]).filter(function (d) {
-                    return d.name != "year2014" && d.name != ""; //&& d.name != "day2";
+                    return d.name != ""; //&& d.name != "day2";
                 });
                 this._stack_bar_node = this._subView.selectAll(".stack.node").data(nodex, function (d) {
                     return d.id;
@@ -548,7 +546,7 @@ var ManyLens;
                     else if (d.name[0] == "M") {
                         return d.name.substring(3);
                     }
-                    return d.name;
+                    return "Event";
                 }).style("fill-opacity", 1e-6).transition().duration(duration).style("fill-opacity", 1);
                 ;
                 //Update node
@@ -630,7 +628,7 @@ var ManyLens;
                         name: "H" + date.getHours(),
                         parent: null,
                         children: null,
-                        type: "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-week" + this.GetWeek(date) + "-day" + date.getDay() + "-hour" + date.getHours() + "-Min" + date.getMinutes(),
+                        type: "" + "-day" + date.getDay() + "-hour" + date.getHours() + "-Min" + date.getMinutes() + "-s" + date.getSeconds(),
                         index: date.getDay()
                     };
                     this.InserNode(stackNode.type, stackNode);
@@ -726,7 +724,7 @@ var ManyLens;
                     return _this._x_scale(d.index);
                 }).y(function (d, i) {
                     return _this._y_scale(d.trueValue);
-                }).interpolate("basis");
+                }).interpolate("linear");
                 //var path = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });
                 //path.attr( "d", function ( d ) {
                 //    return lineFunc( d.pathPoints );
@@ -794,7 +792,7 @@ var ManyLens;
                 nodes.exit().remove();
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(80).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(400).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
@@ -806,258 +804,12 @@ var ManyLens;
                     this._element.select(".progress").style("display", "block");
                     this.PullInterval(d.id, this._manyLens.CurrentClassifierMapID);
                 }
-                //else if ( d['end'] == null ) {
-                //    this._curveSvg.style( "margin-bottom", "0px" )
-                //    this._element.select( ".progress" ).style( "display", "block" );
-                //    this.PullInterval( d.id );
-                //}
             };
             Curve.prototype.GetWeek = function (date) {
                 var d = new Date(+date);
                 d.setHours(0, 0, 0);
                 d.setDate(d.getDate() + 4 - (d.getDay() || 7));
                 return Math.ceil((((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / 8.64e7) + 1) / 7);
-            };
-            Curve.prototype.ShrinkStackRect = function (filterX) {
-                if (filterX === void 0) { filterX = -1; }
-                if (this._subView) {
-                    this._subView.selectAll("rect.stack.rect").transition().attr("x", function (d) {
-                        return d.ox;
-                    }).remove();
-                    this._subView.select("g.stack.rect.group").remove();
-                    this._subView.selectAll("rect.stack.organize").style("visibility", function (d) {
-                        if (d.x != filterX)
-                            return "visible";
-                        return "hidden";
-                    }).transition().attr("x", function (d) {
-                        return d.x = d.ox;
-                    }).attr("width", this._stack_bar_width);
-                    this._subView.on("mousemove", null);
-                }
-            };
-            Curve.prototype.StackBarByTime = function (date, depth, intervals, stack_time_right) {
-                var _this = this;
-                if (stack_time_right === void 0) { stack_time_right = null; }
-                var num;
-                var newDate;
-                switch (depth) {
-                    case 0:
-                        {
-                            stack_time_right = new Array();
-                            newDate = intervals[0];
-                        }
-                        break;
-                    case 1:
-                        num = this.GetWeek(date);
-                        break;
-                    case 2:
-                        num = date.getMonth();
-                        break;
-                    default: num = -1;
-                }
-                if (depth != 0) {
-                    newDate = {
-                        id: this.StackID,
-                        type: depth,
-                        index: num,
-                        isRemove: false,
-                        x: this._stack_time.length * this._stack_bar_width,
-                        ox: this._stack_time.length * this._stack_bar_width,
-                        fill: null,
-                        date: date,
-                        intervals: intervals
-                    };
-                }
-                var colorScale = d3.scale.ordinal().domain([0, 1, 2]).range(["#2A9CC8", "#2574A9", "#34495E"]);
-                stack_time_right.push(newDate);
-                var tempStackDate = [].concat(this._stack_time, stack_time_right.reverse()).sort(function (a, b) {
-                    return (a.x > b.x) ? 1 : -1;
-                });
-                var stack_time_bar = this._subView.selectAll("rect.stack.organize.time").data(tempStackDate, function (d) {
-                    return d.id;
-                });
-                var self = this;
-                stack_time_bar.transition().attr("x", function (d, i) {
-                    d.x = d.ox = i * _this._stack_bar_width;
-                    return d.x;
-                }).style("fill", function (d) {
-                    return d.fill;
-                });
-                stack_time_bar.enter().append("rect").attr("x", function (d) {
-                    if (depth == 0)
-                        return _this._coordinate_margin_left + _this._view_left_padding;
-                    return d.x;
-                }).attr({
-                    "class": "stack organize time",
-                    width: this._stack_bar_width,
-                    height: 50,
-                    y: this._view_height + this._view_top_padding - 50
-                }).style({
-                    stroke: "#fff",
-                    "stroke-width": 0.5
-                }).style("fill", function (d) {
-                    if (d.type == 0) {
-                        return colorScale(d.type);
-                    }
-                    return colorScale(d.type - 1);
-                }).on("dblclick", function (d, i) {
-                    d3.select(this).style("visibility", "hidden");
-                    self.ExpandStackDate(d);
-                }).transition().style("fill", function (d) {
-                    return d.fill = colorScale(d.type);
-                }).attr("x", function (d) {
-                    return d.x;
-                });
-                stack_time_bar.exit().filter(function (d) {
-                    return !d.isRemove;
-                }).transition().attr("x", function (d) {
-                    d.isRemove = true;
-                    return d.x;
-                }).remove();
-                var last_time_bar = this._stack_time.pop();
-                if (last_time_bar) {
-                    if (last_time_bar.type == newDate.type && last_time_bar.index != newDate.index) {
-                        var newStack = [];
-                        newStack.push(last_time_bar);
-                        while (this._stack_time.length > 0) {
-                            var tempDate = this._stack_time.pop();
-                            if (tempDate.type == last_time_bar.type && tempDate.index == last_time_bar.index) {
-                                newStack.push(tempDate);
-                            }
-                            else {
-                                this._stack_time.push(tempDate);
-                                break;
-                            }
-                        }
-                        newStack.forEach(function (d) {
-                            d.x = newStack[newStack.length - 1].x;
-                        });
-                        this.StackBarByTime(last_time_bar.date, ++depth, newStack, stack_time_right);
-                    }
-                    else {
-                        this._stack_time.push(last_time_bar);
-                    }
-                }
-                this._stack_time.push(newDate);
-            };
-            Curve.prototype.TimeInterval = function () {
-                this.ShrinkStackRect();
-                this._subView.selectAll("rect.stack.organize.content").transition().style("opacity", function (d) {
-                    return 0;
-                }).remove();
-                var self = this;
-                this._subView.selectAll("rect.stack.organize.time").data(this._stack_time).enter().append("rect").attr({
-                    width: this._stack_bar_width,
-                    "class": "stack organize time",
-                    height: 50,
-                    y: this._view_height + this._view_top_padding - 50
-                }).style({
-                    stroke: "#fff",
-                    "stroke-width": 0.5
-                }).attr("x", function (d) {
-                    return d.x;
-                }).style("fill", function (d) {
-                    return d.fill;
-                }).on("dblclick", function (d) {
-                    d3.select(this).style("visibility", "hidden");
-                    self.ExpandStackDate(d);
-                });
-            };
-            Curve.prototype.ClusterInterval = function (intervalsInGroups) {
-                var _this = this;
-                this.ShrinkStackRect();
-                this._subView.selectAll("rect.stack.organize.time").transition().style("opacity", function (d) {
-                    return 0;
-                }).remove();
-                this._stack_content = new Map();
-                intervalsInGroups.forEach(function (d, i) {
-                    if (!_this._stack_content.has(d)) {
-                        _this._stack_content.set(d, []);
-                    }
-                    if (_this._intervals[i])
-                        _this._stack_content.get(d).push(_this._intervals[i]);
-                });
-                var data = [];
-                var color = d3.scale.category10();
-                this._stack_content.forEach(function (d) {
-                    data.push(d);
-                });
-                var self = this;
-                this._subView.selectAll("rect.stack.organize.content").data(data).enter().append("rect").attr({
-                    width: this._stack_bar_width,
-                    "class": "stack organize content",
-                    height: this._view_height + this._view_top_padding,
-                    y: 0
-                }).style({
-                    stroke: "#fff",
-                    "stroke-width": 0.5
-                }).attr("x", function (d, i) {
-                    return d.x = d.ox = i * _this._stack_bar_width;
-                }).style("fill", function (d, i) {
-                    return d.fill = color(i);
-                }).on("dblclick", function (d, i) {
-                    d3.select(this).style("visibility", "hidden");
-                    self.ExpandStackDate(d);
-                });
-            };
-            Curve.prototype.ExpandStackDate = function (d) {
-                var _this = this;
-                this.ShrinkStackRect(d.x);
-                var data = d.intervals || d;
-                this._subView.append("g").attr("class", "stack rect group").selectAll("rect.stack.rect").data(data).enter().append("rect").attr({
-                    width: this._stack_bar_width,
-                    "class": "stack rect",
-                    height: this._view_height + this._view_top_padding,
-                    y: 0
-                }).style({
-                    stroke: "#fff",
-                    "stroke-width": 0.5,
-                    opacity: 1e-6
-                }).attr("x", function (p, j) {
-                    p.ox = d.x;
-                    return p.x = d.x + j * _this._stack_bar_width;
-                }).on("click", function (d) {
-                    _this.SelectSegment(d);
-                }).transition().style("opacity", 1);
-                //  .style("fill", color)
-                var maxI = -1;
-                var temp_stack_bar = this._subView.selectAll("rect.stack.organize").filter(function (p, i) {
-                    maxI = i > maxI ? i : maxI;
-                    return p.x > d.x;
-                });
-                var offsetX = (data.length - 1) * this._stack_bar_width;
-                if ((maxI + data.length - 1) * this._stack_bar_width > this._sub_view_width) {
-                    temp_stack_bar.attr("x", function (p) {
-                        return p.x = p.x + offsetX;
-                    });
-                    this._subView.on("mousemove", function () {
-                        var mouse = d3.mouse(_this._subView.node());
-                        var data = [];
-                        d3.selectAll("rect.stack").attr("x", function (d, i) {
-                            if (d3.select(this).style("visibility") != "hidden") {
-                                data.push(d.x);
-                            }
-                        });
-                        data.sort(function (a, b) {
-                            return a > b ? 1 : -1;
-                        });
-                        _this._fisheye_scale.domain(data).focus(mouse[0]);
-                        _this._subView.selectAll("rect.stack").filter(function () {
-                            return d3.select(this).style("visibility") != "hidden";
-                        }).attr("x", function (d) {
-                            //if (this._fisheye_scale(d.x))
-                            return _this._fisheye_scale(d.x);
-                        }).attr("width", function (d) {
-                            //if (this._fisheye_scale.rangeBand(d.x))
-                            return _this._fisheye_scale.rangeBand(d.x);
-                        });
-                    });
-                }
-                else {
-                    temp_stack_bar.transition().attr("x", function (p) {
-                        return p.x = p.x + offsetX;
-                    }).attr("width", this._stack_bar_width);
-                }
             };
             return Curve;
         })(ManyLens.D3ChartObject);
@@ -2087,15 +1839,14 @@ var ManyLens;
                 rect.x = realX - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
-                //this._element.select( "#rectForTest" ).remove();
-                //this._element.append( "rect" ).attr( {
-                //    id:"rectForTest",
-                //    x: rect.x,
-                //    y: rect.y,
-                //    width: rect.width,
-                //    height:rect.height
-                //})
-                //.style("pointer-events","none");
+                this._element.select("#rectForTest").remove();
+                this._element.append("rect").attr({
+                    id: "rectForTest",
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height: rect.height
+                }).style("pointer-events", "none");
                 var ele = this._element.node().getIntersectionList(rect, null);
                 var minDist2 = Number.MAX_VALUE;
                 var minUnitsID = -1;
@@ -5322,7 +5073,7 @@ var ManyLens;
             config.intensity = 3;
             config.shaderStyle = 0;
             //public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
-            config.stops = [0.000, 0.02, 0.067, 0.115, 0.24, 0.41, 0.5];
+            config.stops = [0.000, 0.067, 0.117, 0.24, 0.44, 0.51, 0.6];
             return config;
         })();
         MapArea.config = config;
@@ -5337,7 +5088,7 @@ var ManyLens;
                 this._canvas_left_offset = leftOffset;
                 //this._unit_size = unitSize;
                 this._nodeArray = nodeArray.map(function (d) {
-                    return { x: d.x * unitWidth, y: d.y * unitHeight, value: d.value };
+                    return { x: d.x * unitWidth + unitWidth * 0.5, y: d.y * unitHeight + unitHeight * 0.5, value: d.value };
                 });
                 this.addAndInitCanvas();
                 this.DrawCanvas();
@@ -5370,7 +5121,7 @@ var ManyLens;
             };
             HeatMapLayer.prototype.UpdateNodeArray = function (unitWidth, unitHeight, nodeArray) {
                 this._nodeArray = nodeArray.map(function (d) {
-                    return { x: d.x * unitWidth, y: d.y * unitHeight, value: d.value };
+                    return { x: d.x * unitWidth + unitWidth * 0.5, y: d.y * unitHeight + unitHeight * 0.5, value: d.value };
                 });
                 this.DrawCanvas();
             };
@@ -5672,7 +5423,9 @@ var ManyLens;
                         _this._classifier_context_menu = null;
                     }
                 });
-                this._element.call(this._zoom).on("dblclick.zoom", null);
+                //this._element
+                //      .call( this._zoom )
+                //      .on("dblclick.zoom", null);
             };
             SOMMap.prototype.Toggle = function () {
                 if (this._state) {
@@ -5870,6 +5623,20 @@ var ManyLens;
                     width: this._unit_width,
                     height: this._unit_height
                 });
+                svg.selectAll("text.unit.label").data(visData.labels, function (d) {
+                    return d.x + "-" + d.y;
+                }).enter().append("text").attr("x", function (d) {
+                    return _this._left_offset + d.x * _this._unit_width;
+                }).attr("y", function (d) {
+                    return _this._top_offset + d.y * _this._unit_height;
+                }).attr("dy", function (d) {
+                    return _this._unit_width;
+                }).attr({
+                    "class": "unit label"
+                }).text(function (d) {
+                    return d.label;
+                });
+                console.log(visData);
                 //Add the hightlight and contextmenu layout
                 var line = d3.svg.line().x(function (d) {
                     return d.x;
@@ -6691,14 +6458,15 @@ var ManyLens;
                 rect.x = realX - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
-                this._element.select("#rectForTest").remove();
-                this._element.append("rect").attr({
-                    id: "rectForTest",
-                    x: rect.x,
-                    y: rect.y,
-                    width: rect.width,
-                    height: rect.height
-                }).style("pointer-events", "none");
+                //this._element.select( "#rectForTest" ).remove();
+                //this._element.append( "rect" ).attr( {
+                //    id:"rectForTest",
+                //    x: rect.x,
+                //    y: rect.y,
+                //    width: rect.width,
+                //    height:rect.height
+                //})
+                //.style("pointer-events","none");
                 var ele = this._element.node().getIntersectionList(rect, null);
                 var minDist2 = Number.MAX_VALUE;
                 var minUnitsID = -1;

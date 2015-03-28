@@ -40,7 +40,7 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
             lensDatas.Clear();
-            string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFACASE";
+            string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFACASESample";
             string cities1000File = config.Parameter.RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
             string stopwordFile = config.Parameter.RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
             Debug.WriteLine(tweetFile);
@@ -124,7 +124,7 @@ namespace ManyLens.SignalR
             interals.Clear();
             //set the parameter
             double alpha = 0.125;
-            double beta = 2.0;
+            double beta = 1.5;
            ///config.Parameter.TimeSpan = 3;
 
             await Task.Run(() =>
@@ -193,6 +193,7 @@ namespace ManyLens.SignalR
                             }
 
                             int end = i;
+                            int peak = i - 1;
                             tp[i - 1].IsPeak = true;
                             while (i < tp.Length && tp[i].VirtualCount > tp[begin].VirtualCount)
                             {
@@ -220,7 +221,8 @@ namespace ManyLens.SignalR
                                 }
                             }
 
-
+                            begin = peak - 1;
+                            end = peak + 1;
                             tp[begin].BeginPoint = tp[begin].ID;
                             tp[begin].EndPoint = tp[end].ID;
                             tp[begin].PointType += 1;
@@ -310,7 +312,7 @@ namespace ManyLens.SignalR
                     //points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(100);
+                    Thread.Sleep(500);
 
                     //Gaussin smoothing
                     if (stepCount == 0)

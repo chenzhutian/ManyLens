@@ -59,6 +59,13 @@ namespace ManyLens.Models
         public string mapID { get; set; }
     }
 
+    public class Label
+    {
+        public int x { set; get; }
+        public int y { set; get; }
+        public string label { set; get; }
+    }
+
     public class VISData
     {
         public string mapID { get; set; }
@@ -66,6 +73,7 @@ namespace ManyLens.Models
         public int height { get; set; }
         public int max { set; get; }
         public int min { set; get; }
+        public List<Label> labels { set; get; }
         public List<UnitsData> unitsData { set; get; }
     }
 }
