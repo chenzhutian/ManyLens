@@ -268,6 +268,16 @@ namespace ManyLens.Models
                 if (this.entropy == -1)
                 {
                     double entropy = 0;
+                    List<string> keys = this.Vocabulary.PofWords.Keys.ToList();
+                    //int t = 0;
+                    //for (int i = 0; t< 50; ++i)
+                    //{
+                    //    if (keys[i] == "bra" || keys[i] == "ger")
+                    //        continue;
+                    //    double value = this.Vocabulary.PofWords[keys[i]];
+                    //    entropy +=  value* Math.Log(value);
+                    //    ++t;
+                    //}
                     foreach (KeyValuePair<string, double> item in this.Vocabulary.PofWords)
                     {
                         entropy += item.Value * Math.Log(item.Value);

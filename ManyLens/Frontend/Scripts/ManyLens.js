@@ -149,10 +149,10 @@ var ManyLens;
                     children: [
                         {
                             name: "Tweet Length",
-                            icon: "fui-html5",
                             children: [
                                 {
                                     name: "Pie Chart",
+                                    icon: "fui-pie-chart",
                                     attributeName: "Tweet Length",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetLengthDistribute")
@@ -161,16 +161,16 @@ var ManyLens;
                         },
                         {
                             name: "Hashtag Count",
-                            icon: "fui-html5",
                             children: [
                                 {
                                     name: "Pie Chart",
+                                    icon: "fui-pie-chart",
                                     attributeName: "Hashtag Count",
                                     lensConstructFunc: ManyLens.Lens.PieChartLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagsDistribute")
                                 },
                                 {
-                                    name: "Words Cloud",
+                                    name: "fui-stats-dots",
                                     attributeName: "Hashtag Count",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagsDistribute")
@@ -179,10 +179,10 @@ var ManyLens;
                         },
                         {
                             name: "Keywords",
-                            icon: "fui-foursquare",
                             children: [
                                 {
                                     name: "Words Cloud",
+                                    icon: "fui-stats-dots",
                                     attributeName: "Keywords",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("keywordsDistribute")
@@ -191,10 +191,10 @@ var ManyLens;
                         },
                         {
                             name: "Retweet Network",
-                            icon: "fui-windows-8",
                             children: [
                                 {
                                     name: "Network",
+                                    icon: "fui-stats-dots",
                                     attributeName: "Retweet Network",
                                     lensConstructFunc: ManyLens.Lens.NetworkLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("retweetNetwork")
@@ -203,10 +203,10 @@ var ManyLens;
                         },
                         {
                             name: "Tweets Content",
-                            icon: "fui-windows-8",
                             children: [
                                 {
                                     name: "List",
+                                    icon: "fui-stats-dots",
                                     attributeName: "Tweets Content",
                                     lensConstructFunc: ManyLens.Lens.TweetsListLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetsContent")
@@ -215,10 +215,10 @@ var ManyLens;
                         },
                         {
                             name: "Tweets Count",
-                            icon: "fui-mail",
                             children: [
                                 {
                                     name: "Map",
+                                    icon: "fui-stats-dots",
                                     attributeName: "Tweets Count",
                                     lensConstructFunc: ManyLens.Lens.MapLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetsLocationDistribute")
@@ -238,7 +238,8 @@ var ManyLens;
                 var menuList = this._menu_list_data.children;
                 for (var i = 0, menu_len = menuList.length; i < menu_len; ++i) {
                     var sub_menu = menuList[i].children;
-                    var li = this._menu_list.append("li").attr("class", "panel").html('<div data-target=#' + menuList[i].name.replace(" ", "-") + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed"><i class="' + menuList[i].icon + '"></i>' + menuList[i].name + '</div>');
+                    var li = this._menu_list.append("li").attr("class", "panel").html('<div data-target=#' + menuList[i].name.replace(" ", "-") + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed">' + menuList[i].name + '</div>');
+                    //<i class="' + menuList[i].icon + '"></i>' 
                     //add high light function
                     li.select("div").on("click", function () {
                         d3.event.preventDefault();
@@ -251,10 +252,10 @@ var ManyLens;
                         }
                     });
                     if (sub_menu) {
-                        li.select("div").append("span").attr("class", "arrow fui-triangle-down");
+                        li.select("div").append("span").attr("class", "arrow fui-triangle-up");
                         var ul = li.append("ul").attr("class", "sub-menu collapse").attr("id", menuList[i].name.replace(" ", "-"));
-                        ul.selectAll("li").data(sub_menu).enter().append("li").text(function (d) {
-                            return d.name;
+                        ul.selectAll("li").data(sub_menu).enter().append("li").html(function (d) {
+                            return '<i class= "' + d.icon + '"></i>' + d.name;
                         }).on("click", function (d) {
                             var lens = new d.lensConstructFunc(_this._map_Svg, d.attributeName, _this._manyLens);
                             lens.DataAccesser(d.extractDataFunc).Render("red");
@@ -529,6 +530,8 @@ var ManyLens;
                     if (d.date && mode)
                         return 150;
                     return 10;
+                }).style("fill", function (d) {
+                    return colorScale(_this.SumEntropy(d) / sumLength(d));
                 }).on("click", function (d) {
                     if (d.date) {
                         _this.SelectSegment(d);
@@ -650,7 +653,7 @@ var ManyLens;
                         name: "H" + date.getHours(),
                         parent: null,
                         children: null,
-                        type: "" + "-day" + date.getDay() + "-hour" + date.getHours() + "-Min" + date.getMinutes() + "-s" + date.getSeconds(),
+                        type: "" + "-day" + date.getDay() + "-hour" + date.getHours() + "-Min" + date.getMinutes(),
                         index: this._stack_bar_nodes.length
                     };
                     this.InserNode(stackNode.type, stackNode);
@@ -2381,6 +2384,10 @@ var ManyLens;
     (function (Lens) {
         var WordCloudLens = (function (_super) {
             __extends(WordCloudLens, _super);
+            //private _cloud_rotate: number = 0;
+            //public get Color(): D3.Scale.LinearScale {
+            //    return this._cloud_text_color;
+            //}
             function WordCloudLens(element, attributeName, manyLens) {
                 _super.call(this, element, attributeName, WordCloudLens.Type, manyLens);
                 this._font_size = d3.scale.sqrt();
@@ -2388,26 +2395,22 @@ var ManyLens;
                 this._cloud_w = this._lens_circle_radius * Math.SQRT2;
                 this._cloud_h = this._cloud_w;
                 this._cloud_padding = 1;
-                this._cloud_font = "Calibri";
+                this._cloud_font = "Lato";
                 this._cloud_font_weight = "normal";
-                this._cloud_text_color = d3.scale.category20c();
+                this._cloud_text_color = d3.scale.pow().range(["#C5EFF7", "#4183D7"]);
             }
-            Object.defineProperty(WordCloudLens.prototype, "Color", {
-                //private _cloud_rotate: number = 0;
-                get: function () {
-                    return this._cloud_text_color;
-                },
-                enumerable: true,
-                configurable: true
-            });
             WordCloudLens.prototype.Render = function (color) {
                 if (color === void 0) { color = "red"; }
                 _super.prototype.Render.call(this, color);
             };
             // data shape {text: size:}
             WordCloudLens.prototype.AfterExtractData = function () {
+                var _this = this;
                 this._font_size.range([10, this._cloud_w / 8]).domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) {
                     return d.Value;
+                }));
+                this._cloud_text_color.domain(d3.extent(this._extract_data_map_func.Extract(this._data), function (d) {
+                    return _this._font_size(d.Value);
                 }));
             };
             WordCloudLens.prototype.DisplayLens = function () {

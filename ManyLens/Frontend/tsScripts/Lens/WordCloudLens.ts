@@ -12,20 +12,19 @@ module ManyLens {
             private _cloud_w: number = this._lens_circle_radius * Math.SQRT2;
             private _cloud_h: number = this._cloud_w;
             private _cloud_padding: number = 1;
-            private _cloud_font: string = "Calibri"
+            private _cloud_font: string = "Lato";
             private _cloud_font_weight: string = "normal";
-            private _cloud_text_color: D3.Scale.OrdinalScale;
+            private _cloud_text_color: D3.Scale.PowScale;
             //private _cloud_rotate: number = 0;
 
-            public get Color(): D3.Scale.OrdinalScale {
-                return this._cloud_text_color;
-            }
+            //public get Color(): D3.Scale.LinearScale {
+            //    return this._cloud_text_color;
+            //}
 
             constructor(element: D3.Selection, attributeName: string, manyLens: ManyLens.ManyLens) {
                 super(element, attributeName, WordCloudLens.Type, manyLens);
 
-                this._cloud_text_color = d3.scale.category20c();
-
+                this._cloud_text_color = d3.scale.pow().range(["#C5EFF7","#4183D7"]);
             }
 
             public Render(color = "red"): void {
@@ -39,6 +38,11 @@ module ManyLens {
                     .range([10, this._cloud_w / 8])
                     .domain(d3.extent(this._extract_data_map_func.Extract(this._data), (d: { Key: any; Value: any }) => {
                         return d.Value;
+                    }))
+                ;
+                this._cloud_text_color
+                    .domain(d3.extent(this._extract_data_map_func.Extract(this._data), (d: { Key: any; Value: any }) => {
+                        return this._font_size(d.Value);
                     }))
                 ;
             }

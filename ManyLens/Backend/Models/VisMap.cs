@@ -314,17 +314,19 @@ namespace ManyLens.Models
                         {
                             double temp = 1;
                             double value = 0;
-                            if(this.Interval.Vocabulary.DfOfWords.ContainsKey(item.Key))
+                            if(this.Interval.Vocabulary.DfOfWords.ContainsKey(item.Key)&& this.Interval.Vocabulary.Most50.Contains(item.Key))
                             {
                                 temp = (double)this.Interval.Vocabulary.DfOfWords[item.Key];
                                 value = item.Value * Math.Log((double)this.Interval.TweetsCount/( 1.0 + temp));
+
+                                if (item.Value > maxValue)
+                                {
+                                    maxValue = value;
+                                    targetLabel = item.Key;
+                                }
                             }
                             
-                            if (item.Value > maxValue)
-                            {
-                                maxValue = value;
-                                targetLabel = item.Key;
-                            }
+
                             
                         }
                         catch (KeyNotFoundException e)

@@ -29,20 +29,22 @@ namespace PreprocessingData
 
         static void Main(string[] args)
         {
-            string ROOT_DIR = "D:\\Data\\";
-            string inputFile = ROOT_DIR + "FIFACASE";
-            string outputFile = inputFile + "Sample";
-            StreamWriter sw = new StreamWriter(outputFile);
-            Random rnd = new Random();
-            foreach (string line in File.ReadLines(inputFile))
-            {
-                if (rnd.NextDouble() > 0.7) 
-                {
-                    sw.WriteLine(line);
-                }
-            }
-            sw.Flush();
-            sw.Close();
+            //Sample
+            //string ROOT_DIR = "D:\\Data\\";
+            //string inputFile = ROOT_DIR + "FIFACASE";
+            //string outputFile = inputFile + "Sample";
+            //StreamWriter sw = new StreamWriter(outputFile);
+            //Random rnd = new Random();
+            //foreach (string line in File.ReadLines(inputFile))
+            //{
+            //    if (rnd.NextDouble() > 0.7) 
+            //    {
+            //        sw.WriteLine(line);
+            //    }
+            //}
+            //sw.Flush();
+            //sw.Close();
+            AddTheCountryName();
         }
 
         public void CombineHoursFiles()
@@ -97,7 +99,6 @@ namespace PreprocessingData
             
         }
 
-
         public void SortTweetsInOneDay()
         {
             string ROOT_DIR = "D:\\Data\\";
@@ -131,7 +132,6 @@ namespace PreprocessingData
             sw.Close();
         
         }
-
 
         public void SortByTime()
         {
@@ -168,26 +168,28 @@ namespace PreprocessingData
             }
         }
 
-        public void AddTheCountryName()
+        public static void AddTheCountryName()
         {
             List<City> cities1000 = new List<City>();
-            string cities1000File = "C:\\Users\\xiaot_000\\Documents\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Frontend\\testData\\cities1000.txt";
-            StreamWriter sw = new StreamWriter(cities1000File + ".short");
+            string cities1000File = "C:\\Users\\xiaot_000\\Documents\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Frontend\\testData\\cities15000.txt";
+            //StreamWriter sw = new StreamWriter(cities1000File + ".short");
             foreach (string line in File.ReadLines(cities1000File))
             {
                 // /4lon or lat /5lon or lat /8country name
                 string[] s = line.Split('\t');
                 cities1000.Add(new City() { lon = double.Parse(s[4]), lat = double.Parse(s[5]), countryName = s[8] });
-                sw.WriteLine(s[4] + '\t' + s[5] + '\t' + s[8]);
+                //sw.WriteLine(s[4] + '\t' + s[5] + '\t' + s[8]);
             }
-            sw.Close();
+            //sw.Close();
 
             string ROOT_DIR = "D:\\Data\\";
-            string inputFile = ROOT_DIR + "FIFAShortAttributes";
+            string inputFile = ROOT_DIR + "FIFACASESample";
             string outputFile = inputFile + "withCountry";
-            sw = new StreamWriter(outputFile);
+            StreamWriter sw = new StreamWriter(outputFile);
             //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
             //\t 8follower \9 13V \t 10gpsA \t 11gpsB
+            int br = 0;
+            int total = 0;
             foreach (string currentLine in File.ReadLines(inputFile))
             {
                 string[] tweetsAttribute = currentLine.Split('\t');
@@ -211,12 +213,15 @@ namespace PreprocessingData
                         }
                     }
                 });
+                if (countryName == "BR")
+                    br++;
+                total++;
                 sw.WriteLine(currentLine + "\t" + countryName);
             }
+            sw.WriteLine(br + "\t" + total);
             sw.Flush();
             sw.Close();
 
-        
         }
 
         public void ExtractRetweetNetwork()

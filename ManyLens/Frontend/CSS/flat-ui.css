@@ -360,6 +360,21 @@
 .fui-apple:before {
   content: "\e660";
   }
+.fui-pie-chart:before {
+	content: "\e661";
+}
+.fui-stats-dots:before {
+	content: "\e662";
+}
+.fui-stats-bars:before {
+	content: "\e663";
+}
+.fui-stats-bars2:before {
+	content: "\e664";
+}
+
+
+
 body {
   font-family: "Lato", Helvetica, Arial, sans-serif;
   font-weight:300;

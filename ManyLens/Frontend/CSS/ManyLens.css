@@ -199,7 +199,6 @@ div#curveView {
     stroke-width: 1.5px;
 }
 
-
 /*rgb(31, 145, 189);*/
 path.stack.link,
 .curve.axis path,
@@ -219,7 +218,7 @@ path.stack.link,
 }
 
 rect.curve.seg {
-    fill: #E87E04;/*rgb(31, 145, 189);*/
+    fill: rgb(31, 145, 189);/*#E87E04;*/
     stroke: #fff;
     stroke-width: 0.5px;
 }
@@ -231,14 +230,14 @@ path.curve.section.true.path {
 }
 
 path.curve.rest.true.path {
-    stroke:#E87E04; /*rgb(31, 145, 189);*/
+    stroke:rgb(31, 145, 189); /*#E87E04;*/
     stroke-width: 3px;
     fill: none;
 }
 
 circle.curve.node {
     fill: #fff;
-    stroke: #E87E04;/*rgb(31, 145, 189);*/
+    stroke: rgb(31, 145, 189);;/*#E87E04*/
     stroke-width: 1.5px;
 }
 
@@ -290,15 +289,6 @@ circle.curve.node {
         font-size: 14px;
     }
 
-    /*li.active {
-            border-left: 1.6px solid #d19b3d;
-        -webkit-transition: all 1s ease;
-        -moz-transition: all 1s ease;
-        -o-transition: all 1s ease;
-        -ms-transition: all 1s ease;
-        transition: all 1s ease;
-
-}*/
     .nav-side-menu li.active,
     .nav-side-menu li:hover {
         border-left: 1.6px solid #d19b3d;
@@ -343,7 +333,9 @@ circle.curve.node {
         .nav-side-menu .menu-list li.panel {
             background-color: #f7f7f7;
         }
-
+            .nav-side-menu .menu-list li.panel div {
+                text-indent:15px;
+            }
     /*.nav-side-menu .menu-list ul .active,
         .nav-side-menu .menu-list li .active {
             border-left: 3px solid #d19b3d;

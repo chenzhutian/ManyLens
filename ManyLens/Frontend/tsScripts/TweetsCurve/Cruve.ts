@@ -391,9 +391,9 @@ module ManyLens {
                             return 150;
                         return 10;
                     })
-                    //.style("fill",(d)=>{
-                    //    return colorScale( this.SumEntropy(d) / sumLength(d) ); 
-                    //})
+                    .style("fill",(d)=>{
+                        return colorScale( this.SumEntropy(d) / sumLength(d) ); 
+                    })
                     .on( "click",( d ) => {
                         if ( d.date ) {
                             this.SelectSegment( d );
@@ -549,7 +549,7 @@ module ManyLens {
                         name:"H"+date.getHours(),
                         parent:null,
                         children: null,
-                        type: ""+"-day"+date.getDay()+"-hour"+date.getHours()+"-Min"+date.getMinutes()+"-s"+date.getSeconds(), //"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-week"+this.GetWeek(date)+
+                        type: ""+"-day"+date.getDay()+"-hour"+date.getHours()+"-Min"+date.getMinutes(),//+"-s"+date.getSeconds(), //"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-week"+this.GetWeek(date)+
                         index: this._stack_bar_nodes.length
                     }
                     this.InserNode( stackNode.type, stackNode );

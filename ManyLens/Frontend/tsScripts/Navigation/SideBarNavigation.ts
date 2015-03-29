@@ -209,10 +209,11 @@ module ManyLens {
                     children: [
                         {
                             name: "Tweet Length",
-                            icon: "fui-html5",
+                            
                             children: [
                                 {
                                     name: "Pie Chart",
+                                    icon: "fui-pie-chart",
                                     attributeName: "Tweet Length",
                                     lensConstructFunc: Lens.PieChartLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("tweetLengthDistribute")
@@ -221,16 +222,17 @@ module ManyLens {
                         },
                         {
                             name: "Hashtag Count",
-                            icon: "fui-html5",
+                           
                             children: [
                                 {
                                     name: "Pie Chart",
+                                     icon: "fui-pie-chart",
                                     attributeName: "Hashtag Count",
                                     lensConstructFunc: Lens.PieChartLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("hashTagsDistribute")
                                 },
                                 {
-                                    name: "Words Cloud",
+                                    name: "fui-stats-dots",
                                     attributeName: "Hashtag Count",
                                     lensConstructFunc: Lens.WordCloudLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("hashTagsDistribute")
@@ -239,10 +241,11 @@ module ManyLens {
                         },
                         {
                             name: "Keywords",
-                            icon: "fui-foursquare",
+                            
                             children: [
                                 {
                                     name: "Words Cloud",
+                                    icon: "fui-stats-dots",
                                     attributeName: "Keywords",
                                     lensConstructFunc: Lens.WordCloudLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("keywordsDistribute")
@@ -251,10 +254,11 @@ module ManyLens {
                         },
                         {
                             name: "Retweet Network",
-                            icon: "fui-windows-8",
+                            
                             children: [
                                 {
                                     name: "Network",
+                                    icon: "fui-stats-dots",
                                     attributeName: "Retweet Network",
                                     lensConstructFunc: Lens.NetworkLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("retweetNetwork")
@@ -263,10 +267,11 @@ module ManyLens {
                         },
                         {
                             name:"Tweets Content",
-                            icon:"fui-windows-8",
+                           
                             children:[
                                 {
                                     name:"List",
+                                    icon:"fui-stats-dots",
                                     attributeName:"Tweets Content",
                                     lensConstructFunc:Lens.TweetsListLens,
                                     extractDataFunc:new Lens.ExtractDataFunc("tweetsContent")
@@ -275,10 +280,11 @@ module ManyLens {
                         },
                         {
                             name: "Tweets Count",
-                            icon: "fui-mail",
+                           
                             children: [
                                 {
                                     name: "Map",
+                                    icon: "fui-stats-dots",
                                     attributeName: "Tweets Count",
                                     lensConstructFunc: Lens.MapLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("tweetsLocationDistribute")
@@ -303,9 +309,9 @@ module ManyLens {
                     var sub_menu: Array<MenuListData> = menuList[i].children;
                     var li = this._menu_list.append("li")
                         .attr("class", "panel")
-                        .html('<div data-target=#' + menuList[i].name.replace(" ", "-") + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed"><i class="' + menuList[i].icon + '"></i>' + menuList[i].name + '</div>')
+                        .html('<div data-target=#' + menuList[i].name.replace(" ", "-") + ' data-toggle="collapse" data-parent="#side-menu-content" class="collapsed">'+menuList[i].name+'</div>')
                     ;
-
+                    //<i class="' + menuList[i].icon + '"></i>' 
                     //add high light function
                     li.select("div")
                         .on("click", function () {
@@ -320,7 +326,7 @@ module ManyLens {
 
 
                     if (sub_menu) {
-                        li.select("div").append("span").attr("class", "arrow fui-triangle-down")
+                        li.select("div").append("span").attr("class", "arrow fui-triangle-up")
 
                         var ul = li.append("ul")
                             .attr("class", "sub-menu collapse")
@@ -329,7 +335,7 @@ module ManyLens {
                         ul.selectAll("li")
                             .data(sub_menu)
                             .enter().append("li")
-                            .text(function (d) { return d.name })
+                            .html(function(d){return '<i class= "'+d.icon+'"></i>'+d.name;})
                             .on("click", (d: MenuListData) => {
                                 var lens: Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg,d.attributeName, this._manyLens);
                                 lens
