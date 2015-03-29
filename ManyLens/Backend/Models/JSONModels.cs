@@ -64,6 +64,7 @@ namespace ManyLens.Models
         public int x { set; get; }
         public int y { set; get; }
         public string label { set; get; }
+        public double value { set; get; }
     }
 
     public class VISData

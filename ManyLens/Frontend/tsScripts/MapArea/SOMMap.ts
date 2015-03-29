@@ -15,6 +15,7 @@ module ManyLens {
             label:string;
             x:number;
             y:number;
+            value:number;
         }
 
         interface MapData {
@@ -46,7 +47,7 @@ module ManyLens {
             private _translate_y: number = 0;
             private _total_width: number;
             private _total_height:number;
-            private _map_gap: number = 10;
+            private _map_gap: number = 50;
 
             private _heatmap_container: HTMLElement;
             private _unit_width: number = 20;
@@ -322,7 +323,7 @@ module ManyLens {
                                     .on("contextmenu",()=>{
                                         this._brush.clear();
                                         this._brush_svg.remove();
-                                        d3.event.preventDefault();
+                                        //d3.event.preventDefault();
                                     })
                                     .call(this._brush);
                             }
@@ -550,6 +551,7 @@ module ManyLens {
                     })
                     ;
                 
+                var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels,function(d){return d.value;})).range([10,30]);
                 svg.selectAll("text.unit.label")
                     .data(visData.labels,function(d){return d.x + "-"+d.y;})
                     .enter().append("text")
@@ -558,6 +560,9 @@ module ManyLens {
                     .attr("dy",(d)=>{return this._unit_width})
                     .attr({
                         "class":"unit label"
+                    })
+                    .style("font-size",(d)=>{
+                        return fontSizeScale(d.value)+"px";
                     })
                     .text(function(d){return d.label;})
                 ;
@@ -585,7 +590,7 @@ module ManyLens {
                     .attr("class","control-layout")
                     .on( "contextmenu",(d) => {
                         this.ContextMenu(d.mapID);
-                        d3.event.preventDefault();
+                        //d3.event.preventDefault();
                     })
                 ;
 

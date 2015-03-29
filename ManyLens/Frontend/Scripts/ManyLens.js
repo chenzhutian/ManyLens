@@ -47,6 +47,7 @@ var ManyLens;
                 this._reorganizeIntervalBtn = $("#intervals-organize-switch").on("switchChange.bootstrapSwitch", function (event, state) {
                     _this._manyLens.ManyLensHubServerReOrganizePeak(state);
                 });
+                this._element.select("#curve-btns").append("div").attr("class", "btn-group").style("margin-top", "30px").html('<button class="btn btn-primary" type="button" style="padding-left: 29px;padding-right: 24px;">Primary</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a href="#">Minutes</a></li><li><a href="#">Hours</a></li><li><a href="#">Days</a></li><li class="divider"></li><li><a href="#">Seconds</a></li></ul>');
                 this._launchDataBtn = this._element.select("#curve-btns").append("button").attr({
                     type: "button",
                     class: "btn btn-primary btn-block disabled"
@@ -331,16 +332,18 @@ var ManyLens;
                 //private _sub_view_y_scale: D3.Scale.LinearScale = d3.scale.linear();
                 this._section_num = 30;
                 this._view_top_padding = 15;
-                this._view_botton_padding = 5;
+                this._view_botton_padding = 25;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._coordinate_margin_left = 500;
+                this._coordinate_margin_left = 300;
                 //private _stack_time: Array<StackDate>;
                 this._stack_time_id_gen = 0;
                 this.week_days_name = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fir.", "Sat."];
                 this.month_names = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
+                this._hack_entropy_for_sec = [5.731770623, 5.673758762, 5.708904568, 5.766106615, 5.271328797, 5.50350013, 5.650689424, 5.059556767, 5.150092845, 5.332915993, 5.538583789, 5.56513213, 5.618589058, 5.568604372, 5.601558072, 5.603160895, 5.552198033, 5.563398957, 5.545638613, 5.585914854, 5.541078274, 5.581189853, 5.610692756, 5.561532863, 5.662572096, 5.577863947, 5.697510354, 5.703647393, 5.578761725, 5.604709918, 5.443579203, 5.498566777, 5.692988236, 5.449706032, 5.316306331, 5.69077723, 5.830264994, 5.849802422, 5.764716822, 5.920337608, 5.854107674, 5.914982887, 5.872175529, 5.795052474, 5.590677484, 5.49128005, 5.611246233, 5.861593865, 5.760362888, 5.763031867, 5.715574693, 5.904532304, 6.024492893, 5.971005731, 5.410844221, 5.700768429, 5.788494599];
+                this._hack_entropy_for_minute = [5.439728938, 5.329790773, 5.586664525, 5.615747057, 5.639277057, 5.653881221, 5.497658424];
                 this._data = new Array();
-                this._intervals = new Array();
+                //this._intervals = new Array<StackRect>();
                 //this._stack_time = new Array<StackDate>();
                 this._stack_bar_nodes = new Array();
                 this._view_height = parseFloat(this._element.style("height")) - 30;
@@ -377,6 +380,7 @@ var ManyLens;
                 //this._manyLens.ManyLensHubRegisterClientFunction( this, "timeInterval", this.TimeInterval );
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
+                //private _stack_content: Map<number, StackRect[]>;
                 get: function () {
                     return this._section_num;
                 },
@@ -399,10 +403,10 @@ var ManyLens;
                 _super.prototype.Render.call(this, null);
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 this._element.select(".progress").style("display", "none");
-                this._curveSvg = this._element.insert("svg", ":first-child").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
+                this._curveSvg = this._element.insert("svg", ".progress").attr("width", this._view_width).attr("height", this._view_height).style("margin-bottom", "17px");
                 this._curveSvg.append("defs").append("clipPath").attr("id", "stackRectClip").append("rect").attr("width", this._coordinate_margin_left + this._view_left_padding).attr("height", this._view_height).attr("x", 0).attr("y", 0);
                 this._subView = this._curveSvg.append("g").attr("clip-path", "url(#stackRectClip)").append("g").attr("id", "curve.subView").attr("transform", "translate(0,-20)");
-                this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height - this._view_botton_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
+                this._curveSvg.append("defs").append("clipPath").attr("id", "curveClip").append("rect").attr("width", coordinate_view_width).attr("height", this._view_height + this._view_botton_padding + this._view_top_padding).attr("x", this._view_left_padding + this._coordinate_margin_left).attr("y", 0);
                 this._mainView = this._curveSvg.append("g").attr("clip-path", "url(#curveClip)").append("g").attr("id", "curve.mainView");
                 this._x_axis = this._curveSvg.append("g").attr("class", "curve x axis").attr("transform", "translate(" + [0, (this._view_height - this._view_botton_padding)] + ")").call(this._x_axis_gen);
                 this._y_axis = this._curveSvg.append("g").attr("class", "curve y axis").attr("transform", "translate(" + (this._coordinate_margin_left + this._view_left_padding) + ",0)").call(this._y_axis_gen);
@@ -472,10 +476,28 @@ var ManyLens;
                 }
                 return this.FindMinCoParent(a.parent, b.parent);
             };
+            Curve.prototype.SumEntropy = function (d) {
+                var _this = this;
+                if (!d)
+                    return 0;
+                if (!d.children && !d._children)
+                    return this._hack_entropy_for_minute[d.index];
+                var sum = 0;
+                if (d.children)
+                    d.children.forEach(function (d) {
+                        sum += _this.SumEntropy(d);
+                    });
+                else if (d._children)
+                    d._children.forEach(function (d) {
+                        sum += _this.SumEntropy(d);
+                    });
+                return sum;
+            };
             Curve.prototype.UpdateSubviewTree = function (exitParent, mode) {
                 var _this = this;
                 if (mode === void 0) { mode = true; }
                 var duration = 500;
+                var colorScale = d3.scale.linear().domain(d3.extent(this._hack_entropy_for_minute)).range(["#C5EFF7", "#34495E"]);
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes(this._root[""]).filter(function (d) {
                     return d.name != ""; //&& d.name != "day2";
@@ -546,11 +568,10 @@ var ManyLens;
                     else if (d.name[0] == "M") {
                         return d.name.substring(3);
                     }
-                    return "Event";
+                    return "Sub event";
                 }).style("fill-opacity", 1e-6).transition().duration(duration).style("fill-opacity", 1);
                 ;
                 //Update node
-                var colorScale = d3.scale.linear().domain([1, 8]).range(["#2574A9", "#2574A9"]);
                 function sumLength(d) {
                     if (!d)
                         return 0;
@@ -571,17 +592,18 @@ var ManyLens;
                     //d.y = d.y * (d.depth+3)/8;
                     return "translate(" + [d.x, d.y] + ")";
                 });
-                var heightScale = d3.scale.linear();
                 this._stack_bar_node.selectAll("rect").filter(function (d) {
                     return d.children || d._children;
                 }).transition().duration(duration).attr("height", function (d) {
                     if (d._children) {
-                        //heightScale.range([d.y,d.y - d._children[0].y]).domain([0,sumLength(d.parent)]);
                         return 10 * sumLength(d);
                     }
                     return 10;
                 }).style("fill", function (d) {
-                    return colorScale(sumLength(d));
+                    console.log(_this.SumEntropy(d) / sumLength(d));
+                    if (d._children)
+                        return colorScale(_this.SumEntropy(d) / sumLength(d));
+                    return "#E87E04";
                 });
                 //Exit node
                 var exitNode = this._stack_bar_node.exit().transition().duration(duration).attr("transform", function (d) {
@@ -629,7 +651,7 @@ var ManyLens;
                         parent: null,
                         children: null,
                         type: "" + "-day" + date.getDay() + "-hour" + date.getHours() + "-Min" + date.getMinutes() + "-s" + date.getSeconds(),
-                        index: date.getDay()
+                        index: this._stack_bar_nodes.length
                     };
                     this.InserNode(stackNode.type, stackNode);
                     var exitParent = this.FindMinCoParent(this._stack_bar_nodes[this._stack_bar_nodes.length - 1], stackNode);
@@ -697,7 +719,9 @@ var ManyLens;
                     }
                 }
                 //handle the seg rect
-                var rects = this._mainView.selectAll(".curve.seg").data(sectionData);
+                var rects = this._mainView.selectAll(".curve.seg").data(sectionData, function (d) {
+                    return d.id;
+                });
                 rects.attr("x", function (d, i) {
                     return _this._x_scale(d.beg);
                 }).attr("width", function (d, i) {
@@ -707,10 +731,33 @@ var ManyLens;
                     return _this._x_scale(d.beg);
                 }).attr("y", 0).attr("width", function (d, i) {
                     return _this._x_scale(d.end) - _this._x_scale(d.beg);
-                }).attr("height", this._view_height + this._view_top_padding).attr("class", "curve seg").on("click", function (d) {
+                }).attr("height", this._view_height - this._view_botton_padding).attr("class", "curve seg").on("click", function (d) {
                     _this.SelectSegment(d);
                 });
                 rects.exit().remove();
+                var xTime = this._mainView.selectAll(".curve.seg.time-tick").data(sectionData);
+                xTime.attr("x", function (d, i) {
+                    return _this._x_scale(d.beg);
+                });
+                xTime.enter().append("text").attr("x", function (d, i) {
+                    return _this._x_scale(d.beg);
+                }).attr("y", this._view_height).attr("class", "curve seg time-tick").text(function (d) {
+                    var date = _this._time_formater.parse(d.id);
+                    var hours = date.getHours();
+                    var minutes = date.getMinutes();
+                    var seconds = date.getSeconds();
+                    if (hours < 10) {
+                        hours = "0" + hours;
+                    }
+                    if (minutes < 10) {
+                        minutes = "0" + minutes;
+                    }
+                    if (seconds < 10) {
+                        seconds = "0" + seconds;
+                    }
+                    return hours + ':' + minutes + ':' + seconds;
+                });
+                xTime.exit().remove();
                 //var lineFunc = d3.svg.line()
                 //    .x(( d, i ) => {
                 //    return this._x_scale( d.index );
@@ -792,7 +839,7 @@ var ManyLens;
                 nodes.exit().remove();
                 // move the main view
                 if (this._data.length > (this._section_num + 1)) {
-                    this._mainView.attr("transform", null).transition().duration(400).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    this._mainView.attr("transform", null).transition().duration(80).ease("linear").attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
@@ -1839,14 +1886,15 @@ var ManyLens;
                 rect.x = realX - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.y = realY - this._select_circle_radius * Math.SQRT1_2 * this._select_circle_scale * t.scale;
                 rect.height = rect.width = this._select_circle_radius * Math.SQRT2 * this._select_circle_scale * t.scale;
-                this._element.select("#rectForTest").remove();
-                this._element.append("rect").attr({
-                    id: "rectForTest",
-                    x: rect.x,
-                    y: rect.y,
-                    width: rect.width,
-                    height: rect.height
-                }).style("pointer-events", "none");
+                //this._element.select( "#rectForTest" ).remove();
+                //this._element.append( "rect" ).attr( {
+                //    id:"rectForTest",
+                //    x: rect.x,
+                //    y: rect.y,
+                //    width: rect.width,
+                //    height:rect.height
+                //})
+                //.style("pointer-events","none");
                 var ele = this._element.node().getIntersectionList(rect, null);
                 var minDist2 = Number.MAX_VALUE;
                 var minUnitsID = -1;
@@ -5267,7 +5315,7 @@ var ManyLens;
                 this._top_offset = null;
                 this._translate_x = 0;
                 this._translate_y = 0;
-                this._map_gap = 10;
+                this._map_gap = 50;
                 this._unit_width = 20;
                 this._unit_height = 20;
                 this._classifier_context_menu = null;
@@ -5466,7 +5514,7 @@ var ManyLens;
                             _this._brush_svg = map.append("g").attr("class", "brush").on("contextmenu", function () {
                                 _this._brush.clear();
                                 _this._brush_svg.remove();
-                                d3.event.preventDefault();
+                                //d3.event.preventDefault();
                             }).call(_this._brush);
                         }
                     }
@@ -5623,6 +5671,9 @@ var ManyLens;
                     width: this._unit_width,
                     height: this._unit_height
                 });
+                var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) {
+                    return d.value;
+                })).range([10, 30]);
                 svg.selectAll("text.unit.label").data(visData.labels, function (d) {
                     return d.x + "-" + d.y;
                 }).enter().append("text").attr("x", function (d) {
@@ -5633,6 +5684,8 @@ var ManyLens;
                     return _this._unit_width;
                 }).attr({
                     "class": "unit label"
+                }).style("font-size", function (d) {
+                    return fontSizeScale(d.value) + "px";
                 }).text(function (d) {
                     return d.label;
                 });
@@ -5655,7 +5708,7 @@ var ManyLens;
                     return line(d.path);
                 }).attr("class", "control-layout").on("contextmenu", function (d) {
                     _this.ContextMenu(d.mapID);
-                    d3.event.preventDefault();
+                    //d3.event.preventDefault();
                 });
                 //Whether to add the connection link
                 if (classifierID) {

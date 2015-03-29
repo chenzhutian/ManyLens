@@ -68,7 +68,7 @@ namespace ManyLens.Preprocessing
             {
                 string key = keys[i];
                 int value = rawDFofWords[key];
-                if (value > (double)tweetsCount / 200.0 && value < (double)tweetsCount * 0.15)
+                if (value > (double)tweetsCount / 500.0 && value < (double)tweetsCount * 0.10)
                 {
                     dfOfWords.Add(key, value);
                     idOfWords.Add(key, dimension++);

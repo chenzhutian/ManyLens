@@ -75,8 +75,8 @@ div#page-content {
 }
 
 .view-title-sm-green {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    /*padding-top: 10px;
+    padding-bottom: 10px;*/
     background: #1abc9c;
 }
 
@@ -96,8 +96,12 @@ svg#mapSvg {
     position:relative;
 }
     svg#mapSvg .som-map rect.unit {
-        opacity:0.3;
+        opacity:0;
     }
+        svg#mapSvg .som-map text.unit.label {
+            fill:#F4D03F;
+        }
+
     svg#mapSvg .som-map path.control-layout {
         fill: none;
         pointer-events:visible;
@@ -177,14 +181,16 @@ div#curveView {
     background-color:rgba(255,255,255,0.6);
 }
 
+
     div#curveView text {
         fill:#000;
+        opacity:1;
         cursor:default;
         pointer-events:none;
     }
 
 .stack.node rect{
-    fill:rgb(31, 145, 189);
+    fill:#E87E04;/*rgb(31, 145, 189);*/
     stroke: #fff;
     stroke-width: 0.5px;
 }
@@ -199,7 +205,8 @@ path.stack.link,
 .curve.axis path,
 .curve.axis line {
     fill: none;
-    stroke: #000;
+    stroke: #ccc;
+    stroke-width:1.5px;
 }
 
 .curve.axis path,
@@ -212,7 +219,7 @@ path.stack.link,
 }
 
 rect.curve.seg {
-    fill: rgb(31, 145, 189);
+    fill: #E87E04;/*rgb(31, 145, 189);*/
     stroke: #fff;
     stroke-width: 0.5px;
 }
@@ -224,14 +231,14 @@ path.curve.section.true.path {
 }
 
 path.curve.rest.true.path {
-    stroke: rgb(31, 145, 189);
+    stroke:#E87E04; /*rgb(31, 145, 189);*/
     stroke-width: 3px;
     fill: none;
 }
 
 circle.curve.node {
     fill: #fff;
-    stroke: rgb(31, 145, 189);
+    stroke: #E87E04;/*rgb(31, 145, 189);*/
     stroke-width: 1.5px;
 }
 

@@ -381,7 +381,6 @@ namespace ManyLens.Models
             //List<float[]> tempVector = this.HashVecotrs;
             int dimension = this.hashDimension;
             num = num == 0 ? this.SparseVector.Count : num;
-            Debug.WriteLine(UInt32.MaxValue);
             Debug.WriteLine("Total is "+((double)dimension * num * 4.0 / (1024.0 * 1024 * 1024)) + "GB");
             float[] hashVector = new float[dimension * num];
             for (int i = 0; i < num; ++i)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Web;
+using System.Diagnostics;
 
 namespace ManyLens.Models
 {
@@ -18,9 +19,6 @@ namespace ManyLens.Models
         private double lon;
         private double lat;
         private string countryName = null; // will be add later 
-
-
-
 
         private User user;
         private string sourceUserName;
@@ -171,8 +169,10 @@ namespace ManyLens.Models
         public Tweet(string tweetID, string originalContent, string postDate, string lon, string lat, User user)
             : this(tweetID,originalContent,double.Parse(lon),double.Parse(lat),user)
         {
-            this.PostDate = DateTime.Parse(postDate);
+            TimeZoneInfo brTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
             
+            
+            this.PostDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Parse(postDate).ToUniversalTime(),brTimeZone);
         }
 
         public Tweet(string tweetID, string originalContent, DateTime postDate,double lon,double lat, User user)

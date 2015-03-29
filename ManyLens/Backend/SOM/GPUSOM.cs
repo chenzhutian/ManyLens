@@ -174,7 +174,7 @@ namespace ManyLens.SOM
 
             float[] h_weight = new float[neuronNum * config.Parameter.DimensionAfterRandomMapping];
             Marshal.Copy( IntPtr.Add(pointer, 2* trainsetSize * sizeof(int)), h_weight, 0, neuronNum * config.Parameter.DimensionAfterRandomMapping);
-            Marshal.FreeHGlobal(pointer);
+            somFree(pointer);
 
             //*********************Check the marshal result ****************//
             //StreamReader sr = new StreamReader("D:\\SOMLog\\bid");

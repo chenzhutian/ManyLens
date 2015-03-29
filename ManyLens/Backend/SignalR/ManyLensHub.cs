@@ -67,7 +67,7 @@ namespace ManyLens.SignalR
                 IProgress<double> p = new Progress<double>();
                 interval.Preproccessing(p);
                 //Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
-                Debug.WriteLine("Entropy of " + interval.ID + " is " + interval.Entropy);
+                Debug.WriteLine( interval.ID + " , " + interval.Entropy+","+interval.TweetsCount);
                 taskList.RemoveAt(0);
             }
             Clients.Caller.enableReorganizeIntervalBtn();
@@ -236,18 +236,22 @@ namespace ManyLens.SignalR
                             ////Set the last interval
                             //if(interals.Count > 0)
                             //    interal.LastInterval = interals.Last().Value;
-                            interals.Add(interal.ID, interal);
-
-                            for (int k = begin + 1; k < end; ++k)
+                            if (!interals.ContainsKey(interal.ID))
                             {
-                                tp[k].BeginPoint = tp[begin].ID;
-                                tp[k].EndPoint = tp[end].ID;
-                                tp[k].PointType = 4;
-                                interal.AddTerm(tp[k]);
-                            }
-                            interal.SetEndDate(tp[end].TermDate);
+                                interals.Add(interal.ID, interal);
 
-                            LazyThreadForConditionalEntropy(interal);
+                                for (int k = begin + 1; k < end; ++k)
+                                {
+                                    tp[k].BeginPoint = tp[begin].ID;
+                                    tp[k].EndPoint = tp[end].ID;
+                                    tp[k].PointType = 4;
+                                    interal.AddTerm(tp[k]);
+                                }
+                                interal.SetEndDate(tp[end].TermDate);
+
+                                LazyThreadForConditionalEntropy(interal);
+                            }
+
                         }
                         else
                         {
@@ -312,7 +316,7 @@ namespace ManyLens.SignalR
                     //points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(500);
+                    Thread.Sleep(100);
 
                     //Gaussin smoothing
                     if (stepCount == 0)
@@ -516,6 +520,7 @@ namespace ManyLens.SignalR
                     }
 
                     Debug.WriteLine(interal.Entropy);
+                    Debug.WriteLine(interal.TweetsCount);
                     visMaps.Add(visMap.VisMapID, visMap);
                    
                 }

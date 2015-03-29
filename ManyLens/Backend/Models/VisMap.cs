@@ -312,7 +312,14 @@ namespace ManyLens.Models
                     {
                         try
                         {
-                            double value = (double)item.Value;// / Math.Log(1 + (double)this.Interval.Vocabulary.DfOfWords[item.Key]);
+                            double temp = 1;
+                            double value = 0;
+                            if(this.Interval.Vocabulary.DfOfWords.ContainsKey(item.Key))
+                            {
+                                temp = (double)this.Interval.Vocabulary.DfOfWords[item.Key];
+                                value = item.Value * Math.Log((double)this.Interval.TweetsCount/( 1.0 + temp));
+                            }
+                            
                             if (item.Value > maxValue)
                             {
                                 maxValue = value;
@@ -329,7 +336,7 @@ namespace ManyLens.Models
 
                     }
 
-                    labels.Add(new Label() { x = x, y = y, label = targetLabel});
+                    labels.Add(new Label() { x = x, y = y, label = targetLabel,value= maxValue});
                 }
 
                 VISData visdata = new VISData()

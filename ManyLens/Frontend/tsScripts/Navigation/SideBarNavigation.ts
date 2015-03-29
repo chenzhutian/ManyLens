@@ -59,6 +59,11 @@ module ManyLens {
                     this._manyLens.ManyLensHubServerReOrganizePeak(state);
                 });
 
+                this._element.select("#curve-btns")
+                .append("div").attr("class","btn-group").style("margin-top","30px")
+                .html('<button class="btn btn-primary" type="button" style="padding-left: 29px;padding-right: 24px;">Primary</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a href="#">Minutes</a></li><li><a href="#">Hours</a></li><li><a href="#">Days</a></li><li class="divider"></li><li><a href="#">Seconds</a></li></ul>');
+
+
                 this._launchDataBtn = this._element.select("#curve-btns")
                     .append("button")
                     .attr({

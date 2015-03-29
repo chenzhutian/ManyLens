@@ -25,23 +25,23 @@ module ManyLens {
             }];
         }
 
-        interface StackRect {
-            id: string;
-            x: number;
-            ox: number;
-        }
+        //interface StackRect {
+        //    id: string;
+        //    x: number;
+        //    ox: number;
+        //}
 
-        interface StackDate {
-            id: string;
-            x: number;
-            ox: number;
-            type: number;
-            index: number;
-            date: Date;
-            isRemove: boolean;
-            fill: string;
-            intervals: Array<StackDate>;
-        }
+        //interface StackDate {
+        //    id: string;
+        //    x: number;
+        //    ox: number;
+        //    type: number;
+        //    index: number;
+        //    date: Date;
+        //    isRemove: boolean;
+        //    fill: string;
+        //    intervals: Array<StackDate>;
+        //}
 
         interface StackNode {
             id: string;
@@ -51,6 +51,7 @@ module ManyLens {
             children: StackNode[];
             x?: number;
             y?: number;
+            index?:number;
             size?: number;
             date?: Date;
         }
@@ -78,12 +79,12 @@ module ManyLens {
             private _view_height: number;
             private _view_width: number;
             private _view_top_padding: number = 15;
-            private _view_botton_padding: number = 5;
+            private _view_botton_padding: number = 25;
             private _view_left_padding: number = 50;
             private _view_right_padding: number = 50;
-            private _coordinate_margin_left: number = 500;
+            private _coordinate_margin_left: number = 300;
 
-            private _intervals: Array<StackRect>;
+            //private _intervals: Array<StackRect>;
             protected _data: Array<Point>;
 
             private _time_formater: D3.Time.TimeFormat;
@@ -100,7 +101,11 @@ module ManyLens {
             private week_days_name: string[] = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fir.", "Sat."];
             private month_names: string[] = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
 
-            private _stack_content: Map<number, StackRect[]>;
+            private _hack_entropy_for_sec = [5.731770623,5.673758762,5.708904568,5.766106615,5.271328797,5.50350013,5.650689424,5.059556767,5.150092845,5.332915993,5.538583789,5.56513213,5.618589058,5.568604372,5.601558072,5.603160895,5.552198033,5.563398957,5.545638613,5.585914854,5.541078274,5.581189853,5.610692756,5.561532863,5.662572096,5.577863947,5.697510354,5.703647393,5.578761725,5.604709918,5.443579203,5.498566777,5.692988236,5.449706032,5.316306331,5.69077723,5.830264994,5.849802422,5.764716822,5.920337608,5.854107674,5.914982887,5.872175529,5.795052474,5.590677484,5.49128005,5.611246233,5.861593865,5.760362888,5.763031867,5.715574693,5.904532304,6.024492893,5.971005731,5.410844221,5.700768429,5.788494599];
+            private _hack_entropy_for_minute=         [5.439728938,5.329790773,5.586664525,5.615747057,5.639277057,5.653881221,5.497658424];
+
+
+            //private _stack_content: Map<number, StackRect[]>;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -118,7 +123,7 @@ module ManyLens {
                 super( element, manyLens );
 
                 this._data = new Array<Point>();
-                this._intervals = new Array<StackRect>();
+                //this._intervals = new Array<StackRect>();
                 //this._stack_time = new Array<StackDate>();
                 this._stack_bar_nodes = new Array<StackNode>();
 
@@ -193,7 +198,7 @@ module ManyLens {
                 var coordinate_view_width = this._view_width - this._view_left_padding - this._view_right_padding;
                 this._element.select( ".progress" ).style( "display", "none" );
 
-                this._curveSvg = this._element.insert( "svg", ":first-child" )
+                this._curveSvg = this._element.insert( "svg", ".progress" )
                     .attr( "width", this._view_width )
                     .attr( "height", this._view_height )
                     .style( "margin-bottom", "17px" )
@@ -227,7 +232,7 @@ module ManyLens {
                     .attr( "id", "curveClip" )
                     .append( "rect" )
                     .attr( "width", coordinate_view_width )
-                    .attr( "height", this._view_height - this._view_botton_padding )
+                    .attr( "height", this._view_height + this._view_botton_padding+this._view_top_padding)
                     .attr( "x", this._view_left_padding + this._coordinate_margin_left )
                     .attr( "y", 0 )
                 ;
@@ -321,17 +326,35 @@ module ManyLens {
                 return this.FindMinCoParent( a.parent, b.parent );
             }
 
+            private  SumEntropy(d){
+                    if(!d) return 0;
+                    if ( !d.children  && !d._children) return this._hack_entropy_for_minute[d.index];
+                    var sum = 0; 
+                    if(d.children)
+                        d.children.forEach(( d ) => {
+                            sum += this.SumEntropy( d );
+                        });
+                    else if(d._children)
+                        d._children.forEach(( d ) => {
+                            sum += this.SumEntropy( d );
+                        });
+                    return sum;
+                }
+
             private UpdateSubviewTree( exitParent: StackNode ,mode:boolean = true) {
                 var duration = 500;
+                                
+                var colorScale = d3.scale.linear().domain( d3.extent(this._hack_entropy_for_minute))
+                    .range( ["#C5EFF7", "#34495E"] );
 
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) {
                      return d.name != "" ;//&& d.name != "day2";
                 });
 
-
                 this._stack_bar_node = this._subView.selectAll( ".stack.node" )
                     .data( nodex, function ( d ) { return d.id; });
+
 
                 //Enter node
                 var enterNode = this._stack_bar_node
@@ -353,15 +376,6 @@ module ManyLens {
                 ;
 
                 enterNode.append( "rect" )
-                    //.attr( "d", function ( d ) {
-                    //    if ( d.date && mode)
-                    //        return d3.superformula().type("rectangle").size(1000)( d );
-                    //    return d3.superformula().type( "circle" ).size(50)( d );
-                    //})
-                    //.attr( "transform", function ( d ) {
-                    //    if ( d.date && mode)
-                    //        return "scale(1,5)";
-                    //})
                     .attr("x",function(d){
                         if ( d.date && mode)
                             return -10;
@@ -377,6 +391,9 @@ module ManyLens {
                             return 150;
                         return 10;
                     })
+                    //.style("fill",(d)=>{
+                    //    return colorScale( this.SumEntropy(d) / sumLength(d) ); 
+                    //})
                     .on( "click",( d ) => {
                         if ( d.date ) {
                             this.SelectSegment( d );
@@ -420,17 +437,15 @@ module ManyLens {
                         }else if(d.name[0] == "M"){
                             return d.name.substring(3);
                         }
-                        return "Event";
+                        return "Sub event";
                     })
                     .style( "fill-opacity", 1e-6 )
                     .transition().duration( duration )
                     .style( "fill-opacity", 1 );
                 ;
 
-                //Update node
-                var colorScale = d3.scale.linear().domain( [1, 8] )
-                    .range( ["#2574A9", "#2574A9"] );
 
+                //Update node
                 function sumLength( d ) {
                     if(!d) return 0;
                     if ( !d.children  && !d._children) return 1;
@@ -445,6 +460,7 @@ module ManyLens {
                         });
                     return sum;
                 }
+
                 this._stack_bar_node
                     .transition().duration( duration )
                     .attr( "transform", function ( d ) { 
@@ -452,19 +468,22 @@ module ManyLens {
                         return "translate(" + [d.x, d.y] + ")"; 
                     })
                 ;
-                var heightScale = d3.scale.linear();
+
                 this._stack_bar_node.selectAll( "rect" )
                     .filter( function ( d ) { return d.children || d._children; })
                     .transition().duration(duration)
                     .attr("height",function( d ){ 
                         if(d._children){
-                            //heightScale.range([d.y,d.y - d._children[0].y]).domain([0,sumLength(d.parent)]);
-
                             return 10 * sumLength(d);
                         }
                         return 10;
                     })
-                    .style( "fill", function ( d ) { return colorScale( sumLength(d) ); });
+                    .style( "fill",  ( d ):any=> { 
+                        console.log(this.SumEntropy(d) / sumLength(d));
+                        if(d._children)
+                            return colorScale( this.SumEntropy(d) / sumLength(d) ); 
+                        return "#E87E04";
+                    });
 
                 //Exit node
                 var exitNode = this._stack_bar_node.exit()
@@ -531,7 +550,7 @@ module ManyLens {
                         parent:null,
                         children: null,
                         type: ""+"-day"+date.getDay()+"-hour"+date.getHours()+"-Min"+date.getMinutes()+"-s"+date.getSeconds(), //"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-week"+this.GetWeek(date)+
-                        index: date.getDay()
+                        index: this._stack_bar_nodes.length
                     }
                     this.InserNode( stackNode.type, stackNode );
                     var exitParent:StackNode = this.FindMinCoParent( this._stack_bar_nodes[this._stack_bar_nodes.length - 1] ,stackNode);
@@ -620,11 +639,11 @@ module ManyLens {
                 }
 
                 //handle the seg rect
-                var rects = this._mainView.selectAll( ".curve.seg" ).data( sectionData );
+                var rects = this._mainView.selectAll( ".curve.seg" ).data( sectionData,function(d){return d.id;} );
                 rects.attr( "x",( d, i ) => {
                     return this._x_scale( d.beg );
                 })
-                    .attr( "width",( d, i ) => {
+                .attr( "width",( d, i ) => {
                     return this._x_scale( d.end ) - this._x_scale( d.beg );
                 })
                 ;
@@ -636,13 +655,39 @@ module ManyLens {
                     .attr( "width",( d, i ) => {
                     return this._x_scale( d.end ) - this._x_scale( d.beg );
                 })
-                    .attr( "height", this._view_height + this._view_top_padding )
+                    .attr( "height", this._view_height  - this._view_botton_padding )
                     .attr( "class", "curve seg" )
                     .on( "click",( d: Section ) => {
-                    this.SelectSegment( d );
-                })
+                        this.SelectSegment( d );
+                    })
                 ;
                 rects.exit().remove();
+
+                var xTime = this._mainView.selectAll(".curve.seg.time-tick").data(sectionData);
+                xTime.attr("x",(d,i)=>{
+                    return this._x_scale(d.beg);
+                })
+                ;
+                xTime.enter().append("text")
+                .attr("x",(d,i)=>{
+                     return this._x_scale( d.beg );
+                })
+                .attr("y",this._view_height )
+                .attr("class","curve seg time-tick")
+                .text((d)=>{
+                    var date = this._time_formater.parse(d.id);
+                    var hours:any   = date.getHours();
+                    var minutes:any = date.getMinutes();
+                    var seconds:any = date.getSeconds();
+
+                    if (hours   < 10) {hours   = "0"+hours;}
+                    if (minutes < 10) {minutes = "0"+minutes;}
+                    if (seconds < 10) {seconds = "0"+seconds;}
+
+                    return hours+':'+minutes+':'+seconds;
+                })
+                ;
+                xTime.exit().remove();
 
                 //var lineFunc = d3.svg.line()
                 //    .x(( d, i ) => {
@@ -748,7 +793,7 @@ module ManyLens {
                     this._mainView
                         .attr( "transform", null )
                         .transition()
-                        .duration( 400 )  //this time-step should be equale to the time step of AddPoint() in server.hub
+                        .duration( 80 )  //this time-step should be equale to the time step of AddPoint() in server.hub
                         .ease( "linear" )
                         .attr( "transform", "translate(" + ( this._x_scale( 0 ) - this._x_scale( 1 ) ) + ",0)" )
                     ;
