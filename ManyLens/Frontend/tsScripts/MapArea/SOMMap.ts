@@ -156,10 +156,12 @@ module ManyLens {
                                 if(node.classed("unit")){
                                    res.push(node.data()[0]['unitID']);
                                     mapID = node.data()[0]['mapID'];
+                                    console.log(node);
                                 }
                             }
                             this._toUnitsID = res;
                             if(this._fromUnitsID && this._toUnitsID){
+                                console.log(this._fromUnitsID,this._toUnitsID);
                                 this._manyLens.ManyLensHubServerRefineMap(mapID,
                                     this._mapIDs.indexOf(mapID),
                                     this._fromUnitsID,
@@ -323,7 +325,7 @@ module ManyLens {
                                     .on("contextmenu",()=>{
                                         this._brush.clear();
                                         this._brush_svg.remove();
-                                        //d3.event.preventDefault();
+                                        d3.event.preventDefault();
                                     })
                                     .call(this._brush);
                             }
@@ -489,6 +491,8 @@ module ManyLens {
             }
 
             public UpdateVisMap(index:number,visData:MapData):void{
+                this._brush.clear();
+                this._brush_svg.remove();
                 this._maps[index] = visData;
                 this._heatMaps[index].UpdateNodeArray(this._unit_width,this._unit_height,visData.unitsData);
                 this._heatMaps[index].transform( this._scale, 0, 0 );
@@ -507,6 +511,23 @@ module ManyLens {
                         width: this._unit_width,
                         height: this._unit_height
                     })
+                ;
+
+                var labels = d3.selectAll("#mapSvg"+visData.mapID).selectAll("text.map.label").remove();
+                var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels,function(d){return d.value;})).range([10,30]);
+                d3.selectAll("#mapSvg"+visData.mapID).selectAll("text.map.label")
+                    .data(visData.labels,function(d){return d.x + "-"+d.y;})
+                    .enter().append("text")
+                    .attr("x",(d)=>{return mapData.leftOffset+  d.x * this._unit_width;})
+                    .attr("y",(d)=>{return mapData.topOffset  + d.y * this._unit_height;})
+                    .attr("dy",(d)=>{return this._unit_width})
+                    .attr({
+                        "class":"map label"
+                    })
+                    .style("font-size",(d)=>{
+                        return fontSizeScale(d.value)+"px";
+                    })
+                    .text(function(d){return d.label;})
                 ;
 
 
@@ -552,14 +573,14 @@ module ManyLens {
                     ;
                 
                 var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels,function(d){return d.value;})).range([10,30]);
-                svg.selectAll("text.unit.label")
+                svg.selectAll("text.map.label")
                     .data(visData.labels,function(d){return d.x + "-"+d.y;})
                     .enter().append("text")
                     .attr("x",(d)=>{return this._left_offset + d.x * this._unit_width;})
                     .attr("y",(d)=>{return this._top_offset + d.y*this._unit_height;})
                     .attr("dy",(d)=>{return this._unit_width})
                     .attr({
-                        "class":"unit label"
+                        "class":"map label"
                     })
                     .style("font-size",(d)=>{
                         return fontSizeScale(d.value)+"px";
@@ -590,7 +611,7 @@ module ManyLens {
                     .attr("class","control-layout")
                     .on( "contextmenu",(d) => {
                         this.ContextMenu(d.mapID);
-                        //d3.event.preventDefault();
+                        d3.event.preventDefault();
                     })
                 ;
 

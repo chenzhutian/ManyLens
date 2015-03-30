@@ -18,6 +18,7 @@ module ManyLens{
 
             private _projection:D3.Geo.Projection = d3.geo.equirectangular();
             private _path:D3.Geo.Path = d3.geo.path();
+            private _color: D3.Scale.SqrtScale = d3.scale.sqrt();
 
             private _world_topojson_path:string = "./testData/countriesAlpha2.topo.json";
             private _world_topojson_data;
@@ -35,6 +36,18 @@ module ManyLens{
                 this._total_width = parseFloat( this._element.style( "width" ));
                 this._total_height = parseFloat(this._element.style("height"));
 
+                
+                this._color
+                    .range([
+                         "rgb(158,202,225)",
+                        //"rgb(158,202,225)",
+                        //"rgb(107, 174, 214)",
+                        //"rgb(66, 146, 198)",
+                        //"rgb(33, 113, 181)",
+                        "rgb(8, 81, 156)"
+                    ]);
+
+
                 this._projection
                     .scale(1)
                     .rotate([80,0])
@@ -46,7 +59,6 @@ module ManyLens{
 
                 this._zoom
                     .scaleExtent([1,3])
-
                     .on("zoomstart",()=>{
                         //d3.event.sourceEvent.stopPropagation();
                     })
@@ -58,6 +70,7 @@ module ManyLens{
                     })
                 ;
                
+                this._manyLens.ManyLensHubRegisterClientFunction(this,"upDateGeoMap",this.UpdateMap);
             }
 
             private init(){
@@ -84,6 +97,27 @@ module ManyLens{
 
             public RemoveMap(){
                 this._map.transition().style("opacity",0).remove();
+            }
+
+            public UpdateMap(mapData:[{countryName:string; tweets:any[]}]):void{
+                console.log(mapData);
+                this._color.domain(d3.extent(mapData,function(d){return d.tweets.length;}));
+                this._data = mapData;
+                var countryColor = {};
+                mapData.forEach((d)=>{
+                    countryColor[d.countryName] = d.tweets.length;
+                });
+                this._map.selectAll("path")
+                    .attr("fill",(d)=>{
+                        return "rgb(198,219,239)";
+                    })
+                    .transition()
+                    .attr("fill",(d)=>{
+                            if(countryColor[d.id])
+                                return this._color(countryColor[d.id]);
+                            return "rgb(198,219,239)";
+                    });
+
             }
 
             public Render(){
@@ -113,6 +147,13 @@ module ManyLens{
                             .append("path")
                             .attr("id",function(d:Country){return d.id;})
                             .attr("d",this._path)
+                            .attr("fill", (d) => {
+                                return "rgb(198,219,239)";
+                            })
+                            .style({
+                                stroke:"#fff",
+                                "stoke-width":"0.5px"
+                            })
                             .on("dblclick",(d:Country)=>{
                                 d3.event.stopPropagation();
                                 this.Country_Clicked(d);
@@ -140,19 +181,19 @@ module ManyLens{
                             .append("path")
                             .attr("id",function(d:Country){return d.id;})
                             .attr("d",this._path)
+                            .attr("fill", (d) => {
+                                return "rgb(198,219,239)";
+                            })
+                            .style({
+                                stroke:"#fff",
+                                "stoke-width":"0.5px"
+                            })
                             .on("dblclick",(d:Country)=>{
                                 d3.event.stopPropagation();
                                 this.Country_Clicked(d);
                             })
                         ;
                     
-                        //this._element.append("path")
-                        //    .datum(topojson.mesh(world,world.objects.countries,function(a,b){
-                        //        return a!== b;
-                        //    }))
-                        //    .attr("id","countries-borders")
-                        //    .attr("d",this._path)
-                        //;
                     });
                 }
             }

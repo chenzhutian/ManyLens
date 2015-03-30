@@ -23,6 +23,7 @@ module ManyLens {
         private _mapSvg: D3.Selection;
         private _SOM_mapArea: MapArea.SOMMap;
         private _GEO_mapArea: MapArea.WorldMap;
+        private _geo_map_mode:boolean = false;
         private _current_map;
 
         private _historyView_id: string = "historyView";
@@ -111,6 +112,12 @@ module ManyLens {
         public SwitchMap(){
             this._SOM_mapArea.Toggle();
             this._GEO_mapArea.Toggle();
+            this._geo_map_mode = !this._geo_map_mode;
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            this._manyLens_hub.proxy.invoke("switchMap", this._geo_map_mode);
         }
 
 

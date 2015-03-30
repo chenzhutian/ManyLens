@@ -29,22 +29,82 @@ namespace PreprocessingData
 
         static void Main(string[] args)
         {
-            //Sample
             //string ROOT_DIR = "D:\\Data\\";
-            //string inputFile = ROOT_DIR + "FIFACASE";
-            //string outputFile = inputFile + "Sample";
+            //StreamReader sr;
+            //string inputDir = ROOT_DIR + "\\EbolaSortByTime";
+            //string outputFile = ROOT_DIR + "EbolaFullYearCase";
             //StreamWriter sw = new StreamWriter(outputFile);
-            //Random rnd = new Random();
-            //foreach (string line in File.ReadLines(inputFile))
+
+            //DirectoryInfo targetDir = new DirectoryInfo(inputDir);
+            //FileInfo[] fileList = targetDir.GetFiles();
+            //foreach (FileInfo file in fileList)
             //{
-            //    if (rnd.NextDouble() > 0.7) 
+            //    sr = new StreamReader(file.FullName);
+            //    while (!sr.EndOfStream)
             //    {
-            //        sw.WriteLine(line);
+            //        sw.WriteLine(sr.ReadLine());
             //    }
+            //    sw.Flush();
+            //    sr.Close();
             //}
             //sw.Flush();
             //sw.Close();
-            AddTheCountryName();
+
+            string ROOT_DIR = "D:\\Data\\";
+            string inputFile = ROOT_DIR + "EbolaFullYearCase";
+            string outputFile = inputFile + "Sample";
+            StreamWriter sw = new StreamWriter(outputFile);
+            Random rnd = new Random();
+            foreach (string line in File.ReadLines(inputFile))
+            {
+                if (rnd.NextDouble() > 0.95)
+                {
+                    sw.WriteLine(line);
+                }
+
+            }
+            sw.Flush();
+            sw.Close();
+            //AddTheCountryName();
+        }
+
+        public void CombineCountriesFiles()
+        {
+            string ROOT_DIR = "D:\\Data\\";
+            StreamReader sr;
+            string countryName2Abr = ROOT_DIR + "country_latlon.csv";
+            Dictionary<string, string> c2a = new Dictionary<string, string>();
+            sr = new StreamReader(countryName2Abr);
+            sr.ReadLine();
+            while (!sr.EndOfStream)
+            {
+                string[] line = sr.ReadLine().Split(',');
+                c2a.Add(line[6], line[0]);
+            }
+            sr.Close();
+
+            string inputDir = ROOT_DIR + "\\Country_Ebola";
+            string outputFile = ROOT_DIR + "EbolawithCountryName";
+            StreamWriter sw = new StreamWriter(outputFile);
+
+            DirectoryInfo targetDir = new DirectoryInfo(inputDir);
+            FileInfo[] fileList = targetDir.GetFiles();
+            foreach (FileInfo file in fileList)
+            {
+                string countryName = file.Name.Substring(0, file.Name.LastIndexOf('.'));
+                sr = new StreamReader(file.FullName);
+                if (c2a.ContainsKey(countryName))
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        sw.WriteLine(sr.ReadLine() + "\t" + c2a[countryName]);
+                    }
+                    sw.Flush();
+                }
+                sr.Close();
+            }
+            sw.Flush();
+            sw.Close();
         }
 
         public void CombineHoursFiles()
@@ -264,12 +324,12 @@ namespace PreprocessingData
             sw.Close();
         }
 
-        public void FilterTheAttribute(string clearFile)
+        public static void FilterTheAttribute(string clearFile)
         {
             string sampleFile =  clearFile;
             StreamWriter sw = new StreamWriter(clearFile + "ShortAttributes");
             //0tweetId \t 1screenName \t 2userName \t 3userId \t 4tweetContent \t 5language \t 6tweetDate \t 7timestamp \t 8userHomepage \t 9tweetsCount \t 10following 
-            //\t 11follower \t 12profile \t 13V \t 14registerDate \t 15unixeTime \t 16timezone \t 17timezoneName \t 18location \t 19gpsA \t 20gpsB \t 21locationtype
+            //\t 11follower \t 12profile \t 13V \t 14registerDate \t 15unixeTime \t 16timezone \t 17timezoneName \t 18location \t 19gpsA \t 20gpsB \t 21locationtype \t 22countryName
             foreach (string currentLine in File.ReadLines(sampleFile))
             {
                 string[] tweetsAttribute = currentLine.Split('\t');
@@ -284,7 +344,8 @@ namespace PreprocessingData
                     '\t' + tweetsAttribute[11] +
                     '\t' + tweetsAttribute[13] +
                     '\t' + tweetsAttribute[19] +
-                    '\t' + tweetsAttribute[20]);
+                    '\t' + tweetsAttribute[20] +
+                    '\t' + tweetsAttribute[22]);
             }
             sw.Flush();
             sw.Close();

@@ -136,10 +136,15 @@ namespace ManyLens.Models
             this.id = date.ToString("yyyyMMddHHmmss");
         }
 
-        public new void AddTweet(string id, string content, DateTime date,double lon, double lat, User user)
+        public void AddTweet(Tweet tweet)
         {
-            base.AddTweet(id, content,date,lon, lat,user);
+            base.AddTweet(tweet);
         }
+
+        //public new void AddTweet(string id, string content, DateTime date,double lon, double lat, User user)
+        //{
+        //    base.AddTweet(id, content,date,lon, lat,user);
+        //}
 
         public void GaussinBlurDone()
         {

@@ -82,7 +82,7 @@ module ManyLens {
             private _view_botton_padding: number = 25;
             private _view_left_padding: number = 50;
             private _view_right_padding: number = 50;
-            private _coordinate_margin_left: number = 300;
+            private _coordinate_margin_left: number = 500;
 
             //private _intervals: Array<StackRect>;
             protected _data: Array<Point>;
@@ -103,6 +103,9 @@ module ManyLens {
 
             private _hack_entropy_for_sec = [5.731770623,5.673758762,5.708904568,5.766106615,5.271328797,5.50350013,5.650689424,5.059556767,5.150092845,5.332915993,5.538583789,5.56513213,5.618589058,5.568604372,5.601558072,5.603160895,5.552198033,5.563398957,5.545638613,5.585914854,5.541078274,5.581189853,5.610692756,5.561532863,5.662572096,5.577863947,5.697510354,5.703647393,5.578761725,5.604709918,5.443579203,5.498566777,5.692988236,5.449706032,5.316306331,5.69077723,5.830264994,5.849802422,5.764716822,5.920337608,5.854107674,5.914982887,5.872175529,5.795052474,5.590677484,5.49128005,5.611246233,5.861593865,5.760362888,5.763031867,5.715574693,5.904532304,6.024492893,5.971005731,5.410844221,5.700768429,5.788494599];
             private _hack_entropy_for_minute=         [5.439728938,5.329790773,5.586664525,5.615747057,5.639277057,5.653881221,5.497658424];
+            //Day is for ebola
+            private _hack_entropy_for_day = [6.078795108,5.841434121,5.939489652,5.938061597,5.856967809,5.831608227,5.93391885,5.993377279,5.830555653,5.802729553,6.076953322,5.894862096,5.779206615,5.969579388,5.710407662];
+            private _hack_entropy_for_day_fullyear=[5.991439819,5.851983278,5.948156068,5.436286372,5.291194338,5.483132322,5.335564514,5.890816733,6.296046929,5.776935794,6.178819818,5.823461866,6.276945033,5.383821592,5.780546756,5.504823674,5.459557571,5.290890409,5.711883642,5.941650018,5.931193478,5.852722028,5.823861489,5.917398009,5.975238027,5.842076197,5.8002751,6.081009165,5.892996018,5.753263639,5.879791592];
 
 
             //private _stack_content: Map<number, StackRect[]>;
@@ -328,7 +331,7 @@ module ManyLens {
 
             private  SumEntropy(d){
                     if(!d) return 0;
-                    if ( !d.children  && !d._children) return this._hack_entropy_for_minute[d.index];
+                    if ( !d.children  && !d._children) return this._hack_entropy_for_day_fullyear[d.index];
                     var sum = 0; 
                     if(d.children)
                         d.children.forEach(( d ) => {
@@ -344,7 +347,7 @@ module ManyLens {
             private UpdateSubviewTree( exitParent: StackNode ,mode:boolean = true) {
                 var duration = 500;
                                 
-                var colorScale = d3.scale.linear().domain( d3.extent(this._hack_entropy_for_minute))
+                var colorScale = d3.scale.linear().domain( d3.extent(this._hack_entropy_for_day_fullyear))
                     .range( ["#C5EFF7", "#34495E"] );
 
                 //Nodes
@@ -429,9 +432,9 @@ module ManyLens {
                         if ( d.name[0] == "y" ) {
                             return d.name.substring( 4 );
                         } else if ( d.name[0] == "m" ) {
-                            return this.month_names[parseInt( d.name[d.name.length - 1] )];
+                            return this.month_names[parseInt( d.name.substring(d.name.indexOf("h")+1) )];
                         } else if ( d.name[0] == "d" ) {
-                            return this.week_days_name[parseInt( d.name[d.name.length - 1] )];
+                            return d.name.substring(d.name.indexOf("y")+1);//this.week_days_name[parseInt( d.name[d.name.length - 1] )];
                         }else if( d.name[0] == "h"){
                             return d.name.substring(4)+":00";
                         }else if(d.name[0] == "M"){
@@ -546,10 +549,10 @@ module ManyLens {
                         id: this._data[0].beg,
                         date: date,
                         size: 1,
-                        name:"H"+date.getHours(),
+                        name:"d"+date.getDay(),
                         parent:null,
                         children: null,
-                        type: ""+"-day"+date.getDay()+"-hour"+date.getHours()+"-Min"+date.getMinutes(),//+"-s"+date.getSeconds(), //"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-week"+this.GetWeek(date)+
+                        type: ""+"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-day"+date.getDate(),//+"-hour"+date.getHours()+"-Min"+date.getMinutes(),"-s"+date.getSeconds(), 
                         index: this._stack_bar_nodes.length
                     }
                     this.InserNode( stackNode.type, stackNode );

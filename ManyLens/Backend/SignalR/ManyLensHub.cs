@@ -22,8 +22,8 @@ namespace ManyLens.SignalR
 
     public class ManyLensHub : Hub
     {
-        private static bool TestMode = false;
-        
+        private static bool GeoMapMode = false;
+
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
@@ -41,13 +41,14 @@ namespace ManyLens.SignalR
             interals.Clear();
             lensDatas.Clear();
             string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFACASESample";
+            string ebolaFile = config.Parameter.RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
             string cities1000File = config.Parameter.RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
             string stopwordFile = config.Parameter.RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
             Debug.WriteLine(tweetFile);
             await Task.Run(() =>
             {
                 if (dateTweetsFreq == null)
-                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(ebolaFile);
                 if (cities1000 == null)
                     cities1000 = TweetsIO.LoadCities1000(cities1000File);
                 if (stopWords == null)
@@ -67,7 +68,7 @@ namespace ManyLens.SignalR
                 IProgress<double> p = new Progress<double>();
                 interval.Preproccessing(p);
                 //Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
-                Debug.WriteLine( interval.ID + " , " + interval.Entropy+","+interval.TweetsCount);
+                Debug.WriteLine(interval.ID + " , " + interval.Entropy + "," + interval.TweetsCount);
                 taskList.RemoveAt(0);
             }
             Clients.Caller.enableReorganizeIntervalBtn();
@@ -125,7 +126,7 @@ namespace ManyLens.SignalR
             //set the parameter
             double alpha = 0.125;
             double beta = 1.5;
-           ///config.Parameter.TimeSpan = 3;
+            ///config.Parameter.TimeSpan = 3;
 
             await Task.Run(() =>
             {
@@ -478,93 +479,154 @@ namespace ManyLens.SignalR
             return Math.Sqrt(dist);
         }
 
-        public async Task PullInterval(string interalID, string classifierID, IProgress<double> progress)
+        public void SwitchMap(bool mapMode)
         {
-            VisMap visMap;
-            string mapID = interalID;
-            if (classifierID != null) mapID =mapID + "_" + classifierID;
-
-            await Task.Run(() =>
-            {
-                if (visMaps.ContainsKey(mapID))
-                    visMap = visMaps[mapID];
-                else
-                {
-                    Interval interal = interals[interalID];
-                    interal.PreproccessingParallel(progress);
-
-                    if (classifierID != null)
-                    {
-                        VisMap classifierMap = visMaps[classifierID];
-                        visMap = GPUSOM.TweetSOMClassification(mapID, interal, classifierMap);
-                        if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
-                        {
-                            visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
-                        }
-                        visMapsSortedByTime[visMap.MapDate].classificationMap = visMap;
-                    }
-                    else
-                    {
-                        VisMap lastMap = null;
-                        if (visMapsSortedByTime.Count > 0)
-                        {
-                            lastMap = visMapsSortedByTime.Last().Value.clusteringMap;
-                        }
-                        visMap = GPUSOM.TweetSOMClustering(mapID,interal, lastMap);
-
-                        if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
-                        {
-                            visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
-                        }
-                        visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
-                    }
-
-                    Debug.WriteLine(interal.Entropy);
-                    Debug.WriteLine(interal.TweetsCount);
-                    visMaps.Add(visMap.VisMapID, visMap);
-                   
-                }
-
-                //try
-                //{
-                //    Debug.Write("Let's cache the visData as  json");
-
-                //    VISData visData = visMap.GetVisData();
-                //    System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
-                //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-                //    jser.WriteObject(sw.BaseStream, visData);
-                //    sw.Close();
-                //    Debug.Write("finish json");
-                //
-                //catch (Exception e)
-                //{
-                //    Debug.WriteLine(e.InnerException.Message);
-                //    Debug.WriteLine(e.Message);
-                //}
-
-                Clients.Caller.showVisMap(visMap.GetVisData(), classifierID);
-
-            });
-
+            GeoMapMode = mapMode;
         }
 
-        public async Task RefineTheMap(string visMapID, int index,int[] fromUnitsID, int[] toUnitsID)
+        public async Task PullInterval(string interalID, string classifierID, IProgress<double> progress)
+        {
+            if (GeoMapMode)
+            {
+                Interval interal = interals[interalID];
+                Dictionary<string, List<Tweet>> tweetsGroupByLocation = new Dictionary<string, List<Tweet>>();
+
+                await Task.Run(() => {
+                    for (int i = 0, len = interal.TweetsCount; i < len; ++i)
+                    {
+                        Tweet tweet = interal.Tweets[i];
+                        if (tweet.CountryName == null)
+                        {
+                            Object obj = new Object();
+                            double minDist = double.MaxValue;
+                            string countryName = "";
+                            Parallel.ForEach(ManyLens.SignalR.ManyLensHub.cities1000, (city) =>
+                            {
+                                double dx = tweet.Lon - city.lon;
+                                double dy = tweet.Lat - city.lat;
+                                dx = dx * dx;
+                                dy = dy * dy;
+                                double dist = dx + dy;
+                                lock (obj)
+                                {
+                                    if (dist < minDist)
+                                    {
+                                        minDist = dist;
+                                        countryName = city.country;
+                                    }
+                                }
+                            });
+                            tweet.CountryName = countryName;
+                            
+                        }
+
+                        if (!tweetsGroupByLocation.ContainsKey(tweet.CountryName))
+                        {
+                            tweetsGroupByLocation.Add(tweet.CountryName, new List<Tweet>());
+                        }
+                        tweetsGroupByLocation[tweet.CountryName].Add(tweet);
+                        progress.Report((double)i / len);
+                    }
+                    List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+                    foreach (KeyValuePair<string, List<Tweet>> item in tweetsGroupByLocation)
+                    {
+                        Dictionary<string, object> d = new Dictionary<string, object>();
+                        d.Add("countryName", item.Key);
+                        d.Add("tweets", item.Value);
+                        result.Add(d);
+                    }
+                    Clients.Caller.upDateGeoMap(result);
+                
+                });
+               
+            }
+            else
+            {
+                VisMap visMap;
+                string mapID = interalID;
+                if (classifierID != null) mapID = mapID + "_" + classifierID;
+
+                await Task.Run(() =>
+                {
+                    if (visMaps.ContainsKey(mapID))
+                        visMap = visMaps[mapID];
+                    else
+                    {
+                        Interval interal = interals[interalID];
+                        interal.PreproccessingParallel(progress);
+
+                        if (classifierID != null)
+                        {
+                            VisMap classifierMap = visMaps[classifierID];
+                            visMap = GPUSOM.TweetSOMClassification(mapID, interal, classifierMap);
+                            if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
+                            {
+                                visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
+                            }
+                            visMapsSortedByTime[visMap.MapDate].classificationMap = visMap;
+                        }
+                        else
+                        {
+                            VisMap lastMap = null;
+                            if (visMapsSortedByTime.Count > 0)
+                            {
+                                lastMap = visMapsSortedByTime.Last().Value.clusteringMap;
+                            }
+                            visMap = GPUSOM.TweetSOMClustering(mapID, interal, lastMap);
+
+                            if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
+                            {
+                                visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
+                            }
+                            visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
+                        }
+
+                        Debug.WriteLine(interal.Entropy);
+                        Debug.WriteLine(interal.TweetsCount);
+                        visMaps.Add(visMap.VisMapID, visMap);
+
+                    }
+                    Clients.Caller.showVisMap(visMap.GetVisData(), classifierID);
+
+                });
+            }
+
+
+            //try
+            //{
+            //    Debug.Write("Let's cache the visData as  json");
+
+            //    VISData visData = visMap.GetVisData();
+            //    System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
+            //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
+            //    jser.WriteObject(sw.BaseStream, visData);
+            //    sw.Close();
+            //    Debug.Write("finish json");
+            //
+            //catch (Exception e)
+            //{
+            //    Debug.WriteLine(e.InnerException.Message);
+            //    Debug.WriteLine(e.Message);
+            //}
+        }
+
+        public async Task RefineTheMap(string visMapID, int index, int[] fromUnitsID, int[] toUnitsID)
         {
             VisMap refineMap;
-            await Task.Run(() => 
+            await Task.Run(() =>
             {
                 if (visMaps.ContainsKey(visMapID))
                 {
                     refineMap = visMaps[visMapID];
                     refineMap.RefineTheMap(fromUnitsID, toUnitsID);
-                    Clients.Caller.updateVisMap(index,refineMap.GetVisData());
+                    Clients.Caller.updateVisMap(index, refineMap.GetVisData());
                 }
                 else
                 {
                     throw new Exception("This map is miss");
                 }
             });
-        
+
         }
 
         public async Task<Dictionary<string, object>> GetLensData(string visMapID, string lensID, int[] unitsID, string baseData, string subData = null)

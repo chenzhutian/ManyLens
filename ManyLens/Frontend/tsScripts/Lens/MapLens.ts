@@ -81,7 +81,6 @@ module ManyLens {
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return;
                 if (this._map_data) {
-                    console.log("asdf");
                     this._lens_circle_svg.append("g")
                         .attr("id", "country")
                         .selectAll("path")

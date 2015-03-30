@@ -169,10 +169,9 @@ namespace ManyLens.Models
         public Tweet(string tweetID, string originalContent, string postDate, string lon, string lat, User user)
             : this(tweetID,originalContent,double.Parse(lon),double.Parse(lat),user)
         {
-            TimeZoneInfo brTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-            
-            
-            this.PostDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Parse(postDate).ToUniversalTime(),brTimeZone);
+            //TimeZoneInfo brTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+            //this.PostDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Parse(postDate).ToUniversalTime(),brTimeZone);
+            this.PostDate = DateTime.Parse(postDate);
         }
 
         public Tweet(string tweetID, string originalContent, DateTime postDate,double lon,double lat, User user)

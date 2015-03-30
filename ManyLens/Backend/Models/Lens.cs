@@ -318,30 +318,35 @@ namespace ManyLens.Models
                         for (int j = 0, lenj = unit.TweetsCount; j < lenj; ++j)
                         {
                             Tweet tweet = unit.Tweets[j];
-                            Object obj = new Object();
-                            double minDist = double.MaxValue;
-                            string countryName = "";
-                            Parallel.ForEach(ManyLens.SignalR.ManyLensHub.cities1000, (city)=>{
-                                double dx = tweet.Lon - city.lon;
-                                double dy = tweet.Lat - city.lat;
-                                dx = dx * dx;
-                                dy = dy * dy;
-                                double dist = dx + dy;
-                                lock (obj)
-                                {
-                                    if (dist < minDist)
-                                    {
-                                        minDist = dist;
-                                        countryName = city.country;
-                                    }
-                                }
-                            });
-                            tweet.CountryName = countryName;
-                            if (!this.tweetsGroupByLocation.ContainsKey(countryName))
+                            if (tweet.CountryName == null)
                             {
-                                this.tweetsGroupByLocation.Add(countryName, new List<Tweet>());
+                                Object obj = new Object();
+                                double minDist = double.MaxValue;
+                                string countryName = "";
+                                Parallel.ForEach(ManyLens.SignalR.ManyLensHub.cities1000, (city) =>
+                                {
+                                    double dx = tweet.Lon - city.lon;
+                                    double dy = tweet.Lat - city.lat;
+                                    dx = dx * dx;
+                                    dy = dy * dy;
+                                    double dist = dx + dy;
+                                    lock (obj)
+                                    {
+                                        if (dist < minDist)
+                                        {
+                                            minDist = dist;
+                                            countryName = city.country;
+                                        }
+                                    }
+                                });
+                                tweet.CountryName = countryName;
                             }
-                            this.tweetsGroupByLocation[countryName].Add(tweet);
+                            
+                            if (!this.tweetsGroupByLocation.ContainsKey(tweet.CountryName))
+                            {
+                                this.tweetsGroupByLocation.Add(tweet.CountryName, new List<Tweet>());
+                            }
+                            this.tweetsGroupByLocation[tweet.CountryName].Add(tweet);
                         }
                     }
                 }

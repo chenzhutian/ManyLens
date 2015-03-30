@@ -325,9 +325,6 @@ namespace ManyLens.Models
                                     targetLabel = item.Key;
                                 }
                             }
-                            
-
-                            
                         }
                         catch (KeyNotFoundException e)
                         {

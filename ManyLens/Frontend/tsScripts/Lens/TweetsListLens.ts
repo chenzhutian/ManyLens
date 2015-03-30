@@ -136,9 +136,9 @@ module ManyLens {
 
                 selectCircle
                     .attr("r", this._select_circle_radius)
-                    .attr("fill", color)
+                    .attr("fill", "#E9573F")
                     .attr("fill-opacity", 0.7)
-                    .attr("stroke", "black")
+                    .attr("stroke", "#ccc")
                     .attr("stroke-width", 1)
                     .attr({
                         cx: -50,
@@ -165,7 +165,7 @@ module ManyLens {
                 ;
                 this._sc_lc_svg.append("line")
                     .attr("stoke-width", 2)
-                    .attr("stroke", "red")
+                    .attr("stroke", "#E9573F")
                 ;
 
                 container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上

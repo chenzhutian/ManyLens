@@ -208,8 +208,8 @@ module ManyLens {
                     .attr("d", d3.svg.arc().startAngle(0).endAngle(2 * Math.PI).innerRadius(0).outerRadius(this._lens_circle_radius))
                     .style({
                         "fill": "#fff",
-                        "stroke": "black",
-                        "stroke-width": 1
+                        "stroke": "#ccc",
+                        "stroke-width": 1.5
                     })
                 ;
 

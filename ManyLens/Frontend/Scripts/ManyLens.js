@@ -336,13 +336,16 @@ var ManyLens;
                 this._view_botton_padding = 25;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._coordinate_margin_left = 300;
+                this._coordinate_margin_left = 500;
                 //private _stack_time: Array<StackDate>;
                 this._stack_time_id_gen = 0;
                 this.week_days_name = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fir.", "Sat."];
                 this.month_names = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
                 this._hack_entropy_for_sec = [5.731770623, 5.673758762, 5.708904568, 5.766106615, 5.271328797, 5.50350013, 5.650689424, 5.059556767, 5.150092845, 5.332915993, 5.538583789, 5.56513213, 5.618589058, 5.568604372, 5.601558072, 5.603160895, 5.552198033, 5.563398957, 5.545638613, 5.585914854, 5.541078274, 5.581189853, 5.610692756, 5.561532863, 5.662572096, 5.577863947, 5.697510354, 5.703647393, 5.578761725, 5.604709918, 5.443579203, 5.498566777, 5.692988236, 5.449706032, 5.316306331, 5.69077723, 5.830264994, 5.849802422, 5.764716822, 5.920337608, 5.854107674, 5.914982887, 5.872175529, 5.795052474, 5.590677484, 5.49128005, 5.611246233, 5.861593865, 5.760362888, 5.763031867, 5.715574693, 5.904532304, 6.024492893, 5.971005731, 5.410844221, 5.700768429, 5.788494599];
                 this._hack_entropy_for_minute = [5.439728938, 5.329790773, 5.586664525, 5.615747057, 5.639277057, 5.653881221, 5.497658424];
+                //Day is for ebola
+                this._hack_entropy_for_day = [6.078795108, 5.841434121, 5.939489652, 5.938061597, 5.856967809, 5.831608227, 5.93391885, 5.993377279, 5.830555653, 5.802729553, 6.076953322, 5.894862096, 5.779206615, 5.969579388, 5.710407662];
+                this._hack_entropy_for_day_fullyear = [5.991439819, 5.851983278, 5.948156068, 5.436286372, 5.291194338, 5.483132322, 5.335564514, 5.890816733, 6.296046929, 5.776935794, 6.178819818, 5.823461866, 6.276945033, 5.383821592, 5.780546756, 5.504823674, 5.459557571, 5.290890409, 5.711883642, 5.941650018, 5.931193478, 5.852722028, 5.823861489, 5.917398009, 5.975238027, 5.842076197, 5.8002751, 6.081009165, 5.892996018, 5.753263639, 5.879791592];
                 this._data = new Array();
                 //this._intervals = new Array<StackRect>();
                 //this._stack_time = new Array<StackDate>();
@@ -482,7 +485,7 @@ var ManyLens;
                 if (!d)
                     return 0;
                 if (!d.children && !d._children)
-                    return this._hack_entropy_for_minute[d.index];
+                    return this._hack_entropy_for_day_fullyear[d.index];
                 var sum = 0;
                 if (d.children)
                     d.children.forEach(function (d) {
@@ -498,7 +501,7 @@ var ManyLens;
                 var _this = this;
                 if (mode === void 0) { mode = true; }
                 var duration = 500;
-                var colorScale = d3.scale.linear().domain(d3.extent(this._hack_entropy_for_minute)).range(["#C5EFF7", "#34495E"]);
+                var colorScale = d3.scale.linear().domain(d3.extent(this._hack_entropy_for_day_fullyear)).range(["#C5EFF7", "#34495E"]);
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes(this._root[""]).filter(function (d) {
                     return d.name != ""; //&& d.name != "day2";
@@ -560,10 +563,10 @@ var ManyLens;
                         return d.name.substring(4);
                     }
                     else if (d.name[0] == "m") {
-                        return _this.month_names[parseInt(d.name[d.name.length - 1])];
+                        return _this.month_names[parseInt(d.name.substring(d.name.indexOf("h") + 1))];
                     }
                     else if (d.name[0] == "d") {
-                        return _this.week_days_name[parseInt(d.name[d.name.length - 1])];
+                        return d.name.substring(d.name.indexOf("y") + 1); //this.week_days_name[parseInt( d.name[d.name.length - 1] )];
                     }
                     else if (d.name[0] == "h") {
                         return d.name.substring(4) + ":00";
@@ -650,10 +653,10 @@ var ManyLens;
                         id: this._data[0].beg,
                         date: date,
                         size: 1,
-                        name: "H" + date.getHours(),
+                        name: "d" + date.getDay(),
                         parent: null,
                         children: null,
-                        type: "" + "-day" + date.getDay() + "-hour" + date.getHours() + "-Min" + date.getMinutes(),
+                        type: "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-day" + date.getDate(),
                         index: this._stack_bar_nodes.length
                     };
                     this.InserNode(stackNode.type, stackNode);
@@ -1150,8 +1153,8 @@ var ManyLens;
                 }).call(this._lens_circle_zoom).on("dblclick.zoom", null).call(this._lens_circle_drag);
                 this._lens_circle = this._lens_circle_svg.append("path").attr("class", "lens-circle").attr("id", "lens-circle-" + this.ID).attr("d", d3.svg.arc().startAngle(0).endAngle(2 * Math.PI).innerRadius(0).outerRadius(this._lens_circle_radius)).style({
                     "fill": "#fff",
-                    "stroke": "black",
-                    "stroke-width": 1
+                    "stroke": "#ccc",
+                    "stroke-width": 1.5
                 });
                 this._manyLens.AddLensToHistoryTree(this);
                 this._lens_circle_svg.transition().duration(duration).attr("opacity", "1").each("end", function () {
@@ -1711,7 +1714,7 @@ var ManyLens;
                 var hasShow = false;
                 this._select_circle_svg = this._sc_lc_svg.append("g").attr("class", "select-circle");
                 var selectCircle = this._select_circle = this._select_circle_svg.append("circle").data([{ x: this._select_circle_cx, y: this._select_circle_cy }]);
-                selectCircle.attr("r", this._select_circle_radius).attr("fill", color).attr("fill-opacity", 0.7).attr("stroke", "black").attr("stroke-width", 1).attr({
+                selectCircle.attr("r", this._select_circle_radius).attr("fill", "#E9573F").attr("fill-opacity", 0.7).attr("stroke", "#ccc").attr("stroke-width", 1).attr({
                     cx: -50,
                     cy: -50
                 }).on("mouseup", function (d) {
@@ -1731,7 +1734,7 @@ var ManyLens;
                         _this._manyLens.DetachCompositeLens(_this._element, hostLens, _this);
                     }
                 }).call(this._select_circle_zoom).on("dblclick.zoom", null).on("mousedown.zoom", null).call(this._select_circle_drag);
-                this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
+                this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "#E9573F");
                 container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 function moveSelectCircle() {
                     var p = d3.mouse(container[0][0]);
@@ -2036,7 +2039,6 @@ var ManyLens;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
                 if (this._map_data) {
-                    console.log("asdf");
                     this._lens_circle_svg.append("g").attr("id", "country").selectAll("path").data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features).enter().append("path").attr("d", this._path).attr("fill", function (d) {
                         var color = _this._color(_this._data[d.id] || 0);
                         //var color = this._hack_color[Math.floor(Math.random()*5)];
@@ -2395,7 +2397,7 @@ var ManyLens;
                 this._cloud_w = this._lens_circle_radius * Math.SQRT2;
                 this._cloud_h = this._cloud_w;
                 this._cloud_padding = 1;
-                this._cloud_font = "Lato";
+                this._cloud_font = "Impact";
                 this._cloud_font_weight = "normal";
                 this._cloud_text_color = d3.scale.pow().range(["#C5EFF7", "#4183D7"]);
             }
@@ -2436,7 +2438,7 @@ var ManyLens;
                 var scale = bounds ? Math.min(w / Math.abs(bounds[1].x - w / 2), w / Math.abs(bounds[0].x - w / 2), h / Math.abs(bounds[1].y - h / 2), h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
                 var text = this._lens_circle_svg.selectAll("text").data(words, function (d) {
                     return d.text;
-                }).enter().append("text");
+                }).enter().append("text").attr("class", "word-cloud");
                 text.attr("text-anchor", "middle").style("font-size", function (d) {
                     return d.size + "px";
                 }).style("font-weight", function (d) {
@@ -5394,10 +5396,12 @@ var ManyLens;
                             if (node.classed("unit")) {
                                 res.push(node.data()[0]['unitID']);
                                 mapID = node.data()[0]['mapID'];
+                                console.log(node);
                             }
                         }
                         _this._toUnitsID = res;
                         if (_this._fromUnitsID && _this._toUnitsID) {
+                            console.log(_this._fromUnitsID, _this._toUnitsID);
                             _this._manyLens.ManyLensHubServerRefineMap(mapID, _this._mapIDs.indexOf(mapID), _this._fromUnitsID, _this._toUnitsID);
                         }
                     }
@@ -5517,7 +5521,7 @@ var ManyLens;
                             _this._brush_svg = map.append("g").attr("class", "brush").on("contextmenu", function () {
                                 _this._brush.clear();
                                 _this._brush_svg.remove();
-                                //d3.event.preventDefault();
+                                d3.event.preventDefault();
                             }).call(_this._brush);
                         }
                     }
@@ -5632,6 +5636,8 @@ var ManyLens;
             };
             SOMMap.prototype.UpdateVisMap = function (index, visData) {
                 var _this = this;
+                this._brush.clear();
+                this._brush_svg.remove();
                 this._maps[index] = visData;
                 this._heatMaps[index].UpdateNodeArray(this._unit_width, this._unit_height, visData.unitsData);
                 this._heatMaps[index].transform(this._scale, 0, 0);
@@ -5649,6 +5655,25 @@ var ManyLens;
                     "class": "unit",
                     width: this._unit_width,
                     height: this._unit_height
+                });
+                var labels = d3.selectAll("#mapSvg" + visData.mapID).selectAll("text.map.label").remove();
+                var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) {
+                    return d.value;
+                })).range([10, 30]);
+                d3.selectAll("#mapSvg" + visData.mapID).selectAll("text.map.label").data(visData.labels, function (d) {
+                    return d.x + "-" + d.y;
+                }).enter().append("text").attr("x", function (d) {
+                    return mapData.leftOffset + d.x * _this._unit_width;
+                }).attr("y", function (d) {
+                    return mapData.topOffset + d.y * _this._unit_height;
+                }).attr("dy", function (d) {
+                    return _this._unit_width;
+                }).attr({
+                    "class": "map label"
+                }).style("font-size", function (d) {
+                    return fontSizeScale(d.value) + "px";
+                }).text(function (d) {
+                    return d.label;
                 });
             };
             SOMMap.prototype.ShowVisMap = function (visData, classifierID) {
@@ -5677,7 +5702,7 @@ var ManyLens;
                 var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) {
                     return d.value;
                 })).range([10, 30]);
-                svg.selectAll("text.unit.label").data(visData.labels, function (d) {
+                svg.selectAll("text.map.label").data(visData.labels, function (d) {
                     return d.x + "-" + d.y;
                 }).enter().append("text").attr("x", function (d) {
                     return _this._left_offset + d.x * _this._unit_width;
@@ -5686,7 +5711,7 @@ var ManyLens;
                 }).attr("dy", function (d) {
                     return _this._unit_width;
                 }).attr({
-                    "class": "unit label"
+                    "class": "map label"
                 }).style("font-size", function (d) {
                     return fontSizeScale(d.value) + "px";
                 }).text(function (d) {
@@ -5711,7 +5736,7 @@ var ManyLens;
                     return line(d.path);
                 }).attr("class", "control-layout").on("contextmenu", function (d) {
                     _this.ContextMenu(d.mapID);
-                    //d3.event.preventDefault();
+                    d3.event.preventDefault();
                 });
                 //Whether to add the connection link
                 if (classifierID) {
@@ -5795,6 +5820,7 @@ var ManyLens;
             this._nav_sideBarView_id = "sidebar-nav";
             this._curveView_id = "curveView";
             this._mapSvg_id = "mapSvg";
+            this._geo_map_mode = false;
             this._historyView_id = "historyView";
             this._historySvg_id = "historySvg";
             //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
@@ -5874,6 +5900,12 @@ var ManyLens;
         ManyLens.prototype.SwitchMap = function () {
             this._SOM_mapArea.Toggle();
             this._GEO_mapArea.Toggle();
+            this._geo_map_mode = !this._geo_map_mode;
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();
+            }
+            this._manyLens_hub.proxy.invoke("switchMap", this._geo_map_mode);
         };
         /* -------------------- Lens related Function -----------------------*/
         ManyLens.prototype.GetLens = function (id) {
@@ -6313,7 +6345,7 @@ var ManyLens;
                 this._sc_lc_svg = this._element.append("g").data([{ tx: 0, ty: 0, scale: 1, cx: 0, cy: 0 }]).attr("class", "lens").attr("id", this.ID);
                 this._select_circle_svg = this._sc_lc_svg.append("g").attr("class", "select-circle");
                 var selectCircle = this._select_circle = this._select_circle_svg.append("circle").data([{ x: this._select_circle_cx, y: this._select_circle_cy }]);
-                selectCircle.attr("r", this._select_circle_radius).attr("fill", color).attr("fill-opacity", 0.7).attr("stroke", "black").attr("stroke-width", 1).attr({
+                selectCircle.attr("r", this._select_circle_radius).attr("fill", "#E9573F").attr("fill-opacity", 0.7).attr("stroke", "#ccc").attr("stroke-width", 1).attr({
                     cx: -50,
                     cy: -50
                 }).on("mouseup", function (d) {
@@ -6329,7 +6361,7 @@ var ManyLens;
                     _this._list_container.remove();
                     _this._sc_lc_svg.remove();
                 }).call(this._select_circle_zoom).on("dblclick.zoom", null).on("mousedown.zoom", null).call(this._select_circle_drag);
-                this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "red");
+                this._sc_lc_svg.append("line").attr("stoke-width", 2).attr("stroke", "#E9573F");
                 container.on("mousemove", moveSelectCircle); //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 function moveSelectCircle() {
                     var p = d3.mouse(container[0][0]);
@@ -6577,6 +6609,7 @@ var ManyLens;
                 this._state = false;
                 this._projection = d3.geo.equirectangular();
                 this._path = d3.geo.path();
+                this._color = d3.scale.sqrt();
                 this._world_topojson_path = "./testData/countriesAlpha2.topo.json";
                 this._zoom = d3.behavior.zoom();
                 this._element.attr("height", function () {
@@ -6584,6 +6617,10 @@ var ManyLens;
                 });
                 this._total_width = parseFloat(this._element.style("width"));
                 this._total_height = parseFloat(this._element.style("height"));
+                this._color.range([
+                    "rgb(158,202,225)",
+                    "rgb(8, 81, 156)"
+                ]);
                 this._projection.scale(1).rotate([80, 0]).translate([0, 0]);
                 this._path.projection(this._projection);
                 this._zoom.scaleExtent([1, 3]).on("zoomstart", function () {
@@ -6593,6 +6630,7 @@ var ManyLens;
                 }).on("zoomend", function () {
                     //d3.event.sourceEvent.stopPropagation();
                 });
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "upDateGeoMap", this.UpdateMap);
             }
             WorldMap.prototype.init = function () {
                 var _this = this;
@@ -6614,6 +6652,25 @@ var ManyLens;
             WorldMap.prototype.RemoveMap = function () {
                 this._map.transition().style("opacity", 0).remove();
             };
+            WorldMap.prototype.UpdateMap = function (mapData) {
+                var _this = this;
+                console.log(mapData);
+                this._color.domain(d3.extent(mapData, function (d) {
+                    return d.tweets.length;
+                }));
+                this._data = mapData;
+                var countryColor = {};
+                mapData.forEach(function (d) {
+                    countryColor[d.countryName] = d.tweets.length;
+                });
+                this._map.selectAll("path").attr("fill", function (d) {
+                    return "rgb(198,219,239)";
+                }).transition().attr("fill", function (d) {
+                    if (countryColor[d.id])
+                        return _this._color(countryColor[d.id]);
+                    return "rgb(198,219,239)";
+                });
+            };
             WorldMap.prototype.Render = function () {
                 var _this = this;
                 if (this._world_topojson_data) {
@@ -6628,7 +6685,12 @@ var ManyLens;
                         return d.id;
                     }).enter().append("path").attr("id", function (d) {
                         return d.id;
-                    }).attr("d", this._path).on("dblclick", function (d) {
+                    }).attr("d", this._path).attr("fill", function (d) {
+                        return "rgb(198,219,239)";
+                    }).style({
+                        stroke: "#fff",
+                        "stoke-width": "0.5px"
+                    }).on("dblclick", function (d) {
                         d3.event.stopPropagation();
                         _this.Country_Clicked(d);
                     });
@@ -6646,17 +6708,15 @@ var ManyLens;
                             return d.id;
                         }).enter().append("path").attr("id", function (d) {
                             return d.id;
-                        }).attr("d", _this._path).on("dblclick", function (d) {
+                        }).attr("d", _this._path).attr("fill", function (d) {
+                            return "rgb(198,219,239)";
+                        }).style({
+                            stroke: "#fff",
+                            "stoke-width": "0.5px"
+                        }).on("dblclick", function (d) {
                             d3.event.stopPropagation();
                             _this.Country_Clicked(d);
                         });
-                        //this._element.append("path")
-                        //    .datum(topojson.mesh(world,world.objects.countries,function(a,b){
-                        //        return a!== b;
-                        //    }))
-                        //    .attr("id","countries-borders")
-                        //    .attr("d",this._path)
-                        //;
                     });
                 }
             };

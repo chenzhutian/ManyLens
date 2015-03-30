@@ -67,10 +67,10 @@ namespace ManyLens.Models
         }
 
 
-        protected virtual void AddTweet(string id, string content, DateTime postDate,double lon, double lat, User user)
-        {
-            this.Tweets.Add(new Tweet(id, content, postDate,lon,lat,user));
-        }
+        //protected virtual void AddTweet(string id, string content, DateTime postDate,double lon, double lat, User user)
+        //{
+        //    this.Tweets.Add(new Tweet(id, content, postDate,lon,lat,user));
+        //}
 
         protected virtual void AddTweet(Tweet tweet)
         {

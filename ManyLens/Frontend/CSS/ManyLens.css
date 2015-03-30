@@ -98,7 +98,7 @@ svg#mapSvg {
     svg#mapSvg .som-map rect.unit {
         opacity:0;
     }
-        svg#mapSvg .som-map text.unit.label {
+        svg#mapSvg .som-map text.map.label {
             fill:#F4D03F;
         }
 
@@ -248,6 +248,11 @@ circle.curve.node {
     background-color:#3EAFDB;
 }
 
+/*-----------WordCloudLens------------*/
+text.word-cloud {
+    
+
+}
 
 /*-----------MapLens------------*/
 #states {
