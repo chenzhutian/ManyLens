@@ -40,15 +40,14 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
             lensDatas.Clear();
-            string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFACASESample";
-            string ebolaFile = config.Parameter.RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
+            //string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFACASESample";
+            //string ebolaFile = config.Parameter.RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
             string cities1000File = config.Parameter.RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
             string stopwordFile = config.Parameter.RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
-            Debug.WriteLine(tweetFile);
             await Task.Run(() =>
             {
                 if (dateTweetsFreq == null)
-                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(ebolaFile);
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.tweetFile);
                 if (cities1000 == null)
                     cities1000 = TweetsIO.LoadCities1000(cities1000File);
                 if (stopWords == null)

@@ -51,20 +51,17 @@ namespace PreprocessingData
             //sw.Close();
 
             string ROOT_DIR = "D:\\Data\\";
-            string inputFile = ROOT_DIR + "EbolaFullYearCase";
-            string outputFile = inputFile + "Sample";
-            StreamWriter sw = new StreamWriter(outputFile);
+            string inputFile = ROOT_DIR + "FIFAShortAttributes";
             Random rnd = new Random();
-            foreach (string line in File.ReadLines(inputFile))
+            List<string> file = File.ReadLines(inputFile).ToList();
+            int count = 0;
+            foreach (string line in file)
             {
-                if (rnd.NextDouble() > 0.95)
-                {
-                    sw.WriteLine(line);
-                }
-
+                ++count;
             }
-            sw.Flush();
-            sw.Close();
+            Console.WriteLine(count);
+            Console.ReadLine();
+
             //AddTheCountryName();
         }
 

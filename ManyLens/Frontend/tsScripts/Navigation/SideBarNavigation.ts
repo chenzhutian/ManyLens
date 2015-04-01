@@ -41,46 +41,67 @@ module ManyLens {
                 this._brand_name = brandName;
                 this._map_Svg = mapSvg;
 
-                this._element.select("#curve-btns").append("input")
-                    .attr({
-                        "id":"intervals-organize-switch",
-                        type:"checkbox",
-                        "data-on-color":"info",
-                         "data-off-color":"danger",
-                         "data-on-text":"Time",
-                         "data-off-text":"Content"
-                    })
-                    .property("checked",true)
-                ;
-                $("#intervals-organize-switch").bootstrapSwitch("disabled",true);
-
-                this._reorganizeIntervalBtn = $("#intervals-organize-switch")
-                .on("switchChange.bootstrapSwitch",  (event,state)=> {
-                    this._manyLens.ManyLensHubServerReOrganizePeak(state);
-                });
+                //this._element.select("#curve-btns").append("input")
+                //    .attr({
+                //        "id":"intervals-organize-switch",
+                //        type:"checkbox",
+                //        "data-on-color":"info",
+                //         "data-off-color":"danger",
+                //         "data-on-text":"Time",
+                //         "data-off-text":"Content"
+                //    })
+                //    .property("checked",true)
+                //;
+                //$("#intervals-organize-switch").bootstrapSwitch("disabled",true);
+                //this._reorganizeIntervalBtn = $("#intervals-organize-switch")
+                //.on("switchChange.bootstrapSwitch",  (event,state)=> {
+                //    this._manyLens.ManyLensHubServerReOrganizePeak(state);
+                //});
 
                 this._element.select("#curve-btns")
-                .append("div").attr("class","btn-group").style("margin-top","30px")
-                .html('<button class="btn btn-primary" type="button" style="padding-left: 29px;padding-right: 24px;">Primary</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a href="#">Minutes</a></li><li><a href="#">Hours</a></li><li><a href="#">Days</a></li><li class="divider"></li><li><a href="#">Seconds</a></li></ul>');
+                .append("div").attr("class","btn-group").style({
+                    "margin-top":"30px",
+                    "margin-bottom":"250px"
+                })
+                .html('<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Minutes</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Seconds</a></li><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>');
+                d3.select("ul.dropdown-menu").selectAll("li")
+                .on("click",function(d){
+                    var text = d3.select(this).select("a").text();
+                    d3.select("#hack-drop-down").text(text);
+                });
 
-
-                this._launchDataBtn = this._element.select("#curve-btns")
-                    .append("button")
-                    .attr({
-                        type: "button",
-                        class: "btn btn-primary btn-block disabled"
+                this._launchDataBtn = 
+                //this._element.select("#curve-btns")
+                //    .append("button")
+                //    .attr({
+                //        type: "button",
+                //        class: "btn btn-primary btn-block disabled"
+                //    })
+                //    .style({
+                //        "margin-top": "30px",
+                //        "margin-bottom": "170px"
+                //    })
+                //    .text("Launch")
+                d3.select("#navbarInput-01")
+                    .on("keydown",(d)=>{
+                        
+                        if(d3.event.keyCode == 13){
+                            d3.event.preventDefault();
+                            this._manyLens.ManyLensHubServerPullPoint("0");
+                        }
+                    
                     })
-                    .style({
-                        "margin-top": "30px",
-                        "margin-bottom": "90px"
-                    })
-                    .text("Launch")
-                    .on("click", () => {
-                        this._launchDataBtn.classed("disabled", true);
-                        this.PullData();
-                    })
+                    //.on("click", () => {
+                    //    this._launchDataBtn.classed("disabled", true);
+                    //    this.PullData();
+                    //})
                 ;
 
+                d3.select("#navbarInput-02")
+                .on("click",(d)=>{
+                    d3.event.preventDefault();
+                    this._manyLens.ManyLensHubServerPullPoint("0");
+                });
 
                 this._brand = this._element.select("#map-btns").append("div")
                     .attr("class", "nav-brand")
@@ -102,9 +123,9 @@ module ManyLens {
                         class: "btn btn-primary"
                     })
                     .style({
-                        "margin-top": "30px",
+                        "margin-top": "90px",
                         "margin-bottom":"30px",
-                        "padding":"9px 18px"
+                        "padding":"9px 35px"
                     })
                     .text(" Refine  Map ")
                     .on("click", () => {
@@ -118,88 +139,88 @@ module ManyLens {
                         type:"checkbox",
                         "data-on-color":"info",
                          "data-off-color":"danger",
-                         "data-on-text":"SOM",
-                         "data-off-text":"GEO"
+                         "data-on-text":" Topics ",
+                         "data-off-text":" GEO "
                     })
                     .property("checked",true)
                 ;
-                $("#maps-switch").bootstrapSwitch();
+                $("#maps-switch").bootstrapSwitch("handleWidth",48);
                 this._som_geo_switch_btn = $("#maps-switch")
                             .on("switchChange.bootstrapSwitch",  (event,state)=> {
                                 this._manyLens.SwitchMap();
                              });
 
-                var screenShotBtns = mapBtns.append("button")
-                    .attr({
-                        type: "button",
-                        class: "btn btn-primary"
-                    })
-                    .style({
-                        "margin-top": "30px",
-                        "margin-bottom":"30px",
-                        "padding":"9px 18px"
-                    })
-                    .text(" Screen  Shot ")
-                    .on("click", () => {
-                        take($("#mapView"));
+                //var screenShotBtns = mapBtns.append("button")
+                //    .attr({
+                //        type: "button",
+                //        class: "btn btn-primary"
+                //    })
+                //    .style({
+                //        "margin-top": "30px",
+                //        "margin-bottom":"30px",
+                //        "padding":"9px 32px"
+                //    })
+                //    .text(" Screen  Shot ")
+                //    .on("click", () => {
+                //        take($("#mapView"));
 
-                        function take(targetElem) {
-                        // First render all SVGs to canvases
-                        var elements = targetElem.find('svg').map(function() {
-                            var svg = $(this);
-                            var canvas = $('<canvas></canvas>');
-                            svg.replaceWith(canvas);
+                //        function take(targetElem) {
+                //        // First render all SVGs to canvases
+                //        var elements = targetElem.find('svg').map(function() {
+                //            var svg = $(this);
+                //            var canvas = $('<canvas></canvas>');
+                //            svg.replaceWith(canvas);
 
-                            // Get the raw SVG string and curate it
-                            var content = svg.wrap('<p></p>').parent().html();
-                            content = content.replace(/xlink:title="hide\/show"/g, "");
-                            content = encodeURIComponent(content);
-                            svg.unwrap();
+                //            // Get the raw SVG string and curate it
+                //            var content = svg.wrap('<p></p>').parent().html();
+                //            content = content.replace(/xlink:title="hide\/show"/g, "");
+                //            content = encodeURIComponent(content);
+                //            svg.unwrap();
 
-                            // Create an image from the svg
-                            var image = new Image();
-                            image.src = 'data:image/svg+xml,' + content;
-                            image.onload = function() {
-                                canvas[0]['width'] = image.width;
-                                canvas[0]['height']= image.height;
+                //            // Create an image from the svg
+                //            var image = new Image();
+                //            image.src = 'data:image/svg+xml,' + content;
+                //            image.onload = function() {
+                //                canvas[0]['width'] = image.width;
+                //                canvas[0]['height']= image.height;
 
-                                // Render the image to the canvas
-                                var context = (<HTMLCanvasElement>canvas[0]).getContext('2d');
-                                context.drawImage(image, 0, 0);
-                            };
-                            return {
-                                svg: svg,
-                                canvas: canvas
-                            };
-                        });
-                        targetElem.imagesLoaded(function() {
-                            // At this point the container has no SVG, it only has HTML and Canvases.
-                            html2canvas(targetElem[0], {
-                                onrendered: function(canvas) {
-                                    // Put the SVGs back in place
-                                    elements.each(function() {
-                                        this.canvas.replaceWith(this.svg);
-                                    });
+                //                // Render the image to the canvas
+                //                var context = (<HTMLCanvasElement>canvas[0]).getContext('2d');
+                //                context.drawImage(image, 0, 0);
+                //            };
+                //            return {
+                //                svg: svg,
+                //                canvas: canvas
+                //            };
+                //        });
+                //        targetElem.imagesLoaded(function() {
+                //            // At this point the container has no SVG, it only has HTML and Canvases.
+                //            html2canvas(targetElem[0], {
+                //                onrendered: function(canvas) {
+                //                    // Put the SVGs back in place
+                //                    elements.each(function() {
+                //                        this.canvas.replaceWith(this.svg);
+                //                    });
 
-                                    // Do something with the canvas, for example put it at the bottom
-                                 $(canvas).appendTo('body');
-                                }
-                            })
-                        })
-                    }
+                //                    // Do something with the canvas, for example put it at the bottom
+                //                 $(canvas).appendTo('body');
+                //                }
+                //            })
+                //        })
+                //    }
 
 
-                        //html2canvas(document.getElementById("mapView"), {
-                        //        onrendered: function(canvas) {
-                        //                document.body.appendChild(canvas);
-                        //      },
-                        //    allowTaint: true
-                        //});
-                    })
-                ;
+                //        //html2canvas(document.getElementById("mapView"), {
+                //        //        onrendered: function(canvas) {
+                //        //                document.body.appendChild(canvas);
+                //        //      },
+                //        //    allowTaint: true
+                //        //});
+                //    })
+                //;
 
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
+                //this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
+                //this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
             }
 
             private DemoData(): MenuListData {
@@ -232,7 +253,8 @@ module ManyLens {
                                     extractDataFunc: new Lens.ExtractDataFunc("hashTagsDistribute")
                                 },
                                 {
-                                    name: "fui-stats-dots",
+                                    name: "Words Cloud",
+                                    icon:"fui-list-thumbnailed",
                                     attributeName: "Hashtag Count",
                                     lensConstructFunc: Lens.WordCloudLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("hashTagsDistribute")
@@ -245,7 +267,7 @@ module ManyLens {
                             children: [
                                 {
                                     name: "Words Cloud",
-                                    icon: "fui-stats-dots",
+                                    icon: "fui-list-thumbnailed",
                                     attributeName: "Keywords",
                                     lensConstructFunc: Lens.WordCloudLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("keywordsDistribute")
@@ -271,7 +293,7 @@ module ManyLens {
                             children:[
                                 {
                                     name:"List",
-                                    icon:"fui-stats-dots",
+                                    icon:"fui-list-numbered",
                                     attributeName:"Tweets Content",
                                     lensConstructFunc:Lens.TweetsListLens,
                                     extractDataFunc:new Lens.ExtractDataFunc("tweetsContent")
@@ -284,7 +306,7 @@ module ManyLens {
                             children: [
                                 {
                                     name: "Map",
-                                    icon: "fui-stats-dots",
+                                    icon: "fui-stats-bars2",
                                     attributeName: "Tweets Count",
                                     lensConstructFunc: Lens.MapLens,
                                     extractDataFunc: new Lens.ExtractDataFunc("tweetsLocationDistribute")

@@ -105,9 +105,9 @@ module ManyLens {
             private _hack_entropy_for_minute=         [5.439728938,5.329790773,5.586664525,5.615747057,5.639277057,5.653881221,5.497658424];
             //Day is for ebola
             private _hack_entropy_for_day = [6.078795108,5.841434121,5.939489652,5.938061597,5.856967809,5.831608227,5.93391885,5.993377279,5.830555653,5.802729553,6.076953322,5.894862096,5.779206615,5.969579388,5.710407662];
-            private _hack_entropy_for_day_fullyear=[5.991439819,5.851983278,5.948156068,5.436286372,5.291194338,5.483132322,5.335564514,5.890816733,6.296046929,5.776935794,6.178819818,5.823461866,6.276945033,5.383821592,5.780546756,5.504823674,5.459557571,5.290890409,5.711883642,5.941650018,5.931193478,5.852722028,5.823861489,5.917398009,5.975238027,5.842076197,5.8002751,6.081009165,5.892996018,5.753263639,5.879791592];
-
-
+           private _hack_entropy_for_day_fullyear=
+            [5.991439819,5.851983278,5.948156068,5.436286372,5.291194338,5.483132322,5.335564514,5.890816733,6.296046929,5.776935794,6.178819818,5.823461866,6.276945033,5.383821592,5.780546756,5.504823674,5.459557571,5.290890409,5.711883642,5.941650018,5.931193478,5.852722028,5.823861489,5.917398009,5.975238027,5.842076197,5.8002751,6.081009165,5.892996018,5.753263639,5.879791592];
+                    //[5.69006417,5.208299791,5.666119203,5.451243315,5.561025622,5.299182567,6.378748659,5.488922591,5.660975464,5.685864813,5.496838343,6.075239291,5.257863781,5.661006656,5.805892933,5.192742299,5.435717991,5.759506259,5.968754008,5.96309651,5.864660305,6.013041989,5.682746574,5.828293917,5.727380295,5.832011808,6.112499574,5.897171922,5.739194486,5.534174323,5.99537984,5.955962256];
             //private _stack_content: Map<number, StackRect[]>;
 
             public get Section_Num(): number {
@@ -358,7 +358,6 @@ module ManyLens {
                 this._stack_bar_node = this._subView.selectAll( ".stack.node" )
                     .data( nodex, function ( d ) { return d.id; });
 
-
                 //Enter node
                 var enterNode = this._stack_bar_node
                     .enter().append( "g" )
@@ -447,7 +446,6 @@ module ManyLens {
                     .style( "fill-opacity", 1 );
                 ;
 
-
                 //Update node
                 function sumLength( d ) {
                     if(!d) return 0;
@@ -487,6 +485,23 @@ module ManyLens {
                             return colorScale( this.SumEntropy(d) / sumLength(d) ); 
                         return "#E87E04";
                     });
+                this._stack_bar_node.selectAll("text")
+                    .filter(function(d){return d.children || d._children})
+                    .transition()
+                    .attr("x",function(d):any{
+                        if(d._children){
+                            return -15;
+                        }
+                        return 5;
+                    })
+                    .attr("dy",function(d):any{
+                        if(d._children){
+                            return 10 *(1.5+ sumLength(d));
+                        }
+                        return ".35em";
+                    })
+                    .style( "fill-opacity", 1 );
+                ;
 
                 //Exit node
                 var exitNode = this._stack_bar_node.exit()
@@ -552,7 +567,7 @@ module ManyLens {
                         name:"d"+date.getDay(),
                         parent:null,
                         children: null,
-                        type: ""+"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-day"+date.getDate(),//+"-hour"+date.getHours()+"-Min"+date.getMinutes(),"-s"+date.getSeconds(), 
+                        type: ""+"-year"+date.getFullYear()+"-mounth"+date.getMonth()+"-day"+date.getDate(),//"-day"+date.getDate()+"-hour"+date.getHours()+"-Min"+date.getMinutes()+"-s"+date.getSeconds(),
                         index: this._stack_bar_nodes.length
                     }
                     this.InserNode( stackNode.type, stackNode );
@@ -561,23 +576,6 @@ module ManyLens {
                     this._stack_bar_nodes.push( stackNode );
 
                     this.UpdateSubviewTree( exitParent );
-                    //console.log( printTree( this._root["year"] ));
-                    //function printTree( node:StackNode ) {
-                    //    var s = '{"id":"' + node.id+'","type":"'+node.type;
-                    //    if ( node.children ) {
-                    //        s += '","children":[';
-                    //        node.children.forEach(( d: StackNode ) => {
-                    //            s += printTree( d ) + ",";
-                    //        });
-                    //        s = s.substring( 0, s.length - 1 );
-                    //    } else {
-                    //        s += '","size":' + 1 + ',"children":[';
-                    //    }
-                    //    s += "]}";
-                    //    return s;
-                    //}
-
-                    //this.StackBarByTime( date, 0, [stackRect] );
                 }
 
                 //Refresh the curve view
@@ -679,15 +677,18 @@ module ManyLens {
                 .attr("class","curve seg time-tick")
                 .text((d)=>{
                     var date = this._time_formater.parse(d.id);
-                    var hours:any   = date.getHours();
-                    var minutes:any = date.getMinutes();
-                    var seconds:any = date.getSeconds();
+                    //var hours:any   = date.getHours();
+                    //var minutes:any = date.getMinutes();
+                    //var seconds:any = date.getSeconds();
 
-                    if (hours   < 10) {hours   = "0"+hours;}
-                    if (minutes < 10) {minutes = "0"+minutes;}
-                    if (seconds < 10) {seconds = "0"+seconds;}
+                    //if (hours   < 10) {hours   = "0"+hours;}
+                    //if (minutes < 10) {minutes = "0"+minutes;}
+                    //if (seconds < 10) {seconds = "0"+seconds;}
+                    //return hours+':'+minutes+':'+seconds;
+                    var mon = this.month_names[date.getMonth()];
+                    var day = date.getDate();
+                    return mon+" "+day;
 
-                    return hours+':'+minutes+':'+seconds;
                 })
                 ;
                 xTime.exit().remove();

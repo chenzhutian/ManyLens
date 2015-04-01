@@ -35,28 +35,39 @@ var ManyLens;
                 this._manyLens = manyLens;
                 this._brand_name = brandName;
                 this._map_Svg = mapSvg;
-                this._element.select("#curve-btns").append("input").attr({
-                    "id": "intervals-organize-switch",
-                    type: "checkbox",
-                    "data-on-color": "info",
-                    "data-off-color": "danger",
-                    "data-on-text": "Time",
-                    "data-off-text": "Content"
-                }).property("checked", true);
-                $("#intervals-organize-switch").bootstrapSwitch("disabled", true);
-                this._reorganizeIntervalBtn = $("#intervals-organize-switch").on("switchChange.bootstrapSwitch", function (event, state) {
-                    _this._manyLens.ManyLensHubServerReOrganizePeak(state);
-                });
-                this._element.select("#curve-btns").append("div").attr("class", "btn-group").style("margin-top", "30px").html('<button class="btn btn-primary" type="button" style="padding-left: 29px;padding-right: 24px;">Primary</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a href="#">Minutes</a></li><li><a href="#">Hours</a></li><li><a href="#">Days</a></li><li class="divider"></li><li><a href="#">Seconds</a></li></ul>');
-                this._launchDataBtn = this._element.select("#curve-btns").append("button").attr({
-                    type: "button",
-                    class: "btn btn-primary btn-block disabled"
-                }).style({
+                //this._element.select("#curve-btns").append("input")
+                //    .attr({
+                //        "id":"intervals-organize-switch",
+                //        type:"checkbox",
+                //        "data-on-color":"info",
+                //         "data-off-color":"danger",
+                //         "data-on-text":"Time",
+                //         "data-off-text":"Content"
+                //    })
+                //    .property("checked",true)
+                //;
+                //$("#intervals-organize-switch").bootstrapSwitch("disabled",true);
+                //this._reorganizeIntervalBtn = $("#intervals-organize-switch")
+                //.on("switchChange.bootstrapSwitch",  (event,state)=> {
+                //    this._manyLens.ManyLensHubServerReOrganizePeak(state);
+                //});
+                this._element.select("#curve-btns").append("div").attr("class", "btn-group").style({
                     "margin-top": "30px",
-                    "margin-bottom": "90px"
-                }).text("Launch").on("click", function () {
-                    _this._launchDataBtn.classed("disabled", true);
-                    _this.PullData();
+                    "margin-bottom": "250px"
+                }).html('<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Minutes</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Seconds</a></li><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>');
+                d3.select("ul.dropdown-menu").selectAll("li").on("click", function (d) {
+                    var text = d3.select(this).select("a").text();
+                    d3.select("#hack-drop-down").text(text);
+                });
+                this._launchDataBtn = d3.select("#navbarInput-01").on("keydown", function (d) {
+                    if (d3.event.keyCode == 13) {
+                        d3.event.preventDefault();
+                        _this._manyLens.ManyLensHubServerPullPoint("0");
+                    }
+                });
+                d3.select("#navbarInput-02").on("click", function (d) {
+                    d3.event.preventDefault();
+                    _this._manyLens.ManyLensHubServerPullPoint("0");
                 });
                 this._brand = this._element.select("#map-btns").append("div").attr("class", "nav-brand").text(this._brand_name);
                 this._menu_list = this._element.select("#map-btns").append("div").attr("class", "menu-list").append("ul").attr("id", "side-menu-content").attr("class", "menu-content");
@@ -65,9 +76,9 @@ var ManyLens;
                     type: "button",
                     class: "btn btn-primary"
                 }).style({
-                    "margin-top": "30px",
+                    "margin-top": "90px",
                     "margin-bottom": "30px",
-                    "padding": "9px 18px"
+                    "padding": "9px 35px"
                 }).text(" Refine  Map ").on("click", function () {
                     _this._manyLens.AddBrushToMap();
                 });
@@ -76,71 +87,76 @@ var ManyLens;
                     type: "checkbox",
                     "data-on-color": "info",
                     "data-off-color": "danger",
-                    "data-on-text": "SOM",
-                    "data-off-text": "GEO"
+                    "data-on-text": " Topics ",
+                    "data-off-text": " GEO "
                 }).property("checked", true);
-                $("#maps-switch").bootstrapSwitch();
+                $("#maps-switch").bootstrapSwitch("handleWidth", 48);
                 this._som_geo_switch_btn = $("#maps-switch").on("switchChange.bootstrapSwitch", function (event, state) {
                     _this._manyLens.SwitchMap();
                 });
-                var screenShotBtns = mapBtns.append("button").attr({
-                    type: "button",
-                    class: "btn btn-primary"
-                }).style({
-                    "margin-top": "30px",
-                    "margin-bottom": "30px",
-                    "padding": "9px 18px"
-                }).text(" Screen  Shot ").on("click", function () {
-                    take($("#mapView"));
-                    function take(targetElem) {
-                        // First render all SVGs to canvases
-                        var elements = targetElem.find('svg').map(function () {
-                            var svg = $(this);
-                            var canvas = $('<canvas></canvas>');
-                            svg.replaceWith(canvas);
-                            // Get the raw SVG string and curate it
-                            var content = svg.wrap('<p></p>').parent().html();
-                            content = content.replace(/xlink:title="hide\/show"/g, "");
-                            content = encodeURIComponent(content);
-                            svg.unwrap();
-                            // Create an image from the svg
-                            var image = new Image();
-                            image.src = 'data:image/svg+xml,' + content;
-                            image.onload = function () {
-                                canvas[0]['width'] = image.width;
-                                canvas[0]['height'] = image.height;
-                                // Render the image to the canvas
-                                var context = canvas[0].getContext('2d');
-                                context.drawImage(image, 0, 0);
-                            };
-                            return {
-                                svg: svg,
-                                canvas: canvas
-                            };
-                        });
-                        targetElem.imagesLoaded(function () {
-                            // At this point the container has no SVG, it only has HTML and Canvases.
-                            html2canvas(targetElem[0], {
-                                onrendered: function (canvas) {
-                                    // Put the SVGs back in place
-                                    elements.each(function () {
-                                        this.canvas.replaceWith(this.svg);
-                                    });
-                                    // Do something with the canvas, for example put it at the bottom
-                                    $(canvas).appendTo('body');
-                                }
-                            });
-                        });
-                    }
-                    //html2canvas(document.getElementById("mapView"), {
-                    //        onrendered: function(canvas) {
-                    //                document.body.appendChild(canvas);
-                    //      },
-                    //    allowTaint: true
-                    //});
-                });
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
+                //var screenShotBtns = mapBtns.append("button")
+                //    .attr({
+                //        type: "button",
+                //        class: "btn btn-primary"
+                //    })
+                //    .style({
+                //        "margin-top": "30px",
+                //        "margin-bottom":"30px",
+                //        "padding":"9px 32px"
+                //    })
+                //    .text(" Screen  Shot ")
+                //    .on("click", () => {
+                //        take($("#mapView"));
+                //        function take(targetElem) {
+                //        // First render all SVGs to canvases
+                //        var elements = targetElem.find('svg').map(function() {
+                //            var svg = $(this);
+                //            var canvas = $('<canvas></canvas>');
+                //            svg.replaceWith(canvas);
+                //            // Get the raw SVG string and curate it
+                //            var content = svg.wrap('<p></p>').parent().html();
+                //            content = content.replace(/xlink:title="hide\/show"/g, "");
+                //            content = encodeURIComponent(content);
+                //            svg.unwrap();
+                //            // Create an image from the svg
+                //            var image = new Image();
+                //            image.src = 'data:image/svg+xml,' + content;
+                //            image.onload = function() {
+                //                canvas[0]['width'] = image.width;
+                //                canvas[0]['height']= image.height;
+                //                // Render the image to the canvas
+                //                var context = (<HTMLCanvasElement>canvas[0]).getContext('2d');
+                //                context.drawImage(image, 0, 0);
+                //            };
+                //            return {
+                //                svg: svg,
+                //                canvas: canvas
+                //            };
+                //        });
+                //        targetElem.imagesLoaded(function() {
+                //            // At this point the container has no SVG, it only has HTML and Canvases.
+                //            html2canvas(targetElem[0], {
+                //                onrendered: function(canvas) {
+                //                    // Put the SVGs back in place
+                //                    elements.each(function() {
+                //                        this.canvas.replaceWith(this.svg);
+                //                    });
+                //                    // Do something with the canvas, for example put it at the bottom
+                //                 $(canvas).appendTo('body');
+                //                }
+                //            })
+                //        })
+                //    }
+                //        //html2canvas(document.getElementById("mapView"), {
+                //        //        onrendered: function(canvas) {
+                //        //                document.body.appendChild(canvas);
+                //        //      },
+                //        //    allowTaint: true
+                //        //});
+                //    })
+                //;
+                //this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
+                //this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
             }
             SideBarNavigation.prototype.DemoData = function () {
                 var data = {
@@ -170,7 +186,8 @@ var ManyLens;
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagsDistribute")
                                 },
                                 {
-                                    name: "fui-stats-dots",
+                                    name: "Words Cloud",
+                                    icon: "fui-list-thumbnailed",
                                     attributeName: "Hashtag Count",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("hashTagsDistribute")
@@ -182,7 +199,7 @@ var ManyLens;
                             children: [
                                 {
                                     name: "Words Cloud",
-                                    icon: "fui-stats-dots",
+                                    icon: "fui-list-thumbnailed",
                                     attributeName: "Keywords",
                                     lensConstructFunc: ManyLens.Lens.WordCloudLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("keywordsDistribute")
@@ -206,7 +223,7 @@ var ManyLens;
                             children: [
                                 {
                                     name: "List",
-                                    icon: "fui-stats-dots",
+                                    icon: "fui-list-numbered",
                                     attributeName: "Tweets Content",
                                     lensConstructFunc: ManyLens.Lens.TweetsListLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetsContent")
@@ -218,7 +235,7 @@ var ManyLens;
                             children: [
                                 {
                                     name: "Map",
-                                    icon: "fui-stats-dots",
+                                    icon: "fui-stats-bars2",
                                     attributeName: "Tweets Count",
                                     lensConstructFunc: ManyLens.Lens.MapLens,
                                     extractDataFunc: new ManyLens.Lens.ExtractDataFunc("tweetsLocationDistribute")
@@ -384,6 +401,7 @@ var ManyLens;
                 //this._manyLens.ManyLensHubRegisterClientFunction( this, "timeInterval", this.TimeInterval );
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
+                //[5.69006417,5.208299791,5.666119203,5.451243315,5.561025622,5.299182567,6.378748659,5.488922591,5.660975464,5.685864813,5.496838343,6.075239291,5.257863781,5.661006656,5.805892933,5.192742299,5.435717991,5.759506259,5.968754008,5.96309651,5.864660305,6.013041989,5.682746574,5.828293917,5.727380295,5.832011808,6.112499574,5.897171922,5.739194486,5.534174323,5.99537984,5.955962256];
                 //private _stack_content: Map<number, StackRect[]>;
                 get: function () {
                     return this._section_num;
@@ -611,6 +629,20 @@ var ManyLens;
                         return colorScale(_this.SumEntropy(d) / sumLength(d));
                     return "#E87E04";
                 });
+                this._stack_bar_node.selectAll("text").filter(function (d) {
+                    return d.children || d._children;
+                }).transition().attr("x", function (d) {
+                    if (d._children) {
+                        return -15;
+                    }
+                    return 5;
+                }).attr("dy", function (d) {
+                    if (d._children) {
+                        return 10 * (1.5 + sumLength(d));
+                    }
+                    return ".35em";
+                }).style("fill-opacity", 1);
+                ;
                 //Exit node
                 var exitNode = this._stack_bar_node.exit().transition().duration(duration).attr("transform", function (d) {
                     if (exitParent) {
@@ -749,19 +781,16 @@ var ManyLens;
                     return _this._x_scale(d.beg);
                 }).attr("y", this._view_height).attr("class", "curve seg time-tick").text(function (d) {
                     var date = _this._time_formater.parse(d.id);
-                    var hours = date.getHours();
-                    var minutes = date.getMinutes();
-                    var seconds = date.getSeconds();
-                    if (hours < 10) {
-                        hours = "0" + hours;
-                    }
-                    if (minutes < 10) {
-                        minutes = "0" + minutes;
-                    }
-                    if (seconds < 10) {
-                        seconds = "0" + seconds;
-                    }
-                    return hours + ':' + minutes + ':' + seconds;
+                    //var hours:any   = date.getHours();
+                    //var minutes:any = date.getMinutes();
+                    //var seconds:any = date.getSeconds();
+                    //if (hours   < 10) {hours   = "0"+hours;}
+                    //if (minutes < 10) {minutes = "0"+minutes;}
+                    //if (seconds < 10) {seconds = "0"+seconds;}
+                    //return hours+':'+minutes+':'+seconds;
+                    var mon = _this.month_names[date.getMonth()];
+                    var day = date.getDate();
+                    return mon + " " + day;
                 });
                 xTime.exit().remove();
                 //var lineFunc = d3.svg.line()
@@ -1982,7 +2011,7 @@ var ManyLens;
                 //d3.geo.mercator();
                 this._path = d3.geo.path();
                 this._color = d3.scale.quantize();
-                this._projection.clipAngle(90).precision(.1).scale(100).rotate([90, -20]).translate([0, 0]);
+                this._projection.clipAngle(90).precision(.1).scale(100).rotate([-70, -20]).translate([0, 0]);
                 this._path.projection(this._projection);
                 this._color.range([
                     "rgb(198,219,239)",
@@ -2057,8 +2086,8 @@ var ManyLens;
                             raw: mapData,
                         };
                         _this._lens_circle_svg.append("g").attr("id", "states").selectAll("path").data(topojson.feature(mapData, mapData.objects.countries).features).enter().append("path").attr("d", _this._path).attr("fill", function (d) {
-                            var color = _this._color(_this._data[d.id] || 0);
-                            //var color = this._hack_color[Math.floor(Math.random()*5)];
+                            //var color = this._color(this._data[d.id]||0);
+                            var color = _this._hack_color[Math.floor(Math.random() * 5)];
                             return color;
                         }).on("click", function (d) {
                             _this.ClickedMap(d);
@@ -5901,6 +5930,12 @@ var ManyLens;
             this._SOM_mapArea.Toggle();
             this._GEO_mapArea.Toggle();
             this._geo_map_mode = !this._geo_map_mode;
+            if (this._geo_map_mode) {
+                d3.select("div.view-title.view-title-md-red p").text("Geo Map");
+            }
+            else {
+                d3.select("div.view-title.view-title-md-red p").text("Topic Maps");
+            }
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new _ManyLens.Hub.ManyLensHub();

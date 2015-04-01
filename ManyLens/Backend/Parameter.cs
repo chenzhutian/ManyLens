@@ -8,11 +8,15 @@ namespace ManyLens.config
 {
     class Parameter
     {
-        private static int timeSpan = 2;
+        private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+        private static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
+        private static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
+        public static string tweetFile = ebolaFile;
+        private static int timeSpan =2;
         private static int hashDimension = 8192;
         private static int dimensionAfterRandomMapping = 1024;
         private static float[] rmMatrix = myMath.GaussianRandom.GetRMMatrix(DimensionAfterRandomMapping, HashDimension);
-        private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+        public static double filterWords = 0.3;
 
         public static string RootFolder
         {

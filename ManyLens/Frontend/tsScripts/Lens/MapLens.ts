@@ -44,7 +44,7 @@ module ManyLens {
                     .clipAngle(90)
                     .precision(.1)
                     .scale(100)
-                    .rotate([90, -20])
+                    .rotate([-70, -20])
                   //  .center([-0.6, 38.7])
                  .translate([0, 0])
                 ;
@@ -117,8 +117,8 @@ module ManyLens {
                             .enter().append("path")
                             .attr("d", this._path)
                             .attr("fill", (d) => {
-                                var color = this._color(this._data[d.id]||0);
-                                //var color = this._hack_color[Math.floor(Math.random()*5)];
+                                //var color = this._color(this._data[d.id]||0);
+                                var color = this._hack_color[Math.floor(Math.random()*5)];
                                 return color;
                             })
                             .on("click", (d) => {

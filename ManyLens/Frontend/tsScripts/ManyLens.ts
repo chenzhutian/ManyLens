@@ -113,6 +113,13 @@ module ManyLens {
             this._SOM_mapArea.Toggle();
             this._GEO_mapArea.Toggle();
             this._geo_map_mode = !this._geo_map_mode;
+
+            if(this._geo_map_mode){
+                d3.select("div.view-title.view-title-md-red p").text("Geo Map");
+            }else{
+                d3.select("div.view-title.view-title-md-red p").text("Topic Maps");
+            }
+            
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();

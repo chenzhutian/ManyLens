@@ -65,7 +65,7 @@ namespace ManyLens.IO
                 sr = new StreamReader(tweetFile);
             //}
 
-            int[] mode = new int[4];
+            int[] mode = new int[5];
             for (int i = 0; i < config.Parameter.TimeSpan; i++)
             {
                 mode[i] = 1;
@@ -116,11 +116,6 @@ namespace ManyLens.IO
                         if (tweet.CountryName == null)
                             Debug.WriteLine("country name is null at" + tweet.DerivedContent);
                     }
-                    else 
-                    {
-                        Debug.WriteLine("country name is null at" + tweet.DerivedContent);
-                    }
-                    
 
                 //}
 
@@ -129,23 +124,23 @@ namespace ManyLens.IO
 
                 DateTime postDate = tweet.PostDate;
                 int sec = 0;
-                //if (postDate.Second > 44)
-                //{
-                //    sec = 45;
-                //}
-                //else if (postDate.Second > 29)
-                //{
-                //    sec = 30;
-                //}
-                //else if (postDate.Second > 14)
-                //{
-                //    sec = 15;
-                //}
-                //else if (postDate.Second > 0)
-                //{
-                //    sec = 0;
-                //}
-                DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec);
+                if (postDate.Second > 44)
+                {
+                    sec = 45;
+                }
+                else if (postDate.Second > 29)
+                {
+                    sec = 30;
+                }
+                else if (postDate.Second > 14)
+                {
+                    sec = 15;
+                }
+                else if (postDate.Second > 0)
+                {
+                    sec = 0;
+                }
+                DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec*mode[4]);
 
                 if (sortedTerm.ContainsKey(date))
                 {

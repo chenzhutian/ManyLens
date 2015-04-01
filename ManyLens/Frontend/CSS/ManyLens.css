@@ -178,7 +178,7 @@ svg#mapSvg g#world-countries {
 div#curveView {
     background-color:#3EAFDB;
     background-color:#BAEAFF;
-    background-color:rgba(255,255,255,0.6);
+    background-color:rgba(255,255,255,1);
 }
 
 
@@ -280,7 +280,7 @@ text.word-cloud {
     position: fixed;
     height: 100%;
     width: 180px;
-    padding-top: 100px;
+    padding-top: 50px;
     padding-left: 15px;
     padding-right: 15px;
     border-right: 1px solid #dae3e9;
