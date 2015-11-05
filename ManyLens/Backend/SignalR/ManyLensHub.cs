@@ -42,16 +42,14 @@ namespace ManyLens.SignalR
             lensDatas.Clear();
             //string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFACASESample";
             //string ebolaFile = config.Parameter.RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
-            string cities1000File = config.Parameter.RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
-            string stopwordFile = config.Parameter.RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
-            await Task.Run(() =>
+           await Task.Run(() =>
             {
                 if (dateTweetsFreq == null)
-                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.tweetFile);
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.ebolaFile);
                 if (cities1000 == null)
-                    cities1000 = TweetsIO.LoadCities1000(cities1000File);
+                    cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                 if (stopWords == null)
-                    stopWords = TweetsIO.LoadStopWord(stopwordFile);
+                    stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
             });
         }
 
@@ -91,32 +89,6 @@ namespace ManyLens.SignalR
             }
         }
 
-        //private static double GetGaussin(double x, double sigma = 1)
-        //{
-        //    return Math.Exp((-x * x * 0.5) / (sigma * sigma)) / (Math.Sqrt(2 * Math.PI) * sigma);
-        //}
-
-        //private static void GaussinFilterTerm(int beg, int end, Term[] tp)
-        //{
-        //    if (end > tp.Length)
-        //        end = tp.Length;
-        //    if (beg < 0)
-        //        beg = 0;
-
-        //    for (int i = beg; i < end; ++i)
-        //    {
-        //        for (int j = beg; j < end; ++j)
-        //        {
-        //            double g = GetGaussin(j - i, 0.9);
-        //            tp[i].TempVirtualCount += tp[j].VirtualCount * g;
-        //        }
-        //    }
-        //    for (int i = beg; i < end; ++i)
-        //    {
-        //        tp[i].GaussinBlurDone();
-        //    }
-        //}
-
         //damn it, I almost forget how this function works.
         public async Task PullPoint(string start)
         {
@@ -133,19 +105,13 @@ namespace ManyLens.SignalR
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;
-                //int timeWindow = 0;
-                //int stepSize = timeWindow;
-                //int stepCount = p;
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
                 Term[] tp = dateTweetsFreq.Values.ToArray();
                 for (int i = 0, len = tp.Length; i < len; ++i)
                 {
                     tp[i].PointType = 0;
-                    //tp[i].TempVirtualCount = -1;
-                    //tp[i].GaussinBlurDone();
                 }
 
-                //GaussinFilterTerm(0, 0 + timeWindow, tp);
                 for (int i = 0; i < p; i++)
                 {
                     mean += tp[i].TweetsCount;
@@ -165,12 +131,6 @@ namespace ManyLens.SignalR
                 for (int i = p, t = 0; t < tp.Length; i++, t++)
                 //for (int i = p, t = 0; t < tp.Length; i++, stepCount--, t++)
                 {
-                    //Gaussin smoothing
-                    //if (stepCount == 0)
-                    //{
-                    //    GaussinFilterTerm(i, i + timeWindow, tp);
-                    //    stepCount = stepSize;
-                    //}
 
                     if (i < tp.Length)
                     {
@@ -180,17 +140,10 @@ namespace ManyLens.SignalR
                             int begin = i - 1;
                             while (i < tp.Length && tp[i].TweetsCount > tp[i - 1].TweetsCount)
                             {
-                                //Gaussin smoothing
-                                //if (stepCount == 0)
-                                //{
-                                //    GaussinFilterTerm(i, i + timeWindow, tp);
-                                //    stepCount = stepSize;
-                                //}
                                 diff = Math.Abs(tp[i].TweetsCount - mean);
                                 variance = alpha * diff + (1 - alpha) * variance;
                                 mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                                 i++;
-                                //stepCount--;
                             }
 
                             int end = i;
@@ -198,18 +151,10 @@ namespace ManyLens.SignalR
                             tp[i - 1].IsPeak = true;
                             while (i < tp.Length && tp[i].TweetsCount > tp[begin].TweetsCount)
                             {
-                                //Gaussin smoothing
-                                //if (stepCount == 0)
-                                //{
-                                //    GaussinFilterTerm(i, i + timeWindow, tp);
-                                //    stepCount = stepSize;
-                                //}
-
                                 cutoff = variance * beta;
                                 if (Math.Abs(tp[i].TweetsCount - mean) > cutoff && tp[i].TweetsCount > tp[i - 1].TweetsCount)
                                 {
                                     end = --i;
-                                    //stepCount++;
                                     break;
                                 }
                                 else
@@ -218,7 +163,6 @@ namespace ManyLens.SignalR
                                     variance = alpha * diff + (1 - alpha) * variance;
                                     mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                                     end = i++;
-                                    //stepCount--;
                                 }
                             }
 
@@ -268,7 +212,6 @@ namespace ManyLens.SignalR
                     {
                         id = tp[t].ID,
                         value = tp[t].TweetsCount,
-                        //trueValue = tp[t].TweetsCount,
                         isPeak = tp[t].IsPeak,
                         type = tp[t].PointType,
                         beg = tp[t].BeginPoint,
@@ -318,13 +261,6 @@ namespace ManyLens.SignalR
 
                     Clients.Caller.addPoint(point);
                     Thread.Sleep(100);
-
-                    //Gaussin smoothing
-                    //if (stepCount == 0)
-                    //{
-                    //    GaussinFilterTerm(i, i + timeWindow, tp);
-                    //    stepCount = stepSize;
-                    //}
                 }
 
                 ////Output the json data

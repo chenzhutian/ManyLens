@@ -9,9 +9,11 @@ namespace ManyLens.config
     class Parameter
     {
         private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-        private static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
-        private static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
-        public static string tweetFile = ebolaFile;
+        public static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
+        public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
+        public static string cities1000File = RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
+        public static string stopwordFile = RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+        //public static string tweetFile = ebolaFile;
         private static int timeSpan =2;
         private static int hashDimension = 8192;
         private static int dimensionAfterRandomMapping = 1024;
