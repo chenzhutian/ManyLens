@@ -800,7 +800,7 @@ void main(){\n\
                 if ( !this.canvas ) {
                     this.canvas = document.createElement( 'canvas' );
                 }
-                this._gl = this.canvas.getContext( 'experimental-webgl', { antialias: true });
+                this._gl = (<WebGLRenderingContext>this.canvas.getContext( 'experimental-webgl', { antialias: true }));
                 if ( this._gl === null ) { throw 'WebGL not supported'; }
                 this._gl.enableVertexAttribArray( 0 );
                 this._gl.getExtension( 'OES_texture_float' );
