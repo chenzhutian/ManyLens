@@ -91,31 +91,31 @@ namespace ManyLens.SignalR
             }
         }
 
-        private static double GetGaussin(double x, double sigma = 1)
-        {
-            return Math.Exp((-x * x * 0.5) / (sigma * sigma)) / (Math.Sqrt(2 * Math.PI) * sigma);
-        }
+        //private static double GetGaussin(double x, double sigma = 1)
+        //{
+        //    return Math.Exp((-x * x * 0.5) / (sigma * sigma)) / (Math.Sqrt(2 * Math.PI) * sigma);
+        //}
 
-        private static void GaussinFilterTerm(int beg, int end, Term[] tp)
-        {
-            if (end > tp.Length)
-                end = tp.Length;
-            if (beg < 0)
-                beg = 0;
+        //private static void GaussinFilterTerm(int beg, int end, Term[] tp)
+        //{
+        //    if (end > tp.Length)
+        //        end = tp.Length;
+        //    if (beg < 0)
+        //        beg = 0;
 
-            for (int i = beg; i < end; ++i)
-            {
-                for (int j = beg; j < end; ++j)
-                {
-                    double g = GetGaussin(j - i, 0.9);
-                    tp[i].TempVirtualCount += tp[j].VirtualCount * g;
-                }
-            }
-            for (int i = beg; i < end; ++i)
-            {
-                tp[i].GaussinBlurDone();
-            }
-        }
+        //    for (int i = beg; i < end; ++i)
+        //    {
+        //        for (int j = beg; j < end; ++j)
+        //        {
+        //            double g = GetGaussin(j - i, 0.9);
+        //            tp[i].TempVirtualCount += tp[j].VirtualCount * g;
+        //        }
+        //    }
+        //    for (int i = beg; i < end; ++i)
+        //    {
+        //        tp[i].GaussinBlurDone();
+        //    }
+        //}
 
         //damn it, I almost forget how this function works.
         public async Task PullPoint(string start)
@@ -133,28 +133,28 @@ namespace ManyLens.SignalR
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;
-                int timeWindow = 0;
-                int stepSize = timeWindow;
-                int stepCount = p;
+                //int timeWindow = 0;
+                //int stepSize = timeWindow;
+                //int stepCount = p;
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
                 Term[] tp = dateTweetsFreq.Values.ToArray();
                 for (int i = 0, len = tp.Length; i < len; ++i)
                 {
                     tp[i].PointType = 0;
-                    tp[i].TempVirtualCount = -1;
-                    tp[i].GaussinBlurDone();
+                    //tp[i].TempVirtualCount = -1;
+                    //tp[i].GaussinBlurDone();
                 }
 
-                GaussinFilterTerm(0, 0 + timeWindow, tp);
+                //GaussinFilterTerm(0, 0 + timeWindow, tp);
                 for (int i = 0; i < p; i++)
                 {
-                    mean += tp[i].VirtualCount;
+                    mean += tp[i].TweetsCount;
                 }
                 mean = mean / p;
 
                 for (int i = 0; i < p; i++)
                 {
-                    variance = variance + Math.Pow(tp[i].VirtualCount - mean, 2);
+                    variance = variance + Math.Pow(tp[i].TweetsCount - mean, 2);
                 }
                 variance = Math.Sqrt(variance / p);
 
@@ -162,62 +162,63 @@ namespace ManyLens.SignalR
                 //System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
                 //var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
                 //List<Point> points = new List<Point>();
-                for (int i = p, t = 0; t < tp.Length; i++, stepCount--, t++)
+                for (int i = p, t = 0; t < tp.Length; i++, t++)
+                //for (int i = p, t = 0; t < tp.Length; i++, stepCount--, t++)
                 {
                     //Gaussin smoothing
-                    if (stepCount == 0)
-                    {
-                        GaussinFilterTerm(i, i + timeWindow, tp);
-                        stepCount = stepSize;
-                    }
+                    //if (stepCount == 0)
+                    //{
+                    //    GaussinFilterTerm(i, i + timeWindow, tp);
+                    //    stepCount = stepSize;
+                    //}
 
                     if (i < tp.Length)
                     {
                         cutoff = variance * beta;
-                        if (Math.Abs(tp[i].VirtualCount - mean) > cutoff && tp[i].VirtualCount > tp[i - 1].VirtualCount)
+                        if (Math.Abs(tp[i].TweetsCount - mean) > cutoff && tp[i].TweetsCount > tp[i - 1].TweetsCount)
                         {
                             int begin = i - 1;
-                            while (i < tp.Length && tp[i].VirtualCount > tp[i - 1].VirtualCount)
+                            while (i < tp.Length && tp[i].TweetsCount > tp[i - 1].TweetsCount)
                             {
                                 //Gaussin smoothing
-                                if (stepCount == 0)
-                                {
-                                    GaussinFilterTerm(i, i + timeWindow, tp);
-                                    stepCount = stepSize;
-                                }
-                                diff = Math.Abs(tp[i].VirtualCount - mean);
+                                //if (stepCount == 0)
+                                //{
+                                //    GaussinFilterTerm(i, i + timeWindow, tp);
+                                //    stepCount = stepSize;
+                                //}
+                                diff = Math.Abs(tp[i].TweetsCount - mean);
                                 variance = alpha * diff + (1 - alpha) * variance;
-                                mean = alpha * mean + (1 - alpha) * tp[i].VirtualCount;
+                                mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                                 i++;
-                                stepCount--;
+                                //stepCount--;
                             }
 
                             int end = i;
                             int peak = i - 1;
                             tp[i - 1].IsPeak = true;
-                            while (i < tp.Length && tp[i].VirtualCount > tp[begin].VirtualCount)
+                            while (i < tp.Length && tp[i].TweetsCount > tp[begin].TweetsCount)
                             {
                                 //Gaussin smoothing
-                                if (stepCount == 0)
-                                {
-                                    GaussinFilterTerm(i, i + timeWindow, tp);
-                                    stepCount = stepSize;
-                                }
+                                //if (stepCount == 0)
+                                //{
+                                //    GaussinFilterTerm(i, i + timeWindow, tp);
+                                //    stepCount = stepSize;
+                                //}
 
                                 cutoff = variance * beta;
-                                if (Math.Abs(tp[i].VirtualCount - mean) > cutoff && tp[i].VirtualCount > tp[i - 1].VirtualCount)
+                                if (Math.Abs(tp[i].TweetsCount - mean) > cutoff && tp[i].TweetsCount > tp[i - 1].TweetsCount)
                                 {
                                     end = --i;
-                                    stepCount++;
+                                    //stepCount++;
                                     break;
                                 }
                                 else
                                 {
-                                    diff = Math.Abs(tp[i].VirtualCount - mean);
+                                    diff = Math.Abs(tp[i].TweetsCount - mean);
                                     variance = alpha * diff + (1 - alpha) * variance;
-                                    mean = alpha * mean + (1 - alpha) * tp[i].VirtualCount;
+                                    mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                                     end = i++;
-                                    stepCount--;
+                                    //stepCount--;
                                 }
                             }
 
@@ -255,9 +256,9 @@ namespace ManyLens.SignalR
                         }
                         else
                         {
-                            diff = Math.Abs(tp[i].VirtualCount - mean);
+                            diff = Math.Abs(tp[i].TweetsCount - mean);
                             variance = alpha * diff + (1 - alpha) * variance;
-                            mean = alpha * mean + (1 - alpha) * tp[i].VirtualCount;
+                            mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                         }
                     }
 
@@ -266,8 +267,8 @@ namespace ManyLens.SignalR
                     Point point = new Point()
                     {
                         id = tp[t].ID,
-                        value = tp[t].VirtualCount,
-                        trueValue = tp[t].TweetsCount,
+                        value = tp[t].TweetsCount,
+                        //trueValue = tp[t].TweetsCount,
                         isPeak = tp[t].IsPeak,
                         type = tp[t].PointType,
                         beg = tp[t].BeginPoint,
@@ -319,11 +320,11 @@ namespace ManyLens.SignalR
                     Thread.Sleep(100);
 
                     //Gaussin smoothing
-                    if (stepCount == 0)
-                    {
-                        GaussinFilterTerm(i, i + timeWindow, tp);
-                        stepCount = stepSize;
-                    }
+                    //if (stepCount == 0)
+                    //{
+                    //    GaussinFilterTerm(i, i + timeWindow, tp);
+                    //    stepCount = stepSize;
+                    //}
                 }
 
                 ////Output the json data

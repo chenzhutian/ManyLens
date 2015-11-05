@@ -860,11 +860,7 @@ var ManyLens;
                     this.UpdateSubviewTree(exitParent);
                 }
                 //Refresh the curve view
-                this._y_scale.domain([0, d3.max([
-                        d3.max(this._data, function (d) { return d.trueValue; }),
-                        d3.max(this._data, function (d) { return d.value; })
-                    ])
-                ]);
+                this._y_scale.domain([0, d3.max(this._data, function (d) { return d.value; })]);
                 this._y_axis_gen.scale(this._y_scale);
                 this._y_axis.call(this._y_axis_gen);
                 var restPathData = [];
@@ -878,23 +874,23 @@ var ManyLens;
                             beg: i,
                             end: 0,
                             pathPoints: [
-                                { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue }
+                                { index: i, value: this._data[i].value }
                             ]
                         };
                         nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         while (this._data[++i] && this._data[i].beg == section.id) {
-                            section.pathPoints.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            section.pathPoints.push({ index: i, value: this._data[i].value });
                             nodesData.push({ id: this._data[i].beg, value: this._data[i].value, index: i });
                         }
                         if (this._data[i] && this._data[i].type == 3) {
                             section.end = i;
-                            section.pathPoints.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            section.pathPoints.push({ index: i, value: this._data[i].value });
                         }
                         else if (this._data[i] && this._data[i].type == 1) {
                             section.end = i - 1;
                             var sectionRestPath = [];
-                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
-                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value });
+                            sectionRestPath.push({ index: i, value: this._data[i].value });
                             restPathData.push(sectionRestPath);
                         }
                         else {
@@ -905,13 +901,13 @@ var ManyLens;
                     else {
                         var sectionRestPath = [];
                         if (this._data[i - 1])
-                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
-                        sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            sectionRestPath.push({ index: i - 1, value: this._data[i - 1].value });
+                        sectionRestPath.push({ index: i, value: this._data[i].value });
                         while (this._data[++i] && !this._data[i].beg) {
-                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            sectionRestPath.push({ index: i, value: this._data[i].value });
                         }
                         if (this._data[i])
-                            sectionRestPath.push({ index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            sectionRestPath.push({ index: i, value: this._data[i].value });
                         restPathData.push(sectionRestPath);
                     }
                 }
@@ -975,7 +971,7 @@ var ManyLens;
                     return _this._x_scale(d.index);
                 })
                     .y(function (d, i) {
-                    return _this._y_scale(d.trueValue);
+                    return _this._y_scale(d.value);
                 })
                     .interpolate("linear");
                 //var path = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });

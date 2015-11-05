@@ -6,7 +6,7 @@ module ManyLens {
 
         interface Point {
             value: number;
-            trueValue: number;
+            //trueValue: number;
             isPeak: boolean;
             id: string;
             type: number;
@@ -21,7 +21,7 @@ module ManyLens {
             pathPoints: [{
                 index: number;
                 value: number;
-                trueValue: number;
+                //trueValue: number;
             }];
         }
 
@@ -579,11 +579,7 @@ module ManyLens {
                 }
 
                 //Refresh the curve view
-                this._y_scale.domain( [0, d3.max( [
-                    d3.max( this._data, function ( d ) { return d.trueValue; }),
-                    d3.max( this._data, function ( d ) { return d.value; })
-                ] )
-                ] );
+                this._y_scale.domain( [0,d3.max( this._data, function ( d ) { return d.value; }) ] );
                 this._y_axis_gen.scale( this._y_scale );
                 this._y_axis.call( this._y_axis_gen );
 
@@ -599,24 +595,24 @@ module ManyLens {
                             beg: i,
                             end: 0,
                             pathPoints: [
-                                { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue }
+                                { index: i, value: this._data[i].value }
                             ]
                         };
                         nodesData.push( { id: this._data[i].beg, value: this._data[i].value, index: i });
 
                         while ( this._data[++i] && this._data[i].beg == section.id ) {
-                            section.pathPoints.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            section.pathPoints.push( { index: i, value: this._data[i].value });
                             nodesData.push( { id: this._data[i].beg, value: this._data[i].value, index: i });
                         }
 
                         if ( this._data[i] && this._data[i].type == 3 ) {
                             section.end = i;
-                            section.pathPoints.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            section.pathPoints.push( { index: i, value: this._data[i].value});
                         } else if ( this._data[i] && this._data[i].type == 1 ) {
                             section.end = i - 1;
                             var sectionRestPath = [];
-                            sectionRestPath.push( { index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
-                            sectionRestPath.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            sectionRestPath.push( { index: i - 1, value: this._data[i - 1].value });
+                            sectionRestPath.push( { index: i, value: this._data[i].value });
                             restPathData.push( sectionRestPath );
                         } else {
                             section.end = i - 1;
@@ -625,15 +621,15 @@ module ManyLens {
                     } else {
                         var sectionRestPath = [];
                         if ( this._data[i - 1] )
-                            sectionRestPath.push( { index: i - 1, value: this._data[i - 1].value, trueValue: this._data[i - 1].trueValue });
-                        sectionRestPath.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            sectionRestPath.push( { index: i - 1, value: this._data[i - 1].value });
+                        sectionRestPath.push( { index: i, value: this._data[i].value });
 
                         while ( this._data[++i] && !this._data[i].beg ) {
-                            sectionRestPath.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            sectionRestPath.push( { index: i, value: this._data[i].value });
                         }
 
                         if ( this._data[i] )
-                            sectionRestPath.push( { index: i, value: this._data[i].value, trueValue: this._data[i].trueValue });
+                            sectionRestPath.push( { index: i, value: this._data[i].value });
 
                         restPathData.push( sectionRestPath );
                     }
@@ -707,7 +703,7 @@ module ManyLens {
                     return this._x_scale( d.index );
                 })
                     .y(( d, i ) => {
-                    return this._y_scale( d.trueValue );
+                    return this._y_scale( d.value );
                 })
                     .interpolate( "linear" )
                     ;

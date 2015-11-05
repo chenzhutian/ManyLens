@@ -43,7 +43,7 @@ namespace ManyLens.Models
     {
         public string id { set; get; }
         public double value { set; get; }
-        public double trueValue { set; get; } 
+        //public double trueValue { set; get; } 
         public bool isPeak { set; get; }
         public uint type { get; set; }
         public string beg { get; set; }
