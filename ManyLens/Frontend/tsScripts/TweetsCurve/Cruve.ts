@@ -6,7 +6,6 @@ module ManyLens {
 
         interface Point {
             value: number;
-            //trueValue: number;
             isPeak: boolean;
             id: string;
             type: number;
@@ -21,7 +20,6 @@ module ManyLens {
             pathPoints: [{
                 index: number;
                 value: number;
-                //trueValue: number;
             }];
         }
 
