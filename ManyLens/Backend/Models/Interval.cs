@@ -26,13 +26,7 @@ namespace ManyLens.Models
         //Just for hack
         public Dictionary<string, string> oW2dW = new Dictionary<string, string>();
 
-        //private double conditionalEntropy = -1;
-        //private bool isPackage = false;
         private int termsCount = 0;
-        //private Term[] oldTerm;
-        //private Interval package;
-        //private Interval lastInterval = null;
-        //private double HXY = -1;
 
         #region Getter & Setter
         public string ID
@@ -362,16 +356,6 @@ namespace ManyLens.Models
             this.Tweets = tweets;
         }
 
-        //public Interval(DateTime beginDate, Term term, Term[] oldTerm)
-        //    : base()
-        //{
-        //    this.id = beginDate.ToString("yyyyMMddHHmmss");
-        //    this.BeginDate = beginDate;
-        //    this.Tweets.AddRange(term.Tweets);
-        //    //this.oldTerm = oldTerm;
-        //}
-
-
         public Interval(DateTime beginDate, Term term)
             : base()
         {
@@ -451,9 +435,8 @@ namespace ManyLens.Models
             ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this, progress);
             ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this, progress);
 
-
-
         }
+
         public void PreproccessingParallel(IProgress<double> progress)
         {
             

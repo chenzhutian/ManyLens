@@ -10,6 +10,23 @@ var ManyLens;
             return SignalRHub;
         })();
         Hub.SignalRHub = SignalRHub;
+        //interface IManyLensHubServer extends HubProxy{
+        //    //loadData(): IPromise<void>;
+        //    //pullPoint(start: string): IPromise<void>;
+        //    //testPullPoint(): IPromise<void>;
+        //    //pullInterval(intervalID: string): IPromise<void>;
+        //    //testPullInterval(intervalID: string): IPromise<void>;
+        //    //getLensData(visMapID: string,lensID:string, unitsID: number[], whichData: string):IPromise<void>;
+        //    //removeLensData(visMapID: string, lensID: string): IPromise<void>;
+        //    //cPieWordCloudLens(lensID: string, pieKey: string, whichData: string): IPromise<void>;
+        //    //reOrganize(visMapID: string, selectedUnits: Array<any>): IPromise<void>;
+        //    //moveTweets(visMapID: string, fromUnitsID: Array<any>, toUnitsID: Array<any>): IPromise<void>;
+        //    //doLongRunningThing(): IPromise<void>;
+        //}
+        //interface IManyLensHubClient extends HubProxy {
+        //    //addPoint(obj: any): void;
+        //    //showVIS(obj:any): void;
+        //}
         var ManyLensHub = (function () {
             function ManyLensHub() {
                 this.connection = $.hubConnection();
@@ -1020,9 +1037,14 @@ var ManyLens;
                     console.log("Segmentation hasn't finished yet!");
                 }
                 else if (d['end'] == null || d['end'] != -1) {
-                    this._curveSvg.style("margin-bottom", "0px");
-                    this._element.select(".progress").style("display", "block");
-                    this.PullInterval(d.id, this._manyLens.CurrentClassifierMapID);
+                    if (this._element.select(".progress").style("display") !== "block") {
+                        this._curveSvg.style("margin-bottom", "0px");
+                        this._element.select(".progress").style("display", "block");
+                        this.PullInterval(d.id, this._manyLens.CurrentClassifierMapID);
+                    }
+                    else {
+                        console.log("There's pulling a interval now");
+                    }
                 }
             };
             Curve.prototype.GetWeek = function (date) {

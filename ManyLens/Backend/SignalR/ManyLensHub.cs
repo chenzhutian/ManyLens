@@ -40,8 +40,6 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
             lensDatas.Clear();
-            //string tweetFile = config.Parameter.RootFolder + "Backend\\DataBase\\FIFACASESample";
-            //string ebolaFile = config.Parameter.RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
            await Task.Run(() =>
             {
                 if (dateTweetsFreq == null)
@@ -64,7 +62,6 @@ namespace ManyLens.SignalR
                 Debug.WriteLine("ON interval " + interval.ID);
                 IProgress<double> p = new Progress<double>();
                 interval.Preproccessing(p);
-                //Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
                 Debug.WriteLine(interval.ID + " , " + interval.Entropy + "," + interval.TweetsCount);
                 taskList.RemoveAt(0);
             }

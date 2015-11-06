@@ -94,6 +94,7 @@ namespace ManyLens.Preprocessing
 
             //deleting repeated tweet.
             Dictionary<string, bool> tweetsDict = new Dictionary<string, bool>();
+
             //deleting stop_words, stop_abbreviation_words, stop_hashtags .
             Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
             IStemmer stemmer = new EnglishStemmer();
