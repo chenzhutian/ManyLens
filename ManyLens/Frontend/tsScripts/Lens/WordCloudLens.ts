@@ -9,8 +9,8 @@ module ManyLens {
 
             private _font_size: D3.Scale.SqrtScale = d3.scale.sqrt();
             private _cloud: D3.Layout.CloudLayout = d3.layout.cloud();
-            private _cloud_w: number = this._lens_circle_radius * Math.SQRT2;
-            private _cloud_h: number = this._cloud_w;
+            private _cloud_w: number = this._lens_circle_radius * 2*Math.SQRT2;
+            private _cloud_h: number = this._lens_circle_radius  * 2;
             private _cloud_padding: number = 1;
             private _cloud_font: string = "Impact";
             private _cloud_font_weight: string = "normal";
@@ -50,6 +50,16 @@ module ManyLens {
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return null;
 
+                this._lens_circle
+                    .attr("d", ()=>{
+                        return "M"+ -(Math.SQRT2*this._lens_circle_radius)+ "," + -this._lens_circle_radius
+                                + "L" + -(Math.SQRT2*this._lens_circle_radius) + "," + this._lens_circle_radius
+                                +"L" +(Math.SQRT2* this._lens_circle_radius) + "," + this._lens_circle_radius
+                                +"L" +(Math.SQRT2* this._lens_circle_radius) + "," + -this._lens_circle_radius
+                                +"Z"
+                        ;
+                    });
+
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._extract_data_map_func.Extract(this._data))
                     .filter((d) => {
@@ -67,6 +77,9 @@ module ManyLens {
                     })
                 ;
                 this._cloud.start();
+
+
+
             }
 
             private DrawCloud(words: any[], bounds: any[]) {
@@ -80,6 +93,7 @@ module ManyLens {
                     h / Math.abs(bounds[1].y - h / 2),
                     h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
 
+              
                 var text = this._lens_circle_svg.selectAll("text")
                     .data(words, function (d) { return d.text; })
                     .enter().append("text").attr("class","word-cloud");

@@ -174,7 +174,6 @@ module ManyLens {
 
                 this._lens_circle_svg = this._sc_lc_svg.append("g")
                     .data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }])
-
                     .attr("class", "lens-circle-g " + this._type)
                     .attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")")
                     .attr("opacity", "1e-6")

@@ -2858,8 +2858,8 @@ var ManyLens;
                 _super.call(this, element, attributeName, WordCloudLens.Type, manyLens);
                 this._font_size = d3.scale.sqrt();
                 this._cloud = d3.layout.cloud();
-                this._cloud_w = this._lens_circle_radius * Math.SQRT2;
-                this._cloud_h = this._cloud_w;
+                this._cloud_w = this._lens_circle_radius * 2 * Math.SQRT2;
+                this._cloud_h = this._lens_circle_radius * 2;
                 this._cloud_padding = 1;
                 this._cloud_font = "Impact";
                 this._cloud_font_weight = "normal";
@@ -2886,6 +2886,14 @@ var ManyLens;
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return null;
+                this._lens_circle
+                    .attr("d", function () {
+                    return "M" + -(Math.SQRT2 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
+                        + "L" + -(Math.SQRT2 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
+                        + "L" + (Math.SQRT2 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
+                        + "L" + (Math.SQRT2 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
+                        + "Z";
+                });
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._extract_data_map_func.Extract(this._data))
                     .filter(function (d) {
