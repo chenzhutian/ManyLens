@@ -7,7 +7,7 @@ module ManyLens {
 
             public static Type: string = "MapLens";
 
-            private _projection: D3.Geo.Projection = d3.geo.orthographic();
+            private _projection: D3.Geo.Projection = d3.geo.equirectangular();
 
             //d3.geo.mercator();
             private _path: D3.Geo.Path = d3.geo.path();
@@ -40,15 +40,12 @@ module ManyLens {
             constructor( element: D3.Selection, attributeName: string, manyLens: ManyLens.ManyLens ) {
                 super( element, attributeName, MapLens.Type, manyLens );
 
-
-
                 this._projection
-                    .clipAngle( 90 )
                     .precision( .1 )
-                    .scale( 100 )
-                    .rotate( [-70, -20] )
-                //  .center([-0.6, 38.7])
-                    .translate( [0, 0] )
+                    .scale( 76  )
+                    .rotate( [0, 0] )
+                    .center([-0.6, 38.7])
+                    .translate( [0, -30] )
                 ;
 
                 this._path
@@ -85,10 +82,10 @@ module ManyLens {
 
                 this._lens_circle
                     .attr( "d", () => {
-                        return "M" + -( Math.SQRT2 * this._lens_circle_radius ) + "," + -this._lens_circle_radius
-                            + "L" + -( Math.SQRT2 * this._lens_circle_radius ) + "," + this._lens_circle_radius
-                            + "L" + ( Math.SQRT2 * this._lens_circle_radius ) + "," + this._lens_circle_radius
-                            + "L" + ( Math.SQRT2 * this._lens_circle_radius ) + "," + -this._lens_circle_radius
+                        return "M" + -( 2.5 * this._lens_circle_radius ) + "," + -this._lens_circle_radius
+                            + "L" + -( 2.5 * this._lens_circle_radius ) + "," + this._lens_circle_radius
+                            + "L" + ( 2.5 * this._lens_circle_radius ) + "," + this._lens_circle_radius
+                            + "L" + ( 2.5 * this._lens_circle_radius ) + "," + -this._lens_circle_radius
                             + "Z"
                             ;
                     });
@@ -123,10 +120,12 @@ module ManyLens {
                             raw: mapData,
                         };
 
+                        var pathData = topojson.feature( mapData, mapData.objects.countries );
+
                         this._lens_circle_svg.append( "g" )
                             .attr( "id", "states" )
                             .selectAll( "path" )
-                            .data( topojson.feature( mapData, mapData.objects.countries ).features )
+                            .data( pathData.features )
                             .enter().append( "path" )
                             .attr( "d", this._path )
                             .attr( "fill", ( d ) => {

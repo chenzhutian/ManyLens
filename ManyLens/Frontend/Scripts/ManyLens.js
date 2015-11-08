@@ -2344,16 +2344,16 @@ var ManyLens;
             __extends(MapLens, _super);
             function MapLens(element, attributeName, manyLens) {
                 _super.call(this, element, attributeName, MapLens.Type, manyLens);
-                this._projection = d3.geo.orthographic();
+                this._projection = d3.geo.equirectangular();
                 //d3.geo.mercator();
                 this._path = d3.geo.path();
                 this._color = d3.scale.quantize();
                 this._projection
-                    .clipAngle(90)
                     .precision(.1)
-                    .scale(100)
-                    .rotate([-70, -20])
-                    .translate([0, 0]);
+                    .scale(76)
+                    .rotate([0, 0])
+                    .center([-0.6, 38.7])
+                    .translate([0, -30]);
                 this._path
                     .projection(this._projection);
                 this._color
@@ -2415,10 +2415,10 @@ var ManyLens;
                     return;
                 this._lens_circle
                     .attr("d", function () {
-                    return "M" + -(Math.SQRT2 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
-                        + "L" + -(Math.SQRT2 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
-                        + "L" + (Math.SQRT2 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
-                        + "L" + (Math.SQRT2 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
+                    return "M" + -(2.5 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
+                        + "L" + -(2.5 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
+                        + "L" + (2.5 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
+                        + "L" + (2.5 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
                         + "Z";
                 });
                 if (this._map_data) {
@@ -2447,10 +2447,11 @@ var ManyLens;
                         _this._map_data = {
                             raw: mapData,
                         };
+                        var pathData = topojson.feature(mapData, mapData.objects.countries);
                         _this._lens_circle_svg.append("g")
                             .attr("id", "states")
                             .selectAll("path")
-                            .data(topojson.feature(mapData, mapData.objects.countries).features)
+                            .data(pathData.features)
                             .enter().append("path")
                             .attr("d", _this._path)
                             .attr("fill", function (d) {
