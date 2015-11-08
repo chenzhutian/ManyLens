@@ -2413,6 +2413,14 @@ var ManyLens;
                 var _this = this;
                 if (!_super.prototype.DisplayLens.call(this))
                     return;
+                this._lens_circle
+                    .attr("d", function () {
+                    return "M" + -(Math.SQRT2 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
+                        + "L" + -(Math.SQRT2 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
+                        + "L" + (Math.SQRT2 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
+                        + "L" + (Math.SQRT2 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
+                        + "Z";
+                });
                 if (this._map_data) {
                     this._lens_circle_svg.append("g")
                         .attr("id", "country")

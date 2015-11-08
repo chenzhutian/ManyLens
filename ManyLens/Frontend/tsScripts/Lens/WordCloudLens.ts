@@ -24,6 +24,8 @@ module ManyLens {
             constructor(element: D3.Selection, attributeName: string, manyLens: ManyLens.ManyLens) {
                 super(element, attributeName, WordCloudLens.Type, manyLens);
 
+
+
                 this._cloud_text_color = d3.scale.pow().range(["#C5EFF7","#4183D7"]);
             }
 
