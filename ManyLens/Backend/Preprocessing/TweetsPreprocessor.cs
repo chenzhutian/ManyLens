@@ -22,7 +22,8 @@ namespace ManyLens.Preprocessing
                 return;
             }
             //deleting repeated tweet.
-            Dictionary<string, bool> tweetsDict = new Dictionary<string, bool>();
+            //Dictionary<string, bool> tweetsDict = new Dictionary<string, bool>();
+            
             //deleting stop_words, stop_abbreviation_words, stop_hashtags .
             Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
             IStemmer stemmer = new EnglishStemmer();
@@ -42,8 +43,9 @@ namespace ManyLens.Preprocessing
 
                 for (int j = 0,lenj = words.Count; j < lenj; ++j)
                 {
-                    string originalWord = words[j].Value.Trim();
-                    if (originalWord.IndexOf("#") == 0)
+                    string originalWord = words[j].Value;
+
+                    if (originalWord[0] == '#')
                     {
                         tweet.AddHashTag(originalWord);
                         originalWord = originalWord.Substring(1, originalWord.Length - 1);
@@ -56,11 +58,8 @@ namespace ManyLens.Preprocessing
                     newContent = newContent + " " + deriveWord;
                 }
                 
+                tweet.DerivedContent = newContent != null && newContent.Length > 2 ? newContent.Trim() : null;
 
-                if (newContent != null && newContent.Length > 2)
-                {
-                    tweet.DerivedContent = newContent.Trim();
-                }
                 System.Threading.Interlocked.Increment(ref percent);
                 if (percent % 10 == 0)
                 {
@@ -89,11 +88,10 @@ namespace ManyLens.Preprocessing
 
         public static void ProcessTweet(Interval interval, IProgress<double> progress)
         {
-            if (interval.HasPreprocessed)
-                return;
+            if (interval.HasPreprocessed) return;
 
             //deleting repeated tweet.
-            Dictionary<string, bool> tweetsDict = new Dictionary<string, bool>();
+            //Dictionary<string, bool> tweetsDict = new Dictionary<string, bool>();
 
             //deleting stop_words, stop_abbreviation_words, stop_hashtags .
             Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
