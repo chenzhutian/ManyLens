@@ -130,11 +130,11 @@
 
                 var r1 = (startX - (tag.x0+tag.x)) * (startX - (tag.x0+tag.x)) + (startY - (tag.y0+tag.y)) * (startY - (tag.y0+tag.y));
                 var r2 = (startX - (tag.x1+tag.x)) * (startX - (tag.x1+tag.x)) + (startY - (tag.y1+tag.y)) * (startY - (tag.y1+tag.y));
-                if (r1 > maxR || r2 > maxR)
-                    continue;
-                //if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 ||
-                //    tag.x + tag.x1 > size[0] || tag.y + tag.y1 > size[1])
+                //if (r1 > maxR || r2 > maxR)
                 //    continue;
+                if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 ||
+                    tag.x + tag.x1 > size[0] || tag.y + tag.y1 > size[1])
+                    continue;
 
                 // only check for collisions within current bounds.
                 if (!bounds || !cloudCollide(tag, board, size[0])) {

@@ -11,6 +11,7 @@ namespace ManyLens.Models
         private Dictionary<string, int> dfOfWords = null;
         private Dictionary<string, int> frequenceOfWords = null;
         private Dictionary<string, double> pOfWords = null;
+        private List<string> most50 = null;
 
         #region Getter&Setter
         public Dictionary<string, int> IdOfWords
@@ -66,9 +67,34 @@ namespace ManyLens.Models
                     {
                         this.pOfWords.Add(item.Key, (double)item.Value / sum);
                     }
+
+                    this.pOfWords =  (from item in this.pOfWords
+                     orderby item.Value descending
+                     select item).ToDictionary(pair => pair.Key, pair => pair.Value);
                 }
                 return this.pOfWords;
             }
+        }
+        public List<string> Most50
+        {
+            get
+            {
+                if (this.most50 == null)
+                {
+                    this.most50 = new List<string>();
+                    List<string> keys = this.PofWords.Keys.ToList();
+                    int t = 0;
+                    for (int i = 0; t < 10; ++i)
+                    { 
+                        if(keys[i] == "bra" || keys[i] == "ger")
+                            continue;
+                        this.most50.Add(keys[i]);
+                        ++t;
+                    }
+                }
+                return this.most50; 
+            }
+ 
         }
         #endregion
 

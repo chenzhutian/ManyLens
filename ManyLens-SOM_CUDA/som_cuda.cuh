@@ -22,9 +22,6 @@ void __syncthreads();
 #define DIMENSION 1024
 #define CHKSIZE 4     //neuron number must be evenly divisible by CHKSIZE
 
-
-
-
 #ifdef __cplusplus 
 extern "C"
 
@@ -43,53 +40,51 @@ extern "C"
 #endif
 
 	//Initialize CUDA runtime
-	SOM_CUDA_API int InitializeCUDA(void);   
-	
+	SOM_CUDA_API int InitializeCUDA(void);
+
 	//Do cleanup when close the program
-	SOM_CUDA_API int CleanUp(void); 	
-	
-	SOM_CUDA_API unsigned int* SOM(const float* label,
+	SOM_CUDA_API int CleanUp(void);
+
+	SOM_CUDA_API float* SOMwithRandomMapping(const float* h_gaussin,
+		const float* h_inputSet,
+		const float* h_initial_weight,
+		const unsigned int input_set_size,
+		const unsigned int dimension,
+		const unsigned int height,
+		const unsigned int width,
+		const unsigned int batch_size,
+		const int epochNum,
+		const float lambda,
+		const float iterNum);
+
+	SOM_CUDA_API unsigned int* SOMClassificationwithRandomMapping(const float* h_gaussin,
+		const float* h_inputSet,
+		const float* h_classifier_weight,
+		const unsigned int input_set_size,
+		const unsigned int dimension,
+		const unsigned int height,
+		const unsigned int width,
+		const unsigned int batch_size);
+
+	SOM_CUDA_API float* SOMRefinewithRandomMapping(const float* h_gaussin,
 									const float* h_inputSet,
+									const unsigned int* h_BID,
+									const float* h_initial_weight,
 									const unsigned int input_set_size,
 									const unsigned int dimension,
 									const unsigned int height,
 									const unsigned int width,
-									const unsigned int batch_size, 
-									const int epochNum, 
-									const float lambda,
-									const float iterNum,
-									const unsigned int groupsNum);
+									const unsigned int batch_size);
 
-	SOM_CUDA_API unsigned int* SOMwithRandomMapping(const float* h_gaussin,
-													const float* h_inputSet,
-													const unsigned int input_set_size,
-													const unsigned int dimension,
-													const unsigned int height,
-													const unsigned int width,
-													const unsigned int batch_size,
-													const int epochNum,
-													const float lambda,
-													const float iterNum);
+	SOM_CUDA_API unsigned int* FindBID(const float* h_gaussin,
+									   const float* input_vector, 
+									   const unsigned int input_vector_size, 
+									   const unsigned int input_dimension,
+									   const float* weights, 
+									   const unsigned int weights_size);
+	
 
-	SOM_CUDA_API unsigned int* SOMRefineClassificationwithRandomMapping(const float* h_gaussin,
-																		const float* h_inputSet, 
-																		const unsigned int input_set_size, 
-																		const unsigned int dimension, 
-																		const unsigned int height,
-																		const unsigned int width, 
-																		const unsigned int batch_size,
-																		const unsigned int groupsNum);
-
-	SOM_CUDA_API unsigned int* SOMClassificationwithRandomMapping(const float* h_gaussin,
-												 const float* h_inputSet, 
-												 const unsigned int input_set_size, 
-												 const unsigned int dimension, 
-												 const unsigned int height,
-												 const unsigned int width, 
-												 const unsigned int batch_size,
-												 const unsigned int groupsNum);
 	SOM_CUDA_API void somFree(float* pointer);
-
 
 #ifdef __cplusplus
 

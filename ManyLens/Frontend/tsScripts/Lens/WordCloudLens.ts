@@ -9,23 +9,24 @@ module ManyLens {
 
             private _font_size: D3.Scale.SqrtScale = d3.scale.sqrt();
             private _cloud: D3.Layout.CloudLayout = d3.layout.cloud();
-            private _cloud_w: number = this._lens_circle_radius * Math.SQRT2;
-            private _cloud_h: number = this._cloud_w;
+            private _cloud_w: number = this._lens_circle_radius * 2*Math.SQRT2;
+            private _cloud_h: number = this._lens_circle_radius  * 2;
             private _cloud_padding: number = 1;
-            private _cloud_font: string = "Calibri"
+            private _cloud_font: string = "Impact";
             private _cloud_font_weight: string = "normal";
-            private _cloud_text_color: D3.Scale.OrdinalScale;
+            private _cloud_text_color: D3.Scale.PowScale;
             //private _cloud_rotate: number = 0;
 
-            public get Color(): D3.Scale.OrdinalScale {
-                return this._cloud_text_color;
-            }
+            //public get Color(): D3.Scale.LinearScale {
+            //    return this._cloud_text_color;
+            //}
 
             constructor(element: D3.Selection, attributeName: string, manyLens: ManyLens.ManyLens) {
                 super(element, attributeName, WordCloudLens.Type, manyLens);
 
-                this._cloud_text_color = d3.scale.category20c();
 
+
+                this._cloud_text_color = d3.scale.pow().range(["#C5EFF7","#4183D7"]);
             }
 
             public Render(color = "red"): void {
@@ -41,10 +42,25 @@ module ManyLens {
                         return d.Value;
                     }))
                 ;
+                this._cloud_text_color
+                    .domain(d3.extent(this._extract_data_map_func.Extract(this._data), (d: { Key: any; Value: any }) => {
+                        return this._font_size(d.Value);
+                    }))
+                ;
             }
 
             public DisplayLens(): any {
                 if (!super.DisplayLens()) return null;
+
+                this._lens_circle
+                    .attr("d", ()=>{
+                        return "M"+ -(Math.SQRT2*this._lens_circle_radius)+ "," + -this._lens_circle_radius
+                                + "L" + -(Math.SQRT2*this._lens_circle_radius) + "," + this._lens_circle_radius
+                                +"L" +(Math.SQRT2* this._lens_circle_radius) + "," + this._lens_circle_radius
+                                +"L" +(Math.SQRT2* this._lens_circle_radius) + "," + -this._lens_circle_radius
+                                +"Z"
+                        ;
+                    });
 
                 this._cloud.size([this._cloud_w, this._cloud_h])
                     .words(this._extract_data_map_func.Extract(this._data))
@@ -63,6 +79,9 @@ module ManyLens {
                     })
                 ;
                 this._cloud.start();
+
+
+
             }
 
             private DrawCloud(words: any[], bounds: any[]) {
@@ -76,9 +95,10 @@ module ManyLens {
                     h / Math.abs(bounds[1].y - h / 2),
                     h / Math.abs(bounds[0].y - h / 2)) / 2 : 1;
 
+              
                 var text = this._lens_circle_svg.selectAll("text")
                     .data(words, function (d) { return d.text; })
-                    .enter().append("text");
+                    .enter().append("text").attr("class","word-cloud");
 
                 text.attr("text-anchor", "middle")
                     .style("font-size", function (d) { return d.size + "px"; })

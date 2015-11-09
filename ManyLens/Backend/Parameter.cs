@@ -4,29 +4,46 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManyLens
+namespace ManyLens.config
 {
     class Parameter
     {
-        private static int _timeSpan = 3;
-        private static string tweetfile = "dtext-tweets-onedriver.txt";
-        public static double declineBeta = 0.5;
-        public static int maxPerSegment = 5000;
-        public static int maxHigherPerSegment = 5000;
-        public static int maxUserPerSegment = 5000;
-        public static int maxWordPerSegment = 5000;
-        public static bool segmentAggregate = false;
+        private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+        public static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
+        public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
+        public static string cities1000File = RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
+        public static string stopwordFile = RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+        //public static string tweetFile = ebolaFile;
+        private static int timeSpan =2;
+        private static int hashDimension = 8192;
+        private static int dimensionAfterRandomMapping = 1024;
+        private static float[] rmMatrix = myMath.GaussianRandom.GetRMMatrix(DimensionAfterRandomMapping, HashDimension);
+        public static double filterWords = 0.3;
 
-        public static int timeSpan
+        public static string RootFolder
         {
-            get { return _timeSpan; }
-            set { _timeSpan = value > 4 ? 4 : value < 1 ? 1 : value; }
+            get { return Parameter.rootFolder; }
+            set { Parameter.rootFolder = value; }
         }
-
-        public static string originalTweet
+        public static int HashDimension
         {
-            get { return tweetfile; }
-            set { tweetfile = value; }
+            get { return Parameter.hashDimension; }
+            set { Parameter.hashDimension = value; }
+        }
+        public static int DimensionAfterRandomMapping
+        {
+            get { return Parameter.dimensionAfterRandomMapping; }
+            set { Parameter.dimensionAfterRandomMapping = value; }
+        }
+        public static float[] RmMatrix
+        {
+            get { return Parameter.rmMatrix; }
+            set { Parameter.rmMatrix = value; }
+        }
+        public static int TimeSpan
+        {
+            get { return Parameter.timeSpan; }
+            set { Parameter.timeSpan = value > 4 ? 4 : value < 1 ? 1 : value; }
         }
 
         public static string[] intervals = { "Month", "Day", "Hour", "Minute" };

@@ -43,33 +43,27 @@ namespace ManyLens.Models
     {
         public string id { set; get; }
         public double value { set; get; }
-        public double trueValue { set; get; } 
         public bool isPeak { set; get; }
         public uint type { get; set; }
         public string beg { get; set; }
         public string end { get; set; }
     }
 
-    //public class UnitsDataForLens
-    //{
-    //    //public List<int> unitsID { set; get; }
-    //    public List<KeyValuePair<string, int>> keywordsDistribute { set; get; }
-    //    public List<KeyValuePair<int, int>> tweetLengthDistribute { set; get; }
-    //    public List<string> contents { set; get; }
-    //    public List<KeyValuePair<string, int>> hashTagDistribute { set; get; }
-    //    public Network retweetNetwork { set; get; }
-    //    public List<KeyValuePair<string, int>> userTweetsDistribute { set; get; }
-    //}
-
     public class UnitsData
     {
         public int unitID { set; get; }
-        public int count{set;get;}
+        public int value{set;get;}
         public int x { set; get; }
         public int y { set; get; }
         public string mapID { get; set; }
-        //public UnitsDataForLens lensData { set; get; }
-        //public List<string> tweetIDs{set;get;}
+    }
+
+    public class Label
+    {
+        public int x { set; get; }
+        public int y { set; get; }
+        public string label { set; get; }
+        public double value { set; get; }
     }
 
     public class VISData
@@ -79,6 +73,7 @@ namespace ManyLens.Models
         public int height { get; set; }
         public int max { set; get; }
         public int min { set; get; }
+        public List<Label> labels { set; get; }
         public List<UnitsData> unitsData { set; get; }
     }
 }

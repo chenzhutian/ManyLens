@@ -17,8 +17,8 @@ namespace ManyLens.Models
         private string begPoint;
         private string endPoint;
         private bool isPeak = false;
-        private double virtualCount = -1;
-        private double tempVirtualCount = 0;
+        //private double virtualCount = -1;
+        //private double tempVirtualCount = 0;
 
         #region Getter & Setter
         public String ID
@@ -28,26 +28,26 @@ namespace ManyLens.Models
                 return this.id;
             }
         }
-        public double VirtualCount
-        {
-            get
-            {
-                if (virtualCount == -1)
-                    return this.TweetsCount;
-                return this.virtualCount;
-            }
-        }
-        public double TempVirtualCount
-        {
-            get
-            {
-                return this.tempVirtualCount;
-            }
-            set
-            {
-                this.tempVirtualCount = value;
-            }
-        }
+        //public double VirtualCount
+        //{
+        //    get
+        //    {
+        //        if (virtualCount == -1)
+        //            return this.TweetsCount;
+        //        return this.virtualCount;
+        //    }
+        //}
+        //public double TempVirtualCount
+        //{
+        //    get
+        //    {
+        //        return this.tempVirtualCount;
+        //    }
+        //    set
+        //    {
+        //        this.tempVirtualCount = value;
+        //    }
+        //}
         public DateTime TermDate
         {
             get
@@ -136,17 +136,22 @@ namespace ManyLens.Models
             this.id = date.ToString("yyyyMMddHHmmss");
         }
 
-        public new void AddTweet(string id, string content, DateTime date,double lon, double lat, User user)
+        public void AddTweet(Tweet tweet)
         {
-            base.AddTweet(id, content,date,lon, lat,user);
+            base.AddTweet(tweet);
         }
 
-        public void GaussinBlurDone()
-        {
+        //public new void AddTweet(string id, string content, DateTime date,double lon, double lat, User user)
+        //{
+        //    base.AddTweet(id, content,date,lon, lat,user);
+        //}
+
+        //public void GaussinBlurDone()
+        //{
             
-            this.virtualCount = this.tempVirtualCount;
-            this.tempVirtualCount = 0;
-        }
+        //    this.virtualCount = this.tempVirtualCount;
+        //    this.tempVirtualCount = 0;
+        //}
 
     }
 }

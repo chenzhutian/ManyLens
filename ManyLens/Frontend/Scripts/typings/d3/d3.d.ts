@@ -1290,7 +1290,7 @@ declare module D3 {
         }
 
         export interface GraphNode  {
-            id?: number;
+            id?: string;
             index?: number;
             name?: string;
             px?: number;
@@ -1305,7 +1305,7 @@ declare module D3 {
             value?: number;
             fixed?: boolean;
             children?: GraphNode[];
-            _children?: GraphNode[];
+            _children?: any[];
             parent?: GraphNode;
             depth?: number;
         }
@@ -2826,7 +2826,10 @@ declare module D3 {
                 */
                 (translate: number[]): Zoom;
             };
-
+            center: {
+                (): number[];
+                ( center: number[] ): Zoom;
+            }
             /**
             * Gets or set the allowed scale range
             */

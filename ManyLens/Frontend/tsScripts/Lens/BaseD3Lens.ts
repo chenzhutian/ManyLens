@@ -121,8 +121,9 @@ module ManyLens {
 
                 this._lens_circle_zoom
                     .scaleExtent([1, 2])
-                    .on("zoom", () => {
+                    .on( "zoom",() => {
                         this.LensCircleZoomFunc();
+                        d3.event.sourceEvent.stopPropagation();
                     })
                 ;
 
@@ -131,14 +132,17 @@ module ManyLens {
                     .on("dragstart", () => {
                         
                         this.LensCircleDragstartFunc();
+                        d3.event.sourceEvent.stopPropagation();
                         //console.log("lc_dragstart " + this._type);
                     })
                     .on("drag", () => {
                         this.LensCircleDragFunc();
+                        d3.event.sourceEvent.stopPropagation();
                         //console.log("lc_drag " + this._type);
                     })
                     .on("dragend", () => {
                         this.LensCircleDragendFunc();
+                        d3.event.sourceEvent.stopPropagation();
                         //console.log("lc_dragend " + this._type);
                     })
                 ;
@@ -147,7 +151,8 @@ module ManyLens {
             public Render(color: string): void {
                 this._lens_type_color = color;
                 this._sc_lc_svg = this._element
-                    .append("g")
+                    .append( "g" )
+                    .data( [{tx:0,ty:0,scale:1,cx:0,cy:0}])
                     .attr("class", "lens")
                     .attr("id", this.ID)
                 ;
@@ -169,7 +174,6 @@ module ManyLens {
 
                 this._lens_circle_svg = this._sc_lc_svg.append("g")
                     .data([{ x: this._lens_circle_cx, y: this._lens_circle_cy }])
-
                     .attr("class", "lens-circle-g " + this._type)
                     .attr("transform", "translate(" + [this._lens_circle_cx, this._lens_circle_cy] + ")scale(" + this._lens_circle_scale + ")")
                     .attr("opacity", "1e-6")
@@ -203,8 +207,8 @@ module ManyLens {
                     .attr("d", d3.svg.arc().startAngle(0).endAngle(2 * Math.PI).innerRadius(0).outerRadius(this._lens_circle_radius))
                     .style({
                         "fill": "#fff",
-                        "stroke": "black",
-                        "stroke-width": 1
+                        "stroke": "#ccc",
+                        "stroke-width": 1.5
                     })
                 ;
 
@@ -235,10 +239,11 @@ module ManyLens {
             }
 
             protected LensCircleDragFunc(): void {
-                var transform = this._lens_circle_svg.attr("transform");
-                this._lens_circle_svg.attr("transform", (d) => {
-                    this._lens_circle_cx = d.x = Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("width")) - this._lens_circle_radius, d3.event.x));
-                    this._lens_circle_cy = d.y = Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("height")) - this._lens_circle_radius, d3.event.y));
+                var transform = this._lens_circle_svg.attr( "transform" );
+                this._lens_circle_svg.attr( "transform",( d ) => {
+
+                    this._lens_circle_cx = d.x = d3.event.x;//Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("width")) - this._lens_circle_radius, d3.event.x));
+                    this._lens_circle_cy = d.y = d3.event.y;//Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("height")) - this._lens_circle_radius, d3.event.y));
                     transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
                     return transform;
                 });

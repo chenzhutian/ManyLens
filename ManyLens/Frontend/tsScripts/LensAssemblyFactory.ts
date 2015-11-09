@@ -224,12 +224,12 @@ module ManyLens {
                         <Lens.BaseSingleLens>firstLens,
                         <Lens.BaseSingleLens>secondLens);
                 }
-                case Lens.NetworkLens.Type + "_" + Lens.NetworkLens.Type: {
-                    return new Lens.cTreeNetworkLens(element,
-                        manyLens,
-                        <Lens.BaseSingleLens>firstLens,
-                        <Lens.BaseSingleLens>secondLens);
-                }
+                //case Lens.NetworkLens.Type + "_" + Lens.NetworkLens.Type: {
+                //    return new Lens.cTreeNetworkLens(element,
+                //        manyLens,
+                //        <Lens.BaseSingleLens>firstLens,
+                //        <Lens.BaseSingleLens>secondLens);
+                //}
 
                     //just for test now
                 case Lens.PieChartLens.Type + "_" + Lens.PieChartLens.Type: {
@@ -270,9 +270,9 @@ module ManyLens {
                     case Lens.WordCloudLens.Type: {
                         return new Lens.cWordCloudLens(element, manyLens, cLens);
                     }
-                    case Lens.NetworkLens.Type: {
-                        return new Lens.cTreeNetworkLens(element, manyLens, cLens);
-                    }
+                    //case Lens.NetworkLens.Type: {
+                    //    return new Lens.cTreeNetworkLens(element, manyLens, cLens);
+                    //}
                     case Lens.PieChartLens.Type: {
                         return new Lens.cPieChartLens(element, manyLens, cLens);
                     }

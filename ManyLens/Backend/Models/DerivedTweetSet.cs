@@ -12,6 +12,7 @@ namespace ManyLens.Models
         private List<Dictionary<string, int>> sparseVector = null;
         private Vocabulary vocabulary = null;
         protected List<float[]> tfidfVectors = null;
+        protected List<float[]> hashVectors = null;
 
         #region Getter&Setter
         public List<Dictionary<string, int>> SparseVector
@@ -29,7 +30,6 @@ namespace ManyLens.Models
         {
             get
             {
-
                 return this.vocabulary;
             }
             set

@@ -11,44 +11,44 @@ using ManyLens.Preprocessing;
 using ManyLens.SOM;
 using System.Diagnostics;
 
-
 namespace ManyLens.SignalR
 {
+
+    class MapPack
+    {
+        public VisMap clusteringMap { get; set; }
+        public VisMap classificationMap { get; set; }
+    }
+
     public class ManyLensHub : Hub
     {
-        private static bool TestMode = false;
-        private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+        private static bool GeoMapMode = false;
 
         private static SortedDictionary<DateTime, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
-        private static Dictionary<string, Lens> lensdatas = new Dictionary<string, Lens>();
-        
+        private static SortedDictionary<DateTime, MapPack> visMapsSortedByTime = new SortedDictionary<DateTime, MapPack>();
+        private static Dictionary<string, Lens> lensDatas = new Dictionary<string, Lens>();
+
         public static List<TweetsIO.CityStruct> cities1000;
         public static HashSet<string> stopWords;
 
         private Random rnd = new Random();
 
-        public async Task LoadData()
+        public async Task LoadData(IProgress<double> progress)
         {
             //clear the static data
             interals.Clear();
-            lensdatas.Clear();
-            //string tweetFile = rootFolder + "Backend\\DataBase\\onedrivetweets";
-            string tweetFile = rootFolder + "Backend\\DataBase\\FIFAShortAttributesSample";
-            string cities1000File = rootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
-            string stopwordFile = rootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
-            Debug.WriteLine(tweetFile);
-            await Task.Run(() =>
+            lensDatas.Clear();
+           await Task.Run(() =>
             {
                 if (dateTweetsFreq == null)
-                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(tweetFile);
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.ebolaFile);
                 if (cities1000 == null)
-                    cities1000 = TweetsIO.LoadCities1000(cities1000File);
-                if(stopWords == null)
-                    stopWords = TweetsIO.LoadStopWord(stopwordFile);
+                    cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
+                if (stopWords == null)
+                    stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
             });
-
         }
 
         private List<Interval> taskList = new List<Interval>();
@@ -62,13 +62,12 @@ namespace ManyLens.SignalR
                 Debug.WriteLine("ON interval " + interval.ID);
                 IProgress<double> p = new Progress<double>();
                 interval.Preproccessing(p);
-                Debug.WriteLine("Conditional Entropy of " + interval.ID + " is " + interval.ConditionalEntropy);
-                Debug.WriteLine("Entropy of " + interval.ID + " is " + interval.Entropy);
+                Debug.WriteLine(interval.ID + " , " + interval.Entropy + "," + interval.TweetsCount);
                 taskList.RemoveAt(0);
             }
             Clients.Caller.enableReorganizeIntervalBtn();
         }
-        private Task task = null ;
+        private Task task = null;
         private void LazyThreadForConditionalEntropy(Interval interval)
         {
 
@@ -83,33 +82,7 @@ namespace ManyLens.SignalR
                 task = new Task(PreprocesInterval);
                 Clients.Caller.disableReorganizeIntervalBtn();
                 task.Start();
-                
-            }
-        }
 
-        private static double GetGaussin(double x,double sigma = 1)
-        {
-            return Math.Exp((-x * x *0.5)/(sigma * sigma)) / (Math.Sqrt(2 * Math.PI) * sigma);
-        }
-
-        private static void GaussinFilterTerm(int beg, int end, Term[] tp)
-        {
-            if (end > tp.Length)
-                end = tp.Length;
-            if (beg < 0)
-                beg = 0;
-
-            for (int i = beg; i < end; ++i)
-            {
-                for (int j = beg; j < end; ++j)
-                {
-                    double g = GetGaussin(j - i,0.9);
-                    tp[i].TempVirtualCount += tp[j].VirtualCount * g;
-                }
-            }
-            for (int i = beg; i < end; ++i)
-            {
-                tp[i].GaussinBlurDone();
             }
         }
 
@@ -120,8 +93,8 @@ namespace ManyLens.SignalR
             interals.Clear();
             //set the parameter
             double alpha = 0.125;
-            double beta = 2.0;
-            Parameter.timeSpan = 2;
+            double beta = 1.5;
+            ///config.Parameter.TimeSpan = 3;
 
             await Task.Run(() =>
             {
@@ -129,94 +102,69 @@ namespace ManyLens.SignalR
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;
-                int timeWindow = 0;
-                int stepSize = timeWindow;
-                int stepCount = p;
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
                 Term[] tp = dateTweetsFreq.Values.ToArray();
                 for (int i = 0, len = tp.Length; i < len; ++i)
                 {
                     tp[i].PointType = 0;
-                    tp[i].TempVirtualCount = -1;
-                    tp[i].GaussinBlurDone();
                 }
 
-                GaussinFilterTerm(0, 0 + timeWindow, tp);
                 for (int i = 0; i < p; i++)
                 {
-                    mean += tp[i].VirtualCount;
+                    mean += tp[i].TweetsCount;
                 }
                 mean = mean / p;
 
                 for (int i = 0; i < p; i++)
                 {
-                    variance = variance + Math.Pow(tp[i].VirtualCount - mean, 2);
+                    variance = variance + Math.Pow(tp[i].TweetsCount - mean, 2);
                 }
                 variance = Math.Sqrt(variance / p);
 
-                //output the point json data
-                System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
-                var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
-                List<Point> points = new List<Point>();
-                for (int i = p, t = 0; t < tp.Length; i++,stepCount--, t++)
+                ////output the point json data
+                //System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
+                //var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
+                //List<Point> points = new List<Point>();
+                for (int i = p, t = 0; t < tp.Length; i++, t++)
+                //for (int i = p, t = 0; t < tp.Length; i++, stepCount--, t++)
                 {
-                    //Gaussin smoothing
-                    if (stepCount == 0)
-                    {
-                        GaussinFilterTerm(i, i + timeWindow, tp);
-                        stepCount = stepSize;
-                    }
 
                     if (i < tp.Length)
                     {
                         cutoff = variance * beta;
-                        if (Math.Abs(tp[i].VirtualCount - mean) > cutoff && tp[i].VirtualCount > tp[i - 1].VirtualCount)
+                        if (Math.Abs(tp[i].TweetsCount - mean) > cutoff && tp[i].TweetsCount > tp[i - 1].TweetsCount)
                         {
                             int begin = i - 1;
-                            while (i < tp.Length && tp[i].VirtualCount > tp[i - 1].VirtualCount)
+                            while (i < tp.Length && tp[i].TweetsCount > tp[i - 1].TweetsCount)
                             {
-                                //Gaussin smoothing
-                                if (stepCount == 0)
-                                {
-                                    GaussinFilterTerm(i, i + timeWindow, tp);
-                                    stepCount = stepSize;
-                                }
-                                diff = Math.Abs(tp[i].VirtualCount - mean);
+                                diff = Math.Abs(tp[i].TweetsCount - mean);
                                 variance = alpha * diff + (1 - alpha) * variance;
-                                mean = alpha * mean + (1 - alpha) * tp[i].VirtualCount;
+                                mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                                 i++;
-                                stepCount--;
                             }
 
                             int end = i;
+                            int peak = i - 1;
                             tp[i - 1].IsPeak = true;
-                            while (i < tp.Length && tp[i].VirtualCount > tp[begin].VirtualCount)
+                            while (i < tp.Length && tp[i].TweetsCount > tp[begin].TweetsCount)
                             {
-                                //Gaussin smoothing
-                                if (stepCount == 0)
-                                {
-                                    GaussinFilterTerm(i, i + timeWindow, tp);
-                                    stepCount = stepSize;
-                                }
-
                                 cutoff = variance * beta;
-                                if (Math.Abs(tp[i].VirtualCount - mean) > cutoff && tp[i].VirtualCount > tp[i - 1].VirtualCount)
+                                if (Math.Abs(tp[i].TweetsCount - mean) > cutoff && tp[i].TweetsCount > tp[i - 1].TweetsCount)
                                 {
                                     end = --i;
-                                    stepCount++;
                                     break;
                                 }
                                 else
                                 {
-                                    diff = Math.Abs(tp[i].VirtualCount - mean);
+                                    diff = Math.Abs(tp[i].TweetsCount - mean);
                                     variance = alpha * diff + (1 - alpha) * variance;
-                                    mean = alpha * mean + (1 - alpha) * tp[i].VirtualCount;
+                                    mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                                     end = i++;
-                                    stepCount--;
                                 }
                             }
 
-                            
+                            begin = peak - 1;
+                            end = peak + 1;
                             tp[begin].BeginPoint = tp[begin].ID;
                             tp[begin].EndPoint = tp[end].ID;
                             tp[begin].PointType += 1;
@@ -225,29 +173,33 @@ namespace ManyLens.SignalR
                             tp[end].EndPoint = tp[end].ID;
                             tp[end].PointType += 2;
 
-                            ArraySegment<Term> oldTerm = new ArraySegment<Term>(tp, 0, begin);
-                            Interval interal = new Interval(tp[begin].TermDate, tp[begin], oldTerm.ToArray());
-                            //Set the last interval
-                            if(interals.Count > 0)
-                                interal.LastInterval = interals.Last().Value;
-                            interals.Add(interal.ID, interal);
-                            
-                            for (int k = begin + 1; k < end; ++k)
+                            //ArraySegment<Term> oldTerm = new ArraySegment<Term>(tp, 0, begin);
+                            Interval interal = new Interval(tp[begin].TermDate, tp[begin]);
+                            ////Set the last interval
+                            //if(interals.Count > 0)
+                            //    interal.LastInterval = interals.Last().Value;
+                            if (!interals.ContainsKey(interal.ID))
                             {
-                                tp[k].BeginPoint = tp[begin].ID;
-                                tp[k].EndPoint = tp[end].ID;
-                                tp[k].PointType = 4;
-                                interal.AddTerm(tp[k]);
+                                interals.Add(interal.ID, interal);
+
+                                for (int k = begin + 1; k < end; ++k)
+                                {
+                                    tp[k].BeginPoint = tp[begin].ID;
+                                    tp[k].EndPoint = tp[end].ID;
+                                    tp[k].PointType = 4;
+                                    interal.AddTerm(tp[k]);
+                                }
+                                interal.SetEndDate(tp[end].TermDate);
+
+                                LazyThreadForConditionalEntropy(interal);
                             }
-                            interal.SetEndDate(tp[end].TermDate);
-                            
-                            LazyThreadForConditionalEntropy(interal);
+
                         }
                         else
                         {
-                            diff = Math.Abs(tp[i].VirtualCount - mean);
+                            diff = Math.Abs(tp[i].TweetsCount - mean);
                             variance = alpha * diff + (1 - alpha) * variance;
-                            mean = alpha * mean + (1 - alpha) * tp[i].VirtualCount;
+                            mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                         }
                     }
 
@@ -256,8 +208,7 @@ namespace ManyLens.SignalR
                     Point point = new Point()
                     {
                         id = tp[t].ID,
-                        value = tp[t].VirtualCount,
-                        trueValue = tp[t].TweetsCount,
+                        value = tp[t].TweetsCount,
                         isPeak = tp[t].IsPeak,
                         type = tp[t].PointType,
                         beg = tp[t].BeginPoint,
@@ -302,32 +253,26 @@ namespace ManyLens.SignalR
                     //}
                     #endregion
 
-                    //Output the json data
-                    points.Add(point);
+                    ////Output the json data
+                    //points.Add(point);
 
                     Clients.Caller.addPoint(point);
-                    Thread.Sleep(50);
-
-                    //Gaussin smoothing
-                    if (stepCount == 0)
-                    {
-                        GaussinFilterTerm(i, i + timeWindow, tp);
-                        stepCount = stepSize;
-                    }
+                    Thread.Sleep(100);
                 }
 
-                //Output the json data
-                Debug.Write("Let's cache the point data as json");
-                jser.WriteObject(sw.BaseStream, points);
-                sw.Close();
-                Debug.Write("finish json");
+                ////Output the json data
+                //Debug.Write("Let's cache the point data as json");
+                //jser.WriteObject(sw.BaseStream, points);
+                //sw.Close();
+                //Debug.Write("finish json");
             });
         }
 
-        public async Task ReOrganizePeak(bool state) 
+        public async Task ReOrganizePeak(bool state)
         {
             List<List<float[]>> intervalsInGroups = null;
-            await Task.Run(() => {
+            await Task.Run(() =>
+            {
                 if (state)
                 {
                     Clients.Caller.timeInterval();
@@ -372,7 +317,7 @@ namespace ManyLens.SignalR
 
                     int seedsNum = 3;
                     List<float[]> seeds = new List<float[]>(seedsNum);
-                    
+
                     //Random select the seeds
                     List<int> seedsIndex = new List<int>(seedsNum);
                     intervalsInGroups = new List<List<float[]>>();
@@ -389,7 +334,7 @@ namespace ManyLens.SignalR
                     }
 
                     int changeGroupNum = int.MaxValue;
-                    while(changeGroupNum >0 )
+                    while (changeGroupNum > 0)
                     {
                         changeGroupNum = 0;
                         for (int i = 0; i < seedsNum; ++i)
@@ -445,12 +390,12 @@ namespace ManyLens.SignalR
                         }
                     }
 
-                    
+
                     Clients.Caller.clusterInterval(intervalsGroup);
                 }
-                
+
             });
-            
+
 
         }
 
@@ -460,69 +405,166 @@ namespace ManyLens.SignalR
                 return -1;
             double dist = 0;
             for (int i = 0, len = a.Length; i < len; ++i)
-            { 
+            {
                 double dx = a[i] - b[i];
                 dist += dx * dx;
             }
             return Math.Sqrt(dist);
         }
 
-        public async Task PullInterval(string interalID, IProgress<double> progress)
+        public void SwitchMap(bool mapMode)
         {
-            VisMap visMap;
-            string mapID = interalID + "_0";
+            GeoMapMode = mapMode;
+        }
 
-            await Task.Run(() =>
+        public async Task PullInterval(string interalID, string classifierID, IProgress<double> progress)
+        {
+            if (GeoMapMode)
             {
-                if (visMaps.ContainsKey(mapID))
-                    visMap = visMaps[mapID];
-                else
-                {
-                   
-                    Interval interal = interals[interalID];
+                Interval interal = interals[interalID];
+                Dictionary<string, List<Tweet>> tweetsGroupByLocation = new Dictionary<string, List<Tweet>>();
 
-                    interal.PreproccessingParallel(progress);
-
-                    //Test
-                    if (TestMode)
+                await Task.Run(() => {
+                    for (int i = 0, len = interal.TweetsCount; i < len; ++i)
                     {
-                        visMap = GPUSOM.TestTweetSOM(interal, rootFolder);// TweetSOM(interal, rootFolder);
+                        Tweet tweet = interal.Tweets[i];
+                        if (tweet.CountryName == null)
+                        {
+                            Object obj = new Object();
+                            double minDist = double.MaxValue;
+                            string countryName = "";
+                            Parallel.ForEach(ManyLens.SignalR.ManyLensHub.cities1000, (city) =>
+                            {
+                                double dx = tweet.Lon - city.lon;
+                                double dy = tweet.Lat - city.lat;
+                                dx = dx * dx;
+                                dy = dy * dy;
+                                double dist = dx + dy;
+                                lock (obj)
+                                {
+                                    if (dist < minDist)
+                                    {
+                                        minDist = dist;
+                                        countryName = city.country;
+                                    }
+                                }
+                            });
+                            tweet.CountryName = countryName;
+                            
+                        }
+
+                        if (!tweetsGroupByLocation.ContainsKey(tweet.CountryName))
+                        {
+                            tweetsGroupByLocation.Add(tweet.CountryName, new List<Tweet>());
+                        }
+                        tweetsGroupByLocation[tweet.CountryName].Add(tweet);
+                        progress.Report((double)i / len);
                     }
+                    List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+                    foreach (KeyValuePair<string, List<Tweet>> item in tweetsGroupByLocation)
+                    {
+                        Dictionary<string, object> d = new Dictionary<string, object>();
+                        d.Add("countryName", item.Key);
+                        d.Add("tweets", item.Value);
+                        result.Add(d);
+                    }
+                    Clients.Caller.upDateGeoMap(result);
+                
+                });
+               
+            }
+            else
+            {
+                VisMap visMap;
+                string mapID = interalID;
+                if (classifierID != null) mapID = mapID + "_" + classifierID;
+
+                await Task.Run(() =>
+                {
+                    if (visMaps.ContainsKey(mapID))
+                        visMap = visMaps[mapID];
                     else
                     {
-                        visMap = GPUSOM.TweetSOM(interal, rootFolder);
+                        Interval interal = interals[interalID];
+                        interal.PreproccessingParallel(progress);
+
+                        if (classifierID != null)
+                        {
+                            VisMap classifierMap = visMaps[classifierID];
+                            visMap = GPUSOM.TweetSOMClassification(mapID, interal, classifierMap);
+                            if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
+                            {
+                                visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
+                            }
+                            visMapsSortedByTime[visMap.MapDate].classificationMap = visMap;
+                        }
+                        else
+                        {
+                            VisMap lastMap = null;
+                            if (visMapsSortedByTime.Count > 0)
+                            {
+                                lastMap = visMapsSortedByTime.Last().Value.clusteringMap;
+                            }
+                            visMap = GPUSOM.TweetSOMClustering(mapID, interal, lastMap);
+
+                            if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
+                            {
+                                visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
+                            }
+                            visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
+                        }
+
+                        Debug.WriteLine(interal.Entropy);
+                        Debug.WriteLine(interal.TweetsCount);
+                        visMaps.Add(visMap.VisMapID, visMap);
+
                     }
+                    Clients.Caller.showVisMap(visMap.GetVisData(), classifierID);
 
-                    Debug.WriteLine(interal.Entropy);
-                    visMaps.Add(visMap.VisMapID, visMap);
+                });
+            }
+
+
+            //try
+            //{
+            //    Debug.Write("Let's cache the visData as  json");
+
+            //    VISData visData = visMap.GetVisData();
+            //    System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
+            //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
+            //    jser.WriteObject(sw.BaseStream, visData);
+            //    sw.Close();
+            //    Debug.Write("finish json");
+            //
+            //catch (Exception e)
+            //{
+            //    Debug.WriteLine(e.InnerException.Message);
+            //    Debug.WriteLine(e.Message);
+            //}
+        }
+
+        public async Task RefineTheMap(string visMapID, int index, int[] fromUnitsID, int[] toUnitsID)
+        {
+            VisMap refineMap;
+            await Task.Run(() =>
+            {
+                if (visMaps.ContainsKey(visMapID))
+                {
+                    refineMap = visMaps[visMapID];
+                    refineMap.RefineTheMap(fromUnitsID, toUnitsID);
+                    Clients.Caller.updateVisMap(index, refineMap.GetVisData());
                 }
-
-                //try
-                //{
-                //    Debug.Write("Let's cache the visData as  json");
-
-                //    VISData visData = visMap.GetVisData();
-                //    System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
-                //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-                //    jser.WriteObject(sw.BaseStream, visData);
-                //    sw.Close();
-                //    Debug.Write("finish json");
-                //
-                //catch (Exception e)
-                //{
-                //    Debug.WriteLine(e.InnerException.Message);
-                //    Debug.WriteLine(e.Message);
-                //}
-                
-                Clients.Caller.showVIS(visMap.GetVisData());
-
+                else
+                {
+                    throw new Exception("This map is miss");
+                }
             });
 
         }
 
-        public async Task<Dictionary<string,object>> GetLensData(string visMapID,string lensID, int[] unitsID, string baseData,string subData = null)
+        public async Task<Dictionary<string, object>> GetLensData(string visMapID, string lensID, int[] unitsID, string baseData, string subData = null)
         {
-            Dictionary<string,object> data = null;
+            Dictionary<string, object> data = null;
             Debug.WriteLine("baseData here is " + baseData);
             Debug.WriteLine("subData here is " + subData);
             await Task.Run(() =>
@@ -535,19 +577,19 @@ namespace ManyLens.SignalR
                     units.Add(visMap.GetUnitAt(unitsID[i]));
                 }
 
-                if (lensdatas.ContainsKey(lensID))
+                if (lensDatas.ContainsKey(lensID))
                 {
-                    lens = lensdatas[lensID];
+                    lens = lensDatas[lensID];
                 }
                 else
                 {
                     lens = new Lens();
-                    lensdatas.Add(lensID, lens);
+                    lensDatas.Add(lensID, lens);
                 }
 
                 lens.BindUnits(units);
                 lens.MapID = visMapID;
-                data = lens.GetDataForVis(baseData,subData);
+                data = lens.GetDataForVis(baseData, subData);
             });
 
             return data;
@@ -555,10 +597,11 @@ namespace ManyLens.SignalR
 
         public async Task RemoveLensData(string visMapID, string lensID)
         {
-            await Task.Run(() => {
-                lensdatas.Remove(lensID);
+            await Task.Run(() =>
+            {
+                lensDatas.Remove(lensID);
             });
-            
+
         }
 
         #region some code for test
@@ -566,7 +609,7 @@ namespace ManyLens.SignalR
         public void testPullPoint()
         {
             //load the point json data
-            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\pointData_test.json");
+            System.IO.StreamReader sr = new System.IO.StreamReader(config.Parameter.RootFolder + "Backend\\DataBase\\pointData_test.json");
             var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
             List<Point> points = (List<Point>)jser.ReadObject(sr.BaseStream);
             sr.Close();
@@ -580,7 +623,7 @@ namespace ManyLens.SignalR
         public void testPullInterval(string interalID)
         {
             //load the point json data
-            System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\visData_test.json");
+            System.IO.StreamReader sr = new System.IO.StreamReader(config.Parameter.RootFolder + "Backend\\DataBase\\visData_test.json");
             var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
             VISData visData = (VISData)jser.ReadObject(sr.BaseStream);
             sr.Close();
@@ -589,13 +632,14 @@ namespace ManyLens.SignalR
         #endregion
 
         //Interactive for lens
-        public async Task cWordCloudPieLens(string lensID, string pieKey,string baseData,string subData)
+        public async Task cWordCloudPieLens(string lensID, string pieKey, string baseData, string subData)
         {
             HashSet<string> words = new HashSet<string>();
-            Lens lens = lensdatas[lensID];
-            await Task.Run(() => {
+            Lens lens = lensDatas[lensID];
+            await Task.Run(() =>
+            {
                 string t = baseData + "_" + subData;
-                switch(t)
+                switch (t)
                 {
                     case "keywordsDistribute_tweetLengthDistribute":
                         {
@@ -608,16 +652,16 @@ namespace ManyLens.SignalR
                             break;
                         }
                 }
-                
+
             });
 
-            Clients.Caller.interactiveOnLens(lensID,words.ToList());
-            
+            Clients.Caller.interactiveOnLens(lensID, words.ToList());
+
         }
 
         public async Task cMapPieLens(string lensID, string pieKey, string baseData, string subData)
         {
-            Lens lens = lensdatas[lensID];
+            Lens lens = lensDatas[lensID];
             string countryName = null;
             await Task.Run(() =>
             {
@@ -668,71 +712,71 @@ namespace ManyLens.SignalR
         //}
         #endregion
 
-        public void ReOrganize(string visMapID, int[] selectedUnits)
-        {
-            VisMap newVisMap = GPUSOM.TweetReOrganizeSOM(visMaps[visMapID], selectedUnits);
-            visMaps.Add(newVisMap.VisMapID, newVisMap);
-            Clients.Caller.showVIS(newVisMap.GetVisData());
-        }
-        public void MoveTweets(string visMapID, int[] fromUnitsID, int[] toUnitsID)
-        {
-            if (visMapID == null || fromUnitsID == null || toUnitsID == null)
-                return;
+        //public void ReOrganize(string visMapID, int[] selectedUnits)
+        //{
+        //    VisMap newVisMap = GPUSOM.TweetReOrganizeSOM(visMaps[visMapID], selectedUnits);
+        //    visMaps.Add(newVisMap.VisMapID, newVisMap);
+        //    Clients.Caller.showVIS(newVisMap.GetVisData());
+        //}
+        //public void MoveTweets(string visMapID, int[] fromUnitsID, int[] toUnitsID)
+        //{
+        //    if (visMapID == null || fromUnitsID == null || toUnitsID == null)
+        //        return;
 
-            if (fromUnitsID.Length < 1 || toUnitsID.Length < 1)
-                return;
+        //    if (fromUnitsID.Length < 1 || toUnitsID.Length < 1)
+        //        return;
 
-            VisMap visMap = visMaps[visMapID];
-            List<float[]> rawTrainset = new List<float[]>();
-            List<Tweet> rawTweets = new List<Tweet>();
-            List<Unit> fromUnits = new List<Unit>();
-            List<Unit> toUnits = new List<Unit>();
+        //    VisMap visMap = visMaps[visMapID];
+        //    List<float[]> rawTrainset = new List<float[]>();
+        //    List<Tweet> rawTweets = new List<Tweet>();
+        //    List<Unit> fromUnits = new List<Unit>();
+        //    List<Unit> toUnits = new List<Unit>();
 
-            for (int i = fromUnitsID.Length - 1; i >= 0; --i)
-            {
-                Unit unit = visMap.GetUnitAt(fromUnitsID[i]);
+        //    for (int i = fromUnitsID.Length - 1; i >= 0; --i)
+        //    {
+        //        Unit unit = visMap.GetUnitAt(fromUnitsID[i]);
 
-                fromUnits.Add(unit);
+        //        fromUnits.Add(unit);
 
-                rawTrainset.AddRange(unit.TFIDFVectors);
-                rawTweets.AddRange(unit.Tweets);
-                visMap.RemoveUnitAt(fromUnitsID[i]);
+        //        rawTrainset.AddRange(unit.TFIDFVectors);
+        //        rawTweets.AddRange(unit.Tweets);
+        //        visMap.RemoveUnitAt(fromUnitsID[i]);
 
-            }
+        //    }
 
-            for (int i = toUnitsID.Length - 1; i >= 0; --i)
-            {
-                Unit unit = visMap.GetUnitAt(toUnitsID[i]);
-                toUnits.Add(unit);
-            }
+        //    for (int i = toUnitsID.Length - 1; i >= 0; --i)
+        //    {
+        //        Unit unit = visMap.GetUnitAt(toUnitsID[i]);
+        //        toUnits.Add(unit);
+        //    }
 
-            for (int i = rawTrainset.Count - 1; i >= 0; --i)
-            {
-                float[] rawTrainVector = rawTrainset[i];
-                Unit closetUnit = null;
-                float dist = float.MaxValue;
-                for (int j = toUnits.Count - 1; j >= 0; --j)
-                {
-                    float[] unitVector = toUnits[j].UnitVector;
-                    float tempDist = 0;
-                    for (int k = unitVector.Length - 1; k >= 0; --k)
-                    {
-                        tempDist += (unitVector[k] - rawTrainVector[k]) * (unitVector[k] - rawTrainVector[k]);
-                    }
-                    if (tempDist < dist)
-                    {
-                        dist = tempDist;
-                        closetUnit = toUnits[j];
-                    }
-                }
-                closetUnit.AddTweet(rawTweets[i]);
-            }
+        //    for (int i = rawTrainset.Count - 1; i >= 0; --i)
+        //    {
+        //        float[] rawTrainVector = rawTrainset[i];
+        //        Unit closetUnit = null;
+        //        float dist = float.MaxValue;
+        //        for (int j = toUnits.Count - 1; j >= 0; --j)
+        //        {
+        //            float[] unitVector = toUnits[j].UnitVector;
+        //            float tempDist = 0;
+        //            for (int k = unitVector.Length - 1; k >= 0; --k)
+        //            {
+        //                tempDist += (unitVector[k] - rawTrainVector[k]) * (unitVector[k] - rawTrainVector[k]);
+        //            }
+        //            if (tempDist < dist)
+        //            {
+        //                dist = tempDist;
+        //                closetUnit = toUnits[j];
+        //            }
+        //        }
+        //        closetUnit.AddTweet(rawTweets[i]);
+        //    }
 
-            Clients.Caller.reDrawSOMMap(visMap.GetVisData());
-        }
+        //    Clients.Caller.reDrawSOMMap(visMap.GetVisData());
+        //}
         public void DoLongRunningThing()
         {
-            Clients.Caller.showMSG(rootFolder);
+            Clients.Caller.showMSG(config.Parameter.RootFolder);
         }
     }
 }

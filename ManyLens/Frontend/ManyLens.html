@@ -19,6 +19,7 @@
     <script src="Scripts/d3.js" type="text/javascript"></script>
     <script src="Scripts/d3.layout.cloud.js" type="text/javascript"></script>
     <script src="Scripts/d3.fisheye.js" type="text/javascript"></script>
+    <script src="Scripts//d3.superformula.js" type="text/javascript"></script>
     <script src="Scripts/topojson.js" type="text/javascript"></script>
 
     <!-- jQuery (necessary for Flat UI's JavaScript plugins) -->
@@ -27,6 +28,12 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="Scripts/flat-ui.js" type="text/javascript"></script>
     <script src="Scripts/jquery.signalR-2.2.0.js" type="text/javascript"></script>
+    <script src="Scripts/bootstrap-paginator.js" type="text/javascript"></script>
+    <!--<script src="Scripts/html2canvas.js" type="text/javascript"></script>
+    <script src="Scripts/imagesloaded.pkgd.js" type="text/javascript"></script>-->
+    <!--<script src="Scripts/html2canvas.svg.js" type="text/javascript"></script>-->
+
+    <script src="Scripts/ManyLens.js" type="text/javascript"></script>
     <!--generate command:signalr ghp /path:../bin/-->
     <!--<script src="Scripts/server.js" type="text/javascript"></script>-->
 </head>
@@ -35,42 +42,39 @@
     <div class="wrapper">
         <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
             <div class="navbar-header">
-
-                <a class="navbar-brand" href="#"><i class="fui-new"></i>ManyLens</a>
+                <a class="navbar-brand"><i class="fui-new"></i>ManyLens</a>
             </div>
+
             <div class="nav navbar-nav navbar-left">
-                <form role="search" class="navbar-form ">
-                    <div class="btn btn-default navbar-btn"><i class="fui-list-columned"></i></div>
+                <form role="search" class="navbar-form">
+                    <!--<div class="btn btn-default navbar-btn"><i class="fui-list-columned"></i></div>-->
                     <div class="form-group">
                         <div class="input-group">
                             <input class="form-control" id="navbarInput-01" type="search" placeholder="Search">
                             <span class="input-group-btn">
-                                <button type="submit" class="btn"><span class="fui-search"></span></button>
+                                <button type="submit" class="btn" id="navbarInput-02"><span class="fui-search"></span></button>
                             </span>
                         </div>
                     </div>
                 </form>
-
             </div>
-
-            <ul class="nav navbar-nav navbar-right">
-
-                <li><a href="#/">Default</a></li>
-                <li class="#"><a href="#">Static top</a></li>
-                <li><a href="#">Fixed top</a></li>
-            </ul>
         </div>
 
         <div class="nav-side-menu" id="sidebar-nav">
             <div id="curve-btns" style="text-align:center">
-                <input id="intervals-organize-switch" type="checkbox" checked data-on-color="info" data-off-color="danger" data-on-text="Time" data-off-text="Content" />
-             </div>
+            </div>
+            <div id="map-btns">
+            </div>
         </div>
 
         <div class="container-fluid row-11" id="page-content">
-            <div class="row row-2">
-                <div class="col-md-12">
-                    <div class="view" id="curveView">
+            <div class="row row-4">
+                <div class="col-md-12 row-12">
+                    <div class="view row-11" id="curveView">
+                        <!--<div class="view-title view-title-sm-green">
+                            <p>Topics Maps</p>
+                        </div>-->
+
                         <div class="progress">
                             <div class="progress-bar " style="width: 0%;"></div>
                         </div>
@@ -78,120 +82,52 @@
                 </div>
             </div>
 
-            <div class="row row-10" id="mainArea">
-                <div class="col-md-8 row-12">
-
+            <div class="row row-9" id="mainArea">
+                <div class="col-md-12 row-11">
 
                     <div class="view" id="mapView">
-                        <div class="view-title view-title-md-red" >
-                            <!--<h4 class="panel-title">Your Maps</h4>-->
-                            <p>Your Maps</p>
+                        <div class="view-title view-title-md-red">
+                            <p>Topics Maps</p>
                         </div>
+
+                        
+
                         <svg width="100%" id="mapSvg">
 
                         </svg>
+                        <!--<div id="tweetsView"></div>-->
                     </div>
 
-                </div>
+                    <!--<div class="col-md-4 row-12">
+                        <div class="view" id="historyView">
+                            <div id="sidePanel" class="sidePanel">
+                                Settings<br /><br />
 
-                <div class="col-md-4 row-12">
-                    <div class="view" id="historyView">
-                        <div class="view-title view-title-lg-yellow">
-                            <span class="glyphicon glyphicon-time" style="color:white" aria-hidden="true"></span>
-                            <p>History</p>
-                        </div>
-                        <svg width="100%" id="historySvg">
+                                <span>Kernel bandwidth</span><br />
+                                <input type="range" value="64" min="16" max="256" step="16" onchange="ManyLens.MapArea.config.setKernelBandWidth(this.value)" /><br /><br />
 
-                        </svg>
-                    </div>
+                                <span>intensity For DensityMap</span><br />
+                                <input type="range" value="3" min="1" max="32" step="1" onchange="ManyLens.MapArea.config.setIntensity(this.value)" /><br /><br />
 
+                                <span>Shader</span><br />
+                                <form>
+                                    <input type="radio" name="shader" value="0" onchange="ManyLens.MapArea.config.setShader(this.value)" />Contour DensityMap<br />
+                                    <input type="radio" name="shader" value="1" onchange="ManyLens.MapArea.config.setShader(this.value)" />Raw DensityMap<br />
+                                </form>
 
-
-
-                    <div class="view" id="tweetsView">
-
-                        <div class="view-title view-title-sm-green">
-
-                        </div>
-
-                        <div class="list-group">
-                            <a href="#" class="list-group-item">
-                                <p class="list-group-item-text">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
-                            </a>
-                            <a href="#" class="list-group-item">
-                                <p class="list-group-item-text">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
-                            </a>
-                            <a href="#" class="list-group-item">
-                                <p class="list-group-item-text">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
-                            </a>
-                        </div>
-                        <div style="text-align:center">
-                            <div class="pagination pagination-minimal">
-                                <ul>
-                                    <li class="previous">
-                                        <a href="#fakelink" class="fui-arrow-left"></a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#fakelink">1</a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#fakelink">2</a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#fakelink">3</a>
-                                    </li>
-                                    <li class="">
-                                        <a href="#fakelink">4</a>
-                                    </li>
-
-
-                                    <li class="pagination-dropdown dropup active">
-                                        <a href="#fakelink" class="dropdown-toggle" data-toggle="dropdown">
-                                            <i class="fui-triangle-up"></i>
-                                        </a>
-                                        <ul class="dropdown-menu">
-                                            <li>
-                                                <a href="#fakelink">10–20</a>
-                                            </li>
-                                            <li>
-                                                <a href="#fakelink">20–30</a>
-                                            </li>
-                                            <li>
-                                                <a href="#fakelink">40–50</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li class="next">
-                                        <a href="#fakelink" class="fui-arrow-right"></a>
-                                    </li>
-                                </ul>
                             </div>
-
                         </div>
-                      
-                  
-                    </div>
-
-
-
+                    </div>-->
 
                 </div>
-
             </div>
-
-        </div><!--container-->
-
+        </div>
     </div>
-
-
-
-
     <!-- Add my Scripts here-->
-    <script src="Scripts/ManyLens.js" type="text/javascript"></script>
+
     <script>
         // Switches
 
-        $("#intervals-organize-switch").bootstrapSwitch("disabled",true);
 
 
     </script>

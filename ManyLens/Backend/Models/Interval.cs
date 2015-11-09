@@ -13,20 +13,20 @@ namespace ManyLens.Models
         private string id;
         private DateTime beginDate;
         private DateTime endDate;
-        private float[] rmMatrix;
         private float[] intervalVector;
+        private int hashDimension = config.Parameter.HashDimension;
 
-        private bool isPackage = false;
         private bool hasVectorized = false;
         private bool hasPreprocessed = false;
-        private double entropy = -1;
-        private double conditionalEntropy = -1;
-        private int termsCount = 0;
+        private bool hasSOMed = false;
 
-        private Term[] oldTerm;
-        private Interval package;
-        private Interval lastInterval = null;
-        private double HXY = -1;
+        private VisMap visMap = null;
+        private double entropy = -1;
+
+        //Just for hack
+        public Dictionary<string, string> oW2dW = new Dictionary<string, string>();
+
+        private int termsCount = 0;
 
         #region Getter & Setter
         public string ID
@@ -61,17 +61,17 @@ namespace ManyLens.Models
                 return this.termsCount;
             }
         }
-        public float[] RMMatrix
-        {
-            get
-            {
-                return this.rmMatrix;
-            }
-            set
-            {
-                this.rmMatrix = value;
-            }
-        }
+        //public float[] RMMatrix
+        //{
+        //    get
+        //    {
+        //        return this.rmMatrix;
+        //    }
+        //    set
+        //    {
+        //        this.rmMatrix = value;
+        //    }
+        //}
         public bool HasVectorized
         {
             get
@@ -94,6 +94,13 @@ namespace ManyLens.Models
             {
                 if (value == true)
                     this.hasPreprocessed = value;
+            }
+        }
+        public bool HasSOMed
+        {
+            get
+            {
+                return this.hasSOMed;
             }
         }
         public List<float[]> TFIDFVectors
@@ -134,9 +141,78 @@ namespace ManyLens.Models
                         }
                         this.tfidfVectors.Add(vector);
                     }
+
+                    //System.IO.StreamReader sr = new System.IO.StreamReader("C:\\Users\\xiaot_000\\Documents\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Backend\\DataBase\\TEST\\sklearnTFIDFVector");
+                    //this.tfidfVectors = new List<float[]>();
+                    //for (int i = 0; i < 5721; ++i)
+                    //{
+                    //    this.tfidfVectors.Add(new float[9147]);
+                    //}
+                    //while (!sr.EndOfStream)
+                    //{
+                    //    string[] element = sr.ReadLine().Split(' ');
+                    //    this.tfidfVectors[int.Parse(element[0]) - 1][int.Parse(element[1]) - 1] = float.Parse(element[2]);
+                    //}
                 }
+
+
                 return this.tfidfVectors;
             }
+        }
+        public List<float[]> HashVecotrs
+        {
+            get
+            {
+                if (this.SparseVector == null)
+                    return null;
+                if (this.hashVectors == null)
+                {
+                    this.hashVectors = new List<float[]>();
+                    int vectorCount = this.SparseVector.Count;
+                    if (vectorCount != this.TweetsCount)
+                        throw new Exception("the count of vector and tweets is different！");
+
+                    for (int i = 0; i < vectorCount; ++i)
+                    {
+                        float[] vector = new float[this.hashDimension];
+                        double sum = 0.0;
+                        foreach (KeyValuePair<string, int> item in this.SparseVector[i])
+                        {
+                            int h = myMath.MurmurHash3.GetHashCode(item.Key);
+                            int index = Math.Abs(h) % this.hashDimension;
+                            int value = item.Value * (h > 0 ? 1 : -1);
+                            vector[index] += value;
+                            sum += value * value;
+                        }
+                        sum = Math.Sqrt(sum);
+                        foreach (KeyValuePair<string, int> item in this.SparseVector[i])
+                        {
+                            int h = myMath.MurmurHash3.GetHashCode(item.Key);
+                            int index = Math.Abs(h) % this.hashDimension;
+                            vector[index] = (float)(vector[index] / sum);
+                        }
+                        this.hashVectors.Add(vector);
+                    }
+                }
+                //if (this.hashVectors == null)
+                //{
+                //    System.IO.StreamReader sr = new System.IO.StreamReader("C:\\Users\\xiaot_000\\Documents\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Backend\\DataBase\\TEST\\sklearnHashVector");
+                //    this.hashVectors = new List<float[]>();
+                //    for (int i = 0; i < 5721; ++i)
+                //    {
+                //        this.hashVectors.Add(new float[this.hashDimension]);
+                //    }
+                //    while (!sr.EndOfStream)
+                //    {
+                //        string[] element = sr.ReadLine().Split(' ');
+                //        this.hashVectors[int.Parse(element[0]) - 1][int.Parse(element[1]) - 1] = float.Parse(element[2]);
+
+                //    }
+                //}
+
+                return this.hashVectors;
+            }
+        
         }
         public float[] IntervalVector
         {
@@ -186,6 +262,16 @@ namespace ManyLens.Models
                 if (this.entropy == -1)
                 {
                     double entropy = 0;
+                    List<string> keys = this.Vocabulary.PofWords.Keys.ToList();
+                    //int t = 0;
+                    //for (int i = 0; t< 50; ++i)
+                    //{
+                    //    if (keys[i] == "bra" || keys[i] == "ger")
+                    //        continue;
+                    //    double value = this.Vocabulary.PofWords[keys[i]];
+                    //    entropy +=  value* Math.Log(value);
+                    //    ++t;
+                    //}
                     foreach (KeyValuePair<string, double> item in this.Vocabulary.PofWords)
                     {
                         entropy += item.Value * Math.Log(item.Value);
@@ -195,41 +281,41 @@ namespace ManyLens.Models
                 return this.entropy;
             }
         }
-        public Interval LastInterval
-        {
-            get { return this.lastInterval; }
-            set { this.lastInterval = value; }
-        }
-        public double ConditionalEntropy
-        {
-            get
-            {
-                if (this.LastInterval == null)
-                    return -1;
-                if (!this.HasVectorized)
-                    return -1;
-                if (this.conditionalEntropy == -1)
-                {
-                    if (this.HXY == -1)
-                    {
-                        double hxy = 0;
-                        foreach (KeyValuePair<string, double> item1 in this.Vocabulary.PofWords)
-                        {
-                            double p1 = item1.Value;
-                            foreach (KeyValuePair<string, double> item2 in this.LastInterval.Vocabulary.PofWords)
-                            {
-                                double p2 = item2.Value;
-                                double p = p1 * p2;
-                                hxy += p * Math.Log(p);
-                            }
-                        }
-                        this.HXY = -hxy;
-                    }
-                    this.conditionalEntropy = this.HXY - this.LastInterval.Entropy;
-                }
-                return this.conditionalEntropy;
-            }
-        }
+        //public Interval LastInterval
+        //{
+        //    get { return this.lastInterval; }
+        //    set { this.lastInterval = value; }
+        //}
+        //public double ConditionalEntropy
+        //{
+        //    get
+        //    {
+        //        if (this.LastInterval == null)
+        //            return -1;
+        //        if (!this.HasVectorized)
+        //            return -1;
+        //        if (this.conditionalEntropy == -1)
+        //        {
+        //            if (this.HXY == -1)
+        //            {
+        //                double hxy = 0;
+        //                foreach (KeyValuePair<string, double> item1 in this.Vocabulary.PofWords)
+        //                {
+        //                    double p1 = item1.Value;
+        //                    foreach (KeyValuePair<string, double> item2 in this.LastInterval.Vocabulary.PofWords)
+        //                    {
+        //                        double p2 = item2.Value;
+        //                        double p = p1 * p2;
+        //                        hxy += p * Math.Log(p);
+        //                    }
+        //                }
+        //                this.HXY = -hxy;
+        //            }
+        //            this.conditionalEntropy = this.HXY - this.LastInterval.Entropy;
+        //        }
+        //        return this.conditionalEntropy;
+        //    }
+        //}
         public override Vocabulary Vocabulary
         {
             get
@@ -252,23 +338,30 @@ namespace ManyLens.Models
                 base.Vocabulary = value;
             }
         }
+        public VisMap VisMap
+        {
+            get { return visMap; }
+            set 
+            { 
+                visMap = value;
+                this.hasSOMed = true;
+            }
+        }
         #endregion
 
-        public Interval(List<Tweet> tweets, int termsCount)
+        public Interval(List<Tweet> tweets)
             : base()
         {
+            this.id = "test";
             this.Tweets = tweets;
-            this.termsCount = termsCount;
-            this.isPackage = true;
         }
 
-        public Interval(DateTime beginDate, Term term, Term[] oldTerm)
+        public Interval(DateTime beginDate, Term term)
             : base()
         {
             this.id = beginDate.ToString("yyyyMMddHHmmss");
             this.BeginDate = beginDate;
             this.Tweets.AddRange(term.Tweets);
-            this.oldTerm = oldTerm;
         }
 
         public void AddTerm(Term term)
@@ -277,52 +370,43 @@ namespace ManyLens.Models
             this.Tweets.AddRange(term.Tweets);
         }
 
-        public float[] GetTFIDFVector(int num = 0)
+        public float[] GetHashVector(int num = 0)
         {
-            if (this.SparseVector == null)
-                return null;
-            if (this.tfidfVectors == null)
+            //List<float[]> tempVector = this.HashVecotrs;
+            int dimension = this.hashDimension;
+            num = num == 0 ? this.SparseVector.Count : num;
+            Debug.WriteLine("Total is "+((double)dimension * num * 4.0 / (1024.0 * 1024 * 1024)) + "GB");
+            float[] hashVector = new float[dimension * num];
+            for (int i = 0; i < num; ++i)
             {
-                this.tfidfVectors = new List<float[]>();
-                int vectorCount = this.SparseVector.Count;
-                if (vectorCount != this.TweetsCount)
-                    throw new Exception("the count of vector and tweets is different！");
-
-                double D = vectorCount;
-                for (int i = 0; i < vectorCount; ++i)
+                for (int j = 0; j < dimension; ++j)
                 {
-                    float[] vector = new float[this.Dimension];
-                    double sum = 0.0;
-                    List<string> keys = this.SparseVector[i].Keys.ToList();
-                    for (int j = keys.Count - 1; j >= 0; --j)
-                    {
-                        string key = keys[j];
-                        double value = (double)this.SparseVector[i][key];
-
-                        int id = this.GetIDofWord(key);
-                        double idf = Math.Log(D / ((double)this.GetDFofWord(key) + 1.0));
-                        vector[id] = (float)(value * idf);
-                        sum += vector[id] * vector[id];
-                    }
-                    sum = Math.Sqrt(sum);
-                    for (int j = keys.Count - 1; j >= 0; --j)
-                    {
-                        string key = keys[j];
-                        int id = this.GetIDofWord(key);
-                        vector[id] = (float)(vector[id] / sum);
-                    }
-                    this.tfidfVectors.Add(vector);
+                    hashVector[j + i * dimension] = this.HashVecotrs[i][j];
                 }
             }
+
+            //System.IO.StreamWriter sr = new System.IO.StreamWriter("E:\\testHashing");
+            //for (int i = 0, len = this.TweetsCount; i < len; ++i)
+            //{
+            //    Tweet tweet = this.Tweets[i];
+            //    sr.WriteLine(tweet.DerivedContent);
+            //}
+            //sr.Flush();
+            //sr.Close();
+            return hashVector;
+        }
+
+        public float[] GetTFIDFVector(int num = 0)
+        {
+
             int dimension = this.Dimension;
-            if (num == 0)
-                num = this.SparseVector.Count;
+            num = num == 0 ? this.SparseVector.Count : num;
             float[] tfidfVector = new float[dimension * num];
             for (int i = 0; i < num; ++i)
             {
                 for (int j = 0; j < dimension; ++j)
                 {
-                    tfidfVector[j + i * dimension] = this.tfidfVectors[i][j];
+                    tfidfVector[j + i * dimension] = this.TFIDFVectors[i][j];
                 }
             }
             return tfidfVector;
@@ -350,12 +434,16 @@ namespace ManyLens.Models
 
             ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this, progress);
             ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this, progress);
+
         }
+
         public void PreproccessingParallel(IProgress<double> progress)
         {
             
             ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweetParallel(this, progress);
             ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this, progress);
         }
+
+
     }
 }

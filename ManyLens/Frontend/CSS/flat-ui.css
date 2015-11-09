@@ -360,6 +360,21 @@
 .fui-apple:before {
   content: "\e660";
   }
+.fui-pie-chart:before {
+	content: "\e661";
+}
+.fui-stats-dots:before {
+	content: "\e662";
+}
+.fui-stats-bars:before {
+	content: "\e663";
+}
+.fui-stats-bars2:before {
+	content: "\e664";
+}
+
+
+
 body {
   font-family: "Lato", Helvetica, Arial, sans-serif;
   font-weight:300;
@@ -2678,8 +2693,8 @@ fieldset[disabled] .input-group-btn .btn-default.active {
 .pagination li > a,
 .pagination li > span {
   display: inline-block;
-  min-width: 41px;
-  min-height: 41px;
+  min-width: 10px;
+  min-height: 10px;
   padding: 12px 10px;
   font-size: 14px;
   line-height: 16px;

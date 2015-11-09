@@ -43,6 +43,7 @@ div#page-content {
     text-align:center;
     border: none;
     border-radius: 0;
+    cursor:default;
 }
 
 .view-title-md-red {
@@ -73,11 +74,9 @@ div#page-content {
     margin:0 0 5px;
 }
 
-
-
 .view-title-sm-green {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    /*padding-top: 10px;
+    padding-bottom: 10px;*/
     background: #1abc9c;
 }
 
@@ -89,69 +88,170 @@ div#page-content {
     margin-top: 20px;
 }
 
-
+/*---------------Map view-------------*/
 div#mapView {
     background-color: #fff;
 }
-
-div#historyView {
-    background-color: #fff;
-    height: 60%;
+svg#mapSvg {
+    position:relative;
 }
-/*---------------tweets view-------------*/
-div#tweetsView {
-    background-color: #fff;
-    max-height: 37%;
-}
+    svg#mapSvg .som-map rect.unit {
+        opacity:0;
+    }
+        svg#mapSvg .som-map text.map.label {
+            fill:#F4D03F;
+        }
 
-
-.list-group {
-    margin-bottom: 0px;
-}
-
-.list-group-item {
-    border: none;
-    margin-bottom: 0px;
-    border-bottom: 1px solid #ddd;
-}
-
-    .list-group-item:first-child {
-        border-radius: 0;
+    svg#mapSvg .som-map path.control-layout {
+        fill: none;
+        pointer-events:visible;
+    }
+    svg#mapSvg .som-map path.classifier-link {
+        stroke:#BFBFBF;
+        stroke-width:2;
+        fill:none;
+        pointer-events:visible;
+        marker-end: url(#mark-end-arrow)
     }
 
-    .list-group-item:last-child {
-        border-radius: 0;
-        border-bottom: none;
+    svg#mapSvg .som-map path.control-layout:hover,
+    svg#mapSvg .som-map path.control-layout:hover ~ path.classifier-link{
+        stroke: #F7CA18;
+        stroke-width:5px;
     }
 
-.pagination {
-    margin: 0px;
+g#som-map-context-menu rect#context-menu-base {
+    fill: #f7f7f7;
+    filter: url(#drop-shadow);
+}
+
+g#som-map-context-menu line {
+    stroke-width: 1px;
+    stroke:#dae3e9;
+}
+
+g#som-map-context-menu .context-menu-option text{
+    font-size:15px;
+    pointer-events:none;
+    cursor: default;
+}
+
+g#som-map-context-menu .context-menu-option rect{
+    fill:#f7f7f7;
+}
+
+g#som-map-context-menu .context-menu-option rect:hover {
+    fill:#59ABE3;
+}
+
+
+path.highlight-arrow {
+    stroke:#F5AB35;
+    fill:#F5AB35;
+}
+path#hightlight-arrow-line {
+    stroke-width:10px;
+    marker-end: url(#mark-end-arrow);
+}
+
+div#heatmap-container {
+      pointer-events:none;
+      position:absolute;           
+      overflow:hidden;  
+}
+    div#heatmap-container > canvas {
+        position:absolute;
+    }
+
+
+.brush .extent {
+  fill-opacity: .1;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}
+
+svg#mapSvg g#world-countries {
+    
 }
 
 /*-----------curve view------------*/
 div#curveView {
-    background-color:rgba(255, 255, 255, 0.8);"/*#3BAFDA;*/
+    background-color:#3EAFDB;
+    background-color:#BAEAFF;
+    background-color:rgba(255,255,255,1);
+}
 
+
+    div#curveView text {
+        fill:#000;
+        opacity:1;
+        cursor:default;
+        pointer-events:none;
+    }
+
+.stack.node rect{
+    fill:#E87E04;/*rgb(31, 145, 189);*/
+    stroke: #fff;
+    stroke-width: 0.5px;
+}
+.stack.node rect:hover{
+    stroke: #F5AB35;
+    stroke-width: 1.5px;
+}
+
+/*rgb(31, 145, 189);*/
+path.stack.link,
+.curve.axis path,
+.curve.axis line {
+    fill: none;
+    stroke: #ccc;
+    stroke-width:1.5px;
+}
+
+.curve.axis path,
+.curve.axis line {
+    shape-rendering: crispEdges;
+}
+
+.curve.axis text {
+    font-size: 12px;
+}
+
+rect.curve.seg {
+    fill: rgb(31, 145, 189);/*#E87E04;*/
+    stroke: #fff;
+    stroke-width: 0.5px;
+}
+
+path.curve.section.true.path {
+    stroke: #fff;
+    stroke-width: 3px;
+    fill: none;
+}
+
+path.curve.rest.true.path {
+    stroke:rgb(31, 145, 189); /*#E87E04;*/
+    stroke-width: 3px;
+    fill: none;
+}
+
+circle.curve.node {
+    fill: #fff;
+    stroke: rgb(31, 145, 189);;/*#E87E04*/
+    stroke-width: 1.5px;
 }
 
 .progress {
     border-radius:0px;
 }
 .progress-bar {
-    background-color:#3BAFDA;
+    background-color:#3EAFDB;
 }
 
-/*rgb(31, 145, 189);*/
-.curve.axis path,
-.curve.axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
+/*-----------WordCloudLens------------*/
+text.word-cloud {
+    
 
-.curve.axis text {
-    fill:#000;
-    font-size: 12px;
 }
 
 /*-----------MapLens------------*/
@@ -180,7 +280,7 @@ div#curveView {
     position: fixed;
     height: 100%;
     width: 180px;
-    padding-top: 100px;
+    padding-top: 50px;
     padding-left: 15px;
     padding-right: 15px;
     border-right: 1px solid #dae3e9;
@@ -194,15 +294,6 @@ div#curveView {
         font-size: 14px;
     }
 
-    /*li.active {
-            border-left: 1.6px solid #d19b3d;
-        -webkit-transition: all 1s ease;
-        -moz-transition: all 1s ease;
-        -o-transition: all 1s ease;
-        -ms-transition: all 1s ease;
-        transition: all 1s ease;
-
-}*/
     .nav-side-menu li.active,
     .nav-side-menu li:hover {
         border-left: 1.6px solid #d19b3d;
@@ -247,7 +338,9 @@ div#curveView {
         .nav-side-menu .menu-list li.panel {
             background-color: #f7f7f7;
         }
-
+            .nav-side-menu .menu-list li.panel div {
+                text-indent:15px;
+            }
     /*.nav-side-menu .menu-list ul .active,
         .nav-side-menu .menu-list li .active {
             border-left: 3px solid #d19b3d;
@@ -338,4 +431,42 @@ div#curveView {
 
 .row-12 {
     height: 100%;
+}
+
+
+
+/*---------------tweets view-------------*/
+/*div#tweetsView {
+    position:absolute;
+    overflow:hidden;
+    pointer-events:none;
+}*/
+
+
+.list-group {
+    background-color:#fff;
+    margin-bottom: 0px;
+    position:absolute;
+    border:1px solid #E8E9EE;
+    padding-right:0;
+    cursor:default;
+}
+
+.list-group-item {
+    border: none;
+    margin-bottom: 0px;
+    border-bottom: 1px solid #ddd;
+}
+
+    .list-group-item:first-child {
+        border-radius: 0;
+    }
+
+    .list-group-item:last-child {
+        border-radius: 0;
+        border-bottom: none;
+    }
+
+.pagination {
+    margin: 0px;
 }
