@@ -21,5 +21,4 @@
 ///<reference path = "../Lens/cMapWordCloudLens.ts" />
 
 (function () {
-
 })();

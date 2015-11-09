@@ -127,11 +127,8 @@
     <Content Include="Frontend\Image\tile\Thumbs.db" />
     <Content Include="Frontend\Scripts\bootstrap-paginator.js" />
     <Content Include="Frontend\Scripts\d3.fisheye.js" />
-    <Content Include="Frontend\Scripts\html2canvas.svg.js" />
-    <Content Include="Frontend\Scripts\imagesloaded.pkgd.js" />
     <Content Include="Frontend\Scripts\ManyLens.js" />
     <Content Include="Frontend\Scripts\d3.superformula.js" />
-    <Content Include="Frontend\Scripts\html2canvas.js" />
     <Content Include="Frontend\testData\us.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -141,9 +138,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Frontend\OldScripts\heatmap.js" />
-    <Content Include="Frontend\OldScripts\myApp.js" />
-    <Content Include="Frontend\index.html" />
     <Content Include="Frontend\CSS\bootstrap-theme.css" />
     <Content Include="Frontend\CSS\bootstrap.css" />
     <Content Include="Frontend\CSS\flat-ui.css" />
