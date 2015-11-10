@@ -17,6 +17,9 @@ namespace ManyLens.Models
         private double lon;
         private double lat;
 
+        private Dictionary<string, Tweet> tweets;
+        private bool spamUser = false;
+
 
         #region Getter & Setter
         public string UserName
@@ -106,6 +109,12 @@ namespace ManyLens.Models
             get { return lat; }
             set { lat = value; }
         }
+        public bool SpamUser
+        {
+            get { return spamUser; }
+            set { spamUser = value; }
+        }
+
         #endregion
 
         //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
@@ -120,9 +129,13 @@ namespace ManyLens.Models
             this.IsV = bool.Parse(V);
             this.Lon =  double.Parse(gpsA);
             this.Lat = double.Parse(gpsB);
+
+            this.tweets = new Dictionary<string, Tweet>();
         }
 
-
-
+        public void AddTweet(Tweet tweet){
+            if (this.tweets.ContainsKey(tweet.TweetID)) return;
+            this.tweets.Add(tweet.TweetID, tweet);
+        }
     }
 }

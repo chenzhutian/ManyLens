@@ -121,12 +121,7 @@ namespace ManyLens.SignalR
                 }
                 variance = Math.Sqrt(variance / p);
 
-                ////output the point json data
-                //System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\pointData_test.json");
-                //var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
-                //List<Point> points = new List<Point>();
                 for (int i = p, t = 0; t < tp.Length; i++, t++)
-                //for (int i = p, t = 0; t < tp.Length; i++, stepCount--, t++)
                 {
 
                     if (i < tp.Length)
@@ -173,11 +168,7 @@ namespace ManyLens.SignalR
                             tp[end].EndPoint = tp[end].ID;
                             tp[end].PointType += 2;
 
-                            //ArraySegment<Term> oldTerm = new ArraySegment<Term>(tp, 0, begin);
                             Interval interal = new Interval(tp[begin].TermDate, tp[begin]);
-                            ////Set the last interval
-                            //if(interals.Count > 0)
-                            //    interal.LastInterval = interals.Last().Value;
                             if (!interals.ContainsKey(interal.ID))
                             {
                                 interals.Add(interal.ID, interal);
@@ -191,7 +182,7 @@ namespace ManyLens.SignalR
                                 }
                                 interal.SetEndDate(tp[end].TermDate);
 
-                                LazyThreadForConditionalEntropy(interal);
+                                //LazyThreadForConditionalEntropy(interal);
                             }
 
                         }
@@ -203,8 +194,6 @@ namespace ManyLens.SignalR
                         }
                     }
 
-                    //Determine the type of this point
-                    //tp[t].PointType = tp[t].PointType != 0 ? tp[t].PointType : lastMarkType == 2 ? (uint)0 : (uint)4;
                     Point point = new Point()
                     {
                         id = tp[t].ID,
@@ -215,56 +204,9 @@ namespace ManyLens.SignalR
                         end = tp[t].EndPoint
                     };
 
-                    #region mark version
-                    //if (tp[t].PointType == 1)
-                    //{
-                    //    Interval interal = new Interval(tp[t].TermDate, tp[t]);
-                    //    interals.Add(interal.ID, interal);
-                    //    //lastMarkType = 1;
-                    //    //point.mark.beg = point.mark.id;
-                    //}
-                    //else if (tp[t].PointType == 2)
-                    //{
-                    //    string id = interals.Last().Key;
-                    //    Interval interal = interals.Last().Value;
-                    //    interal.EndDate = tp[t].TermDate;
-                    //    interals[id] = interal;
-                    //    //lastMarkType = 2;
-                    //    //point.mark.end = point.mark.id;
-                    //}
-                    //else if (tp[t].PointType == 3)
-                    //{
-                    //    string id   = interals.Last().Key;
-                    //    Interval interal = interals.Last().Value;
-                    //    interal.EndDate = tp[t].TermDate;
-                    //    interals[id] = interal;
-
-                    //    Interval newInteral = new Interval(tp[t].TermDate, tp[t]);
-                    //    interals.Add(newInteral.ID, newInteral);
-                    //    //lastMarkType = 1;
-                    //    //point.mark.beg = point.mark.id;
-                    //}
-                    //else if (tp[t].PointType == 4)
-                    //{
-                    //    string id = interals.Last().Key;
-                    //    Interval interal = interals.Last().Value;
-                    //    interal.AddTerm(tp[t]);
-                    //    interals[id] = interal;
-                    //}
-                    #endregion
-
-                    ////Output the json data
-                    //points.Add(point);
-
                     Clients.Caller.addPoint(point);
                     Thread.Sleep(100);
                 }
-
-                ////Output the json data
-                //Debug.Write("Let's cache the point data as json");
-                //jser.WriteObject(sw.BaseStream, points);
-                //sw.Close();
-                //Debug.Write("finish json");
             });
         }
 
@@ -486,7 +428,12 @@ namespace ManyLens.SignalR
                     else
                     {
                         Interval interal = interals[interalID];
+                        Debug.WriteLine("Tweets count before preprocessing is : "+interal.TweetsCount);
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
                         interal.PreproccessingParallel(progress);
+                        sw.Stop();
+                        Debug.WriteLine("Preprocessing TIME Consuming : "+ sw.ElapsedTicks / (decimal)Stopwatch.Frequency);
 
                         if (classifierID != null)
                         {
@@ -514,8 +461,8 @@ namespace ManyLens.SignalR
                             visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
                         }
 
-                        Debug.WriteLine(interal.Entropy);
-                        Debug.WriteLine(interal.TweetsCount);
+                        Debug.WriteLine("Entropy : "+interal.Entropy);
+                        Debug.WriteLine("Tweets count after preprocessing : "+interal.TweetsCount);
                         visMaps.Add(visMap.VisMapID, visMap);
 
                     }

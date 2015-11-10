@@ -201,9 +201,6 @@ module ManyLens {
                 this._lens_circle = this._lens_circle_svg.append("path")
                     .attr("class", "lens-circle")
                     .attr("id", "lens-circle-" + this.ID)
-                //.attr("cx", 0)
-                //.attr("cy", 0)
-                //.attr("r", this._lens_circle_radius)
                     .attr("d", d3.svg.arc().startAngle(0).endAngle(2 * Math.PI).innerRadius(0).outerRadius(this._lens_circle_radius))
                     .style({
                         "fill": "#fff",

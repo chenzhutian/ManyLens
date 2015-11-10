@@ -66,12 +66,6 @@ namespace ManyLens.Models
             this.Tweets = new List<Tweet>();
         }
 
-
-        //protected virtual void AddTweet(string id, string content, DateTime postDate,double lon, double lat, User user)
-        //{
-        //    this.Tweets.Add(new Tweet(id, content, postDate,lon,lat,user));
-        //}
-
         protected virtual void AddTweet(Tweet tweet)
         {
             this.Tweets.Add(tweet);

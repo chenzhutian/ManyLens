@@ -54,16 +54,8 @@ namespace ManyLens.IO
             SortedDictionary<DateTime, Term> sortedTerm = new SortedDictionary<DateTime, Term>();
             Dictionary<string, User> users = new Dictionary<string, User>();
             StreamReader sr;
-            //bool isCache = false;
-            //if (File.Exists(tweetFile + "CACHE"))
-            //{
-            //    sr = new StreamReader(tweetFile + "CACHE");
-            //    isCache = true;
-            //}
-            //else
-            //{
-                sr = new StreamReader(tweetFile);
-            //}
+
+            sr = new StreamReader(tweetFile);
 
             int[] mode = new int[5];
             for (int i = 0; i < config.Parameter.TimeSpan; i++)

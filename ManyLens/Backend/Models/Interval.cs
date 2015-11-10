@@ -372,7 +372,6 @@ namespace ManyLens.Models
 
         public float[] GetHashVector(int num = 0)
         {
-            //List<float[]> tempVector = this.HashVecotrs;
             int dimension = this.hashDimension;
             num = num == 0 ? this.SparseVector.Count : num;
             Debug.WriteLine("Total is "+((double)dimension * num * 4.0 / (1024.0 * 1024 * 1024)) + "GB");
@@ -385,14 +384,6 @@ namespace ManyLens.Models
                 }
             }
 
-            //System.IO.StreamWriter sr = new System.IO.StreamWriter("E:\\testHashing");
-            //for (int i = 0, len = this.TweetsCount; i < len; ++i)
-            //{
-            //    Tweet tweet = this.Tweets[i];
-            //    sr.WriteLine(tweet.DerivedContent);
-            //}
-            //sr.Flush();
-            //sr.Close();
             return hashVector;
         }
 
@@ -419,18 +410,6 @@ namespace ManyLens.Models
 
         public void Preproccessing(IProgress<double> progress)
         {
-            //List<Tweet> tweets = new List<Tweet>();
-            //int begin = this.oldTerm.Length - this.TermsCount;
-            //begin = begin > 0 ? begin : 0;
-            //int end = this.oldTerm.Length;
-            //for (int i = begin; i < end; ++i)
-            //{
-            //    tweets.AddRange(oldTerm[i].Tweets);
-            //}
-            //this.package = new Interval(tweets, this.TermsCount);
-            //ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this.package, progress);
-            //ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this.package, progress);
-            //this.LastInterval = this.package;
 
             ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this, progress);
             ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this, progress);

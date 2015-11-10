@@ -28,26 +28,7 @@ namespace ManyLens.Models
                 return this.id;
             }
         }
-        //public double VirtualCount
-        //{
-        //    get
-        //    {
-        //        if (virtualCount == -1)
-        //            return this.TweetsCount;
-        //        return this.virtualCount;
-        //    }
-        //}
-        //public double TempVirtualCount
-        //{
-        //    get
-        //    {
-        //        return this.tempVirtualCount;
-        //    }
-        //    set
-        //    {
-        //        this.tempVirtualCount = value;
-        //    }
-        //}
+
         public DateTime TermDate
         {
             get
@@ -140,18 +121,6 @@ namespace ManyLens.Models
         {
             base.AddTweet(tweet);
         }
-
-        //public new void AddTweet(string id, string content, DateTime date,double lon, double lat, User user)
-        //{
-        //    base.AddTweet(id, content,date,lon, lat,user);
-        //}
-
-        //public void GaussinBlurDone()
-        //{
-            
-        //    this.virtualCount = this.tempVirtualCount;
-        //    this.tempVirtualCount = 0;
-        //}
 
     }
 }

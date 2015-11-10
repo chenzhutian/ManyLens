@@ -20,7 +20,7 @@ namespace ManyLens.Models
         private double lat;
         private string countryName = null; // will be add later 
 
-        private User user;
+        private User user; 
         private string sourceUserName;
 
         #region Getter & Setter
@@ -66,7 +66,7 @@ namespace ManyLens.Models
             set
             {
                 this.derivedContent = value;
-                this.length = this.derivedContent.Split(' ').Length;
+                this.length = value !=null ? this.derivedContent.Split(' ').Length : 0;
             }
         }
         public string[] ContentWords
@@ -104,15 +104,8 @@ namespace ManyLens.Models
         
         public User User
         {
-            get
-            {
-                return this.user;
-            }
-
-            private set
-            {
-                this.user = value;
-            }
+            get { return this.user; }
+            private set { this.user = value; }
         }
         public string SourceUserName
         {
@@ -144,10 +137,13 @@ namespace ManyLens.Models
             this.TweetID = tweetID;
             this.OriginalContent = originalContent.Replace("\"", "\\\"");
             this.User = user;
+
+
+
             this.PostUserName = user.UserName;
             this.Lon = lon;
             this.Lat = lat;
-
+            
             Regex RTreg = new Regex(@"^[Rr][Tt] ?@(\w+\b)");
             MatchCollection rts = RTreg.Matches(this.OriginalContent);
             if (rts.Count == 1)
@@ -158,6 +154,8 @@ namespace ManyLens.Models
             {
                 this.sourceUserName = null;
             }
+
+            if (this.User != null) this.User.AddTweet(this);
         }
 
         public Tweet(string tweetID, string originalContent)
