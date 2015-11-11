@@ -135,11 +135,11 @@ namespace ManyLens.Models
             this.sumError += error;
 
             //Check whether it's a new tweet-content
-            if (!this.tweetsWithContent.ContainsKey(tweet.DerivedContent))
+            if (!this.tweetsWithContent.ContainsKey(tweet.OriginalContent))
             {
-                this.tweetsWithContent.Add(tweet.DerivedContent, new HashSet<Tweet>());
+                this.tweetsWithContent.Add(tweet.OriginalContent, new HashSet<Tweet>());
             }
-            this.tweetsWithContent[tweet.DerivedContent].Add(tweet);
+            this.tweetsWithContent[tweet.OriginalContent].Add(tweet);
 
             //Add the sparseVector and tfidfVector of this new tweet
             this.SparseVector.Add(Interval.SparseVector[index]);
@@ -261,13 +261,14 @@ namespace ManyLens.Models
 
         public bool IsSpamUnit()
         {
+            if (this.TweetsCount <= 2 ) return false;
+
             if (this.hasBeenDectectSpam == false)
             {
                 double threshold = this.TweetsCount * 0.4;
                 foreach (HashSet<Tweet> tweets in tweetsWithContent.Values)
                 {
-                    var count = tweets.Count;
-                    if (tweets.Count > threshold)
+                    if (tweets.Count > threshold )
                     {
                         this.isSpams = true;
                         return this.isSpams;

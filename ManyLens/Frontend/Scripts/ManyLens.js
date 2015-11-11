@@ -6497,6 +6497,20 @@ var ManyLens;
                     height: this._unit_height
                 });
                 var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) { return d.value; })).range([10, 30]);
+                console.log(visData.unitsData.filter(function (d) { return d.isSpam; }));
+                svg.selectAll("text.map.spam")
+                    .data(visData.unitsData.filter(function (d) { return d.isSpam; }), function (d) { return d.unitID; })
+                    .enter().append("text")
+                    .attr("x", function (d) { return _this._left_offset + d.x * _this._unit_width; })
+                    .attr("y", function (d) { return _this._top_offset + d.y * _this._unit_height; })
+                    .attr("dy", function (d) { return _this._unit_width; })
+                    .attr({
+                    "class": "map spam"
+                })
+                    .style("font-size", function (d) {
+                    return fontSizeScale(d.value) + "px";
+                })
+                    .text(function (d) { return "spam"; });
                 svg.selectAll("text.map.label")
                     .data(visData.labels, function (d) { return d.x + "-" + d.y; })
                     .enter().append("text")
