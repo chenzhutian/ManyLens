@@ -15,93 +15,65 @@ namespace ManyLens.Models
         private int length = 0;
         private string originalContent = null;
         private string derivedContent = null;
+        private string[] derivedWordsOfContent = null;
         private List<string> hashTag = null;
         private double lon;
         private double lat;
         private string countryName = null; // will be add later 
 
-        private User user; 
+        private User user;
         private string sourceUserName;
 
         #region Getter & Setter
-        public string TweetID 
-        { 
-            get
-            { 
-                return this.tweetID;
-            }
-            private set 
-            {
-                this.tweetID = value;
-            }
+        public string TweetID
+        {
+            get { return this.tweetID; }
+            private set { this.tweetID = value; }
         }
-        public string PostUserName 
-        { 
-            get
-            {
-                return this.postUserName;
-            }
-            private set 
-            {
-                this.postUserName = value;
-            }
+        public string PostUserName
+        {
+            get { return this.postUserName; }
+            private set { this.postUserName = value; }
         }
         public string OriginalContent
         {
-            get
-            {
-                return this.originalContent;
-            }
-            private set
-            {
-                this.originalContent = value;
-            }
+            get { return this.originalContent; }
+            private set { this.originalContent = value; }
         }
         public string DerivedContent
         {
-            get
-            {
-                return this.derivedContent;
-            }
+            get { return this.derivedContent; }
             set
             {
                 this.derivedContent = value;
-                this.length = value !=null ? this.derivedContent.Split(' ').Length : 0;
+                this.length = value != null ? this.derivedContent.Split(' ').Length : 0;
             }
         }
         public string[] ContentWords
         {
-            get
+            get 
             {
-                return this.derivedContent.Split(' ');
+                if (this.derivedWordsOfContent == null)
+                { 
+                    this.derivedWordsOfContent = this.derivedContent.Split(' '); 
+                }
+                return this.derivedWordsOfContent;
             }
         }
         public DateTime PostDate
         {
-            get
-            {
-                return this.postDate;
-            }
-            private set 
-            {
-                this.postDate = value;
-            }
+            get { return this.postDate; }
+            private set { this.postDate = value; }
         }
         public int Length
         {
-            get
-            {
-                return this.length;
-            }
+            get { return this.length; }
         }
         public List<string> HashTag
         {
-            get
-            {
-                return this.hashTag;
-            }
+            get { return this.hashTag; }
         }
-        
+
         public User User
         {
             get { return this.user; }
@@ -109,10 +81,7 @@ namespace ManyLens.Models
         }
         public string SourceUserName
         {
-            get
-            {
-                return this.sourceUserName;
-            }
+            get { return this.sourceUserName; }
         }
         public double Lat
         {
@@ -131,7 +100,7 @@ namespace ManyLens.Models
         }
         #endregion
 
-        private Tweet(string tweetID, string originalContent,double lon, double lat, User user)
+        private Tweet(string tweetID, string originalContent, double lon, double lat, User user)
         {
             this.hashTag = new List<string>();
             this.TweetID = tweetID;
@@ -143,7 +112,7 @@ namespace ManyLens.Models
             this.PostUserName = user.UserName;
             this.Lon = lon;
             this.Lat = lat;
-            
+
             Regex RTreg = new Regex(@"^[Rr][Tt] ?@(\w+\b)");
             MatchCollection rts = RTreg.Matches(this.OriginalContent);
             if (rts.Count == 1)
@@ -165,15 +134,15 @@ namespace ManyLens.Models
         }
 
         public Tweet(string tweetID, string originalContent, string postDate, string lon, string lat, User user)
-            : this(tweetID,originalContent,double.Parse(lon),double.Parse(lat),user)
+            : this(tweetID, originalContent, double.Parse(lon), double.Parse(lat), user)
         {
             //TimeZoneInfo brTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
             //this.PostDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Parse(postDate).ToUniversalTime(),brTimeZone);
             this.PostDate = DateTime.Parse(postDate);
         }
 
-        public Tweet(string tweetID, string originalContent, DateTime postDate,double lon,double lat, User user)
-            : this(tweetID, originalContent,lon,lat,user)
+        public Tweet(string tweetID, string originalContent, DateTime postDate, double lon, double lat, User user)
+            : this(tweetID, originalContent, lon, lat, user)
         {
             this.PostDate = postDate;
         }

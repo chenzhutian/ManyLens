@@ -21,6 +21,10 @@ namespace ManyLens.Models
         private Dictionary<Tweet, float> removeTweetsWithErrorHelper;
         private float sumError = 0;
 
+        private Dictionary<string, HashSet<Tweet>> tweetsWithContent;
+        private bool hasBeenDectectSpam = false;
+        private bool isSpams;
+
         private Interval interval;
 
         #region Getter & Setter
@@ -99,6 +103,7 @@ namespace ManyLens.Models
             this.userTweets = new Dictionary<string, int>();
             this.tweetsWithError = new SortedDictionary<float, HashSet<Tweet>>();
             this.removeTweetsWithErrorHelper = new Dictionary<Tweet, float>();
+            this.tweetsWithContent = new Dictionary<string, HashSet<Tweet>>();
 
             this.X = x;
             this.Y = y;
@@ -114,26 +119,37 @@ namespace ManyLens.Models
         {
             base.AddTweet(tweet);
             int index = this.Interval.Tweets.IndexOf(tweet);
+            
+            //Check whether it's a new error value
             if (!this.tweetsWithError.ContainsKey(error))
             {
                 this.tweetsWithError.Add(error, new HashSet<Tweet>());
             }
             this.tweetsWithError[error].Add(tweet);
+
+            //Check whether it's a new tweet
             if (!this.removeTweetsWithErrorHelper.ContainsKey(tweet))
             {
                 this.removeTweetsWithErrorHelper.Add(tweet, error);
             }
             this.sumError += error;
 
-            this.SparseVector.Add(Interval.SparseVector[index]);
-            float[] tfv = Interval.TFIDFVectors[index];
-            this.tfidfVectors.Add(tfv);
+            //Check whether it's a new tweet-content
+            if (!this.tweetsWithContent.ContainsKey(tweet.DerivedContent))
+            {
+                this.tweetsWithContent.Add(tweet.DerivedContent, new HashSet<Tweet>());
+            }
+            this.tweetsWithContent[tweet.DerivedContent].Add(tweet);
 
-            string[] words = tweet.DerivedContent.Split(' ');
+            //Add the sparseVector and tfidfVector of this new tweet
+            this.SparseVector.Add(Interval.SparseVector[index]);
+            this.tfidfVectors.Add(Interval.TFIDFVectors[index]);
+
+            //Count the number of each word
+            string[] words = tweet.ContentWords;
             for (int i = 0; i < words.Length; ++i)
             {
-                if (words[i] == "")
-                    continue;
+                if (words[i] == "") continue;
                 if (WordLabels.ContainsKey(words[i]))
                     WordLabels[words[i]]++;
                 else
@@ -168,8 +184,7 @@ namespace ManyLens.Models
             string[] words = tweet.DerivedContent.Split(' ');
             for (int i = 0; i < words.Length; ++i)
             {
-                if (words[i] == "")
-                    continue;
+                if (words[i] == "") continue;
                 if (WordLabels[words[i]] > 0)
                     WordLabels[words[i]]--;
                 else
@@ -231,7 +246,6 @@ namespace ManyLens.Models
             if (t == -1)
                 return result;
 
-
             for (int i = t, len = keys.Length; i < len; ++i)
             {
                 HashSet<Tweet> tweets = this.tweetsWithError[keys[i]];
@@ -244,5 +258,25 @@ namespace ManyLens.Models
 
             return result;
         }
+
+        public bool IsSpamUnit()
+        {
+            if (this.hasBeenDectectSpam == false)
+            {
+                double threshold = this.TweetsCount * 0.4;
+                foreach (HashSet<Tweet> tweets in tweetsWithContent.Values)
+                {
+                    var count = tweets.Count;
+                    if (tweets.Count > threshold)
+                    {
+                        this.isSpams = true;
+                        return this.isSpams;
+                    }
+                }
+                this.isSpams = false;
+            }
+            return this.isSpams;
+        }
+
     }
 }

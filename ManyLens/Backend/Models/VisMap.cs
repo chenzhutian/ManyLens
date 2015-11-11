@@ -180,7 +180,6 @@ namespace ManyLens.Models
         {
             this.units.Add(unitID, unit);
             this.unitsInMap[unit.Y][unit.X] = unit;
-
         }
 
         public bool TryAddTweetToUnit(int unitID,float error, Tweet tweet)
@@ -208,10 +207,6 @@ namespace ManyLens.Models
             {
                 int index = this.Interval.Tweets.IndexOf(fromTweets[i]);
                 this.Interval.HashVecotrs[index].CopyTo(inputVectors, i * dimension);
-                //for (int j = 0, lenj = dimension; j < len; ++j)
-                //{
-                //    inputVectors[j + i * dimension] = this.Interval.HashVecotrs[index][j];
-                //}
             }
 
             dimension = config.Parameter.DimensionAfterRandomMapping;
@@ -252,14 +247,13 @@ namespace ManyLens.Models
         public VISData GetVisData()
         {
 
-            List<int> keys = this.units.Keys.ToList();
+            List<int> unitIDs = this.units.Keys.ToList();
             List<UnitsData> unitData = new List<UnitsData>();
             try
             {
-                for (int i = keys.Count - 1; i >= 0; --i)
+                for (int i = unitIDs.Count - 1; i >= 0; --i)
                 {
-                    int key = keys[i];
-                    Unit unit = units[key];
+                    Unit unit = units[unitIDs[i]];
                     if (unit.TweetsCount > this.MaxTweetCount)
                     {
                         this.MaxTweetCount = unit.TweetsCount;
@@ -271,19 +265,21 @@ namespace ManyLens.Models
                         value = unit.TweetsCount,
                         x = unit.X,
                         y = unit.Y,
+                        isSpam = unit.IsSpamUnit(),
                         mapID = this.VisMapID
                     });
                 }
 
-
                 List<List<Unit>> clusters = this.GrowCluster();
                 List<Label> labels = new List<Label>();
+                //Iterate each cluster
                 foreach (List<Unit> units in clusters)
                 {
                     Dictionary<string,int> wordLabels = new Dictionary<string, int>();
                     int x = -1;
                     int y = -1;
                     int maxCount = -1;
+                    //For each unit in this cluster, find the unit with most tweets, and count the word's nums
                     for (int i = 0, len = units.Count; i < len; ++i)    
                     {
                         Unit unit = units[i];
@@ -308,6 +304,7 @@ namespace ManyLens.Models
 
                     double maxValue = -1.0;
                     string targetLabel = "";
+                    //calculate the tf-idf of each word
                     foreach(KeyValuePair<string, int>item in wordLabels)
                     {
                         try
@@ -331,8 +328,6 @@ namespace ManyLens.Models
                             Debug.WriteLine(e.Message);
                             Debug.WriteLine(item.Key);
                         }
-
-
                     }
 
                     labels.Add(new Label() { x = x, y = y, label = targetLabel,value= maxValue});
