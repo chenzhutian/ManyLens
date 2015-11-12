@@ -113,8 +113,8 @@ namespace ManyLens.Preprocessing
 
                 for (int j = 0, lenj = words.Count; j < lenj; ++j)
                 {
-                    string originalWord = words[j].Value.Trim();
-                    if (originalWord.IndexOf("#") == 0)
+                    string originalWord = words[j].Value;
+                    if (originalWord[0] == '#')
                     {
                         tweet.AddHashTag(originalWord);
                         originalWord = originalWord.Substring(1, originalWord.Length - 1);
