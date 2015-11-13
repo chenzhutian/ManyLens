@@ -9,6 +9,19 @@ namespace ManyLens.IO
 {
     public class TweetsIO
     {
+
+        public static string[] LoadTwitterKeys(string filePath)
+        {
+            List<string> keys = new List<string>();
+            StreamReader sr = new StreamReader(filePath);
+            while (!sr.EndOfStream)
+            {
+                keys.Add(sr.ReadLine());
+            }
+
+            return keys.ToArray();
+        }
+
         public static Interval Load20NGData(string filePath)
         {
             List<Tweet> tweets = new List<Tweet>();

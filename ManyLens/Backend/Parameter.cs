@@ -13,6 +13,8 @@ namespace ManyLens.config
         public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
         public static string cities1000File = RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
         public static string stopwordFile = RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
+        public static string twitterKeysFile = RootFolder + "Backend\\DataBase\\TWITTERKEY";
+
         //public static string tweetFile = ebolaFile;
         private static int timeSpan =2;
         private static int hashDimension = 8192;
