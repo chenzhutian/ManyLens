@@ -55,7 +55,7 @@ module ManyLens {
             //private _sub_view_x_scale: D3.Scale.LinearScale = d3.scale.linear();
             //private _sub_view_y_scale: D3.Scale.LinearScale = d3.scale.linear();
 
-            private _section_num: number = 30;
+            private _section_num: number = 50;
             private _view_height: number;
             private _view_width: number;
             private _view_top_padding: number = 15;
@@ -544,10 +544,10 @@ module ManyLens {
                         id: this._data[0].beg,
                         date: date,
                         size: 1,
-                        name: "d" + date.getDay(),
+                        name: "d" + date.getMinutes(),
                         parent: null,
                         children: null,
-                        type: "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-day" + date.getDate(),//"-day"+date.getDate()+"-hour"+date.getHours()+"-Min"+date.getMinutes()+"-s"+date.getSeconds(),
+                        type: "" + "-day"+date.getDate()+"-hour"+date.getHours()+"-Min"+date.getMinutes()+"-s"+date.getSeconds(),//"-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-day" + date.getDate(),
                         index: this._stack_bar_nodes.length
                     }
                     this.InserNode( stackNode.type, stackNode );
@@ -653,17 +653,17 @@ module ManyLens {
                     .attr( "class", "curve seg time-tick" )
                     .text(( d ) => {
                         var date = this._time_formater.parse( d.id );
-                        //var hours:any   = date.getHours();
-                        //var minutes:any = date.getMinutes();
-                        //var seconds:any = date.getSeconds();
+                        var hours:any   = date.getHours();
+                        var minutes:any = date.getMinutes();
+                        var seconds:any = date.getSeconds();
 
-                        //if (hours   < 10) {hours   = "0"+hours;}
-                        //if (minutes < 10) {minutes = "0"+minutes;}
-                        //if (seconds < 10) {seconds = "0"+seconds;}
-                        //return hours+':'+minutes+':'+seconds;
-                        var mon = this.month_names[date.getMonth()];
-                        var day = date.getDate();
-                        return mon + " " + day;
+                        if (hours   < 10) {hours   = "0"+hours;}
+                        if (minutes < 10) {minutes = "0"+minutes;}
+                        if (seconds < 10) {seconds = "0"+seconds;}
+                        return hours+':'+minutes+':'+seconds;
+                        //var mon = this.month_names[date.getMonth()];
+                        //var day = date.getDate();
+                        //return mon + " " + day;
 
                     })
                 ;

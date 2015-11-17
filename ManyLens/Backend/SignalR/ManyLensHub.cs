@@ -9,6 +9,7 @@ using ManyLens.Models;
 using ManyLens.IO;
 using ManyLens.Preprocessing;
 using ManyLens.SOM;
+using ManyLens.Twitter;
 using System.Diagnostics;
 
 namespace ManyLens.SignalR
@@ -43,7 +44,7 @@ namespace ManyLens.SignalR
            await Task.Run(() =>
             {
                 if (dateTweetsFreq == null)
-                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.ebolaFile);
+                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
                 if (cities1000 == null)
                     cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                 if (stopWords == null)
@@ -96,9 +97,12 @@ namespace ManyLens.SignalR
             double beta = 1.5;
             ///config.Parameter.TimeSpan = 3;
 
+            //await TwitterAPI.GetStreamingTweetsByTracking("test");
             await Task.Run(() =>
             {
                 Debug.WriteLine("Thread id of pull point " + Thread.CurrentThread.ManagedThreadId);
+
+                
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;

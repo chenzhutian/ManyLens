@@ -529,8 +529,6 @@ module ManyLens {
                     })
                     .text(function(d){return d.label;})
                 ;
-
-
             }
 
             public ShowVisMap( visData: MapData, classifierID:string ): void {
@@ -574,31 +572,30 @@ module ManyLens {
 
                 var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels,function(d){return d.value;})).range([10,30]);
 
-                console.log(visData.unitsData.filter(function(d:UnitData){ return d.isSpam;}));
-                svg.selectAll("text.map.spam")
-                    .data(visData.unitsData.filter(function(d:UnitData){ return d.isSpam;}), function(d){return d.unitID;})
-                    .enter().append("text")
-                    .attr("x",(d)=>{return this._left_offset + d.x * this._unit_width;})
-                    .attr("y",(d)=>{return this._top_offset + d.y*this._unit_height;})
-                    .attr("dy",(d)=>{return this._unit_width})
-                    .attr({
-                        "class":"map spam"
-                    })
-                    .style("font-size",(d)=>{
-                        return fontSizeScale(d.value)+"px";
-                    })
-                    .text(function(d){return "spam";})
-                ;
+                //THIS IS the Spam mark
+                //console.log(visData.unitsData.filter(function(d:UnitData){ return d.isSpam;}));
+                //svg.selectAll("text.map.spam")
+                //    .data(visData.unitsData.filter(function(d:UnitData){ return d.isSpam;}), function(d){return d.unitID;})
+                //    .enter().append("text")
+                //    .attr("x",(d)=>{return this._left_offset + d.x * this._unit_width;})
+                //    .attr("y",(d)=>{return this._top_offset + d.y*this._unit_height;})
+                //    .attr("dy",(d)=>{return this._unit_width})
+                //    .attr({
+                //        "class":"map spam"
+                //    })
+                //    .style("font-size",(d)=>{
+                //        return fontSizeScale(d.value)+"px";
+                //    })
+                //    .text(function(d){return "spam";})
+                //;
 
                 svg.selectAll("text.map.label")
                     .data(visData.labels,function(d){return d.x + "-"+d.y;})
                     .enter().append("text")
                     .attr("x",(d)=>{return this._left_offset + d.x * this._unit_width;})
-                    .attr("y",(d)=>{return this._top_offset + d.y*this._unit_height;})
+                    .attr("y",(d)=>{return this._top_offset + d.y * this._unit_height;})
                     .attr("dy",(d)=>{return this._unit_width})
-                    .attr({
-                        "class":"map label"
-                    })
+                    .attr("class","map label")
                     .style("font-size",(d)=>{
                         return fontSizeScale(d.value)+"px";
                     })
@@ -609,7 +606,7 @@ module ManyLens {
                 //Add the hightlight and contextmenu layout
                 var line = d3.svg.line()
                     .x( function ( d ) { return d.x ; })
-                    .y( function ( d ) { return d.y; })
+                    .y( function ( d ) { return d.y; }) 
                     .interpolate("linear-closed")
                 ;
                 svg.append( "path" )
@@ -668,7 +665,6 @@ module ManyLens {
                         //.attr("id","testLink")
                     ;
                 }
-
 
                 //whether to move or not
                 this._left_offset += this._unit_width * visData.width + this._map_gap;

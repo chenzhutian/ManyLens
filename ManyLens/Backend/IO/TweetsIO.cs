@@ -18,7 +18,7 @@ namespace ManyLens.IO
             {
                 keys.Add(sr.ReadLine());
             }
-
+            sr.Close();
             return keys.ToArray();
         }
 

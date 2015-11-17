@@ -146,15 +146,14 @@ namespace ManyLens.SOM
             float lambda = 0.02f;
             float iterD = 1f;
 
-
             Stopwatch sw = new Stopwatch();
             Debug.WriteLine("Let's have SOM");
             sw.Start();
             //use som train here
             float[] lastMapWeight = null;
-            if (lastMap != null) {
-                lastMapWeight = lastMap.MapWeightInColumnMajor;
-            }
+            //if (lastMap != null) {
+            //    lastMapWeight = lastMap.MapWeightInColumnMajor;
+            //}
             IntPtr pointer = SOMwithRandomMapping(config.Parameter.RmMatrix,
                                                     trainset,
                                                     lastMapWeight,
@@ -169,7 +168,6 @@ namespace ManyLens.SOM
             sw.Stop();
             Debug.WriteLine("SOM Finish");
             Debug.WriteLine("SOM Time Consuming :" + sw.ElapsedTicks / (decimal)Stopwatch.Frequency);
-
 
             sw.Restart();
             int[] h_BID = new int[trainsetSize];

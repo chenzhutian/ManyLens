@@ -265,7 +265,7 @@ namespace ManyLens.Models
                         value = unit.TweetsCount,
                         x = unit.X,
                         y = unit.Y,
-                        isSpam = unit.IsSpamUnit(),
+                        isSpam = false,//unit.IsSpamUnit(),
                         mapID = this.VisMapID
                     });
                 }

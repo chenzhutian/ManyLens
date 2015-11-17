@@ -16,7 +16,7 @@ namespace ManyLens.config
         public static string twitterKeysFile = RootFolder + "Backend\\DataBase\\TWITTERKEY";
 
         //public static string tweetFile = ebolaFile;
-        private static int timeSpan =2;
+        private static int timeSpan =4;
         private static int hashDimension = 8192;
         private static int dimensionAfterRandomMapping = 1024;
         private static float[] rmMatrix = myMath.GaussianRandom.GetRMMatrix(DimensionAfterRandomMapping, HashDimension);
