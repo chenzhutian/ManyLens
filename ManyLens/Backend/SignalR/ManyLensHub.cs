@@ -102,7 +102,6 @@ namespace ManyLens.SignalR
             {
                 Debug.WriteLine("Thread id of pull point " + Thread.CurrentThread.ManagedThreadId);
 
-                
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;
@@ -210,6 +209,7 @@ namespace ManyLens.SignalR
 
                     Clients.Caller.addPoint(point);
                     Thread.Sleep(100);
+                    //if( i >= 124) break;
                 }
             });
         }

@@ -31,35 +31,20 @@ namespace ManyLens.Models
         #region Getter & Setter
         public string ID
         {
-            get
-            {
-                return this.id;
-            }
+            get{ return this.id; }
         }
         public DateTime BeginDate
         {
-            get
-            {
-                return this.beginDate;
-            }
-            private set
-            {
-                this.beginDate = value;
-            }
+            get{ return this.beginDate; }
+            private set { this.beginDate = value; }
         }
         public DateTime EndDate
         {
-            get
-            {
-                return this.endDate;
-            }
+            get{ return this.endDate; }
         }
         public int TermsCount
         {
-            get
-            {
-                return this.termsCount;
-            }
+            get{ return this.termsCount; }
         }
         //public float[] RMMatrix
         //{
@@ -74,10 +59,7 @@ namespace ManyLens.Models
         //}
         public bool HasVectorized
         {
-            get
-            {
-                return this.hasVectorized;
-            }
+            get{ return this.hasVectorized; }
             set
             {
                 if (value == true)
@@ -86,10 +68,7 @@ namespace ManyLens.Models
         }
         public bool HasPreprocessed
         {
-            get
-            {
-                return this.hasPreprocessed;
-            }
+            get{ return this.hasPreprocessed; }
             set
             {
                 if (value == true)
@@ -98,10 +77,7 @@ namespace ManyLens.Models
         }
         public bool HasSOMed
         {
-            get
-            {
-                return this.hasSOMed;
-            }
+            get{ return this.hasSOMed; }
         }
         public List<float[]> TFIDFVectors
         {

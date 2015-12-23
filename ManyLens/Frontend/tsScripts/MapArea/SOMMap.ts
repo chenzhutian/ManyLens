@@ -570,7 +570,9 @@ module ManyLens {
                     })
                     ;
 
-                var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels,function(d){return d.value;})).range([10,30]);
+                var fontSizeScale = d3.scale.sqrt()
+                    .domain(d3.extent(visData.labels,function(d){return d.value;}))
+                    .range([10,30]);
 
                 //THIS IS the Spam mark
                 //console.log(visData.unitsData.filter(function(d:UnitData){ return d.isSpam;}));

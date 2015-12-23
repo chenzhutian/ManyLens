@@ -276,9 +276,9 @@ namespace ManyLens.Models
                 foreach (List<Unit> units in clusters)
                 {
                     Dictionary<string,int> wordLabels = new Dictionary<string, int>();
-                    int x = -1;
-                    int y = -1;
-                    int maxCount = -1;
+                    int x = 0;
+                    int y = 0;
+                    //int maxCount = -1;
                     //For each unit in this cluster, find the unit with most tweets, and count the word's nums
                     for (int i = 0, len = units.Count; i < len; ++i)    
                     {
@@ -294,13 +294,16 @@ namespace ManyLens.Models
                                 wordLabels[item.Key] += item.Value;
                             }
                         }
-                        if (unit.TweetsCount > maxCount)
-                        {
-                            maxCount = unit.TweetsCount;
-                            x = unit.X;
-                            y = unit.Y;
-                        }
+                        //if (unit.TweetsCount > maxCount)
+                        //{
+                        //    maxCount = unit.TweetsCount;
+                            x += unit.X;
+                            y += unit.Y;
+                        //}
                     }
+                    x /= units.Count;
+                    if (x >= (this.Width - 3)) x -= 3;
+                    y /= units.Count;
 
                     double maxValue = -1.0;
                     string targetLabel = "";
@@ -372,7 +375,7 @@ namespace ManyLens.Models
                 for (int j = 0; j < this.Width; ++j)
                 {
                     Unit unit = this.unitsInMap[i][j];
-                    if (unit != null && !unitsFlat[i][j] &&unit.TweetsCount >= stops[3] * this.MaxTweetCount)
+                    if (unit != null && !unitsFlat[i][j] &&unit.TweetsCount >= stops[2] * this.MaxTweetCount)
                     {
                         clusters.Add(Grow(i, j, unitsFlat));
                     }

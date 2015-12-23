@@ -450,7 +450,7 @@ var ManyLens;
                 this._view_botton_padding = 25;
                 this._view_left_padding = 50;
                 this._view_right_padding = 50;
-                this._coordinate_margin_left = 500;
+                this._coordinate_margin_left = 200;
                 //private _stack_time: Array<StackDate>;
                 this._stack_time_id_gen = 0;
                 this.week_days_name = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fir.", "Sat."];
@@ -6502,7 +6502,9 @@ var ManyLens;
                     width: this._unit_width,
                     height: this._unit_height
                 });
-                var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) { return d.value; })).range([10, 30]);
+                var fontSizeScale = d3.scale.sqrt()
+                    .domain(d3.extent(visData.labels, function (d) { return d.value; }))
+                    .range([10, 30]);
                 //THIS IS the Spam mark
                 //console.log(visData.unitsData.filter(function(d:UnitData){ return d.isSpam;}));
                 //svg.selectAll("text.map.spam")
