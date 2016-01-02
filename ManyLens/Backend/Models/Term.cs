@@ -109,6 +109,14 @@ namespace ManyLens.Models
         }
 
         #endregion
+        public Term(string date)
+            : base()
+        {
+            string formatString = "yyyyMMddHHmmss";
+            this.TermDate =DateTime.ParseExact(date, formatString, null);
+            this.id = date;//date.ToString("yyyyMMddHHmmss");
+        }
+
 
         public Term(DateTime date)
             :base()

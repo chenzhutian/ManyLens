@@ -75,9 +75,12 @@ var ManyLens;
                 })
                     .html('<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Minutes</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Seconds</a></li><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>');
                 d3.select("ul.dropdown-menu").selectAll("li")
-                    .on("click", function (d) {
+                    .on("click", function (d, i) {
                     var text = d3.select(this).select("a").text();
                     d3.select("#hack-drop-down").text(text);
+                    manyLens.TimeSpan = 3 - i;
+                    console.log(i + "," + manyLens.TimeSpan);
+                    manyLens.ManyLensHubServerChangeTimeSpan(manyLens.TimeSpan);
                 });
                 this._launchDataBtn =
                     //this._element.select("#curve-btns")
@@ -142,67 +145,6 @@ var ManyLens;
                     .on("switchChange.bootstrapSwitch", function (event, state) {
                     _this._manyLens.SwitchMap();
                 });
-                //var screenShotBtns = mapBtns.append("button")
-                //    .attr({
-                //        type: "button",
-                //        class: "btn btn-primary"
-                //    })
-                //    .style({
-                //        "margin-top": "30px",
-                //        "margin-bottom":"30px",
-                //        "padding":"9px 32px"
-                //    })
-                //    .text(" Screen  Shot ")
-                //    .on("click", () => {
-                //        take($("#mapView"));
-                //        function take(targetElem) {
-                //        // First render all SVGs to canvases
-                //        var elements = targetElem.find('svg').map(function() {
-                //            var svg = $(this);
-                //            var canvas = $('<canvas></canvas>');
-                //            svg.replaceWith(canvas);
-                //            // Get the raw SVG string and curate it
-                //            var content = svg.wrap('<p></p>').parent().html();
-                //            content = content.replace(/xlink:title="hide\/show"/g, "");
-                //            content = encodeURIComponent(content);
-                //            svg.unwrap();
-                //            // Create an image from the svg
-                //            var image = new Image();
-                //            image.src = 'data:image/svg+xml,' + content;
-                //            image.onload = function() {
-                //                canvas[0]['width'] = image.width;
-                //                canvas[0]['height']= image.height;
-                //                // Render the image to the canvas
-                //                var context = (<HTMLCanvasElement>canvas[0]).getContext('2d');
-                //                context.drawImage(image, 0, 0);
-                //            };
-                //            return {
-                //                svg: svg,
-                //                canvas: canvas
-                //            };
-                //        });
-                //        targetElem.imagesLoaded(function() {
-                //            // At this point the container has no SVG, it only has HTML and Canvases.
-                //            html2canvas(targetElem[0], {
-                //                onrendered: function(canvas) {
-                //                    // Put the SVGs back in place
-                //                    elements.each(function() {
-                //                        this.canvas.replaceWith(this.svg);
-                //                    });
-                //                    // Do something with the canvas, for example put it at the bottom
-                //                 $(canvas).appendTo('body');
-                //                }
-                //            })
-                //        })
-                //    }
-                //        //html2canvas(document.getElementById("mapView"), {
-                //        //        onrendered: function(canvas) {
-                //        //                document.body.appendChild(canvas);
-                //        //      },
-                //        //    allowTaint: true
-                //        //});
-                //    })
-                //;
                 //this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
                 //this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
             }
@@ -514,8 +456,6 @@ var ManyLens;
                 //this._manyLens.ManyLensHubRegisterClientFunction( this, "timeInterval", this.TimeInterval );
             }
             Object.defineProperty(Curve.prototype, "Section_Num", {
-                //[5.69006417,5.208299791,5.666119203,5.451243315,5.561025622,5.299182567,6.378748659,5.488922591,5.660975464,5.685864813,5.496838343,6.075239291,5.257863781,5.661006656,5.805892933,5.192742299,5.435717991,5.759506259,5.968754008,5.96309651,5.864660305,6.013041989,5.682746574,5.828293917,5.727380295,5.832011808,6.112499574,5.897171922,5.739194486,5.534174323,5.99537984,5.955962256];
-                //private _stack_content: Map<number, StackRect[]>;
                 get: function () {
                     return this._section_num;
                 },
@@ -788,7 +728,7 @@ var ManyLens;
                     return 10;
                 })
                     .style("fill", function (d) {
-                    console.log(_this.SumEntropy(d) / sumLength(d));
+                    //console.log( this.SumEntropy( d ) / sumLength( d ) );
                     if (d._children)
                         return colorScale(_this.SumEntropy(d) / sumLength(d));
                     return "#E87E04";
@@ -854,6 +794,16 @@ var ManyLens;
                 })
                     .remove();
             };
+            Curve.prototype.GetStackNodeType = function (date) {
+                var stackType = "";
+                switch (this._manyLens.TimeSpan) {
+                    case 3: stackType = "-s" + date.getSeconds();
+                    case 2: stackType = "-Min" + date.getMinutes() + stackType;
+                    case 1: stackType = "-hour" + date.getHours() + stackType;
+                    case 0: stackType = "-day" + date.getDate() + stackType;
+                }
+                return "" + "-mounth" + date.getMonth() + stackType;
+            };
             Curve.prototype.RefreshGraph = function (point) {
                 var _this = this;
                 //Refresh the stack rect view
@@ -867,7 +817,7 @@ var ManyLens;
                         name: "d" + date.getDay(),
                         parent: null,
                         children: null,
-                        type: "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-day" + date.getDate(),
+                        type: this.GetStackNodeType(date),
                         index: this._stack_bar_nodes.length
                     };
                     this.InserNode(stackNode.type, stackNode);
@@ -6633,6 +6583,7 @@ var ManyLens;
         function ManyLens() {
             var _this = this;
             this._nav_sideBarView_id = "sidebar-nav";
+            this._nav_sideBar_timeSpan = 2; //0:Day, 1:Hour, 2:Minute,3:Second
             this._curveView_id = "curveView";
             this._mapSvg_id = "mapSvg";
             this._geo_map_mode = false;
@@ -6662,8 +6613,8 @@ var ManyLens;
             this._curve = new ManyLens_1.TweetsCurve.Curve(this._curveView, this);
             this._curve.Render();
             this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
-            this._nav_sidebar = new ManyLens_1.Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
-            this._nav_sidebar.BuildList(null);
+            this._nav_sideBar = new ManyLens_1.Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
+            this._nav_sideBar.BuildList(null);
             //this._historySvg = d3.select("#" + this._historySvg_id);
             //this._historyTrees = new LensHistory.HistoryTrees(this._historySvg, this);
             //Add a new tree here, actually the tree should not be add here
@@ -6673,13 +6624,13 @@ var ManyLens;
             this._manyLens_hub.connection.start().done(function () {
                 console.log("start connection");
                 if (ManyLens.TestMode) {
-                    _this._nav_sidebar.FinishLoadData();
+                    _this._nav_sideBar.FinishLoadData();
                 }
                 else {
                     _this._manyLens_hub.proxy.invoke("loadData")
                         .done(function () {
                         console.log("Load data success");
-                        _this._nav_sidebar.FinishLoadData();
+                        _this._nav_sideBar.FinishLoadData();
                     })
                         .fail(function () {
                         console.log("load data fail");
@@ -6707,6 +6658,16 @@ var ManyLens;
             },
             set: function (value) {
                 this._current_classifier_map_id = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ManyLens.prototype, "TimeSpan", {
+            get: function () {
+                return this._nav_sideBar_timeSpan;
+            },
+            set: function (index) {
+                this._nav_sideBar_timeSpan = index;
             },
             enumerable: true,
             configurable: true
@@ -6781,6 +6742,13 @@ var ManyLens;
                 this._manyLens_hub = new ManyLens_1.Hub.ManyLensHub();
             }
             return this._manyLens_hub.proxy.invoke("reOrganizePeak", state);
+        };
+        ManyLens.prototype.ManyLensHubServerChangeTimeSpan = function (index) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new ManyLens_1.Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("changeTimeSpan", index);
         };
         ManyLens.prototype.ManyLensHubServerPullPoint = function (start) {
             if (!this._manyLens_hub) {

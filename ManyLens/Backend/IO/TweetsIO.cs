@@ -62,19 +62,24 @@ namespace ManyLens.IO
             sw.Close();
         }
 
-        public static SortedDictionary<DateTime, Term> LoadTweetsAsTermsSortedByDate(string tweetFile)
+        public static SortedDictionary<string, Term>[] LoadTweetsAsTermsSortedByDate(string tweetFile)
         {
-            SortedDictionary<DateTime, Term> sortedTerm = new SortedDictionary<DateTime, Term>();
+            //SortedDictionary<DateTime, Term> sortedTerm = new SortedDictionary<DateTime, Term>();
+            SortedDictionary<string, Term>[] sortedTerms = new SortedDictionary<string, Term>[4];
+            for (int i = 0; i < 4; ++i)
+            {
+                sortedTerms[i] = new SortedDictionary<string, Term>();
+            }
+
             Dictionary<string, User> users = new Dictionary<string, User>();
             StreamReader sr;
-
             sr = new StreamReader(tweetFile);
 
-            int[] mode = new int[5];
-            for (int i = 0; i < config.Parameter.TimeSpan; i++)
-            {
-                mode[i] = 1;
-            }
+            //int[] mode = new int[5];
+            //for (int i = 0; i < config.Parameter.TimeSpan; i++)
+            //{
+            //    mode[i] = 1;
+            //}
 
             while (!sr.EndOfStream)
             {
@@ -102,30 +107,29 @@ namespace ManyLens.IO
                 //{
                 #endregion
 
-                    //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
-                    //\t 8follower \9 13V \t 10gpsA \t 11gpsB   \t 12countryName
-                    User user;
-                    if (users.ContainsKey(tweetAttributes[2]))
-                    {
-                        user = users[tweetAttributes[2]];
-                    }
-                    else
-                    {
-                        user = new User(tweetAttributes[2], tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
-                        users.Add(tweetAttributes[2], user);
-                    }
-                    tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], tweetAttributes[10], tweetAttributes[11], user);
-                    if (tweetAttributes.Length == 13)
-                    {
-                        tweet.CountryName = tweetAttributes[12];
-                        if (tweet.CountryName == null)
-                            Debug.WriteLine("country name is null at" + tweet.DerivedContent);
-                    }
+                //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
+                //\t 8follower \9 13V \t 10gpsA \t 11gpsB   \t 12countryName
+                User user;
+                if (users.ContainsKey(tweetAttributes[2]))
+                {
+                    user = users[tweetAttributes[2]];
+                }
+                else
+                {
+                    user = new User(tweetAttributes[2], tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
+                    users.Add(tweetAttributes[2], user);
+                }
+                tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], tweetAttributes[10], tweetAttributes[11], user);
+                if (tweetAttributes.Length == 13)
+                {
+                    tweet.CountryName = tweetAttributes[12];
+                    if (tweet.CountryName == null)
+                        Debug.WriteLine("country name is null at" + tweet.DerivedContent);
+                }
 
                 //}
 
-                if (tweet == null)
-                    continue;
+                if (tweet == null) continue;
 
                 DateTime postDate = tweet.PostDate;
                 int sec = 0;
@@ -140,25 +144,46 @@ namespace ManyLens.IO
                 else if (postDate.Second > 14)
                 {
                     sec = 15;
-                }
+                } 
                 else if (postDate.Second > 0)
                 {
                     sec = 0;
                 }
-                DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec*mode[4]);
+                //DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec*mode[4]);
+                for (int i = 0; i < 4; ++i)
+                {
+                    string date = "";
+                    switch (i)
+                    {
+                        case 3: date = sec.ToString("D2"); goto case 2;
+                        case 2: date = postDate.Minute.ToString("D2") + date; goto case 1;
+                        case 1: date = postDate.Hour.ToString("D2") + date; goto case 0;
+                        case 0: date = postDate.Day.ToString("D2") + date; break;
 
-                if (sortedTerm.ContainsKey(date))
-                {
-                    //sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate,tweet.Lon,tweet.Lat, tweet.User);
-                    sortedTerm[date].AddTweet(tweet);
+                    }
+                
+                    date = postDate.Year.ToString("D4") + postDate.Month.ToString("D2") + date;
+
+                    for (int t = 0, len = (14 - date.Length)/2; t < len; ++t) 
+                    {
+                        date += "00";
+                    }
+                    SortedDictionary<string,Term> sortedTerm = sortedTerms[i];
+                    if (sortedTerm.ContainsKey(date))
+                    {
+                        //sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate,tweet.Lon,tweet.Lat, tweet.User);
+                        sortedTerm[date].AddTweet(tweet);
+                    }
+                    else
+                    {
+                        Term t = new Term(date);
+                        //t.AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.Lon,tweet.Lat,tweet.User);
+                        t.AddTweet(tweet);
+                        sortedTerm.Add(date, t);
+                    }
                 }
-                else
-                {
-                    Term t = new Term(date);
-                    //t.AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.Lon,tweet.Lat,tweet.User);
-                    t.AddTweet(tweet);
-                    sortedTerm.Add(date, t);
-                }
+
+
             }
             sr.Close();
 
@@ -184,7 +209,7 @@ namespace ManyLens.IO
             //}
             #endregion
 
-            return sortedTerm;
+            return sortedTerms;
         }
 
         public struct CityStruct 

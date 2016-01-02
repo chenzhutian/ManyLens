@@ -87,8 +87,6 @@ module ManyLens {
             private _hack_entropy_for_day = [6.078795108, 5.841434121, 5.939489652, 5.938061597, 5.856967809, 5.831608227, 5.93391885, 5.993377279, 5.830555653, 5.802729553, 6.076953322, 5.894862096, 5.779206615, 5.969579388, 5.710407662];
             private _hack_entropy_for_day_fullyear =
             [5.991439819, 5.851983278, 5.948156068, 5.436286372, 5.291194338, 5.483132322, 5.335564514, 5.890816733, 6.296046929, 5.776935794, 6.178819818, 5.823461866, 6.276945033, 5.383821592, 5.780546756, 5.504823674, 5.459557571, 5.290890409, 5.711883642, 5.941650018, 5.931193478, 5.852722028, 5.823861489, 5.917398009, 5.975238027, 5.842076197, 5.8002751, 6.081009165, 5.892996018, 5.753263639, 5.879791592];
-            //[5.69006417,5.208299791,5.666119203,5.451243315,5.561025622,5.299182567,6.378748659,5.488922591,5.660975464,5.685864813,5.496838343,6.075239291,5.257863781,5.661006656,5.805892933,5.192742299,5.435717991,5.759506259,5.968754008,5.96309651,5.864660305,6.013041989,5.682746574,5.828293917,5.727380295,5.832011808,6.112499574,5.897171922,5.739194486,5.534174323,5.99537984,5.955962256];
-            //private _stack_content: Map<number, StackRect[]>;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -460,7 +458,7 @@ module ManyLens {
                         return 10;
                     })
                     .style( "fill", ( d ): any=> {
-                        console.log( this.SumEntropy( d ) / sumLength( d ) );
+                        //console.log( this.SumEntropy( d ) / sumLength( d ) );
                         if ( d._children )
                             return colorScale( this.SumEntropy( d ) / sumLength( d ) );
                         return "#E87E04";
@@ -533,13 +531,24 @@ module ManyLens {
                     .remove();
             }
 
+            private GetStackNodeType(date:Date):string {
+                var stackType:string = "";
+                switch(this._manyLens.TimeSpan){
+
+                    case 3:stackType = "-s"+date.getSeconds();
+                    case 2:stackType = "-Min"+date.getMinutes() + stackType;
+                    case 1:stackType = "-hour"+date.getHours() + stackType;
+                    case 0:stackType = "-day"+date.getDate() + stackType;
+                }
+                return "" +  "-mounth" + date.getMonth()+stackType;
+            }
+
             private RefreshGraph( point: Point ) {
                 //Refresh the stack rect view
                 if ( this._data[0].type == 1 || this._data[0].type == 3 ) {
 
                     //The stack date
                     var date = this._time_formater.parse( this._data[0].beg );
-
                     var stackNode: StackNode = {
                         id: this._data[0].beg,
                         date: date,
@@ -547,7 +556,7 @@ module ManyLens {
                         name: "d" + date.getDay(),
                         parent: null,
                         children: null,
-                        type: "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + "-day" + date.getDate(),//"-day"+date.getDate()+"-hour"+date.getHours()+"-Min"+date.getMinutes()+"-s"+date.getSeconds(),
+                        type: this.GetStackNodeType(date),
                         index: this._stack_bar_nodes.length
                     }
                     this.InserNode( stackNode.type, stackNode );

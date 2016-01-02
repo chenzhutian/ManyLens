@@ -23,8 +23,8 @@ namespace ManyLens.SignalR
     public class ManyLensHub : Hub
     {
         private static bool GeoMapMode = false;
-
-        private static SortedDictionary<DateTime, Term> dateTweetsFreq;
+        private static CancellationTokenSource cts = new CancellationTokenSource();
+        private static SortedDictionary<string, Term>[] dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
         private static SortedDictionary<DateTime, MapPack> visMapsSortedByTime = new SortedDictionary<DateTime, MapPack>();
@@ -42,12 +42,9 @@ namespace ManyLens.SignalR
             lensDatas.Clear();
            await Task.Run(() =>
             {
-                if (dateTweetsFreq == null)
-                    dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.ebolaFile);
-                if (cities1000 == null)
-                    cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
-                if (stopWords == null)
-                    stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
+                if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
+                if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
+                if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
             });
         }
 
@@ -95,6 +92,8 @@ namespace ManyLens.SignalR
             double alpha = 0.125;
             double beta = 1.5;
             ///config.Parameter.TimeSpan = 3;
+            //init the cancellation token;
+            CancellationToken ctoken = cts.Token;
 
             await Task.Run(() =>
             {
@@ -103,7 +102,7 @@ namespace ManyLens.SignalR
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
-                Term[] tp = dateTweetsFreq.Values.ToArray();
+                Term[] tp = dateTweetsFreq[config.Parameter.TimeSpan].Values.ToArray();
                 for (int i = 0, len = tp.Length; i < len; ++i)
                 {
                     tp[i].PointType = 0;
@@ -181,7 +180,6 @@ namespace ManyLens.SignalR
                                     interal.AddTerm(tp[k]);
                                 }
                                 interal.SetEndDate(tp[end].TermDate);
-
                                 //LazyThreadForConditionalEntropy(interal);
                             }
 
@@ -203,11 +201,29 @@ namespace ManyLens.SignalR
                         beg = tp[t].BeginPoint,
                         end = tp[t].EndPoint
                     };
-
-                    Clients.Caller.addPoint(point);
-                    Thread.Sleep(100);
+                    try
+                    {
+                        Clients.Caller.addPoint(point);
+                        if (ctoken.IsCancellationRequested)
+                            ctoken.ThrowIfCancellationRequested();
+                        Thread.Sleep(100);
+                    }
+                    catch (OperationCanceledException e)
+                    {
+                        Debug.WriteLine(e.InnerException);
+                        return;
+                    }
                 }
-            });
+            },ctoken);
+        }
+
+        public async Task ChangeTimeSpan(int index)
+        {
+            if (config.Parameter.TimeSpan == index) return;
+            config.Parameter.TimeSpan = index;
+            Debug.WriteLine(config.Parameter.TimeSpan);
+            cts.Cancel();
+
         }
 
         public async Task ReOrganizePeak(bool state)

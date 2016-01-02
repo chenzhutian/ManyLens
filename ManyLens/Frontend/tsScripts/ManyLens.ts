@@ -13,7 +13,8 @@ module ManyLens {
 
         private _nav_sideBarView_id: string = "sidebar-nav";
         private _nav_sideBarView: D3.Selection;
-        private _nav_sidebar: Navigation.SideBarNavigation;
+        private _nav_sideBar: Navigation.SideBarNavigation;
+        private _nav_sideBar_timeSpan:number = 2;//0:Day, 1:Hour, 2:Minute,3:Second
 
         private _curveView_id: string = "curveView";
         private _curveView: D3.Selection;
@@ -51,6 +52,12 @@ module ManyLens {
         public set CurrentClassifierMapID(value:string){
             this._current_classifier_map_id = value;
         }
+        public set TimeSpan(index:number){
+            this._nav_sideBar_timeSpan = index;    
+        }
+        public get TimeSpan(){
+            return this._nav_sideBar_timeSpan;    
+        }
 
         constructor() {
             /*--------------------------Initial all the hub------------------------------*/
@@ -78,8 +85,8 @@ module ManyLens {
             this._curve.Render();
 
             this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
-            this._nav_sidebar = new Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
-            this._nav_sidebar.BuildList(null);
+            this._nav_sideBar = new Navigation.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
+            this._nav_sideBar.BuildList(null);
 
             //this._historySvg = d3.select("#" + this._historySvg_id);
             //this._historyTrees = new LensHistory.HistoryTrees(this._historySvg, this);
@@ -91,12 +98,12 @@ module ManyLens {
             this._manyLens_hub.connection.start().done(() => {
                 console.log("start connection");
                 if (ManyLens.TestMode) {
-                    this._nav_sidebar.FinishLoadData();
+                    this._nav_sideBar.FinishLoadData();
                 } else {
                     this._manyLens_hub.proxy.invoke("loadData")
                         .done(() => {
                             console.log("Load data success");
-                            this._nav_sidebar.FinishLoadData();
+                            this._nav_sideBar.FinishLoadData();
                         })
                         .fail(() => {
                             console.log("load data fail");
@@ -172,7 +179,7 @@ module ManyLens {
             }
             this._manyLens_hub.proxy.on(funcName, function () {
                 func.apply(registerObj, arguments);
-            });
+            }); 
             //this._manyLens_hub.client[funcName] = function () {
             //    func.apply(registerObj, arguments);
             //}
@@ -185,6 +192,14 @@ module ManyLens {
             }
             return this._manyLens_hub.proxy.invoke("reOrganizePeak", state);
 
+        }
+
+        public ManyLensHubServerChangeTimeSpan(index:number):Hub.IPromise<void>{
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("changeTimeSpan",index);
         }
 
         public ManyLensHubServerPullPoint(start: string): Hub.IPromise<void> {

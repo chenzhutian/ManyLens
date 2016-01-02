@@ -45,7 +45,7 @@ namespace ManyLens.config
         public static int TimeSpan
         {
             get { return Parameter.timeSpan; }
-            set { Parameter.timeSpan = value > 4 ? 4 : value < 1 ? 1 : value; }
+            set { Parameter.timeSpan = value > 3 ? 3 : value < 0 ? 0 : value; }
         }
 
         public static string[] intervals = { "Month", "Day", "Hour", "Minute" };
