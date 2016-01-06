@@ -40,12 +40,12 @@ namespace ManyLens.SignalR
             //clear the static data
             interals.Clear();
             lensDatas.Clear();
-           await Task.Run(() =>
-            {
-                if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
-                if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
-                if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
-            });
+            await Task.Run(() =>
+             {
+                 if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
+                 if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
+                 if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
+             });
         }
 
         private List<Interval> taskList = new List<Interval>();
@@ -83,17 +83,11 @@ namespace ManyLens.SignalR
             }
         }
 
-        //damn it, I almost forget how this function works.
-        public async Task PullPoint(string start)
+        private async Task PushPoint(Term seperatePoint, CancellationToken ctoken)
         {
-            //clear the static data
-            interals.Clear();
             //set the parameter
             double alpha = 0.125;
             double beta = 1.5;
-            ///config.Parameter.TimeSpan = 3;
-            //init the cancellation token;
-            CancellationToken ctoken = cts.Token;
 
             await Task.Run(() =>
             {
@@ -101,13 +95,38 @@ namespace ManyLens.SignalR
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;
+
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
                 Term[] tp = dateTweetsFreq[config.Parameter.TimeSpan].Values.ToArray();
+
+
+                if (seperatePoint != null)
+                {
+                    int j = 0;
+                    int tempSeperateID = int.Parse(seperatePoint.ID);
+                    if (config.Parameter.LastTimeSpan < config.Parameter.TimeSpan)
+                    {
+                        //switch to small time granularity
+                        for (j = 0; int.Parse(tp[j].ID) <= tempSeperateID; ++j) ;
+                    }
+                    else if (config.Parameter.LastTimeSpan > config.Parameter.TimeSpan)
+                    {
+                        //switch to large time granularity
+                        for (j = 0; int.Parse(tp[j].ID) <= tempSeperateID; ++j) ;
+                    }
+
+                    Debug.WriteLine("Seperate Point index is :" + j);
+                    return;
+                }
+
+                #region init some variables
+                //init reset the type of each point
                 for (int i = 0, len = tp.Length; i < len; ++i)
                 {
                     tp[i].PointType = 0;
                 }
 
+                //init mean and variance
                 for (int i = 0; i < p; i++)
                 {
                     mean += tp[i].TweetsCount;
@@ -119,10 +138,11 @@ namespace ManyLens.SignalR
                     variance = variance + Math.Pow(tp[i].TweetsCount - mean, 2);
                 }
                 variance = Math.Sqrt(variance / p);
+                #endregion
 
                 for (int i = p, t = 0; t < tp.Length; i++, t++)
                 {
-
+                    #region Window open here
                     if (i < tp.Length)
                     {
                         cutoff = variance * beta;
@@ -191,6 +211,7 @@ namespace ManyLens.SignalR
                             mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
                         }
                     }
+                    #endregion
 
                     Point point = new Point()
                     {
@@ -201,28 +222,42 @@ namespace ManyLens.SignalR
                         beg = tp[t].BeginPoint,
                         end = tp[t].EndPoint
                     };
-                    try
-                    {
-                        Clients.Caller.addPoint(point);
-                        if (ctoken.IsCancellationRequested)
-                            ctoken.ThrowIfCancellationRequested();
-                        Thread.Sleep(100);
-                    }
-                    catch (OperationCanceledException e)
-                    {
-                        Debug.WriteLine(e.InnerException);
-                        return;
-                    }
+
+                    Clients.Caller.addPoint(point);
+                    //if (ctoken.IsCancellationRequested)
+                    //{
+                    //    Debug.WriteLine(seperatePoint.ID);
+                    //    return tp[t];
+                    //}
+
+                    Thread.Sleep(100);
                 }
-            },ctoken);
+
+            }, ctoken);
+
+        }
+
+        public async Task PullPoint(Term seperatePoint = null)
+        {
+            //clear the static data
+            interals.Clear();
+
+            //init the cancellation token;
+            CancellationToken ctoken = cts.Token;
+            await this.PushPoint(seperatePoint, ctoken);
+
         }
 
         public async Task ChangeTimeSpan(int index)
         {
-            if (config.Parameter.TimeSpan == index) return;
-            config.Parameter.TimeSpan = index;
-            Debug.WriteLine(config.Parameter.TimeSpan);
-            cts.Cancel();
+            await Task.Run(() =>
+            {
+
+                if (config.Parameter.TimeSpan == index) return;
+                config.Parameter.TimeSpan = index;
+                Debug.WriteLine(config.Parameter.TimeSpan);
+                //cts.Cancel();
+            });
 
         }
 
@@ -382,7 +417,8 @@ namespace ManyLens.SignalR
                 Interval interal = interals[interalID];
                 Dictionary<string, List<Tweet>> tweetsGroupByLocation = new Dictionary<string, List<Tweet>>();
 
-                await Task.Run(() => {
+                await Task.Run(() =>
+                {
                     for (int i = 0, len = interal.TweetsCount; i < len; ++i)
                     {
                         Tweet tweet = interal.Tweets[i];
@@ -408,7 +444,7 @@ namespace ManyLens.SignalR
                                 }
                             });
                             tweet.CountryName = countryName;
-                            
+
                         }
 
                         if (!tweetsGroupByLocation.ContainsKey(tweet.CountryName))
@@ -427,9 +463,9 @@ namespace ManyLens.SignalR
                         result.Add(d);
                     }
                     Clients.Caller.upDateGeoMap(result);
-                
+
                 });
-               
+
             }
             else
             {
@@ -444,12 +480,12 @@ namespace ManyLens.SignalR
                     else
                     {
                         Interval interal = interals[interalID];
-                        Debug.WriteLine("Tweets count before preprocessing is : "+interal.TweetsCount);
+                        Debug.WriteLine("Tweets count before preprocessing is : " + interal.TweetsCount);
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
                         interal.PreproccessingParallel(progress);
                         sw.Stop();
-                        Debug.WriteLine("Preprocessing TIME Consuming : "+ sw.ElapsedTicks / (decimal)Stopwatch.Frequency);
+                        Debug.WriteLine("Preprocessing TIME Consuming : " + sw.ElapsedTicks / (decimal)Stopwatch.Frequency);
 
                         if (classifierID != null)
                         {
@@ -477,8 +513,8 @@ namespace ManyLens.SignalR
                             visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
                         }
 
-                        Debug.WriteLine("Entropy : "+interal.Entropy);
-                        Debug.WriteLine("Tweets count after preprocessing : "+interal.TweetsCount);
+                        Debug.WriteLine("Entropy : " + interal.Entropy);
+                        Debug.WriteLine("Tweets count after preprocessing : " + interal.TweetsCount);
                         visMaps.Add(visMap.VisMapID, visMap);
 
                     }

@@ -90,7 +90,7 @@ module ManyLens {
 
                             if ( d3.event.keyCode == 13 ) {
                                 d3.event.preventDefault();
-                                this._manyLens.ManyLensHubServerPullPoint( "0" );
+                                this._manyLens.ManyLensHubServerPullPoint();
                             }
 
                         })
@@ -103,7 +103,7 @@ module ManyLens {
                 d3.select( "#navbarInput-02" )
                     .on( "click", ( d ) => {
                         d3.event.preventDefault();
-                        this._manyLens.ManyLensHubServerPullPoint( "0" );
+                        this._manyLens.ManyLensHubServerPullPoint(  );
                     });
 
                 this._brand = this._element.select( "#map-btns" ).append( "div" )
@@ -322,7 +322,7 @@ module ManyLens {
                         this._launchDataBtn.classed( "disabled", false );
                     });
                 } else {
-                    this._manyLens.ManyLensHubServerPullPoint( "0" ).done(( d ) => {
+                    this._manyLens.ManyLensHubServerPullPoint(  ).done(( d ) => {
                         this._launchDataBtn.classed( "disabled", false );
                     });
                 }

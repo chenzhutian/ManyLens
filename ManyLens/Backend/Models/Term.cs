@@ -17,6 +17,7 @@ namespace ManyLens.Models
         private string begPoint;
         private string endPoint;
         private bool isPeak = false;
+
         //private double virtualCount = -1;
         //private double tempVirtualCount = 0;
 

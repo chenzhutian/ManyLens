@@ -98,13 +98,13 @@ var ManyLens;
                         .on("keydown", function (d) {
                         if (d3.event.keyCode == 13) {
                             d3.event.preventDefault();
-                            _this._manyLens.ManyLensHubServerPullPoint("0");
+                            _this._manyLens.ManyLensHubServerPullPoint();
                         }
                     });
                 d3.select("#navbarInput-02")
                     .on("click", function (d) {
                     d3.event.preventDefault();
-                    _this._manyLens.ManyLensHubServerPullPoint("0");
+                    _this._manyLens.ManyLensHubServerPullPoint();
                 });
                 this._brand = this._element.select("#map-btns").append("div")
                     .attr("class", "nav-brand")
@@ -297,7 +297,7 @@ var ManyLens;
                     });
                 }
                 else {
-                    this._manyLens.ManyLensHubServerPullPoint("0").done(function (d) {
+                    this._manyLens.ManyLensHubServerPullPoint().done(function (d) {
                         _this._launchDataBtn.classed("disabled", false);
                     });
                 }
@@ -6750,12 +6750,12 @@ var ManyLens;
             }
             return this._manyLens_hub.proxy.invoke("changeTimeSpan", index);
         };
-        ManyLens.prototype.ManyLensHubServerPullPoint = function (start) {
+        ManyLens.prototype.ManyLensHubServerPullPoint = function () {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new ManyLens_1.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("pullPoint", start);
+            return this._manyLens_hub.proxy.invoke("pullPoint", null);
             //return this._manyLens_hub.server.pullPoint(start);
         };
         ManyLens.prototype.ManyLensHubServerTestPullPoint = function () {

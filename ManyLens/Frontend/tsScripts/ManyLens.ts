@@ -202,12 +202,12 @@ module ManyLens {
             return this._manyLens_hub.proxy.invoke("changeTimeSpan",index);
         }
 
-        public ManyLensHubServerPullPoint(start: string): Hub.IPromise<void> {
+        public ManyLensHubServerPullPoint(): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("pullPoint", start);
+            return this._manyLens_hub.proxy.invoke("pullPoint", null);
             //return this._manyLens_hub.server.pullPoint(start);
         }
 
