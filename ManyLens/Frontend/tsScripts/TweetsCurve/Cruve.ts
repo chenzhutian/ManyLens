@@ -55,8 +55,6 @@ module ManyLens {
 
             private _sub_view_width: number;
             private _sub_view_height: number;
-            // private _sub_view_x_scale: D3.Scale.LinearScale = d3.scale.linear();
-            // private _sub_view_y_scale: D3.Scale.LinearScale = d3.scale.linear();
 
             private _section_num: number = 30;
             private _view_height: number;
@@ -65,6 +63,7 @@ module ManyLens {
             private _coordinate_margin_left: number = 500;
 
             protected _data: Array<Point>;
+            private _section_data: Array<Section>;
 
             private _time_formater: D3.Time.TimeFormat;
             private _stack_time_id_gen: number = 0;
@@ -101,6 +100,7 @@ module ManyLens {
                 super( element, manyLens );
 
                 this._data = new Array<Point>();
+                this._section_data = new Array<Section>();
                 this._stack_bar_nodes = new Array<StackNode>();
 
                 this._view_height = parseFloat( this._element.style( "height" ) ) - 30;
@@ -114,7 +114,7 @@ module ManyLens {
                     .range( [this._view_padding.left + this._coordinate_margin_left, this._view_width - this._view_padding.right] )
                     ;
                 this._y_scale
-                    .domain( [0, 20] )
+                    .domain( [0, 25000] )
                     .range( [this._view_height - this._view_padding.bottom, this._view_padding.top] )
                     ;
                 this._x_axis_gen
@@ -554,9 +554,9 @@ module ManyLens {
                 }
 
                 //Refresh the curve view
-                this._y_scale.domain( [0, d3.max( this._data, function ( d ) { return d.value; })] );
-                this._y_axis_gen.scale( this._y_scale );
-                this._y_axis.call( this._y_axis_gen );
+                //this._y_scale.domain( [0, d3.max( this._data, function ( d ) { return d.value; })] );
+                //this._y_axis_gen.scale( this._y_scale );
+                //this._y_axis.call( this._y_axis_gen );
 
                 var restPathData = [];
                 var nodesData = [];
@@ -598,6 +598,16 @@ module ManyLens {
                             section.end = i - 1;
                         }
                         sectionData.push( section );
+                        if ( this._section_data.length > 0 ) {
+                            if ( this._section_data[this._section_data.length - 1].id != section.id && section.pathPoints.length == 3 ) {
+                                this._section_data.push( section );
+                            }
+                        }
+                        else {
+                            if ( section.pathPoints.length == 3 ) {
+                                this._section_data.push( section );
+                            }
+                        }
                     } else {
                         var sectionRestPath = [];
                         if ( this._data[i - 1] )
@@ -618,18 +628,18 @@ module ManyLens {
                 //handle the seg rect
                 var rects = this._mainView.selectAll( ".curve.seg" ).data( sectionData, function ( d ) { return d.id; });
                 rects
-                    .attr("transform",(d)=>{
-                         return "translate("+this._x_scale( d.beg )+")";   
+                    .attr( "transform", ( d ) => {
+                        return "translate(" + this._x_scale( d.beg ) + ")";
                     })
-                    .select('rect')
+                    .select( 'rect' )
                     .attr( "width", ( d, i ) => {
                         return this._x_scale( d.end ) - this._x_scale( d.beg );
                     })
                     ;
-                rects.enter().append('g')
+                rects.enter().append( 'g' )
                     .attr( "class", "curve seg" )
-                    .attr("transform",(d)=>{
-                        return "translate("+this._x_scale( d.beg )+")";
+                    .attr( "transform", ( d ) => {
+                        return "translate(" + this._x_scale( d.beg ) + ")";
                     })
                     .append( "rect" )
                     .attr( "width", ( d, i ) => {
@@ -641,6 +651,24 @@ module ManyLens {
                     })
                     ;
                 rects.exit().remove();
+
+                var xposOffset = this._x_scale( 0 ) - this._x_scale( 1 );
+                var cells = this._mainView.selectAll( "g.curve.cells" ).data( sectionData, function ( d ) { return d.id; });
+                cells.attr( "transform",  ( d )=> {
+                    //if ( d.beg === 0 ) {
+                     //   return "translate(" + ( this._x_scale( d.beg ) + xposOffset ) + ")";
+                    //} else {
+                        return "translate(" + ( this._x_scale( d.end - 2) ) + ")";
+                    //}
+                })
+                    ;
+                cells.enter().append( 'g' )
+                    .attr( 'class', 'curve cells' )
+                    .attr( "transform", ( d ) => {
+                        return "translate(" + this._x_scale( d.beg ) + ")";
+                    })
+                    ;
+                cells.exit().remove();
 
                 var xTime = this._mainView.selectAll( ".curve.seg.time-tick" ).data( sectionData );
                 xTime.attr( "x", ( d, i ) => {
@@ -684,89 +712,120 @@ module ManyLens {
                 truepath.exit().remove();
 
                 //Voronoi here
-                //for ( var i = 0, len = sectionData.length; i < len; ++i ) {
-                //    var section = sectionData[i];
-                //    if ( !section.bound && section.pathPoints.length == 3 ) {
+                if ( this._section_data.length > 0 ) {
 
-                //        //Calculate the bound
-                //        section.bound = [];
-                //        section.pathPoints.forEach(( d ) => {
-                //            section.bound.push( [this._x_scale( d.index ), this._y_scale( d.value )] );
-                //        });
-                //        section.bound.push( [this._x_scale( section.pathPoints[0].index ), 0] );
-                //        section.bound.push( [this._x_scale( section.pathPoints[2].index ), 0] );
+                    var section = this._section_data[this._section_data.length - 1];
+                    if ( !section.bound && section.pathPoints.length == 3 ) {
 
-                //        var constR = this._x_scale( 0 ) - this._x_scale( 1 ) ;
-                //        var fs = section.features[0].concat(section.features[1],section.features[2]);
-                //        console.log(fs);
+                        //Calculate the bound
+                        section.bound = [];
+                        var offset = this._x_scale( section.pathPoints[0].index );
+                        section.bound.push( [this._x_scale( section.pathPoints[2].index ) - offset, this._view_height - this._view_padding.bottom] );
+                        section.bound.push( [this._x_scale( section.pathPoints[2].index ) - offset, this._y_scale( section.pathPoints[2].value )] );
+                        section.bound.push( [this._x_scale( section.pathPoints[1].index ) - offset, this._y_scale( section.pathPoints[1].value )] );
+                        section.bound.push( [0, this._y_scale( section.pathPoints[0].value )] );
+                        section.bound.push( [0, this._view_height - this._view_padding.bottom] );
+
+                        var constR = this._x_scale( 1 ) - this._x_scale( 0 );
+                        var fs = [].concat( section.features[0], section.features[1], section.features[2] );
+                        fs.sort( function ( a, b ) {
+                            if ( a.feature_type > b.feature_type ) return -1;
+                            else return 1;
+                        });
+
+                        console.log( fs );
+                        //Calculate the seed
+                        var seeds = [
+                            [constR * 0.5, this._y_scale( section.pathPoints[0].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[0].value ) ) * 0.25],
+                            [constR * 0.5, this._y_scale( section.pathPoints[0].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[0].value ) ) * 0.75],
+                            [constR * 1.5, this._y_scale( section.pathPoints[2].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[2].value ) ) * 0.25],
+                            [constR * 1.5, this._y_scale( section.pathPoints[2].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[2].value ) ) * 0.75]
+                        ];
+
+                        var _fs = {};
+                        for ( var i = 0; i < fs.length; ++i ) {
+                            var t = fs[i].feature_type;
+                            if ( !_fs[t] ) {
+                                _fs[t] = [];
+                            }
+                            _fs[t].push( fs[i] );
+                        }
+
+                        fs = [];
+                        var seedsCount = -1;
+                        for ( var fsType in _fs ) {
+                            if ( _fs.hasOwnProperty( fsType ) ) {
+                                ++seedsCount;
+                                var tempFs = _fs[fsType];
+                                var step = 2.0 * Math.PI / tempFs.length;
+                                for ( var i = 0; i < tempFs.length; ++i ) {
+                                    var angle = step * i;
+                                    var r = Math.random() * constR * 0.4;
+                                    tempFs[i]['x'] = seeds[seedsCount][0] + r * Math.cos( angle ) * 0.4;
+                                    tempFs[i]['y'] = seeds[seedsCount][1] + r * Math.sin( angle ) * 0.4;
+                                }
+                                fs = fs.concat( tempFs );
+                            }
+                        }
+
+                        var voronoi = d3.geom.voronoi();
+                        voronoi.x( function ( d ) { return d['x']; });
+                        voronoi.y( function ( d ) { return d['y']; });
+
+                        var color = d3.scale.category20();
+                        var bound = d3.geom.polygon( section.bound );
+                        var iteration = 0;
+                        var cnt = 0;
+                        while ( cnt < 10 ) {
+                            var p = voronoi( fs );
+                            var dist = 0;
+                            //var ccnt = 0;
+                            for ( var i = 0; i < p.length; ++i ) {
+                                //for each voronoi polygon, clip their boundary
+                                var tempPoly = bound.clip( p[i] );
+                                var centroid = d3.geom.polygon( tempPoly ).centroid();
+                                if ( !isNaN( centroid[0] ) && !isNaN( centroid[1] ) ) {
+                                    fs[i]['p'] = p[i];
+                                    dist += Math.sqrt(( fs[i]['x'] - centroid[0] ) * ( fs[i]['x'] - centroid[0] )
+                                        + ( fs[i]['y'] - centroid[1] ) * ( fs[i]['y'] - centroid[1] ) );
+                                    fs[i]['x'] = centroid[0];
+                                    fs[i]['y'] = centroid[1];
+                                    //ccnt ++;
+                                } else {
+                                    dist += 100000
+                                }
+                            }
+                            dist /= p.length;
+                            if ( dist <= constR * 0.01 ) {
+                                cnt++;
+                            } else {
+                                cnt = 0;
+                            }
+                            iteration++;
+                            if ( iteration > 1000 ) break;
+                        }
 
 
-		        //        var step = 2.0 * Math.PI / fs.length;
-		        //        for(var i = 0; i < fs.length; ++i) {
-			    //            var angle = step * i;
-			    //            var r = Math.random() * constR;
-			    //            fs[i]['x'] = r * Math.cos(angle);
-			    //            fs[i]['y'] = r * Math.sin(angle);
-		        //        }
-
-
-                //        var voronoi = d3.geom.voronoi();
-		        //        voronoi.x(function(d){return d['x'];});
-		        //        voronoi.y(function(d){return d['y'];});
-                        
- 	            //        var color = d3.scale.category10();
-                //        var bound = d3.geom.polygon(section.bound);
-
-		        //        //var iteration = 0;
-		        //        var cnt = 0;
-		        //        while(cnt < 10) {
-			    //            var p = voronoi(fs);
-			    //            var dist = 0;
-			    //            //var ccnt = 0;
-			    //            for(var i = 0; i < p.length; ++i) {
-                //                //for each voronoi polygon, clip their boundary
-				//                var centroid = d3.geom.polygon(bound.clip(p[i])).centroid();
-				//                if(!isNaN(centroid[0]) && !isNaN(centroid[1])) {
-				//	                fs[i]['p'] = p[i];
-				//	                dist += Math.sqrt((fs[i]['x'] - centroid[0]) * (fs[i]['x'] - centroid[0]) 
-				//		                + (fs[i]['y'] - centroid[1]) * (fs[i]['y'] - centroid[1]));
-				//	                fs[i]['x'] = centroid[0];
-				//	                fs[i]['y'] = centroid[1];
-				//	                //ccnt ++;
-				//                } else {
-				//	                dist += 100000
-				//                }
-			    //            }
-			    //            dist /= p.length;
-			    //            if(dist <= constR * 0.001) {
-				//                cnt ++;
-			    //            } else {
-				//                cnt = 0;
-			    //            }
-			    //            //iteration ++;
-		        //        }
-
-                //        rects.selectAll(".cell")
-			    //            .data(fs)
-			    //            .enter().append("g")
-			    //            .attr("class", "cell")
-			    //            .append("path")
-			    //            .attr("d", function(d) {
-				//                var path = "M" + bound.clip(d.p).join("L") + "Z";
-				//                return path;
-			    //            })
-			    //            .style("fill", function(d, i) {
-				//                return color(d.feature_type);
-			    //            })
-			    //            .style("fill-opacity", function(d) {
-				//                return parseFloat(d.probability);
-			    //            })
-			    //            .style("stroke", 'lightgrey')
-			    //            .style("stroke-width", .3)
-                //        ;
-                //    }
-                //}
-   
+                        cells.selectAll( ".cell" )
+                            .data( fs )
+                            .enter().append( "g" )
+                            .attr( "class", "cell" )
+                            .append( "path" )
+                            .attr( "d", function ( d ) {
+                                var path = "M" + bound.clip( d.p ).join( "L" ) + "Z";
+                                return path;
+                            })
+                            .style( "fill", function ( d, i ) {
+                                return color( d.feature_type );
+                            })
+                            //.style( "fill-opacity", function ( d ) {
+                            //    return parseFloat( d.feature_value );
+                            //})
+                            .style( "stroke", 'lightgrey' )
+                            .style( "stroke-width", .3 )
+                            ;
+                    }
+                }
 
 
                 var trueRestPath = this._mainView.selectAll( ".curve.rest.true.path" ).data( restPathData );

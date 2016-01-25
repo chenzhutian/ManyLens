@@ -149,7 +149,7 @@ namespace ManyLens.Models
             string tweetLength = "tweetLength";
             string hastagCount = "hastagCount";
 
-            for (int i = 0, len = this.TweetsCount; i < 100; ++i )
+            for (int i = 0, len = this.TweetsCount; i < 50; ++i )
             {
                 Tweet t = this.Tweets[i];
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID+"_0", feature_type = follower, feature_value = t.User.Follower });

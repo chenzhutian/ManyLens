@@ -218,7 +218,7 @@ namespace ManyLens.SignalR
                     //    return tp[t];
                     //}
 
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
 
             }, ctoken);
