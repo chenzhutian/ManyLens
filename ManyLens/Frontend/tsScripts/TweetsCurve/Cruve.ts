@@ -655,15 +655,12 @@ module ManyLens {
                 var xposOffset = this._x_scale( 0 ) - this._x_scale( 1 );
                 var cells = this._mainView.selectAll( "g.curve.cells" ).data( sectionData, function ( d ) { return d.id; });
                 cells.attr( "transform",  ( d )=> {
-                    //if ( d.beg === 0 ) {
-                     //   return "translate(" + ( this._x_scale( d.beg ) + xposOffset ) + ")";
-                    //} else {
-                        return "translate(" + ( this._x_scale( d.end - 2) ) + ")";
-                    //}
+                      return "translate(" + ( this._x_scale( d.end - 2) ) + ")";
                 })
                     ;
                 cells.enter().append( 'g' )
                     .attr( 'class', 'curve cells' )
+                    .attr('id',function(d){return "cells_group"+d.id;})
                     .attr( "transform", ( d ) => {
                         return "translate(" + this._x_scale( d.beg ) + ")";
                     })
@@ -765,6 +762,7 @@ module ManyLens {
                                     tempFs[i]['y'] = seeds[seedsCount][1] + r * Math.sin( angle ) * 0.4;
                                 }
                                 fs = fs.concat( tempFs );
+                                _fs[fsType] = d3.max(tempFs,function(d){ return d['feature_value']});
                             }
                         }
 
@@ -804,9 +802,9 @@ module ManyLens {
                             iteration++;
                             if ( iteration > 1000 ) break;
                         }
+                        console.log(_fs);
 
-
-                        cells.selectAll( ".cell" )
+                        d3.select('g#cells_group'+section.id).selectAll( ".cell" )
                             .data( fs )
                             .enter().append( "g" )
                             .attr( "class", "cell" )
@@ -818,9 +816,9 @@ module ManyLens {
                             .style( "fill", function ( d, i ) {
                                 return color( d.feature_type );
                             })
-                            //.style( "fill-opacity", function ( d ) {
-                            //    return parseFloat( d.feature_value );
-                            //})
+                            .style( "fill-opacity", function ( d ) {
+                                return d.feature_value / _fs[d.feature_type] ;
+                            })
                             .style( "stroke", 'lightgrey' )
                             .style( "stroke-width", .3 )
                             ;

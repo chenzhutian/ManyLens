@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -148,15 +149,36 @@ namespace ManyLens.Models
             string following = "following";
             string tweetLength = "tweetLength";
             string hastagCount = "hastagCount";
+            int sampleCount = (int)(this.TweetsCount * 0.001);
 
-            for (int i = 0, len = this.TweetsCount; i < 50; ++i )
+            var tweets = this.Tweets.OrderByDescending(t=>t.User.Follower).Take(sampleCount);
+            foreach(Tweet t  in tweets )
             {
-                Tweet t = this.Tweets[i];
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID+"_0", feature_type = follower, feature_value = t.User.Follower });
+                  features.Add(new VoronoiTweetsFeature() { id = t.TweetID+"_0", feature_type = follower, feature_value = t.User.Follower });
+            }
+            int max1 = tweets.Max(t=>t.User.Follower);
+            int max2 = this.Tweets.Max(t=>t.User.Follower);
+            Debug.WriteLine("The max follwer in this.Tweets.OrderByDescending(t=>t.User.Follower).Take(sampleCount) is :" + max1);
+            Debug.WriteLine("The max follwer in this.Tweets is :"+ max2);
+
+            tweets = this.Tweets.OrderByDescending(t=>t.User.Following).Take(sampleCount);
+            foreach(Tweet t in tweets)
+            {
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID+"_1", feature_type = following, feature_value = t.User.Following });
+            }
+
+            tweets = this.Tweets.OrderByDescending( t => t.Length).Take(sampleCount);
+            foreach(Tweet t in tweets)
+            {
                 features.Add(new VoronoiTweetsFeature(){ id = t.TweetID+"_2", feature_type = tweetLength, feature_value = t.Length });
+            }
+
+            tweets = this.Tweets.OrderByDescending(t=>t.HashTag.Count).Take(sampleCount);
+            foreach(Tweet t in tweets)
+            {
                 features.Add(new VoronoiTweetsFeature(){ id = t.TweetID+"_3", feature_type = hastagCount, feature_value = t.HashTag.Count});
             }
+
             return features;
         }
 
