@@ -83,8 +83,9 @@ namespace ManyLens.SignalR
             }
         }
 
-        private async Task PushPoint(Term seperatePoint, CancellationToken ctoken)
+        private async Task PushPoint(string mode, CancellationToken ctoken)
         {
+
             //set the parameter
             double alpha = 0.125;
             double beta = 1.5;
@@ -99,26 +100,6 @@ namespace ManyLens.SignalR
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
                 Term[] tp = dateTweetsFreq[config.Parameter.TimeSpan].Values.ToArray();
 
-
-                if (seperatePoint != null)
-                {
-                    int j = 0;
-                    int tempSeperateID = int.Parse(seperatePoint.ID);
-                    if (config.Parameter.LastTimeSpan < config.Parameter.TimeSpan)
-                    {
-                        //switch to small time granularity
-                        for (j = 0; int.Parse(tp[j].ID) <= tempSeperateID; ++j) ;
-                    }
-                    else if (config.Parameter.LastTimeSpan > config.Parameter.TimeSpan)
-                    {
-                        //switch to large time granularity
-                        for (j = 0; int.Parse(tp[j].ID) <= tempSeperateID; ++j) ;
-                    }
-
-                    Debug.WriteLine("Seperate Point index is :" + j);
-                    return;
-                }
-
                 #region init some variables
                 //init reset the type of each point
                 for (int i = 0, len = tp.Length; i < len; ++i)
@@ -129,13 +110,13 @@ namespace ManyLens.SignalR
                 //init mean and variance
                 for (int i = 0; i < p; i++)
                 {
-                    mean += tp[i].TweetsCount;
+                    mean += tp[i].DTweetsCount;
                 }
                 mean = mean / p;
 
                 for (int i = 0; i < p; i++)
                 {
-                    variance = variance + Math.Pow(tp[i].TweetsCount - mean, 2);
+                    variance = variance + Math.Pow(tp[i].DTweetsCount - mean, 2);
                 }
                 variance = Math.Sqrt(variance / p);
                 #endregion
@@ -146,33 +127,33 @@ namespace ManyLens.SignalR
                     if (i < tp.Length)
                     {
                         cutoff = variance * beta;
-                        if (Math.Abs(tp[i].TweetsCount - mean) > cutoff && tp[i].TweetsCount > tp[i - 1].TweetsCount)
+                        if (Math.Abs(tp[i].DTweetsCount - mean) > cutoff && tp[i].DTweetsCount > tp[i - 1].DTweetsCount)
                         {
                             int begin = i - 1;
-                            while (i < tp.Length && tp[i].TweetsCount > tp[i - 1].TweetsCount)
+                            while (i < tp.Length && tp[i].DTweetsCount > tp[i - 1].DTweetsCount)
                             {
-                                diff = Math.Abs(tp[i].TweetsCount - mean);
+                                diff = Math.Abs(tp[i].DTweetsCount - mean);
                                 variance = alpha * diff + (1 - alpha) * variance;
-                                mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
+                                mean = alpha * mean + (1 - alpha) * tp[i].DTweetsCount;
                                 i++;
                             }
 
                             int end = i;
                             int peak = i - 1;
                             tp[i - 1].IsPeak = true;
-                            while (i < tp.Length && tp[i].TweetsCount > tp[begin].TweetsCount)
+                            while (i < tp.Length && tp[i].DTweetsCount > tp[begin].DTweetsCount)
                             {
                                 cutoff = variance * beta;
-                                if (Math.Abs(tp[i].TweetsCount - mean) > cutoff && tp[i].TweetsCount > tp[i - 1].TweetsCount)
+                                if (Math.Abs(tp[i].DTweetsCount - mean) > cutoff && tp[i].DTweetsCount > tp[i - 1].DTweetsCount)
                                 {
                                     end = --i;
                                     break;
                                 }
                                 else
                                 {
-                                    diff = Math.Abs(tp[i].TweetsCount - mean);
+                                    diff = Math.Abs(tp[i].DTweetsCount - mean);
                                     variance = alpha * diff + (1 - alpha) * variance;
-                                    mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
+                                    mean = alpha * mean + (1 - alpha) * tp[i].DTweetsCount;
                                     end = i++;
                                 }
                             }
@@ -206,19 +187,26 @@ namespace ManyLens.SignalR
                         }
                         else
                         {
-                            diff = Math.Abs(tp[i].TweetsCount - mean);
+                            diff = Math.Abs(tp[i].DTweetsCount - mean);
                             variance = alpha * diff + (1 - alpha) * variance;
-                            mean = alpha * mean + (1 - alpha) * tp[i].TweetsCount;
+                            mean = alpha * mean + (1 - alpha) * tp[i].DTweetsCount;
                         }
                     }
                     #endregion
 
+                    List<VoronoiTweetsFeature> features = null;
+                    if(tp[t].PointType != 0)
+                    {
+                        features = tp[t].GetVoronoiTweetsFeatures();
+                    }
+
                     Point point = new Point()
                     {
                         id = tp[t].ID,
-                        value = tp[t].TweetsCount,
+                        value = tp[t].DTweetsCount,
                         isPeak = tp[t].IsPeak,
                         type = tp[t].PointType,
+                        features = features,
                         beg = tp[t].BeginPoint,
                         end = tp[t].EndPoint
                     };
@@ -230,21 +218,21 @@ namespace ManyLens.SignalR
                     //    return tp[t];
                     //}
 
-                    Thread.Sleep(100);
+                    Thread.Sleep(1000);
                 }
 
             }, ctoken);
 
         }
 
-        public async Task PullPoint(Term seperatePoint = null)
+        public async Task PullPoint(string mode)
         {
             //clear the static data
             interals.Clear();
 
             //init the cancellation token;
             CancellationToken ctoken = cts.Token;
-            await this.PushPoint(seperatePoint, ctoken);
+            await this.PushPoint(mode, ctoken);
 
         }
 
@@ -252,157 +240,9 @@ namespace ManyLens.SignalR
         {
             await Task.Run(() =>
             {
-
-                if (config.Parameter.TimeSpan == index) return;
-                config.Parameter.TimeSpan = index;
-                Debug.WriteLine(config.Parameter.TimeSpan);
-                //cts.Cancel();
+                cts.Cancel();
             });
 
-        }
-
-        public async Task ReOrganizePeak(bool state)
-        {
-            List<List<float[]>> intervalsInGroups = null;
-            await Task.Run(() =>
-            {
-                if (state)
-                {
-                    Clients.Caller.timeInterval();
-                }
-                else
-                {
-                    //Generate the new big vector
-                    Interval[] ia = interals.Values.ToArray();
-                    Dictionary<string, int> bigIdofWords = new Dictionary<string, int>();
-                    int dimension = 0;
-                    for (int i = 0, len = ia.Length; i < len; ++i)
-                    {
-                        Interval interval = ia[i];
-                        foreach (KeyValuePair<string, int> item in interval.Vocabulary.IdOfWords)
-                        {
-                            if (!bigIdofWords.ContainsKey(item.Key))
-                            {
-                                bigIdofWords.Add(item.Key, dimension++);
-                            }
-                        }
-                    }
-                    List<float[]> bigIntervalVectors = new List<float[]>();
-                    List<int> intervalsGroup = new List<int>();
-                    for (int i = 0, len = ia.Length; i < len; ++i)
-                    {
-                        Interval interval = ia[i];
-                        float[] tempVector = new float[dimension];
-                        for (int j = 0; j < dimension; ++j)
-                        {
-                            tempVector[j] = 0;
-                        }
-                        foreach (KeyValuePair<string, int> item in interval.Vocabulary.IdOfWords)
-                        {
-                            string word = item.Key;
-                            int index = item.Value;
-                            int newIndex = bigIdofWords[word];
-                            tempVector[newIndex] = interval.IntervalVector[index];
-                        }
-                        bigIntervalVectors.Add(tempVector);
-                        intervalsGroup.Add(-1);
-                    }
-
-                    int seedsNum = 3;
-                    List<float[]> seeds = new List<float[]>(seedsNum);
-
-                    //Random select the seeds
-                    List<int> seedsIndex = new List<int>(seedsNum);
-                    intervalsInGroups = new List<List<float[]>>();
-                    for (int i = 0; i < seedsNum; ++i)
-                    {
-                        int index = rnd.Next(interals.Count);
-                        while (seedsIndex.Contains(index))
-                        {
-                            index = rnd.Next(interals.Count);
-                        }
-                        seedsIndex.Add(index);
-                        seeds.Add(bigIntervalVectors[index]);
-                        intervalsInGroups.Add(new List<float[]>());
-                    }
-
-                    int changeGroupNum = int.MaxValue;
-                    while (changeGroupNum > 0)
-                    {
-                        changeGroupNum = 0;
-                        for (int i = 0; i < seedsNum; ++i)
-                        {
-                            intervalsInGroups[i] = new List<float[]>();
-                        }
-
-                        //classify the intervals
-                        for (int i = 0, len = ia.Length; i < len; ++i)
-                        {
-                            double minDist = double.MaxValue;
-                            int minIndex = -1;
-                            for (int j = 0; j < seedsNum; ++j)
-                            {
-                                double dist = Distance(seeds[j], bigIntervalVectors[i]);
-                                if (dist < minDist)
-                                {
-                                    minDist = dist;
-                                    minIndex = j;
-                                }
-                            }
-                            intervalsInGroups[minIndex].Add(bigIntervalVectors[i]);
-                            if (intervalsGroup[i] != minIndex)
-                            {
-                                intervalsGroup[i] = minIndex;
-                                changeGroupNum++;
-                            }
-                        }
-
-                        //update each seed and clear the store group;
-                        for (int i = 0; i < seedsNum; ++i)
-                        {
-                            float[] seedVector = new float[dimension];
-                            for (int j = 0, lenj = dimension; j < lenj; ++j)
-                            {
-                                seedVector[j] = 0;
-                            }
-
-                            List<float[]> groupIntervals = intervalsInGroups[i];
-                            for (int j = 0, lenj = groupIntervals.Count; j < lenj; ++j)
-                            {
-                                for (int k = 0, lenk = dimension; k < lenk; ++k)
-                                {
-                                    seedVector[k] += groupIntervals[j][k];
-                                }
-                            }
-
-                            for (int j = 0, lenj = dimension; j < lenj; ++j)
-                            {
-                                seedVector[j] /= groupIntervals.Count;
-                            }
-                            seeds[i] = seedVector;
-                        }
-                    }
-
-
-                    Clients.Caller.clusterInterval(intervalsGroup);
-                }
-
-            });
-
-
-        }
-
-        public static double Distance(float[] a, float[] b)
-        {
-            if (a.Length != b.Length)
-                return -1;
-            double dist = 0;
-            for (int i = 0, len = a.Length; i < len; ++i)
-            {
-                double dx = a[i] - b[i];
-                dist += dx * dx;
-            }
-            return Math.Sqrt(dist);
         }
 
         public void SwitchMap(bool mapMode)
@@ -603,33 +443,6 @@ namespace ManyLens.SignalR
 
         }
 
-        #region some code for test
-        //Just for test
-        public void testPullPoint()
-        {
-            //load the point json data
-            System.IO.StreamReader sr = new System.IO.StreamReader(config.Parameter.RootFolder + "Backend\\DataBase\\pointData_test.json");
-            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
-            List<Point> points = (List<Point>)jser.ReadObject(sr.BaseStream);
-            sr.Close();
-            for (int i = 0, len = points.Count; i < len; ++i)
-            {
-                Clients.Caller.addPoint(points[i]);
-                Thread.Sleep(50);
-            }
-        }
-
-        public void testPullInterval(string interalID)
-        {
-            //load the point json data
-            System.IO.StreamReader sr = new System.IO.StreamReader(config.Parameter.RootFolder + "Backend\\DataBase\\visData_test.json");
-            var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-            VISData visData = (VISData)jser.ReadObject(sr.BaseStream);
-            sr.Close();
-            Clients.Caller.showVIS(visData);
-        }
-        #endregion
-
         //Interactive for lens
         public async Task cWordCloudPieLens(string lensID, string pieKey, string baseData, string subData)
         {
@@ -684,95 +497,6 @@ namespace ManyLens.SignalR
             Clients.Caller.interactiveOnLens(lensID, countryName);
         }
 
-        #region some code for test
-        //Just for test
-        //public void testPullPoint()
-        //{
-        //    //load the point json data
-        //    System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\pointData_test.json");
-        //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(List<Point>));
-        //    List<Point> points = (List<Point>)jser.ReadObject(sr.BaseStream);
-        //    sr.Close();
-        //    for (int i = 0, len = points.Count; i < len; ++i)
-        //    {
-        //        Clients.Caller.addPoint(points[i]);
-        //        Thread.Sleep(800);
-        //    }
-        //}
-
-        //public void testPullInterval(string interalID)
-        //{
-        //    //load the point json data
-        //    System.IO.StreamReader sr = new System.IO.StreamReader(rootFolder + "Backend\\DataBase\\visData_test.json");
-        //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-        //    VISData visData = (VISData)jser.ReadObject(sr.BaseStream);
-        //    sr.Close();
-        //    Clients.Caller.showVIS(visData);
-        //}
-        #endregion
-
-        //public void ReOrganize(string visMapID, int[] selectedUnits)
-        //{
-        //    VisMap newVisMap = GPUSOM.TweetReOrganizeSOM(visMaps[visMapID], selectedUnits);
-        //    visMaps.Add(newVisMap.VisMapID, newVisMap);
-        //    Clients.Caller.showVIS(newVisMap.GetVisData());
-        //}
-        //public void MoveTweets(string visMapID, int[] fromUnitsID, int[] toUnitsID)
-        //{
-        //    if (visMapID == null || fromUnitsID == null || toUnitsID == null)
-        //        return;
-
-        //    if (fromUnitsID.Length < 1 || toUnitsID.Length < 1)
-        //        return;
-
-        //    VisMap visMap = visMaps[visMapID];
-        //    List<float[]> rawTrainset = new List<float[]>();
-        //    List<Tweet> rawTweets = new List<Tweet>();
-        //    List<Unit> fromUnits = new List<Unit>();
-        //    List<Unit> toUnits = new List<Unit>();
-
-        //    for (int i = fromUnitsID.Length - 1; i >= 0; --i)
-        //    {
-        //        Unit unit = visMap.GetUnitAt(fromUnitsID[i]);
-
-        //        fromUnits.Add(unit);
-
-        //        rawTrainset.AddRange(unit.TFIDFVectors);
-        //        rawTweets.AddRange(unit.Tweets);
-        //        visMap.RemoveUnitAt(fromUnitsID[i]);
-
-        //    }
-
-        //    for (int i = toUnitsID.Length - 1; i >= 0; --i)
-        //    {
-        //        Unit unit = visMap.GetUnitAt(toUnitsID[i]);
-        //        toUnits.Add(unit);
-        //    }
-
-        //    for (int i = rawTrainset.Count - 1; i >= 0; --i)
-        //    {
-        //        float[] rawTrainVector = rawTrainset[i];
-        //        Unit closetUnit = null;
-        //        float dist = float.MaxValue;
-        //        for (int j = toUnits.Count - 1; j >= 0; --j)
-        //        {
-        //            float[] unitVector = toUnits[j].UnitVector;
-        //            float tempDist = 0;
-        //            for (int k = unitVector.Length - 1; k >= 0; --k)
-        //            {
-        //                tempDist += (unitVector[k] - rawTrainVector[k]) * (unitVector[k] - rawTrainVector[k]);
-        //            }
-        //            if (tempDist < dist)
-        //            {
-        //                dist = tempDist;
-        //                closetUnit = toUnits[j];
-        //            }
-        //        }
-        //        closetUnit.AddTweet(rawTweets[i]);
-        //    }
-
-        //    Clients.Caller.reDrawSOMMap(visMap.GetVisData());
-        //}
         public void DoLongRunningThing()
         {
             Clients.Caller.showMSG(config.Parameter.RootFolder);

@@ -4,6 +4,7 @@
 ///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
 ///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
 ///<reference path = "../tsScripts/MapArea/SOMMAP.ts" />
+'use strict'
 module ManyLens {
 
     export class ManyLens {
@@ -27,16 +28,16 @@ module ManyLens {
         private _geo_map_mode:boolean = false;
         private _current_map;
 
-        private _historyView_id: string = "historyView";
-        private _historyView: D3.Selection;
-        private _historySvg_id: string = "historySvg";
-        private _historySvg: D3.Selection;
-        private _historyTrees: ManyLens.LensHistory.HistoryTrees;
+        // private _historyView_id: string = "historyView";
+        // private _historyView: D3.Selection;
+        // private _historySvg_id: string = "historySvg";
+        // private _historySvg: D3.Selection;
+        // private _historyTrees: ManyLens.LensHistory.HistoryTrees;
 
-        //private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
+        // private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
         private _lens: Map<string, Lens.BaseD3Lens> = new Map<string, Lens.BaseD3Lens>();
         private _lens_id_generator: number = 0;
-        //private _lens_count: number = 0;
+        // private _lens_count: number = 0;
         
         private _current_classifier_map_id:string = null;
 
@@ -202,12 +203,12 @@ module ManyLens {
             return this._manyLens_hub.proxy.invoke("changeTimeSpan",index);
         }
 
-        public ManyLensHubServerPullPoint(): Hub.IPromise<void> {
+        public ManyLensHubServerPullPoint(start = null): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("pullPoint", null);
+            return this._manyLens_hub.proxy.invoke("pullPoint", start);
             //return this._manyLens_hub.server.pullPoint(start);
         }
 

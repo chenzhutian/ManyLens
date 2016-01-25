@@ -41,7 +41,7 @@ module ManyLens {
                 this._brand_name = brandName;
                 this._map_Svg = mapSvg;
 
-                //this._element.select("#curve-btns").append("input")
+                // this._element.select("#curve-btns").append("input")
                 //    .attr({
                 //        "id":"intervals-organize-switch",
                 //        type:"checkbox",
@@ -52,8 +52,8 @@ module ManyLens {
                 //    })
                 //    .property("checked",true)
                 //;
-                //$("#intervals-organize-switch").bootstrapSwitch("disabled",true);
-                //this._reorganizeIntervalBtn = $("#intervals-organize-switch")
+                // $("#intervals-organize-switch").bootstrapSwitch("disabled",true);
+                // this._reorganizeIntervalBtn = $("#intervals-organize-switch")
                 //.on("switchChange.bootstrapSwitch",  (event,state)=> {
                 //    this._manyLens.ManyLensHubServerReOrganizePeak(state);
                 //});
@@ -63,7 +63,7 @@ module ManyLens {
                         "margin-top": "30px",
                         "margin-bottom": "250px"
                     })
-                    .html( '<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Minutes</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Seconds</a></li><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>' );
+                    .html( '<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Minutes</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>' );
                 d3.select( "ul.dropdown-menu" ).selectAll( "li" )
                     .on( "click", function ( d, i ) {
                         var text = d3.select( this ).select( "a" ).text();
@@ -90,7 +90,7 @@ module ManyLens {
 
                             if ( d3.event.keyCode == 13 ) {
                                 d3.event.preventDefault();
-                                this._manyLens.ManyLensHubServerPullPoint();
+                                this._manyLens.ManyLensHubServerPullPoint("11");
                             }
 
                         })

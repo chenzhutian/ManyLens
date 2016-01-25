@@ -1,0 +1,14 @@
+{
+  "name": "Voronoi",
+  "version": "0.0.0",
+  "description": "Voronoi",
+  "main": "server.js",
+  "author": {
+    "name": "zhutian.chen",
+    "email": ""
+  },
+  "dependencies": {
+    "d3": "^3.5.13",
+    "http-server": "^0.8.5"
+  }
+}

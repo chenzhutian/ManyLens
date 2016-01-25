@@ -6,7 +6,7 @@ using System.Text;
 namespace ManyLens.Models
 {
 
-    public class Term : TweetSet
+    public class Term : DerivedTweetSet
     {
         private string id;
         private DateTime termDate;
@@ -109,6 +109,16 @@ namespace ManyLens.Models
             }
         }
 
+        public int DTweetsCount
+        {
+            get
+            {
+                //if (this.HasPreprocessed) return this.Tweets.Count;
+                //this.PreproccessingParallel();
+                return this.Tweets.Count;
+            }
+        }
+
         #endregion
         public Term(string date)
             : base()
@@ -117,7 +127,6 @@ namespace ManyLens.Models
             this.TermDate =DateTime.ParseExact(date, formatString, null);
             this.id = date;//date.ToString("yyyyMMddHHmmss");
         }
-
 
         public Term(DateTime date)
             :base()
@@ -129,6 +138,36 @@ namespace ManyLens.Models
         public void AddTweet(Tweet tweet)
         {
             base.AddTweet(tweet);
+        }
+
+
+        public List<VoronoiTweetsFeature> GetVoronoiTweetsFeatures()
+        {
+            List<VoronoiTweetsFeature> features = new List<VoronoiTweetsFeature>();
+            string follower = "follower";
+            string following = "following";
+            string tweetLength = "tweetLength";
+            string hastagCount = "hastagCount";
+
+            for (int i = 0, len = this.TweetsCount; i < 100; ++i )
+            {
+                Tweet t = this.Tweets[i];
+                features.Add(new VoronoiTweetsFeature() { id = t.TweetID+"_0", feature_type = follower, feature_value = t.User.Follower });
+                features.Add(new VoronoiTweetsFeature() { id = t.TweetID+"_1", feature_type = following, feature_value = t.User.Following });
+                features.Add(new VoronoiTweetsFeature(){ id = t.TweetID+"_2", feature_type = tweetLength, feature_value = t.Length });
+                features.Add(new VoronoiTweetsFeature(){ id = t.TweetID+"_3", feature_type = hastagCount, feature_value = t.HashTag.Count});
+            }
+            return features;
+        }
+
+        public void Preproccessing()
+        {
+            ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this);
+        }
+
+        public void PreproccessingParallel()
+        {
+            ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweetParallel(this);
         }
 
     }

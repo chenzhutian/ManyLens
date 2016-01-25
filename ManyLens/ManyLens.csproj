@@ -161,6 +161,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Frontend\CSS\bootstrap-theme.min.css">
+      <DependentUpon>bootstrap-theme.css</DependentUpon>
+    </Content>
+    <Content Include="Frontend\CSS\bootstrap.min.css">
+      <DependentUpon>bootstrap.css</DependentUpon>
+    </Content>
+    <Content Include="Frontend\CSS\flat-ui.min.css">
+      <DependentUpon>flat-ui.css</DependentUpon>
+    </Content>
+    <Content Include="Frontend\CSS\ManyLens.min.css">
+      <DependentUpon>ManyLens.css</DependentUpon>
+    </Content>
     <Content Include="Frontend\Fonts\glyphicons\flat-ui-icons-regular.eot" />
     <Content Include="Frontend\Fonts\glyphicons\flat-ui-icons-regular.ttf" />
     <Content Include="Frontend\Fonts\glyphicons\flat-ui-icons-regular.woff" />

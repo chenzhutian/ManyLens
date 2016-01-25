@@ -14,34 +14,30 @@ namespace ManyLens.Preprocessing
     public class TweetsPreprocessor
     {
 
-        public static void ProcessTweetParallel(Interval interval, IProgress<double> progress)
+        public static void ProcessTweetParallel(DerivedTweetSet tweetSet)
         {
-            if (interval.HasPreprocessed)
+            if (tweetSet.HasPreprocessed)
             {
-                progress.Report(0.5);
                 return;
             }
-            //deleting repeated tweet.
-            //Dictionary<string, bool> tweetsDict = new Dictionary<string, bool>();
-            
+
             //deleting stop_words, stop_abbreviation_words, stop_hashtags .
             Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
             IStemmer stemmer = new EnglishStemmer();
             //load stopwords
             HashSet<string> stopWords = ManyLens.SignalR.ManyLensHub.stopWords;
 
-            int percent = 0;
-            int tweetsCount = interval.TweetsCount - 1;
+            int tweetsCount = tweetSet.TweetsCount - 1;
             //clear the tweets content
-            //Dictionary<string, string> oW2dW = new Dictionary<string, string>();
-            Parallel.ForEach(interval.Tweets, tweet =>
+            Parallel.ForEach(tweetSet.Tweets, tweet =>
             {
+                if (tweet.DerivedContent != null) return;
                 string derivedContent = FilterSpecialToken(tweet.OriginalContent);
                 string newContent = "";
                 //match words in tweet content
                 MatchCollection words = wordreg.Matches(derivedContent);
 
-                for (int j = 0,lenj = words.Count; j < lenj; ++j)
+                for (int j = 0, lenj = words.Count; j < lenj; ++j)
                 {
                     string originalWord = words[j].Value;
 
@@ -51,13 +47,59 @@ namespace ManyLens.Preprocessing
                         originalWord = originalWord.Substring(1, originalWord.Length - 1);
                     }
                     string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
-                    //if (!oW2dW.ContainsKey(originalWord))
-                    //{
-                    //    oW2dW.Add(originalWord, deriveWord);
-                    //}
                     newContent = newContent + " " + deriveWord;
                 }
-                
+                tweet.DerivedContent = newContent != null && newContent.Length > 2 ? newContent.Trim() : null;
+            });
+
+            tweetsCount = tweetSet.TweetsCount - 1;
+            for (int i = tweetsCount; i >= 0; --i)
+            {
+                if (tweetSet.GetTweetDerivedContentAt(i) == null)
+                    tweetSet.RemoveTweetAt(i);
+            }
+
+            tweetSet.HasPreprocessed = true;
+        }
+
+        public static void ProcessTweetParallel(DerivedTweetSet tweetSet, IProgress<double> progress)
+        {
+            if (tweetSet.HasPreprocessed)
+            {
+                progress.Report(0.5);
+                return;
+            }
+
+            //deleting stop_words, stop_abbreviation_words, stop_hashtags .
+            Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
+            IStemmer stemmer = new EnglishStemmer();
+            //load stopwords
+            HashSet<string> stopWords = ManyLens.SignalR.ManyLensHub.stopWords;
+
+            int percent = 0;
+            int tweetsCount = tweetSet.TweetsCount - 1;
+            //clear the tweets content
+            Parallel.ForEach(tweetSet.Tweets, tweet =>
+            {
+                if (tweet.DerivedContent != null) return;
+                string derivedContent = FilterSpecialToken(tweet.OriginalContent);
+                string newContent = "";
+                //match words in tweet content
+                MatchCollection words = wordreg.Matches(derivedContent);
+
+                for (int j = 0, lenj = words.Count; j < lenj; ++j)
+                {
+                    string originalWord = words[j].Value;
+
+                    if (originalWord[0] == '#')
+                    {
+                        tweet.AddHashTag(originalWord);
+                        originalWord = originalWord.Substring(1, originalWord.Length - 1);
+                    }
+                    string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
+                    newContent = newContent + " " + deriveWord;
+                }
+
                 tweet.DerivedContent = newContent != null && newContent.Length > 2 ? newContent.Trim() : null;
 
                 System.Threading.Interlocked.Increment(ref percent);
@@ -69,11 +111,11 @@ namespace ManyLens.Preprocessing
             });
 
             percent = 0;
-            tweetsCount = interval.TweetsCount - 1;
+            tweetsCount = tweetSet.TweetsCount - 1;
             for (int i = tweetsCount; i >= 0; --i)
             {
-                if (interval.GetTweetDerivedContentAt(i) == null)
-                    interval.RemoveTweetAt(i);
+                if (tweetSet.GetTweetDerivedContentAt(i) == null)
+                    tweetSet.RemoveTweetAt(i);
 
                 if ((double)(tweetsCount - i) / tweetsCount > (double)percent / 10.0)
                 {
@@ -81,17 +123,12 @@ namespace ManyLens.Preprocessing
                     ++percent;
                 }
             }
-
-            //interval.oW2dW = oW2dW;
-            interval.HasPreprocessed = true;
+            tweetSet.HasPreprocessed = true;
         }
 
-        public static void ProcessTweet(Interval interval, IProgress<double> progress)
+        public static void ProcessTweet(DerivedTweetSet interval)
         {
             if (interval.HasPreprocessed) return;
-
-            //deleting repeated tweet.
-            //Dictionary<string, bool> tweetsDict = new Dictionary<string, bool>();
 
             //deleting stop_words, stop_abbreviation_words, stop_hashtags .
             Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
@@ -99,13 +136,13 @@ namespace ManyLens.Preprocessing
             //load stopwords
             HashSet<string> stopWords = ManyLens.SignalR.ManyLensHub.stopWords;
 
-            int percent = 0;
             int tweetsCount = interval.TweetsCount - 1;
             //clear the tweets content
-            //Dictionary<string, string> oW2dW = new Dictionary<string, string>();
             for (int i = tweetsCount; i >= 0; --i)
             {
+
                 Tweet tweet = interval.Tweets[i];
+                if (tweet.DerivedContent != null) return;
                 string derivedContent = FilterSpecialToken(tweet.OriginalContent);
                 string newContent = "";
                 //match words in tweet content
@@ -120,10 +157,57 @@ namespace ManyLens.Preprocessing
                         originalWord = originalWord.Substring(1, originalWord.Length - 1);
                     }
                     string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
-                    //if (!oW2dW.ContainsKey(originalWord))
-                    //{
-                    //    oW2dW.Add(originalWord, deriveWord);
-                    //}
+                    newContent = newContent + " " + deriveWord;
+                }
+
+                if (newContent != null && newContent.Length > 2)
+                {
+                    tweet.DerivedContent = newContent.Trim();
+                }
+
+            };
+
+            tweetsCount = interval.TweetsCount - 1;
+            for (int i = tweetsCount; i >= 0; --i)
+            {
+                if (interval.GetTweetDerivedContentAt(i) == null)
+                    interval.RemoveTweetAt(i);
+            }
+            interval.HasPreprocessed = true;
+        }
+
+        public static void ProcessTweet(DerivedTweetSet interval, IProgress<double> progress)
+        {
+            if (interval.HasPreprocessed) return;
+
+            //deleting stop_words, stop_abbreviation_words, stop_hashtags .
+            Regex wordreg = new Regex(@"#\w+|\w+");//hashtag(#\w+)or(|) word(\w+) 
+            IStemmer stemmer = new EnglishStemmer();
+            //load stopwords
+            HashSet<string> stopWords = ManyLens.SignalR.ManyLensHub.stopWords;
+
+            int percent = 0;
+            int tweetsCount = interval.TweetsCount - 1;
+            //clear the tweets content
+            for (int i = tweetsCount; i >= 0; --i)
+            {
+
+                Tweet tweet = interval.Tweets[i];
+                if (tweet.DerivedContent != null) return;
+                string derivedContent = FilterSpecialToken(tweet.OriginalContent);
+                string newContent = "";
+                //match words in tweet content
+                MatchCollection words = wordreg.Matches(derivedContent);
+
+                for (int j = 0, lenj = words.Count; j < lenj; ++j)
+                {
+                    string originalWord = words[j].Value;
+                    if (originalWord[0] == '#')
+                    {
+                        tweet.AddHashTag(originalWord);
+                        originalWord = originalWord.Substring(1, originalWord.Length - 1);
+                    }
+                    string deriveWord = WordFilterWithStemmer(originalWord, stopWords, stemmer);
                     newContent = newContent + " " + deriveWord;
                 }
 
@@ -153,7 +237,6 @@ namespace ManyLens.Preprocessing
                     ++percent;
                 }
             }
-            //interval.oW2dW = oW2dW;
             interval.HasPreprocessed = true;
         }
 

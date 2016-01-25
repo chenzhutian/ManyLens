@@ -150,7 +150,7 @@ namespace ManyLens.IO
                     sec = 0;
                 }
                 //DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec*mode[4]);
-                for (int i = 0; i < 4; ++i)
+                for (int i = 2; i < 3; ++i)
                 {
                     string date = "";
                     switch (i)

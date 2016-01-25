@@ -8,13 +8,7 @@ using Stream = Tweetinvi.Stream;
 
 namespace Examplinvi
 {
-    // IMPORTANT 
-    // This cheat sheet provide examples for all the features provided by Tweetinvi.
-
-    // WINDOWS PHONE 8 developers
-    // If you are a windows phone developer, please use the Async classes
-    // User.GetLoggedUser(); -> await UserAsync.GetLoggedUser();
-
+ 
     class Program
     {
 
@@ -30,56 +24,50 @@ namespace Examplinvi
             return keys.ToArray();
         }
 
-        static void Main()
+        static void TweetAPI() 
         {
             string[] keys = LoadTweetKey("D:\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Backend\\DataBase\\TWITTERKEY");
             Auth.SetUserCredentials(keys[0], keys[1], keys[2], keys[3]);
-            Tweet.PublishTweet("Lindandan Wo ai you yo!!!");
-            var loggedUser = User.GetLoggedUser();
-            Console.WriteLine(loggedUser.ScreenName);
-            var tweets = Timeline.GetHomeTimeline();
-            foreach (var tweet in tweets)
-            {
-                Console.WriteLine(tweet);
-            }
-            
+            List<string> tweets = new List<string>();
             var stream = Stream.CreateFilteredStream();
             stream.AddTweetLanguageFilter("en");
-            stream.AddTrack("windows10");
+            //stream.AddTrack("china");
             stream.MatchingTweetReceived += (sender, args) =>
             {
                 // Do what you want with the Tweet.
-                Console.WriteLine(args.Tweet);
+                tweets.Add(args.Tweet.ToString());
+                if (tweets.Count > 2000)
+                {
+                    tweets.ForEach((tweet) =>
+                    {
+                        Console.WriteLine(tweet);
+                    });
+                }
             };
             stream.StartStreamMatchingAllConditions();
+            
+        }
 
-            //TweetinviEvents.QueryBeforeExecute += (sender, args) =>
-            //{
-            //    // Console.WriteLine(args.QueryURL);
-            //};
-            //Examples.ExecuteExamples = true;
-         
-            //UserLiveFeedExamples();
-            //TweetExamples();
-            //UserExamples();
-            //LoggedUserExamples();
-            //TimelineExamples();
-            //MessageExamples();
-            //TwitterListExamples();
-            //GeoExamples();
-            //SearchExamples();
-            //SavedSearchesExamples();
-            //RateLimitExamples();
-            //HelpExamples();
-            //JsonExamples();
-            //StreamExamples();
-            //AdditionalFeaturesExamples();
-            //Examples.ConfigureTweetinvi();
-            //Examples.GlobalEvents();
-            //UploadExamples();
+        static void Main()
+        {
 
-            Console.WriteLine(@"END");
-            Console.ReadLine();
+            string tweetFile =  "D:\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Backend\\DataBase\\FIFACASESample";
+            StreamReader sr;
+            sr = new StreamReader(tweetFile);
+
+            while (!sr.EndOfStream)
+            {
+
+                string line = sr.ReadLine();
+                string[] tweetAttributes = line.Split('\t');
+
+                //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
+                //\t 8follower \9 13V \t 10gpsA \t 11gpsB   \t 12countryName
+                Console.WriteLine(tweetAttributes[3]);
+
+            }
+            sr.Close();
+
         }
     }
 }

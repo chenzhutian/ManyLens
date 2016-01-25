@@ -38,6 +38,12 @@ namespace ManyLens.Models
         public int target { set; get; }
     }
 
+    public class VoronoiTweetsFeature
+    {
+        public string id { set; get; }
+        public string feature_type { set; get; }
+        public int feature_value { set; get; }
+    }
 
     public class Point
     {
@@ -45,6 +51,7 @@ namespace ManyLens.Models
         public double value { set; get; }
         public bool isPeak { set; get; }
         public uint type { get; set; }
+        public List<VoronoiTweetsFeature> features { set; get; }
         public string beg { get; set; }
         public string end { get; set; }
     }

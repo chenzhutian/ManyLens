@@ -17,7 +17,7 @@ namespace ManyLens.Models
         private int hashDimension = config.Parameter.HashDimension;
 
         private bool hasVectorized = false;
-        private bool hasPreprocessed = false;
+
         private bool hasSOMed = false;
 
         private VisMap visMap = null;
@@ -84,18 +84,7 @@ namespace ManyLens.Models
                     this.hasVectorized = value;
             }
         }
-        public bool HasPreprocessed
-        {
-            get
-            {
-                return this.hasPreprocessed;
-            }
-            set
-            {
-                if (value == true)
-                    this.hasPreprocessed = value;
-            }
-        }
+
         public bool HasSOMed
         {
             get
@@ -361,11 +350,13 @@ namespace ManyLens.Models
         {
             this.id = beginDate.ToString("yyyyMMddHHmmss");
             this.BeginDate = beginDate;
+            this.HasPreprocessed = term.HasPreprocessed;
             this.Tweets.AddRange(term.Tweets);
         }
 
         public void AddTerm(Term term)
         {
+            this.HasPreprocessed = term.HasPreprocessed ? this.HasPreprocessed : false;
             this.termsCount++;
             this.Tweets.AddRange(term.Tweets);
         }

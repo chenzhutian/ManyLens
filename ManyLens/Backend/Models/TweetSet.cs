@@ -25,7 +25,7 @@ namespace ManyLens.Models
             }
         }
     
-        public int TweetsCount
+        public virtual int TweetsCount
         {
             get
             {
