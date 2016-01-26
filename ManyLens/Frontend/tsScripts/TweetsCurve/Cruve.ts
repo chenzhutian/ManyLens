@@ -114,7 +114,7 @@ module ManyLens {
                     .range( [this._view_padding.left + this._coordinate_margin_left, this._view_width - this._view_padding.right] )
                     ;
                 this._y_scale
-                    .domain( [0, 25000] )
+                    .domain( [0, 27000] )
                     .range( [this._view_height - this._view_padding.bottom, this._view_padding.top] )
                     ;
                 this._x_axis_gen
@@ -597,17 +597,15 @@ module ManyLens {
                         } else {
                             section.end = i - 1;
                         }
+
+
                         sectionData.push( section );
-                        if ( this._section_data.length > 0 ) {
-                            if ( this._section_data[this._section_data.length - 1].id != section.id && section.pathPoints.length == 3 ) {
-                                this._section_data.push( section );
-                            }
-                        }
-                        else {
-                            if ( section.pathPoints.length == 3 ) {
-                                this._section_data.push( section );
-                            }
-                        }
+                        var disting = true;
+                        this._section_data.forEach(function(d){
+                            if(d.id === section.id) disting = false;    
+                        });
+                        if(disting && section.pathPoints.length == 3 ) this._section_data.push(section);
+
                     } else {
                         var sectionRestPath = [];
                         if ( this._data[i - 1] )
@@ -626,45 +624,42 @@ module ManyLens {
                 }
 
                 //handle the seg rect
-                var rects = this._mainView.selectAll( ".curve.seg" ).data( sectionData, function ( d ) { return d.id; });
-                rects
-                    .attr( "transform", ( d ) => {
-                        return "translate(" + this._x_scale( d.beg ) + ")";
-                    })
-                    .select( 'rect' )
-                    .attr( "width", ( d, i ) => {
-                        return this._x_scale( d.end ) - this._x_scale( d.beg );
-                    })
-                    ;
-                rects.enter().append( 'g' )
-                    .attr( "class", "curve seg" )
-                    .attr( "transform", ( d ) => {
-                        return "translate(" + this._x_scale( d.beg ) + ")";
-                    })
-                    .append( "rect" )
-                    .attr( "width", ( d, i ) => {
-                        return this._x_scale( d.end ) - this._x_scale( d.beg );
-                    })
-                    .attr( "height", this._view_height - this._view_padding.bottom )
-                    .on( "click", ( d: Section ) => {
-                        this.SelectSegment( d );
-                    })
-                    ;
-                rects.exit().remove();
+                //var rects = this._mainView.selectAll( ".curve.seg" ).data( sectionData, function ( d ) { return d.id; });
+                //rects
+                //    .attr( "transform", ( d ) => {
+                //        return "translate(" + this._x_scale( d.beg ) + ")";
+                //    })
+                //    .select( 'rect' )
+                //    .attr( "width", ( d, i ) => {
+                //        return this._x_scale( d.end ) - this._x_scale( d.beg );
+                //    })
+                //    ;
+                //rects.enter().append( 'g' )
+                //    .attr( "class", "curve seg" )
+                //    .attr( "transform", ( d ) => {
+                //        return "translate(" + this._x_scale( d.beg ) + ")";
+                //    })
+                //    .append( "rect" )
+                //    .attr( "width", ( d, i ) => {
+                //        return this._x_scale( d.end ) - this._x_scale( d.beg );
+                //    })
+                //    .attr( "height", this._view_height - this._view_padding.bottom )
+                //    .on( "click", ( d: Section ) => {
+                //        this.SelectSegment( d );
+                //    })
+                //    ;
+                //rects.exit().remove();
 
-                var xposOffset = this._x_scale( 0 ) - this._x_scale( 1 );
+                var self = this;
                 var cells = this._mainView.selectAll( "g.curve.cells" ).data( sectionData, function ( d ) { return d.id; });
-                cells.attr( "transform",  ( d )=> {
-                      return "translate(" + ( this._x_scale( d.end - 2) ) + ")";
+                cells.attr( "transform", function ( d ) {
+                    //if ( d.pathPoints[1] ) {
+                    //    d3.select( this ).attr( 'tY', self._y_scale( d.pathPoints[1].value ) );
+                    //    return "translate(" + self._x_scale( d.end - 1 ) + "," + self._y_scale( d.pathPoints[1].value ) + ")";
+                    //}
+                    var ty = d3.select( this ).attr( 'tY' );
+                    return "translate(" + self._x_scale( d.end - 1 ) + "," + ty + ")";
                 })
-                    ;
-                cells.enter().append( 'g' )
-                    .attr( 'class', 'curve cells' )
-                    .attr('id',function(d){return "cells_group"+d.id;})
-                    .attr( "transform", ( d ) => {
-                        return "translate(" + this._x_scale( d.beg ) + ")";
-                    })
-                    ;
                 cells.exit().remove();
 
                 var xTime = this._mainView.selectAll( ".curve.seg.time-tick" ).data( sectionData );
@@ -714,15 +709,6 @@ module ManyLens {
                     var section = this._section_data[this._section_data.length - 1];
                     if ( !section.bound && section.pathPoints.length == 3 ) {
 
-                        //Calculate the bound
-                        section.bound = [];
-                        var offset = this._x_scale( section.pathPoints[0].index );
-                        section.bound.push( [this._x_scale( section.pathPoints[2].index ) - offset, this._view_height - this._view_padding.bottom] );
-                        section.bound.push( [this._x_scale( section.pathPoints[2].index ) - offset, this._y_scale( section.pathPoints[2].value )] );
-                        section.bound.push( [this._x_scale( section.pathPoints[1].index ) - offset, this._y_scale( section.pathPoints[1].value )] );
-                        section.bound.push( [0, this._y_scale( section.pathPoints[0].value )] );
-                        section.bound.push( [0, this._view_height - this._view_padding.bottom] );
-
                         var constR = this._x_scale( 1 ) - this._x_scale( 0 );
                         var fs = [].concat( section.features[0], section.features[1], section.features[2] );
                         fs.sort( function ( a, b ) {
@@ -730,41 +716,69 @@ module ManyLens {
                             else return 1;
                         });
 
-                        console.log( fs );
+                        //Calculate the bound
+                        //rectangle type
+                        section.bound = [];
+                        //var offset = this._x_scale( section.pathPoints[0].index );
+                        //section.bound.push( [this._x_scale( section.pathPoints[2].index ) - offset, this._view_height - this._view_padding.bottom] );
+                        //section.bound.push( [this._x_scale( section.pathPoints[2].index ) - offset, this._y_scale( section.pathPoints[2].value )] );
+                        //section.bound.push( [this._x_scale( section.pathPoints[1].index ) - offset, this._y_scale( section.pathPoints[1].value )] );
+                        //section.bound.push( [0, this._y_scale( section.pathPoints[0].value )] );
+                        //section.bound.push( [0, this._view_height - this._view_padding.bottom] );
+
+                        //circle type
+                        var step = 2 * Math.PI * 0.01;
+                        for ( var i = 99; i >= 0; --i ) {
+                            var x = constR * Math.cos( i * step );
+                            var y = constR * Math.sin( i * step );
+                            section.bound.push( [x, y] );
+                        }
+
                         //Calculate the seed
-                        var seeds = [
-                            [constR * 0.5, this._y_scale( section.pathPoints[0].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[0].value ) ) * 0.25],
-                            [constR * 0.5, this._y_scale( section.pathPoints[0].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[0].value ) ) * 0.75],
-                            [constR * 1.5, this._y_scale( section.pathPoints[2].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[2].value ) ) * 0.25],
-                            [constR * 1.5, this._y_scale( section.pathPoints[2].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[2].value ) ) * 0.75]
-                        ];
+                        //rectangle type
+                        //var seeds = [
+                        //    [constR * 0.5, this._y_scale( section.pathPoints[0].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[0].value ) ) * 0.25],
+                        //    [constR * 0.5, this._y_scale( section.pathPoints[0].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[0].value ) ) * 0.75],
+                        //    [constR * 1.5, this._y_scale( section.pathPoints[2].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[2].value ) ) * 0.25],
+                        //    [constR * 1.5, this._y_scale( section.pathPoints[2].value ) + ( this._view_height - this._view_padding.bottom - this._y_scale( section.pathPoints[2].value ) ) * 0.75]
+                        //];
 
-                        var _fs = {};
+                        //var _fs = {};
+                        //for ( var i = 0; i < fs.length; ++i ) {
+                        //    var t = fs[i].feature_type;
+                        //    if ( !_fs[t] ) {
+                        //        _fs[t] = [];
+                        //    }
+                        //    _fs[t].push( fs[i] );
+                        //}
+
+                        //fs = [];
+                        //var seedsCount = -1;
+                        //for ( var fsType in _fs ) {
+                        //    if ( _fs.hasOwnProperty( fsType ) ) {
+                        //        ++seedsCount;
+                        //        var tempFs = _fs[fsType];
+                        //        var step = 2.0 * Math.PI / tempFs.length;
+                        //        for ( var i = 0; i < tempFs.length; ++i ) {
+                        //            var angle = step * i;
+                        //            var r = Math.random() * constR * 0.4;
+                        //            tempFs[i]['x'] = seeds[seedsCount][0] + r * Math.cos( angle ) * 0.4;
+                        //            tempFs[i]['y'] = seeds[seedsCount][1] + r * Math.sin( angle ) * 0.4;
+                        //        }
+                        //        fs = fs.concat( tempFs );
+                        //        _fs[fsType] = d3.max(tempFs,function(d){ return d['feature_value']});
+                        //    }
+                        //}
+
+                        //circle type
+                        step = 2 * Math.PI / fs.length;
                         for ( var i = 0; i < fs.length; ++i ) {
-                            var t = fs[i].feature_type;
-                            if ( !_fs[t] ) {
-                                _fs[t] = [];
-                            }
-                            _fs[t].push( fs[i] );
+                            var angle = step * i;
+                            var r = Math.random() * constR * 0.8;
+                            fs[i].x = r * Math.cos( angle );
+                            fs[i].y = r * Math.sin( angle );
                         }
 
-                        fs = [];
-                        var seedsCount = -1;
-                        for ( var fsType in _fs ) {
-                            if ( _fs.hasOwnProperty( fsType ) ) {
-                                ++seedsCount;
-                                var tempFs = _fs[fsType];
-                                var step = 2.0 * Math.PI / tempFs.length;
-                                for ( var i = 0; i < tempFs.length; ++i ) {
-                                    var angle = step * i;
-                                    var r = Math.random() * constR * 0.4;
-                                    tempFs[i]['x'] = seeds[seedsCount][0] + r * Math.cos( angle ) * 0.4;
-                                    tempFs[i]['y'] = seeds[seedsCount][1] + r * Math.sin( angle ) * 0.4;
-                                }
-                                fs = fs.concat( tempFs );
-                                _fs[fsType] = d3.max(tempFs,function(d){ return d['feature_value']});
-                            }
-                        }
 
                         var voronoi = d3.geom.voronoi();
                         voronoi.x( function ( d ) { return d['x']; });
@@ -802,9 +816,24 @@ module ManyLens {
                             iteration++;
                             if ( iteration > 1000 ) break;
                         }
-                        console.log(_fs);
 
-                        d3.select('g#cells_group'+section.id).selectAll( ".cell" )
+
+                        //var cells = this._mainView.selectAll( "g.curve.cells" ).data( sectionData, function ( d ) { return d.id; });
+
+                        cells.enter().append( 'g' )
+                            .attr( 'class', 'curve cells' )
+                            .attr( 'id', function ( d ) { return "cells_group" + d.id; })
+                            .attr( "transform", function ( d: Section ) {
+                                if ( d.pathPoints[1] ) {
+                                    d3.select( this ).attr( 'tY', self._y_scale( d.pathPoints[1].value ) );
+                                    return "translate(" + self._x_scale( d.end - 1 ) + "," + self._y_scale( d.pathPoints[1].value ) + ")";
+                                }
+                                //var ty = d3.select( this ).attr( 'tY' );
+                                //return "translate(" + self._x_scale( d.end - 1 ) + "," + ty + ")";
+                            })
+                            ;
+
+                        d3.select( 'g#cells_group' + section.id ).selectAll( ".cell" )
                             .data( fs )
                             .enter().append( "g" )
                             .attr( "class", "cell" )
@@ -816,9 +845,9 @@ module ManyLens {
                             .style( "fill", function ( d, i ) {
                                 return color( d.feature_type );
                             })
-                            .style( "fill-opacity", function ( d ) {
-                                return d.feature_value / _fs[d.feature_type] ;
-                            })
+                            //.style( "fill-opacity", function ( d ) {
+                            //    return d.feature_value / _fs[d.feature_type] ;
+                            //})
                             .style( "stroke", 'lightgrey' )
                             .style( "stroke-width", .3 )
                             ;

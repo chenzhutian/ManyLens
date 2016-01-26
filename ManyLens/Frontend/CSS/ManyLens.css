@@ -47,7 +47,7 @@ div#page-content {
 }
 
 .view-title-md-red {
-    font-size:20px;
+    font-size:15px;
     color:#fff;
     padding-top: 0;
     padding-bottom: 0;
@@ -55,7 +55,7 @@ div#page-content {
 }
 
 .view-title-md-red p {
-    font-size:40px;
+    font-size:20px;
     margin: 0;
     font-weight : 400;
 }
@@ -426,7 +426,7 @@ text.word-cloud {
 }
 
 .row-115 {
-    height: 93%;
+    height: 97%;
 }
 
 .row-12 {
