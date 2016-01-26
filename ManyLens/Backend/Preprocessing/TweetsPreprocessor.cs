@@ -269,12 +269,10 @@ namespace ManyLens.Preprocessing
             newContent += " ";
             Regex urlreg = new Regex(@"https?://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?");
             Regex httpreg = new Regex(@"(http:\\+/\\+/?|www[.]).*?[#\s]");
-            newContent = urlreg.Replace(newContent, " ");
+            MatchCollection urls = urlreg.Matches(newContent);
+            for (int i = 0; i < urls.Count; i++)
+                newContent = newContent.Replace(urls[i].Value, " ");
             newContent = httpreg.Replace(newContent, " ");
-            //MatchCollection urls = urlreg.Matches(newContent);
-            //for (int i = 0; i < urls.Count; i++)
-            //    newContent = newContent.Replace(urls[i].Value, " ");
-            //newContent = httpreg.Replace(newContent, " ");
             return newContent;
         }
 
@@ -285,9 +283,92 @@ namespace ManyLens.Preprocessing
         /// <returns></returns>
         private static string FilterSpecialToken(string tweetContent)
         {
-            //All in one
-            Regex Allreg = new Regex(@"([Rr][Tt] ?@\w+\b )|(@\w+\b)|(\w+...\b) | (https?://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?) | (http:\\+/\\+/?|www[.]).*?[#\s] | \b\w*(\w)\1{2}\w*\b | [\u4e00-\u9fa5]");
-            tweetContent =  Allreg.Replace(tweetContent, "");
+
+            tweetContent += " ";
+            Regex urlreg = new Regex(@"https?://([\w-]+\.)+[\w-]+(/[\w-./?%&=]*)?");
+            Regex httpreg = new Regex(@"(http:\\+/\\+/?|www[.]).*?[""#\s]");
+            tweetContent = urlreg.Replace(tweetContent, " ");
+            tweetContent = httpreg.Replace(tweetContent, " ");
+
+            //replace rt@account 
+            //such as: RT @seymoredollas: 
+            //RT@seymoredollas: niggas 
+            Regex RTreg = new Regex(@"[Rr][Tt] ?@\w+\b");
+            //MatchCollection rts = RTreg.Matches(tweetContent);
+            //for (int i = 0; i < rts.Count; i++)
+            //    tweetContent = tweetContent.Replace(rts[i].Value, " ");
+            tweetContent = RTreg.Replace(tweetContent, " ");
+
+            //replace @...
+            Regex mentionreg = new Regex(@"@\w+\b");
+            //MatchCollection mentions = mentionreg.Matches(tweetContent);
+            //for (int i = 0; i < mentions.Count; i++)
+            //    tweetContent = tweetContent.Replace(mentions[i].Value, " ");
+            tweetContent = mentionreg.Replace(tweetContent, " ");
+
+            //replace words endswith "...", such as: "peo..."
+            Regex mentionreg1 = new Regex(@"\w+...\b");
+            MatchCollection mentions1 = mentionreg.Matches(tweetContent);
+            for (int i = 0; i < mentions1.Count; i++)
+                tweetContent = tweetContent.Replace(mentions1[i].Value, " ");
+            //tweetContent = mentionreg1.Replace(tweetContent, " ");
+
+            //tweetContent = tweetContent.Replace("_", " ");
+            //tweetContent = tweetContent.Replace("-", " ");
+            //tweetContent = tweetContent.Replace("!", " ");
+            //tweetContent = tweetContent.Replace("\"", " ");
+            //tweetContent = tweetContent.Replace("?", " ");
+            //tweetContent = tweetContent.Replace(".", " ");
+            //tweetContent = tweetContent.Replace("=", " ");
+            //tweetContent = tweetContent.Replace(":(", " ");
+            //tweetContent = tweetContent.Replace("&gt", " ");
+            //tweetContent = tweetContent.Replace("&lt;", " ");
+            //tweetContent = tweetContent.Replace("&amp", " ");
+            //tweetContent = tweetContent.Replace("&", " ");
+            //tweetContent = tweetContent.Replace("..", " ");
+            //tweetContent = tweetContent.Replace(":)", " ");
+            //tweetContent = tweetContent.Replace("/", " ");
+            //tweetContent = tweetContent.Replace(":", " ");
+            //tweetContent = tweetContent.Replace(",", " ");
+            //tweetContent = tweetContent.Replace(";", " ");
+            //tweetContent = tweetContent.Replace("‘", " ");
+            //tweetContent = tweetContent.Replace("\"", " ");
+            //tweetContent = tweetContent.Replace("[", " ");
+            //tweetContent = tweetContent.Replace("]", " ");
+            //tweetContent = tweetContent.Replace("”", " ");
+            //tweetContent = tweetContent.Replace("�", " ");
+            //tweetContent = tweetContent.Replace("#", " ");
+
+            ////replace pure number, such as 100
+            //Regex numreg = new Regex(@"\b\d+\b");
+            //MatchCollection nums = numreg.Matches(tweetContent);
+            //for (int i = 0; i < nums.Count; i++)
+            //    tweetContent = tweetContent.Replace(nums[i].Value, " ");
+
+            ////replace number or words start with number
+            ////such as 2010, 20g
+            //Regex numreg1 = new Regex(@"\b\d+\w*\b");
+            //MatchCollection nums1 = numreg1.Matches(tweetContent);
+            //for (int i = 0; i < nums1.Count; i++)
+            //    tweetContent = tweetContent.Replace(nums1[i].Value, " ");
+
+            //repleace words with a same character repeated more than 3 times,such as "boook"
+            //\b: start form a word
+            //\w*: 0 or several times of a character
+            //\w: a character
+            //\1: previous matched text by (\w)
+            //{2}: represent repeated >= 2
+            //for example: boook, (\w) match o, 2 present that o repeates 2 times (that is ooo)
+            Regex repeatreg = new Regex(@"\b\w*(\w)\1{2}\w*\b");
+            MatchCollection repeats = repeatreg.Matches(tweetContent);
+            for (int i = 0; i < repeats.Count; i++)
+                tweetContent = tweetContent.Replace(repeats[i].Value, " ");
+
+            //replace chinese words 
+            Regex chReg = new Regex(@"[\u4e00-\u9fa5]");
+            MatchCollection chmc = chReg.Matches(tweetContent);
+            for (int i = 0; i < chmc.Count; i++)
+                tweetContent = tweetContent.Replace(chmc[i].Value, " ");
 
             return tweetContent.Trim();
         }

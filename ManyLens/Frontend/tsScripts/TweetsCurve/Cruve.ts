@@ -31,6 +31,7 @@ module ManyLens {
             type: string;
             name: string;
             parent: StackNode;
+            oy?: number;
             children: StackNode[];
             x?: number;
             y?: number;
@@ -114,7 +115,7 @@ module ManyLens {
                     .range( [this._view_padding.left + this._coordinate_margin_left, this._view_width - this._view_padding.right] )
                     ;
                 this._y_scale
-                    .domain( [0, 27000] )
+                    .domain( [2000, 30000] )
                     .range( [this._view_height - this._view_padding.bottom, this._view_padding.top] )
                     ;
                 this._x_axis_gen
@@ -127,7 +128,7 @@ module ManyLens {
                     ;
                 this._y_axis_gen
                     .scale( this._y_scale )
-                    .ticks( 2 )
+                    .ticks( 5 )
                     .orient( "left" )
                     ;
 
@@ -180,20 +181,20 @@ module ManyLens {
                     .style( "margin-bottom", "17px" )
                     ;
 
-                this._curveSvg.append( "defs" ).append( "clipPath" )
-                    .attr( "id", "stackRectClip" )
-                    .append( "rect" )
-                    .attr( "width", this._coordinate_margin_left + this._view_padding.left )
-                    .attr( "height", this._view_height )
-                    .attr( "x", 0 )
-                    .attr( "y", 0 )
-                    ;
+                //this._curveSvg.append( "defs" ).append( "clipPath" )
+                //    .attr( "id", "stackRectClip" )
+                //    .append( "rect" )
+                //    .attr( "width", this._coordinate_margin_left + this._view_padding.left )
+                //    .attr( "height", this._view_height )
+                //    .attr( "x", 0 )
+                //    .attr( "y", 0 )
+                //    ;
 
                 this._subView = this._curveSvg.append( "g" )
                     .attr( "clip-path", "url(#stackRectClip)" )
                     .append( "g" )
-                    .attr( "id", "curve.subView" )
-                    .attr( "transform", "translate(0,-20)" )
+                    .attr( "id", "curve-subView" )
+                    .attr( "transform", "translate(0,-30)" )
                     ;
 
                 this._curveSvg.append( "defs" ).append( "clipPath" )
@@ -208,7 +209,7 @@ module ManyLens {
                 this._mainView = this._curveSvg.append( "g" )
                     .attr( "clip-path", "url(#curveClip)" )
                     .append( "g" )
-                    .attr( "id", "curve.mainView" )
+                    .attr( "id", "curve-mainView" )
                     ;
 
                 this._x_axis = this._curveSvg.append( "g" )
@@ -330,7 +331,7 @@ module ManyLens {
                     .attr( "transform", ( d ) => {
                         //d.y = d.y * (d.depth+3)/8;
                         if ( d.date && mode )
-                            return "translate(" + [this._sub_view_width - 10, this._sub_view_height - 120] + ")";
+                            return "translate(" + [this._sub_view_width, d.oy] + ")";
                         return "translate(" + [d.parent.x, d.parent.y] + ")";
                     })
                     ;
@@ -342,42 +343,34 @@ module ManyLens {
                     })
                     ;
 
-                enterNode.append( "rect" )
-                    .attr( "x", function ( d ) {
-                        if ( d.date && mode )
-                            return -10;
-                        return -5;
+                enterNode.filter( function ( d ) { return d.date })
+                    .each( function ( d ) {
+
+                        this.appendChild( document.getElementById( "cells_group" + d.id ) );
+                        d3.select( "#cells_group" + d.id )
+                            .classed("curve",false)
+                            .style("opacity",null)
+                            .attr( "transform", null )                    
+                            .transition().duration( duration )
+                            .attr( "transform", "scale(0.5)" )
+                        ;
                     })
-                    .attr( "width", function ( d ) {
-                        if ( d.date && mode )
-                            return 20;
-                        return 10;
+                    .on( "click", ( d ) => {
+                        this.SelectSegment( d );
                     })
-                    .attr( "height", function ( d ) {
-                        if ( d.date && mode )
-                            return 150;
-                        return 10;
-                    })
+
+                    ;
+
+                enterNode.filter( function ( d ) { return !d.date; })
+                    .append( 'circle' )
+                    .attr( 'r', 7 )
                     .style( "fill", ( d ) => {
                         return colorScale( this.SumEntropy( d ) / sumLength( d ) );
                     })
                     .on( "click", ( d ) => {
-                        if ( d.date ) {
-                            this.SelectSegment( d );
-                        } else {
-                            this.Toggle( d );
-                            this.UpdateSubviewTree( d, false );
-                        }
+                        this.Toggle( d );
+                        this.UpdateSubviewTree( d, false );
                     })
-                    .transition().duration( duration )
-                    .attr( {
-                        x: -5,
-                        width: 10,
-                        height: 10
-                    })
-                    //.attr("transform",null)
-                    //.attr( "d", d3.superformula().type( "circle" ).size( 50 ) )
-
                     ;
 
                 enterNode.append( "text" )
@@ -435,7 +428,7 @@ module ManyLens {
                     })
                     ;
 
-                this._stack_bar_node.selectAll( "rect" )
+                this._stack_bar_node.selectAll( "circle" )
                     .filter( function ( d ) { return d.children || d._children; })
                     .transition().duration( duration )
                     .attr( "height", function ( d ) {
@@ -468,7 +461,14 @@ module ManyLens {
                 ;
 
                 //Exit node
-                var exitNode = this._stack_bar_node.exit()
+
+                var exitNode = this._stack_bar_node.exit();
+                exitNode.select("g.cell").style('opacity',1e-6).each(function(d){
+                    d3.select("#curve-subView").each(function(){
+                         this.appendChild( document.getElementById( "cells_group" + d.id ) );
+                    });
+                });
+                exitNode
                     .transition().duration( duration )
                     .attr( "transform", function ( d ) {
                         if ( exitParent ) {
@@ -479,7 +479,8 @@ module ManyLens {
                     })
                     .remove()
                     ;
-                exitNode.select( "rect" ).transition().attr( "r", 1e-6 );
+                exitNode.select("g.cell")
+                exitNode.select( "circle" ).transition().attr( "r", 1e-6 );
                 exitNode.select( "text" ).transition().style( "fill-opacity", 1e-6 );
 
                 //Links
@@ -539,6 +540,7 @@ module ManyLens {
                         id: this._data[0].beg,
                         date: date,
                         size: 1,
+                        oy: this._y_scale( this._data[1].value ),
                         name: "d" + date.getDay(),
                         parent: null,
                         children: null,
@@ -601,10 +603,10 @@ module ManyLens {
 
                         sectionData.push( section );
                         var disting = true;
-                        this._section_data.forEach(function(d){
-                            if(d.id === section.id) disting = false;    
+                        this._section_data.forEach( function ( d ) {
+                            if ( d.id === section.id ) disting = false;
                         });
-                        if(disting && section.pathPoints.length == 3 ) this._section_data.push(section);
+                        if ( disting && section.pathPoints.length == 3 ) this._section_data.push( section );
 
                     } else {
                         var sectionRestPath = [];
@@ -651,57 +653,7 @@ module ManyLens {
                 //rects.exit().remove();
 
                 var self = this;
-                var cells = this._mainView.selectAll( "g.curve.cells" ).data( sectionData, function ( d ) { return d.id; });
-                cells.attr( "transform", function ( d ) {
-                    //if ( d.pathPoints[1] ) {
-                    //    d3.select( this ).attr( 'tY', self._y_scale( d.pathPoints[1].value ) );
-                    //    return "translate(" + self._x_scale( d.end - 1 ) + "," + self._y_scale( d.pathPoints[1].value ) + ")";
-                    //}
-                    var ty = d3.select( this ).attr( 'tY' );
-                    return "translate(" + self._x_scale( d.end - 1 ) + "," + ty + ")";
-                })
-                cells.exit().remove();
-
-                var xTime = this._mainView.selectAll( ".curve.seg.time-tick" ).data( sectionData );
-                xTime.attr( "x", ( d, i ) => {
-                    return this._x_scale( d.beg );
-                })
-                    ;
-                xTime.enter().append( "text" )
-                    .attr( "x", ( d, i ) => {
-                        return this._x_scale( d.beg );
-                    })
-                    .attr( "y", this._view_height )
-                    .attr( "class", "curve seg time-tick" )
-                    .text(( d ) => {
-                        var date = this._time_formater.parse( d.id );
-                        var mon = this.month_names[date.getMonth()];
-                        var day = date.getDate();
-                        return mon + " " + day;
-                    })
-                    ;
-                xTime.exit().remove();
-
-                var truelineFunc = d3.svg.line()
-                    .x(( d, i ) => {
-                        return this._x_scale( d.index );
-                    })
-                    .y(( d, i ) => {
-                        return this._y_scale( d.value );
-                    })
-                    .interpolate( "linear" )
-                    ;
-
-                var truepath = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });
-                truepath.attr( "d", function ( d ) {
-                    return truelineFunc( d.pathPoints );
-                });
-                truepath
-                    .enter().append( "path" )
-                    .attr( "d", function ( d ) { return truelineFunc( d.pathPoints ); })
-                    .attr( "class", "curve section path" )
-                    ;
-                truepath.exit().remove();
+                var cells = this._subView.selectAll( "g.curve.cells" ).data( sectionData, function ( d ) { return d.id; });
 
                 //Voronoi here
                 if ( this._section_data.length > 0 ) {
@@ -770,13 +722,20 @@ module ManyLens {
                         //    }
                         //}
 
+
                         //circle type
+                        var _fs = {};
                         step = 2 * Math.PI / fs.length;
                         for ( var i = 0; i < fs.length; ++i ) {
                             var angle = step * i;
                             var r = Math.random() * constR * 0.8;
                             fs[i].x = r * Math.cos( angle );
                             fs[i].y = r * Math.sin( angle );
+                            var t = fs[i].feature_type;
+                            if ( !_fs[t] ) {
+                                _fs[t] = -Infinity;
+                            }
+                            _fs[t] = d3.max( [_fs[t], fs[i].feature_value] );
                         }
 
 
@@ -808,7 +767,7 @@ module ManyLens {
                                 }
                             }
                             dist /= p.length;
-                            if ( dist <= constR * 0.01 ) {
+                            if ( dist <= constR * 0.002 ) {
                                 cnt++;
                             } else {
                                 cnt = 0;
@@ -820,16 +779,14 @@ module ManyLens {
 
                         //var cells = this._mainView.selectAll( "g.curve.cells" ).data( sectionData, function ( d ) { return d.id; });
 
-                        cells.enter().append( 'g' )
+                        cells.enter().insert( 'g', 'path.curve.section.path' )
                             .attr( 'class', 'curve cells' )
                             .attr( 'id', function ( d ) { return "cells_group" + d.id; })
                             .attr( "transform", function ( d: Section ) {
                                 if ( d.pathPoints[1] ) {
-                                    d3.select( this ).attr( 'tY', self._y_scale( d.pathPoints[1].value ) );
-                                    return "translate(" + self._x_scale( d.end - 1 ) + "," + self._y_scale( d.pathPoints[1].value ) + ")";
+                                    d3.select( this ).attr( 'tY', (self._y_scale( d.pathPoints[1].value ) +30) );
+                                    return "translate(" + self._x_scale( d.end - 1 ) + "," + (self._y_scale( d.pathPoints[1].value ) +30 )+ ")";
                                 }
-                                //var ty = d3.select( this ).attr( 'tY' );
-                                //return "translate(" + self._x_scale( d.end - 1 ) + "," + ty + ")";
                             })
                             ;
 
@@ -845,14 +802,69 @@ module ManyLens {
                             .style( "fill", function ( d, i ) {
                                 return color( d.feature_type );
                             })
-                            //.style( "fill-opacity", function ( d ) {
-                            //    return d.feature_value / _fs[d.feature_type] ;
-                            //})
+                            .style( "fill-opacity", function ( d ) {
+                                return d.feature_value / _fs[d.feature_type];
+                            })
                             .style( "stroke", 'lightgrey' )
                             .style( "stroke-width", .3 )
-                            ;
+                            .on( 'mouseout', function ( d ) {
+                                d3.select( this.parentNode ).select( "#cell-tip" ).remove();
+                            })
+                            .on( 'mouseover', function ( d ) {
+                                var mouse = d3.mouse( this );
+                                d3.select( this.parentNode )
+                                    .append( 'text' )
+                                    .attr( 'x', mouse[0] )
+                                    .attr( 'y', mouse[1] )
+                                    .attr( 'id', 'cell-tip' )
+                                    .text( d.feature_type + ":" + d.feature_value )
+                                    ;
+                            });
+                        ;
                     }
                 }
+
+                var xTime = this._mainView.selectAll( ".curve.seg.time-tick" ).data( sectionData );
+                xTime.attr( "x", ( d, i ) => {
+                    return this._x_scale( d.beg );
+                })
+                    ;
+                xTime.enter().append( "text" )
+                    .attr( "x", ( d, i ) => {
+                        return this._x_scale( d.beg );
+                    })
+                    .attr( "y", this._view_height )
+                    .attr( "class", "curve seg time-tick" )
+                    .text(( d ) => {
+                        var date = this._time_formater.parse( d.id );
+                        var mon = this.month_names[date.getMonth()];
+                        var day = date.getDate();
+                        return mon + " " + day;
+                    })
+                    ;
+                xTime.exit().remove();
+
+                var truelineFunc = d3.svg.line()
+                    .x(( d, i ) => {
+                        return this._x_scale( d.index );
+                    })
+                    .y(( d, i ) => {
+                        return this._y_scale( d.value );
+                    })
+                    .interpolate( "linear" )
+                    ;
+
+                var truepath = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });
+                truepath.attr( "d", function ( d ) {
+                    return truelineFunc( d.pathPoints );
+                });
+                truepath
+                    .enter().append( "path" )
+                    .attr( "d", function ( d ) { return truelineFunc( d.pathPoints ); })
+                    .attr( "class", "curve section path" )
+                    ;
+                truepath.exit().remove();
+
 
 
                 var trueRestPath = this._mainView.selectAll( ".curve.rest.true.path" ).data( restPathData );
@@ -896,6 +908,16 @@ module ManyLens {
                         .ease( "linear" )
                         .attr( "transform", "translate(" + ( this._x_scale( 0 ) - this._x_scale( 1 ) ) + ",0)" )
                         ;
+
+                    cells
+                        .transition()
+                        .duration( 80 )
+                        .attr( "transform", function ( d ) {
+                            var ty = d3.select( this ).attr( 'tY' );
+                            return "translate(" + self._x_scale( d.end - 2 ) + "," + ty + ")";
+                        })
+                        ;
+                    //cells.exit().remove();
                 }
 
             }

@@ -114,8 +114,8 @@ namespace ManyLens.Models
         {
             get
             {
-                //if (this.HasPreprocessed) return this.Tweets.Count;
-                //this.PreproccessingParallel();
+                if (this.HasPreprocessed) return this.Tweets.Count;
+                this.PreproccessingParallel();
                 return this.Tweets.Count;
             }
         }

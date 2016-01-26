@@ -324,6 +324,7 @@ namespace ManyLens.SignalR
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
                         interal.PreproccessingParallel(progress);
+                        //interal.PreproccessingParallel(progress);
                         sw.Stop();
                         Debug.WriteLine("Preprocessing TIME Consuming : " + sw.ElapsedTicks / (decimal)Stopwatch.Frequency);
 

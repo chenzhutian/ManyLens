@@ -407,7 +407,7 @@ var ManyLens;
                     .domain([0, this._section_num])
                     .range([this._view_padding.left + this._coordinate_margin_left, this._view_width - this._view_padding.right]);
                 this._y_scale
-                    .domain([0, 27000])
+                    .domain([2000, 30000])
                     .range([this._view_height - this._view_padding.bottom, this._view_padding.top]);
                 this._x_axis_gen
                     .scale(d3.time.scale()
@@ -417,7 +417,7 @@ var ManyLens;
                     .orient("bottom");
                 this._y_axis_gen
                     .scale(this._y_scale)
-                    .ticks(2)
+                    .ticks(5)
                     .orient("left");
                 this._fisheye_scale
                     .rangeRoundBands([0, this._sub_view_width])
@@ -476,18 +476,19 @@ var ManyLens;
                     .attr("width", this._view_width)
                     .attr("height", this._view_height)
                     .style("margin-bottom", "17px");
-                this._curveSvg.append("defs").append("clipPath")
-                    .attr("id", "stackRectClip")
-                    .append("rect")
-                    .attr("width", this._coordinate_margin_left + this._view_padding.left)
-                    .attr("height", this._view_height)
-                    .attr("x", 0)
-                    .attr("y", 0);
+                //this._curveSvg.append( "defs" ).append( "clipPath" )
+                //    .attr( "id", "stackRectClip" )
+                //    .append( "rect" )
+                //    .attr( "width", this._coordinate_margin_left + this._view_padding.left )
+                //    .attr( "height", this._view_height )
+                //    .attr( "x", 0 )
+                //    .attr( "y", 0 )
+                //    ;
                 this._subView = this._curveSvg.append("g")
                     .attr("clip-path", "url(#stackRectClip)")
                     .append("g")
-                    .attr("id", "curve.subView")
-                    .attr("transform", "translate(0,-20)");
+                    .attr("id", "curve-subView")
+                    .attr("transform", "translate(0,-30)");
                 this._curveSvg.append("defs").append("clipPath")
                     .attr("id", "curveClip")
                     .append("rect")
@@ -498,7 +499,7 @@ var ManyLens;
                 this._mainView = this._curveSvg.append("g")
                     .attr("clip-path", "url(#curveClip)")
                     .append("g")
-                    .attr("id", "curve.mainView");
+                    .attr("id", "curve-mainView");
                 this._x_axis = this._curveSvg.append("g")
                     .attr("class", "curve x axis")
                     .attr("transform", "translate(" + [0, (this._view_height - this._view_padding.bottom)] + ")")
@@ -613,7 +614,7 @@ var ManyLens;
                     .attr("transform", function (d) {
                     //d.y = d.y * (d.depth+3)/8;
                     if (d.date && mode)
-                        return "translate(" + [_this._sub_view_width - 10, _this._sub_view_height - 120] + ")";
+                        return "translate(" + [_this._sub_view_width, d.oy] + ")";
                     return "translate(" + [d.parent.x, d.parent.y] + ")";
                 });
                 enterNode.filter(function (d) { return d.parent; })
@@ -621,39 +622,28 @@ var ManyLens;
                     .attr("transform", function (d) {
                     return "translate(" + [d.x, d.y] + ")";
                 });
-                enterNode.append("rect")
-                    .attr("x", function (d) {
-                    if (d.date && mode)
-                        return -10;
-                    return -5;
+                enterNode.filter(function (d) { return d.date; })
+                    .each(function (d) {
+                    this.appendChild(document.getElementById("cells_group" + d.id));
+                    d3.select("#cells_group" + d.id)
+                        .classed("curve", false)
+                        .style("opacity", null)
+                        .attr("transform", null)
+                        .transition().duration(duration)
+                        .attr("transform", "scale(0.5)");
                 })
-                    .attr("width", function (d) {
-                    if (d.date && mode)
-                        return 20;
-                    return 10;
-                })
-                    .attr("height", function (d) {
-                    if (d.date && mode)
-                        return 150;
-                    return 10;
-                })
+                    .on("click", function (d) {
+                    _this.SelectSegment(d);
+                });
+                enterNode.filter(function (d) { return !d.date; })
+                    .append('circle')
+                    .attr('r', 7)
                     .style("fill", function (d) {
                     return colorScale(_this.SumEntropy(d) / sumLength(d));
                 })
                     .on("click", function (d) {
-                    if (d.date) {
-                        _this.SelectSegment(d);
-                    }
-                    else {
-                        _this.Toggle(d);
-                        _this.UpdateSubviewTree(d, false);
-                    }
-                })
-                    .transition().duration(duration)
-                    .attr({
-                    x: -5,
-                    width: 10,
-                    height: 10
+                    _this.Toggle(d);
+                    _this.UpdateSubviewTree(d, false);
                 });
                 enterNode.append("text")
                     .attr("x", function (d) {
@@ -712,7 +702,7 @@ var ManyLens;
                     //d.y = d.y * (d.depth+3)/8;
                     return "translate(" + [d.x, d.y] + ")";
                 });
-                this._stack_bar_node.selectAll("rect")
+                this._stack_bar_node.selectAll("circle")
                     .filter(function (d) { return d.children || d._children; })
                     .transition().duration(duration)
                     .attr("height", function (d) {
@@ -744,7 +734,13 @@ var ManyLens;
                     .style("fill-opacity", 1);
                 ;
                 //Exit node
-                var exitNode = this._stack_bar_node.exit()
+                var exitNode = this._stack_bar_node.exit();
+                exitNode.select("g.cell").style('opacity', 1e-6).each(function (d) {
+                    d3.select("#curve-subView").each(function () {
+                        this.appendChild(document.getElementById("cells_group" + d.id));
+                    });
+                });
+                exitNode
                     .transition().duration(duration)
                     .attr("transform", function (d) {
                     if (exitParent) {
@@ -754,7 +750,8 @@ var ManyLens;
                     return "translate(" + [d.x, d.y] + ")";
                 })
                     .remove();
-                exitNode.select("rect").transition().attr("r", 1e-6);
+                exitNode.select("g.cell");
+                exitNode.select("circle").transition().attr("r", 1e-6);
                 exitNode.select("text").transition().style("fill-opacity", 1e-6);
                 //Links
                 this._stack_bar_link = this._subView.selectAll(".stack.link")
@@ -807,6 +804,7 @@ var ManyLens;
                         id: this._data[0].beg,
                         date: date,
                         size: 1,
+                        oy: this._y_scale(this._data[1].value),
                         name: "d" + date.getDay(),
                         parent: null,
                         children: null,
@@ -910,50 +908,7 @@ var ManyLens;
                 //    ;
                 //rects.exit().remove();
                 var self = this;
-                var cells = this._mainView.selectAll("g.curve.cells").data(sectionData, function (d) { return d.id; });
-                cells.attr("transform", function (d) {
-                    //if ( d.pathPoints[1] ) {
-                    //    d3.select( this ).attr( 'tY', self._y_scale( d.pathPoints[1].value ) );
-                    //    return "translate(" + self._x_scale( d.end - 1 ) + "," + self._y_scale( d.pathPoints[1].value ) + ")";
-                    //}
-                    var ty = d3.select(this).attr('tY');
-                    return "translate(" + self._x_scale(d.end - 1) + "," + ty + ")";
-                });
-                cells.exit().remove();
-                var xTime = this._mainView.selectAll(".curve.seg.time-tick").data(sectionData);
-                xTime.attr("x", function (d, i) {
-                    return _this._x_scale(d.beg);
-                });
-                xTime.enter().append("text")
-                    .attr("x", function (d, i) {
-                    return _this._x_scale(d.beg);
-                })
-                    .attr("y", this._view_height)
-                    .attr("class", "curve seg time-tick")
-                    .text(function (d) {
-                    var date = _this._time_formater.parse(d.id);
-                    var mon = _this.month_names[date.getMonth()];
-                    var day = date.getDate();
-                    return mon + " " + day;
-                });
-                xTime.exit().remove();
-                var truelineFunc = d3.svg.line()
-                    .x(function (d, i) {
-                    return _this._x_scale(d.index);
-                })
-                    .y(function (d, i) {
-                    return _this._y_scale(d.value);
-                })
-                    .interpolate("linear");
-                var truepath = this._mainView.selectAll(".curve.section.path").data(sectionData, function (d) { return d.id; });
-                truepath.attr("d", function (d) {
-                    return truelineFunc(d.pathPoints);
-                });
-                truepath
-                    .enter().append("path")
-                    .attr("d", function (d) { return truelineFunc(d.pathPoints); })
-                    .attr("class", "curve section path");
-                truepath.exit().remove();
+                var cells = this._subView.selectAll("g.curve.cells").data(sectionData, function (d) { return d.id; });
                 //Voronoi here
                 if (this._section_data.length > 0) {
                     var section = this._section_data[this._section_data.length - 1];
@@ -1016,12 +971,18 @@ var ManyLens;
                         //    }
                         //}
                         //circle type
+                        var _fs = {};
                         step = 2 * Math.PI / fs.length;
                         for (var i = 0; i < fs.length; ++i) {
                             var angle = step * i;
                             var r = Math.random() * constR * 0.8;
                             fs[i].x = r * Math.cos(angle);
                             fs[i].y = r * Math.sin(angle);
+                            var t = fs[i].feature_type;
+                            if (!_fs[t]) {
+                                _fs[t] = -Infinity;
+                            }
+                            _fs[t] = d3.max([_fs[t], fs[i].feature_value]);
                         }
                         var voronoi = d3.geom.voronoi();
                         voronoi.x(function (d) { return d['x']; });
@@ -1050,7 +1011,7 @@ var ManyLens;
                                 }
                             }
                             dist /= p.length;
-                            if (dist <= constR * 0.01) {
+                            if (dist <= constR * 0.002) {
                                 cnt++;
                             }
                             else {
@@ -1061,16 +1022,14 @@ var ManyLens;
                                 break;
                         }
                         //var cells = this._mainView.selectAll( "g.curve.cells" ).data( sectionData, function ( d ) { return d.id; });
-                        cells.enter().append('g')
+                        cells.enter().insert('g', 'path.curve.section.path')
                             .attr('class', 'curve cells')
                             .attr('id', function (d) { return "cells_group" + d.id; })
                             .attr("transform", function (d) {
                             if (d.pathPoints[1]) {
-                                d3.select(this).attr('tY', self._y_scale(d.pathPoints[1].value));
-                                return "translate(" + self._x_scale(d.end - 1) + "," + self._y_scale(d.pathPoints[1].value) + ")";
+                                d3.select(this).attr('tY', (self._y_scale(d.pathPoints[1].value) + 30));
+                                return "translate(" + self._x_scale(d.end - 1) + "," + (self._y_scale(d.pathPoints[1].value) + 30) + ")";
                             }
-                            //var ty = d3.select( this ).attr( 'tY' );
-                            //return "translate(" + self._x_scale( d.end - 1 ) + "," + ty + ")";
                         });
                         d3.select('g#cells_group' + section.id).selectAll(".cell")
                             .data(fs)
@@ -1084,10 +1043,60 @@ var ManyLens;
                             .style("fill", function (d, i) {
                             return color(d.feature_type);
                         })
+                            .style("fill-opacity", function (d) {
+                            return d.feature_value / _fs[d.feature_type];
+                        })
                             .style("stroke", 'lightgrey')
-                            .style("stroke-width", .3);
+                            .style("stroke-width", .3)
+                            .on('mouseout', function (d) {
+                            d3.select(this.parentNode).select("#cell-tip").remove();
+                        })
+                            .on('mouseover', function (d) {
+                            var mouse = d3.mouse(this);
+                            d3.select(this.parentNode)
+                                .append('text')
+                                .attr('x', mouse[0])
+                                .attr('y', mouse[1])
+                                .attr('id', 'cell-tip')
+                                .text(d.feature_type + ":" + d.feature_value);
+                        });
+                        ;
                     }
                 }
+                var xTime = this._mainView.selectAll(".curve.seg.time-tick").data(sectionData);
+                xTime.attr("x", function (d, i) {
+                    return _this._x_scale(d.beg);
+                });
+                xTime.enter().append("text")
+                    .attr("x", function (d, i) {
+                    return _this._x_scale(d.beg);
+                })
+                    .attr("y", this._view_height)
+                    .attr("class", "curve seg time-tick")
+                    .text(function (d) {
+                    var date = _this._time_formater.parse(d.id);
+                    var mon = _this.month_names[date.getMonth()];
+                    var day = date.getDate();
+                    return mon + " " + day;
+                });
+                xTime.exit().remove();
+                var truelineFunc = d3.svg.line()
+                    .x(function (d, i) {
+                    return _this._x_scale(d.index);
+                })
+                    .y(function (d, i) {
+                    return _this._y_scale(d.value);
+                })
+                    .interpolate("linear");
+                var truepath = this._mainView.selectAll(".curve.section.path").data(sectionData, function (d) { return d.id; });
+                truepath.attr("d", function (d) {
+                    return truelineFunc(d.pathPoints);
+                });
+                truepath
+                    .enter().append("path")
+                    .attr("d", function (d) { return truelineFunc(d.pathPoints); })
+                    .attr("class", "curve section path");
+                truepath.exit().remove();
                 var trueRestPath = this._mainView.selectAll(".curve.rest.true.path").data(restPathData);
                 trueRestPath.attr("d", function (d) {
                     return truelineFunc(d);
@@ -1124,6 +1133,13 @@ var ManyLens;
                         .duration(80) //this time-step should be equale to the time step of AddPoint() in server.hub
                         .ease("linear")
                         .attr("transform", "translate(" + (this._x_scale(0) - this._x_scale(1)) + ",0)");
+                    cells
+                        .transition()
+                        .duration(80)
+                        .attr("transform", function (d) {
+                        var ty = d3.select(this).attr('tY');
+                        return "translate(" + self._x_scale(d.end - 2) + "," + ty + ")";
+                    });
                 }
             };
             Curve.prototype.SelectSegment = function (d) {
