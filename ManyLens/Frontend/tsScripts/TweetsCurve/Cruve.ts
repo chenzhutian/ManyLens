@@ -49,7 +49,7 @@ module ManyLens {
             private _x_scale: D3.Scale.LinearScale = d3.scale.linear();
             private _x_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _x_axis: D3.Selection;
-            private _y_scale: D3.Scale.LinearScale = d3.scale.linear();
+            private _y_scale: D3.Scale.LogScale = d3.scale.linear();
             private _y_axis_gen: D3.Svg.Axis = d3.svg.axis();
             private _y_axis: D3.Selection;
             private _fisheye_scale: D3.FishEyeOrdinalScale = d3.fisheye.ordinal();
@@ -57,11 +57,11 @@ module ManyLens {
             private _sub_view_width: number;
             private _sub_view_height: number;
 
-            private _section_num: number = 30;
+            private _section_num: number = 50;
             private _view_height: number;
             private _view_width: number;
             private _view_padding: { top: number, bottom: number, left: number, right: number } = { top: 15, bottom: 25, left: 50, right: 50 };
-            private _coordinate_margin_left: number = 500;
+            private _coordinate_margin_left: number = 400;
 
             protected _data: Array<Point>;
             private _section_data: Array<Section>;
@@ -115,7 +115,7 @@ module ManyLens {
                     .range( [this._view_padding.left + this._coordinate_margin_left, this._view_width - this._view_padding.right] )
                     ;
                 this._y_scale
-                    .domain( [2000, 30000] )
+                    .domain( [0, 10000] )
                     .range( [this._view_height - this._view_padding.bottom, this._view_padding.top] )
                     ;
                 this._x_axis_gen
@@ -154,7 +154,7 @@ module ManyLens {
                     .separation( function ( a, b ) {
                         if ( a.parent == b.parent ) {
                             if ( a.children && b._children )
-                                return 3 / ( ( a.depth + 1 ) * ( a.depth + 1 ) );
+                                return 2 / ( ( a.depth + 1 ) * ( a.depth + 1 ) );
                         }
                         return 1 / ( ( a.depth + 1 ) * ( a.depth + 1 ) );
                     })
@@ -180,15 +180,6 @@ module ManyLens {
                     .attr( "height", this._view_height )
                     .style( "margin-bottom", "17px" )
                     ;
-
-                //this._curveSvg.append( "defs" ).append( "clipPath" )
-                //    .attr( "id", "stackRectClip" )
-                //    .append( "rect" )
-                //    .attr( "width", this._coordinate_margin_left + this._view_padding.left )
-                //    .attr( "height", this._view_height )
-                //    .attr( "x", 0 )
-                //    .attr( "y", 0 )
-                //    ;
 
                 this._subView = this._curveSvg.append( "g" )
                     .attr( "clip-path", "url(#stackRectClip)" )
@@ -316,6 +307,12 @@ module ManyLens {
                 var colorScale = d3.scale.linear().domain( d3.extent( this._hack_entropy_for_day_fullyear ) )
                     .range( ["#C5EFF7", "#34495E"] );
 
+                var arcScale = d3.scale.linear().domain( d3.extent( this._hack_entropy_for_day_fullyear ) )
+                .range([0,1]);
+                var constR = this._x_scale( 1 ) - this._x_scale( 0 );
+                var arc = d3.svg.arc().innerRadius(constR+2).outerRadius(constR + 5).startAngle(0);
+
+
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) {
                     return d.name != "";//&& d.name != "day2";
@@ -341,25 +338,30 @@ module ManyLens {
                     .attr( "transform", ( d ) => {
                         return "translate(" + [d.x, d.y] + ")";
                     })
-                    ;
+                ;
 
                 enterNode.filter( function ( d ) { return d.date })
                     .each( function ( d ) {
-
                         this.appendChild( document.getElementById( "cells_group" + d.id ) );
                         d3.select( "#cells_group" + d.id )
                             .classed("curve",false)
                             .style("opacity",null)
                             .attr( "transform", null )                    
                             .transition().duration( duration )
-                            .attr( "transform", "scale(0.5)" )
+                            .attr( "transform", "scale(0.4)" )
                         ;
                     })
                     .on( "click", ( d ) => {
                         this.SelectSegment( d );
                     })
-
-                    ;
+                    .select("g.cells")
+                    .append('path')
+                    .attr('d',(d)=>{
+                            arc.endAngle(2*Math.PI * arcScale( this.SumEntropy( d ) / sumLength( d ) ));
+                        return arc([0]);
+                    })
+                    .style( "fill", "#1abc9c")
+                ;
 
                 enterNode.filter( function ( d ) { return !d.date; })
                     .append( 'circle' )
@@ -371,7 +373,7 @@ module ManyLens {
                         this.Toggle( d );
                         this.UpdateSubviewTree( d, false );
                     })
-                    ;
+                ;
 
                 enterNode.append( "text" )
                     .attr( "x", function ( d ) {
@@ -381,7 +383,7 @@ module ManyLens {
                     })
                     .attr( "dy", function ( d ) {
                         if ( d.date || ( d.name[0] == "d" && d._children ) )
-                            return "25";
+                            return "30";
                         return ".35em";
                     })
                     .attr( "text-anchor", function ( d ) { return "start"; })
@@ -453,7 +455,7 @@ module ManyLens {
                     })
                     .attr( "dy", function ( d ): any {
                         if ( d._children ) {
-                            return 10 * ( 1.5 + sumLength( d ) );
+                            return 20 ;//* ( 1.5 + sumLength( d ) );
                         }
                         return ".35em";
                     })
@@ -461,7 +463,6 @@ module ManyLens {
                 ;
 
                 //Exit node
-
                 var exitNode = this._stack_bar_node.exit();
                 exitNode.select("g.cell").style('opacity',1e-6).each(function(d){
                     d3.select("#curve-subView").each(function(){
@@ -469,7 +470,7 @@ module ManyLens {
                     });
                 });
                 exitNode
-                    .transition().duration( duration )
+                    .transition().delay( duration).duration( duration )
                     .attr( "transform", function ( d ) {
                         if ( exitParent ) {
                             d.x = exitParent.x;
@@ -479,7 +480,6 @@ module ManyLens {
                     })
                     .remove()
                     ;
-                exitNode.select("g.cell")
                 exitNode.select( "circle" ).transition().attr( "r", 1e-6 );
                 exitNode.select( "text" ).transition().style( "fill-opacity", 1e-6 );
 
@@ -527,7 +527,7 @@ module ManyLens {
                     case 1: stackType = "-hour" + date.getHours() + stackType;
                     case 0: stackType = "-day" + date.getDate() + stackType;
                 }
-                return "" + "-mounth" + date.getMonth() + stackType;
+                return "" + "-year"+date.getFullYear()+"-mounth" + date.getMonth() + stackType;
             }
 
             private RefreshGraph( point: Point ) {

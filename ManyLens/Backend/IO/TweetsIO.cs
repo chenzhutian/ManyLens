@@ -62,14 +62,16 @@ namespace ManyLens.IO
             sw.Close();
         }
 
-        public static SortedDictionary<string, Term>[] LoadTweetsAsTermsSortedByDate(string tweetFile)
+        public static SortedDictionary<string, Term> LoadTweetsAsTermsSortedByDate(string tweetFile)
         {
-            //SortedDictionary<DateTime, Term> sortedTerm = new SortedDictionary<DateTime, Term>();
-            SortedDictionary<string, Term>[] sortedTerms = new SortedDictionary<string, Term>[4];
-            for (int i = 0; i < 4; ++i)
-            {
-                sortedTerms[i] = new SortedDictionary<string, Term>();
-            }
+            SortedDictionary<string, Term> sortedTerm = new SortedDictionary<string, Term>();
+            //SortedDictionary<string, Term>[] sortedTerms = new SortedDictionary<string, Term>[4];
+            //for (int i = 0; i < 4; ++i)
+            //{
+            //    sortedTerms[i] = new SortedDictionary<string, Term>();
+            //}
+
+
 
             Dictionary<string, User> users = new Dictionary<string, User>();
             StreamReader sr;
@@ -150,37 +152,33 @@ namespace ManyLens.IO
                     sec = 0;
                 }
                 //DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec*mode[4]);
-                for (int i = 2; i < 3; ++i)
-                {
-                    string date = "";
-                    switch (i)
-                    {
-                        case 3: date = sec.ToString("D2"); goto case 2;
-                        case 2: date = postDate.Minute.ToString("D2") + date; goto case 1;
-                        case 1: date = postDate.Hour.ToString("D2") + date; goto case 0;
-                        case 0: date = postDate.Day.ToString("D2") + date; break;
-
-                    }
                 
-                    date = postDate.Year.ToString("D4") + postDate.Month.ToString("D2") + date;
-
-                    for (int t = 0, len = (14 - date.Length)/2; t < len; ++t) 
-                    {
-                        date += "00";
-                    }
-                    SortedDictionary<string,Term> sortedTerm = sortedTerms[i];
-                    if (sortedTerm.ContainsKey(date))
-                    {
-                        //sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate,tweet.Lon,tweet.Lat, tweet.User);
-                        sortedTerm[date].AddTweet(tweet);
-                    }
-                    else
-                    {
-                        Term t = new Term(date);
-                        //t.AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.Lon,tweet.Lat,tweet.User);
-                        t.AddTweet(tweet);
-                        sortedTerm.Add(date, t);
-                    }
+                string date = "";
+                switch (config.Parameter.TimeSpan)
+                {
+                    case 3: date = sec.ToString("D2"); goto case 2;
+                    case 2: date = postDate.Minute.ToString("D2") + date; goto case 1;
+                    case 1: date = postDate.Hour.ToString("D2") + date; goto case 0;
+                    case 0: date = postDate.Day.ToString("D2") + date; break;
+                }
+                
+                date = postDate.Year.ToString("D4") + postDate.Month.ToString("D2") + date;
+                for (int t = 0, len = (14 - date.Length)/2; t < len; ++t) 
+                {
+                    date += "00";
+                }
+                //SortedDictionary<string,Term> sortedTerm = sortedTerms[];
+                if (sortedTerm.ContainsKey(date))
+                {
+                    //sortedTerm[date].AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate,tweet.Lon,tweet.Lat, tweet.User);
+                    sortedTerm[date].AddTweet(tweet);
+                }
+                else
+                {
+                    Term t = new Term(date);
+                    //t.AddTweet(tweet.TweetID, tweet.OriginalContent, tweet.PostDate, tweet.Lon,tweet.Lat,tweet.User);
+                    t.AddTweet(tweet);
+                    sortedTerm.Add(date, t);
                 }
 
 
@@ -209,7 +207,7 @@ namespace ManyLens.IO
             //}
             #endregion
 
-            return sortedTerms;
+            return sortedTerm;
         }
 
         public struct CityStruct 

@@ -63,14 +63,14 @@ module ManyLens {
                         "margin-top": "30px",
                         "margin-bottom": "250px"
                     })
-                    .html( '<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Minutes</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>' );
+                    .html( '<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Second</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Second</a></li><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>' );
                 d3.select( "ul.dropdown-menu" ).selectAll( "li" )
                     .on( "click", function ( d, i ) {
                         var text = d3.select( this ).select( "a" ).text();
                         d3.select( "#hack-drop-down" ).text( text );
                         manyLens.TimeSpan = 3 - i;
                         console.log(i+","+manyLens.TimeSpan);
-                        manyLens.ManyLensHubServerChangeTimeSpan(manyLens.TimeSpan);
+                        //manyLens.ManyLensHubServerChangeTimeSpan(manyLens.TimeSpan);
                     });
 
                 this._launchDataBtn = 
@@ -103,6 +103,7 @@ module ManyLens {
                 d3.select( "#navbarInput-02" )
                     .on( "click", ( d ) => {
                         d3.event.preventDefault();
+                        console.log("pullPoint");
                         this._manyLens.ManyLensHubServerPullPoint(  );
                     });
 

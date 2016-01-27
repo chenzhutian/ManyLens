@@ -224,7 +224,7 @@ g.curve.seg rect{
 }
 
 path.curve.section.path {
-    stroke: #fff;
+    stroke: #ecf0f1;
     stroke-width: 3px;
     fill: none;
 }

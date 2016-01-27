@@ -24,7 +24,7 @@ namespace ManyLens.SignalR
     {
         private static bool GeoMapMode = false;
         private static CancellationTokenSource cts = new CancellationTokenSource();
-        private static SortedDictionary<string, Term>[] dateTweetsFreq;
+        private static SortedDictionary<string, Term> dateTweetsFreq;
         private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
         private static SortedDictionary<DateTime, MapPack> visMapsSortedByTime = new SortedDictionary<DateTime, MapPack>();
@@ -98,7 +98,7 @@ namespace ManyLens.SignalR
                 int p = 5;
 
                 double cutoff = 0, mean = 0, diff = 0, variance = 0;
-                Term[] tp = dateTweetsFreq[config.Parameter.TimeSpan].Values.ToArray();
+                Term[] tp = dateTweetsFreq.Values.ToArray();
 
                 #region init some variables
                 //init reset the type of each point
@@ -211,14 +211,22 @@ namespace ManyLens.SignalR
                         end = tp[t].EndPoint
                     };
 
+
+                    if (point.id == "20140709043600")
+                    {
+                        int asdfw = 0;
+                        ++asdfw;
+
+                        Debug.WriteLine("Stop please");
+                    }
+
                     Clients.Caller.addPoint(point);
                     //if (ctoken.IsCancellationRequested)
                     //{
                     //    Debug.WriteLine(seperatePoint.ID);
                     //    return tp[t];
                     //}
-
-                    Thread.Sleep(500);
+                    Thread.Sleep(100);
                 }
 
             }, ctoken);
