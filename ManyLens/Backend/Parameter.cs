@@ -16,7 +16,7 @@ namespace ManyLens.config
         public static string twitterKeysFile = RootFolder + "Backend\\DataBase\\TWITTERKEY";
 
         //public static string tweetFile = ebolaFile;
-        private static int timeSpan = 3;
+        private static int timeSpan = 0;
         private static int lastTimeSpan = 2;
         private static int hashDimension = 4096;
         private static int dimensionAfterRandomMapping = 1024;

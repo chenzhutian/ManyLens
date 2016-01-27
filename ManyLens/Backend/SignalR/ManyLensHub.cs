@@ -42,7 +42,7 @@ namespace ManyLens.SignalR
             lensDatas.Clear();
             await Task.Run(() =>
              {
-                 if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
+                 if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.ebolaFile);
                  if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                  if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
              });
@@ -212,13 +212,13 @@ namespace ManyLens.SignalR
                     };
 
 
-                    if (point.id == "20140709043600")
-                    {
-                        int asdfw = 0;
-                        ++asdfw;
+                    //if (point.id == "20140709043600")
+                    //{
+                    //    int asdfw = 0;
+                    //    ++asdfw;
 
-                        Debug.WriteLine("Stop please");
-                    }
+                    //    Debug.WriteLine("Stop please");
+                    //}
 
                     Clients.Caller.addPoint(point);
                     //if (ctoken.IsCancellationRequested)

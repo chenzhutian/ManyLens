@@ -163,8 +163,9 @@ namespace ManyLens.Models
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = following, feature_value = t.User.Following });
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = tweetLength, feature_value = t.Length });
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = hastagCount, feature_value = t.HashTag.Count });
+                tweets.Add(t);
             }
-
+            return features.OrderBy(f => f.feature_type).ToList();
 
             //var tweets = this.Tweets.OrderByDescending(t=>t.User.Follower).Take(sampleCount);
             //foreach(Tweet t  in tweets )
@@ -190,7 +191,7 @@ namespace ManyLens.Models
             //    features.Add(new VoronoiTweetsFeature(){ id = t.TweetID+"_3", feature_type = hastagCount, feature_value = t.HashTag.Count});
             //}
 
-            return features;
+        
         }
 
         public void Preproccessing()
