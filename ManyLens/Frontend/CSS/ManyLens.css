@@ -181,7 +181,6 @@ div#curveView {
     background-color:rgba(255,255,255,1);
 }
 
-
     div#curveView text {
         fill:#000;
         opacity:1;
@@ -198,7 +197,9 @@ div#curveView {
     stroke: #F5AB35;
     stroke-width: 1.5px;
 }
-
+g.cells path.entropy-ring {
+    fill:#1abc9c;
+}
 /*rgb(31, 145, 189);*/
 path.stack.link,
 .curve.axis path,
@@ -224,7 +225,7 @@ g.curve.seg rect{
 }
 
 path.curve.section.path {
-    stroke: #ecf0f1;
+    stroke: #3498db;
     stroke-width: 3px;
     fill: none;
 }
@@ -242,7 +243,7 @@ circle.curve.node {
 }
 
 .progress {
-    border-radius:0px;
+    border-radius:0;
 }
 .progress-bar {
     background-color:#3EAFDB;
@@ -307,11 +308,11 @@ text.word-cloud {
     .nav-side-menu .menu-list ul,
     .nav-side-menu .menu-list li {
         list-style: none;
-        padding: 0px;
-        margin: 0px;
+        padding: 0;
+        margin: 0;
         line-height: 35px;
         cursor: pointer;
-        padding-left: 0px;
+        padding-left: 0;
         border-bottom: 1px solid #dae1e8;
     }
 
@@ -445,7 +446,7 @@ text.word-cloud {
 
 .list-group {
     background-color:#fff;
-    margin-bottom: 0px;
+    margin-bottom: 0;
     position:absolute;
     border:1px solid #E8E9EE;
     padding-right:0;
@@ -454,7 +455,7 @@ text.word-cloud {
 
 .list-group-item {
     border: none;
-    margin-bottom: 0px;
+    margin-bottom: 0;
     border-bottom: 1px solid #ddd;
 }
 
@@ -468,5 +469,5 @@ text.word-cloud {
     }
 
 .pagination {
-    margin: 0px;
+    margin: 0;
 }

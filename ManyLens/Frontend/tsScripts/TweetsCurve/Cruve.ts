@@ -4,21 +4,25 @@ module ManyLens {
 
     export module TweetsCurve {
 
+        interface Feature{ x?: number, y?: number, feature_type: string, feature_value: number; }
+
+
         interface Point {
             value: number;
             isPeak: boolean;
             id: string;
             type: number;
-            features: Array<{ x: number, y: number, feature_type: string, feature_value: number }>;
+            features: Array<Feature>;
             beg: string;
             end: string;
         }
+
 
         interface Section {
             beg: number;
             end: number;
             id: string;
-            features: Array<{ x: number, y: number, feature_type: string, feature_value: number }>;
+            features: Array<Feature>;
             fs: Array<any>;
             pathPoints: [{
                 index: number;
@@ -61,7 +65,7 @@ module ManyLens {
             private _view_height: number;
             private _view_width: number;
             private _view_padding: { top: number, bottom: number, left: number, right: number } = { top: 15, bottom: 25, left: 50, right: 50 };
-            private _coordinate_margin_left: number = 400;
+            private _coordinate_margin_left: number = 1000;
 
             protected _data: Array<Point>;
             private _section_data: Object;
@@ -80,7 +84,10 @@ module ManyLens {
 
             private _voronoi_bound: D3.Geom.Polygon = null;
             private _voronoi: D3.Geom.Voronoi<any> = null;
-            private _voronoi_color:D3.Scale.OrdinalScale = null;
+            private _voronoi_color: D3.Scale.OrdinalScale = null;
+            private _voronoi_scale: number = null;
+            private _voronoi_color_scale:Object = null;
+
 
             private _hack_entropy_for_sec = [5.731770623, 5.673758762, 5.708904568, 5.766106615, 5.271328797, 5.50350013, 5.650689424, 5.059556767, 5.150092845, 5.332915993, 5.538583789, 5.56513213, 5.618589058, 5.568604372, 5.601558072, 5.603160895, 5.552198033, 5.563398957, 5.545638613, 5.585914854, 5.541078274, 5.581189853, 5.610692756, 5.561532863, 5.662572096, 5.577863947, 5.697510354, 5.703647393, 5.578761725, 5.604709918, 5.443579203, 5.498566777, 5.692988236, 5.449706032, 5.316306331, 5.69077723, 5.830264994, 5.849802422, 5.764716822, 5.920337608, 5.854107674, 5.914982887, 5.872175529, 5.795052474, 5.590677484, 5.49128005, 5.611246233, 5.861593865, 5.760362888, 5.763031867, 5.715574693, 5.904532304, 6.024492893, 5.971005731, 5.410844221, 5.700768429, 5.788494599];
             private _hack_entropy_for_minute = [5.439728938, 5.329790773, 5.586664525, 5.615747057, 5.639277057, 5.653881221, 5.497658424];
@@ -88,6 +95,7 @@ module ManyLens {
             private _hack_entropy_for_day = [6.078795108, 5.841434121, 5.939489652, 5.938061597, 5.856967809, 5.831608227, 5.93391885, 5.993377279, 5.830555653, 5.802729553, 6.076953322, 5.894862096, 5.779206615, 5.969579388, 5.710407662];
             private _hack_entropy_for_day_fullyear =
             [5.991439819, 5.851983278, 5.948156068, 5.436286372, 5.291194338, 5.483132322, 5.335564514, 5.890816733, 6.296046929, 5.776935794, 6.178819818, 5.823461866, 6.276945033, 5.383821592, 5.780546756, 5.504823674, 5.459557571, 5.290890409, 5.711883642, 5.941650018, 5.931193478, 5.852722028, 5.823861489, 5.917398009, 5.975238027, 5.842076197, 5.8002751, 6.081009165, 5.892996018, 5.753263639, 5.879791592];
+            private _hack_selected_entropy:Array<number>;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -145,6 +153,15 @@ module ManyLens {
                     .x( function ( d ) { return d['x']; })
                     .y( function ( d ) { return d['y']; });
                 this._voronoi_color = d3.scale.category10();
+                    
+                //    d3.scale.ordinal()
+                //    .range(['#c5b0d5','#ffbb78','#98df8a','#ff9896'])
+                //    .domain(['follower','following','tweetLength','hastagCount'])
+                //;
+
+                this._voronoi_scale = this._coordinate_margin_left / 1500;
+                this._voronoi_color_scale = {};
+
 
                 this._time_formater = d3.time.format( "%Y%m%d%H%M%S" );
 
@@ -297,7 +314,7 @@ module ManyLens {
 
             private SumEntropy( node ) {
                 if ( !node ) return 0;
-                if ( !node.children && !node._children ) return this._hack_entropy_for_day_fullyear[node.index];
+                if ( !node.children && !node._children ) return this._hack_selected_entropy[node.index];
                 var sum = 0;
                 if ( node.children )
                     node.children.forEach(( d ) => {
@@ -310,52 +327,107 @@ module ManyLens {
                 return sum;
             }
 
-            private CalVoronoi( fs:Array<Object>,constR ) {
-                    var iteration = 0;
-                    var cnt = 0;
-                    while ( cnt < 5 ) {
-                        var p = this._voronoi( fs );
-                        var dist = 0;
-                        for ( var i = 0; i < p.length; ++i ) {
-                            //for each voronoi polygon, clip their boundary
-                            var tempPolygon = this._voronoi_bound.clip( p[i] );
-                            var centroid = d3.geom.polygon( tempPolygon ).centroid();
-                            if ( !isNaN( centroid[0] ) && !isNaN( centroid[1] ) ) {
-                                fs[i]['p'] = tempPolygon;
-                                dist += ( fs[i]['x'] - centroid[0] ) * ( fs[i]['x'] - centroid[0] )
-                                    + ( fs[i]['y'] - centroid[1] ) * ( fs[i]['y'] - centroid[1] );
-                                fs[i]['x'] = centroid[0];
-                                fs[i]['y'] = centroid[1];
-                            } else {
-                                dist += 1000000;
-                            }
+            private CalVoronoi( fs: Array<Feature>, constR ) {
+                var self = this;
+                var _fs:Object = {};
+                if(!fs[0].x){
+                    //init seed position
+                    var step = 2 * Math.PI / fs.length;
+                    for ( var i = 0; i < fs.length; ++i ) {
+                        var angle = step * i;
+                        var r = Math.random() * constR * 0.8;
+                        fs[i].x = r * Math.cos( angle );
+                        fs[i].y = r * Math.sin( angle );
+                        var t = fs[i].feature_type;
+                        if ( !_fs[t] ) {
+                            _fs[t] = -Infinity;
                         }
-                        dist /= p.length;
-                        if ( dist <= constR * 0.05 ) {
-                            cnt++;
-                        } else {
-                            cnt = 0;
-                        }
-                        iteration++;
-                        if ( iteration > 10000 ) break;
+                        _fs[t] = d3.max( [_fs[t], fs[i].feature_value] );
                     }
+                }else{
+                    for(var i = 0; i < fs.length; ++i){
+                        var t = fs[i].feature_type;
+                        if ( !_fs[t] ) {
+                            _fs[t] = -Infinity;
+                        }
+                        _fs[t] = d3.max( [_fs[t], fs[i].feature_value] );
+                    }
+                }
+
+                //extend the scale or not
+                for(var p in _fs){
+                    if(_fs.hasOwnProperty(p)){
+                        if(this._voronoi_color_scale[p]){
+                            if(_fs[p] > this._voronoi_color_scale[p]){
+                                console.log("extend the scale");
+                                console.log("_fs["+p+"]:"+_fs[p]+","+"color_scale["+p+"]:"+this._voronoi_color_scale[p]);
+                                this._voronoi_color_scale[p] = _fs[p];    
+                                this._subView.selectAll('g.cell path')
+                                    .style( "fill-opacity", function ( d:Feature ) {
+                                        return  Math.sqrt( d.feature_value)/Math.sqrt(self._voronoi_color_scale[d.feature_type]);
+                                    })
+                                ;
+                            }
+                        }else{
+                            console.log("init the scale");
+                            this._voronoi_color_scale[p] = _fs[p];    
+                        }
+                    }
+                }
+
+                //for(var i = 0; i < fs.length; ++i){
+                //    fs[i].feature_value_scale = fs[i].feature_value/this._voronoi_color_scale[fs[i].feature_type];
+                //}
+
+                var iteration = 0;
+                var cnt = 0;
+                while ( cnt < 5 ) {
+                    var polygon:D3.Geom.Polygon[] = this._voronoi( fs );
+                    var dist = 0;
+                    for ( var i = 0; i < polygon.length; ++i ) {
+                        //for each voronoi polygon, clip their boundary
+                        var tempPolygon = this._voronoi_bound.clip( polygon[i] );
+                        var centroid = d3.geom.polygon( tempPolygon ).centroid();
+                        if ( !isNaN( centroid[0] ) && !isNaN( centroid[1] ) ) {
+                            fs[i]['p'] = tempPolygon;
+                            dist += ( fs[i]['x'] - centroid[0] ) * ( fs[i]['x'] - centroid[0] )
+                                + ( fs[i]['y'] - centroid[1] ) * ( fs[i]['y'] - centroid[1] );
+                            fs[i]['x'] = centroid[0];
+                            fs[i]['y'] = centroid[1];
+                        } else {
+                            dist += 1000000;
+                        }
+                    }
+                    dist /= polygon.length;
+                    if ( dist <= constR * 0.05 ) {
+                        cnt++;
+                    } else {
+                        cnt = 0;
+                    }
+                    iteration++;
+                    if ( iteration > 10000 ) break;
+                }
 
             }
-
-
 
             private UpdateSubviewTree( exitParent: StackNode, mode: boolean = true ) {
                 var duration = 500;
 
                 var self = this;
-                var colorScale = d3.scale.linear().domain( d3.extent( this._hack_entropy_for_day_fullyear ) )
+                
+                switch ( this._manyLens.TimeSpan ) {
+                    case 3: this._hack_selected_entropy = this._hack_entropy_for_sec; break;
+                    case 2: this._hack_selected_entropy = this._hack_entropy_for_minute; break;
+                    case 1: this._hack_selected_entropy = this._hack_entropy_for_day;break;
+                    case 0: this._hack_selected_entropy = this._hack_entropy_for_day_fullyear;break;
+                }
+                var colorScale = d3.scale.linear().domain( d3.extent( this._hack_selected_entropy ) )
                     .range( ["#C5EFF7", "#34495E"] );
 
-                var arcScale = d3.scale.linear().domain( d3.extent( this._hack_entropy_for_day_fullyear ) )
+                var arcScale = d3.scale.linear().domain( d3.extent( this._hack_selected_entropy ) )
                     .range( [0, 1] );
                 var constR = this._x_scale( 1 ) - this._x_scale( 0 );
-                var arc = d3.svg.arc().innerRadius( constR + 2 ).outerRadius( constR + 5 ).startAngle( 0 );
-                
+                var arc = d3.svg.arc().innerRadius( constR + 2 ).outerRadius( constR + 4 ).startAngle( 0 );
 
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) {
@@ -385,30 +457,34 @@ module ManyLens {
                     .attr( "transform", ( d ) => {
                         return "translate(" + [d.x, d.y] + ")";
                     })
-                ;
-                
-                enterNode.filter( function ( d ) { return d.date;})
+                    ;
+
+                enterNode.filter( function ( d ) { return d.date; })
                     .each( function ( d ) {
                         this.appendChild( document.getElementById( "cells_group" + d.id ) );
-                        d3.select( "#cells_group" + d.id )
+                        var cellsGroup = d3.select( "#cells_group" + d.id )
                             .classed( "curve", false )
                             .style( "opacity", null )
                             .attr( "transform", null )
-                            .transition().duration( duration )
-                            .attr( "transform", "scale(0.4)" )
                             ;
+                        cellsGroup.transition().duration( duration )
+                            .attr( "transform", "scale(" + self._voronoi_scale + ")" )
+                            ;
+                        if(cellsGroup.select('.entropy-ring').empty()){
+                            cellsGroup.append( 'path' )
+                                .attr( 'class', 'entropy-ring' )
+                                .attr( 'd', function () {
+                                    arc.endAngle( 2 * Math.PI * arcScale( self.SumEntropy( d ) / sumLength( d ) ) );
+                                    return arc( [0] );
+                                })
+                            ;
+                        }
+
                     })
                     .on( "click", ( d ) => {
                         this.SelectSegment( d );
                     })
-                    .select( "g.cells" )
-                    .append( 'path' )
-                    .attr( 'd', ( d ) => {
-                        arc.endAngle( 2 * Math.PI * arcScale( this.SumEntropy( d ) / sumLength( d ) ) );
-                        return arc( [0] );
-                    })
-                    .style( "fill", "#1abc9c" )
-                    ;
+                ;
 
                 enterNode.filter( function ( d ) { return !d.date; })
                     .append( 'circle' )
@@ -464,76 +540,84 @@ module ManyLens {
                         });
                     return sum;
                 }
-                function getFeatures(d){
-                    if(!d) return null;
-                    if(!d.children && !d._children) {
+                function getFeatures( d ) {
+                    if ( !d ) return null;
+                    if ( !d.children && !d._children ) {
                         return self._section_data[d.id].features;
                     }
                     var fs = [];
-                    if(d.children){
-                        d.children.forEach((d)=>{
-                            fs.concat(getFeatures(d));
-                        });    
-                    }else if(d._children){
-                        d._children.forEach((d)=>{
-                            fs = fs.concat(getFeatures(d)) ;   
-                        });    
+                    if ( d.children ) {
+                        d.children.forEach(( d ) => {
+                            fs.concat( getFeatures( d ) );
+                        });
+                    } else if ( d._children ) {
+                        d._children.forEach(( d ) => {
+                            fs = fs.concat( getFeatures( d ) );
+                        });
                     }
                     return fs;
                 }
 
                 this._stack_bar_node
                     .transition().duration( duration )
-                    .attr( "transform", function ( d ) { 
-                        //d.y = d.y * (d.depth+3)/8;
+                    .attr( "transform", function ( d ) {
                         return "translate(" + [d.x, d.y] + ")";
                     })
-                    ;
+                ;
 
                 this._stack_bar_node.selectAll( "circle" )
                     .filter( function ( d ) { return d.children || d._children; })
                     .transition().duration( duration )
                     .style( "fill", ( d ): any=> {
-                        if ( d._children )
-                            return colorScale( this.SumEntropy( d ) / sumLength( d ) );
-                        return "#E87E04";
+                        return d._children ? "#fff" : "#E87E04";
                     });
 
-                
                 this._stack_bar_node
-                    .filter( function ( d ) { return  d._children; })
-                    .each(function(d){
-                        var voronoi = document.getElementById('cells_group'+d.id);    
-                        if(!voronoi){
-                            var fs = getFeatures(d);
-                            self.CalVoronoi(fs,constR);
-                            var tempVoronoi = self._subView.append('g')
+                    .filter( function ( d ) { return d._children; })
+                    .each( function ( d ) {
+                        var voronoi = document.getElementById( 'cells_group' + d.id );
+                        if ( !voronoi ) {
+                            var fs = getFeatures( d );
+                            self.CalVoronoi( fs, constR );
+                            var tempVoronoi = self._subView.append( 'g' )
                                 .attr( 'class', 'cells' )
-                                .attr('id','cells_group'+d.id)
-                                .style('opacity',1e-6)
-                                ;
+                                .attr( 'id', 'cells_group' + d.id )
+                                .style( 'opacity', 1e-6 )
+                                .attr( "transform", function () {
+                                    var scale = sumLength( d );
+                                    return "scale(" + ( self._voronoi_scale * Math.sqrt( scale ) ) + ")";
+                                })
+                            ;
+
+                            tempVoronoi.append( 'path' )
+                                .attr( 'class', 'entropy-ring' )
+                                .attr( 'd', function () {
+                                    arc.endAngle( 2 * Math.PI * arcScale( self.SumEntropy( d ) / sumLength( d ) ) );
+                                    return arc( [0] );
+                                })
+                            ;
                             tempVoronoi.selectAll( ".cell" )
                                 .data( fs )
                                 .enter().append( "g" )
                                 .attr( "class", "cell" )
                                 .append( "path" )
                                 .attr( "d", ( d ) => {
-                                    return"M" + d.p.join( "L" ) + "Z";
+                                    return "M" + d.p.join( "L" ) + "Z";
                                 })
                                 .style( "fill", function ( d, i ) {
                                     return self._voronoi_color( d.feature_type );
                                 })
-                                //.style( "fill-opacity", function ( d ) {
-                                //    return d.feature_value / _fs[d.feature_type];
-                                //})
+                                .style( "fill-opacity", function ( d:Feature ) {
+                                    return Math.sqrt( d.feature_value)/Math.sqrt( self._voronoi_color_scale[d.feature_type]);
+                                })
                                 .style( "stroke", 'lightgrey' )
                                 .style( "stroke-width", .3 )
                                 .on( 'mouseout', function ( d ) {
-                                    d3.select( this.parentNode ).select( "#cell-tip" ).remove();
+                                    d3.select( this.parentNode.parentNode.parentNode  ).select( "#cell-tip" ).remove();
                                 })
                                 .on( 'mouseover', function ( d ) {
                                     var mouse = d3.mouse( this );
-                                    d3.select( this.parentNode )
+                                    d3.select( this.parentNode.parentNode.parentNode  )
                                         .append( 'text' )
                                         .attr( 'x', mouse[0] )
                                         .attr( 'y', mouse[1] )
@@ -541,37 +625,36 @@ module ManyLens {
                                         .text( d.feature_type + ":" + d.feature_value )
                                         ;
                                 })
-                                ;
-                            //tempVoronoi.transition().duration(100).style('opacity',1);
+                            ;
                             voronoi = <HTMLElement>tempVoronoi.node();
                         }
-                        d3.select(voronoi).transition().duration(100).style('opacity',1);
+                        d3.select( voronoi ).transition().duration( 100 ).style( 'opacity', 1 );
                         this.appendChild( voronoi );
                     });
 
-                this._stack_bar_node.filter(function(d){ return d.children;})
-                    .each(function(d){
-                        var voronoi = document.getElementById('cells_group'+d.id);
-                        if(voronoi){
-                            d3.select(voronoi)
-                            .transition().duration(100)
-                            .style('opacity',1e-6).each('end',function(d){
-                                self._subView.each( function () {
-                                    this.appendChild( voronoi );
+                this._stack_bar_node.filter( function ( d ) { return d.children; })
+                    .each( function ( d ) {
+                        var voronoi = document.getElementById( 'cells_group' + d.id );
+                        if ( voronoi ) {
+                            d3.select( voronoi )
+                                .transition().duration( 100 )
+                                .style( 'opacity', 1e-6 ).each( 'end', function ( d ) {
+                                    self._subView.each( function () {
+                                        this.appendChild( voronoi );
+                                    });
                                 });
-                            });
                         }
                     })
-                ;
+                    ;
 
                 this._stack_bar_node.selectAll( "text" )
-                    .filter( function ( d ) { return d.children || d._children })
+                    .filter( function ( d ) { return d && (d.children || d._children); })
                     .transition()
                     .attr( "x", function ( d ): any {
-                        return   d._children ? -15 : 5;
+                        return d._children ? -15 : 5;
                     })
                     .attr( "dy", function ( d ): any {
-                         return  d._children ? 20 :  ".35em";
+                        return d._children ? 20 : ".35em";
                     })
                     .style( "fill-opacity", 1 );
                 ;
@@ -711,7 +794,7 @@ module ManyLens {
                 }
 
                 var self = this;
-                var cells = this._subView.selectAll( "g.curve.cells" ).data( sectionData.filter((d)=>{ return d.pathPoints.length === 3 ;}), function ( d ) { return d.id; });
+                var cells = this._subView.selectAll( "g.curve.cells" ).data( sectionData.filter(( d ) => { return d.pathPoints.length === 3; }), function ( d ) { return d.id; });
 
                 //Voronoi here
                 var sectionIds = Object.keys( this._section_data );
@@ -733,7 +816,7 @@ module ManyLens {
                     for ( var i = 1; i < 3; ++i ) {
                         var section: Section = this._section_data[sectionIds[sectionIds.length - i]];
 
-                        if (section && !section.fs && section.pathPoints.length == 3 ) {
+                        if ( section && !section.fs && section.pathPoints.length == 3 ) {
 
                             var fs = section.features;
                             fs.sort( function ( a, b ) {
@@ -742,29 +825,15 @@ module ManyLens {
                             });
 
                             //circle type
-                            var _fs = {};
-                            step = 2 * Math.PI / fs.length;
-                            for ( var i = 0; i < fs.length; ++i ) {
-                                var angle = step * i;
-                                var r = Math.random() * constR * 0.8;
-                                fs[i].x = r * Math.cos( angle );
-                                fs[i].y = r * Math.sin( angle );
-                                var t = fs[i].feature_type;
-                                if ( !_fs[t] ) {
-                                    _fs[t] = -Infinity;
-                                }
-                                _fs[t] = d3.max( [_fs[t],  fs[i].feature_value] );
-                            }
-
-                            this.CalVoronoi(fs,constR);
+                            this.CalVoronoi( fs, constR );
 
                             var cellsGroup = cells.enter().insert( 'g', 'path.curve.section.path' )
                                 .attr( 'class', 'curve cells' )
                                 .attr( 'id', function ( d ) { return "cells_group" + d.id; })
                                 .attr( "transform", function ( d: Section ) {
                                     if ( d.pathPoints[1] ) {
-                                        var tY =  self._y_scale( d.pathPoints[1].value ) + 30 ;
-                                        d3.select( this ).attr( 'tY', tY);
+                                        var tY = self._y_scale( d.pathPoints[1].value ) + 30;
+                                        d3.select( this ).attr( 'tY', tY );
                                         return "translate(" + self._x_scale( d.end - 1 ) + "," + tY + ")";
                                     }
                                 })
@@ -781,17 +850,17 @@ module ManyLens {
                                 .style( "fill", ( d, i ) => {
                                     return this._voronoi_color( d.feature_type );
                                 })
-                                .style( "fill-opacity", function ( d ) {
-                                    return d.feature_value / _fs[d.feature_type];
+                                .style( "fill-opacity", function ( d:Feature ) {
+                                    return  Math.sqrt( d.feature_value)/Math.sqrt(self._voronoi_color_scale[d.feature_type]);
                                 })
                                 .style( "stroke", 'lightgrey' )
                                 .style( "stroke-width", .3 )
                                 .on( 'mouseout', function ( d ) {
-                                    d3.select( this.parentNode ).select( "#cell-tip" ).remove();
+                                    d3.select( this.parentNode.parentNode  ).select( "#cell-tip" ).remove();
                                 })
                                 .on( 'mouseover', function ( d ) {
                                     var mouse = d3.mouse( this );
-                                    d3.select( this.parentNode )
+                                    d3.select( this.parentNode.parentNode )
                                         .append( 'text' )
                                         .attr( 'x', mouse[0] )
                                         .attr( 'y', mouse[1] )
@@ -851,7 +920,7 @@ module ManyLens {
                 })
                 trueRestPath
                     .enter().append( "path" )
-                    .attr( "d",  truelineFunc)
+                    .attr( "d", truelineFunc )
                     .attr( "class", "curve rest true path" )
                     ;
                 trueRestPath.exit().remove();
@@ -890,11 +959,12 @@ module ManyLens {
                     cells
                         .transition()
                         .duration( 80 )
+                        .ease( "linear" )
                         .attr( "transform", function ( d ) {
                             var ty = self._y_scale( d.pathPoints[1].value ) + 30;//d3.select( this ).attr( 'tY' );
                             return "translate(" + self._x_scale( d.end - 2 ) + "," + ty + ")";
                         })
-                    ;
+                        ;
                 }
 
 

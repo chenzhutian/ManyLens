@@ -153,19 +153,36 @@ namespace ManyLens.Models
             if (sampleCount < 10) sampleCount = 10;
             Random rnd = new Random();
 
-            List<Tweet> tweets = new List<Tweet>();
-            while (tweets.Count < sampleCount)
+            Dictionary<Tweet, double> tweetsScore = new Dictionary<Tweet, double>();
+            this.Tweets.ForEach(t =>
             {
-                int index = rnd.Next(this.TweetsCount);
-                Tweet t = this.Tweets[index];
-                if (tweets.Contains(t)) continue;
+                double score = t.User.Follower / (1+Math.Log( t.User.Following +1));
+                tweetsScore.Add(t, score);
+            });
+
+            foreach(KeyValuePair<Tweet,double> item in tweetsScore.OrderByDescending(t => t.Value).Take(sampleCount).ToList())
+            {
+                Tweet t = item.Key;
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_0", feature_type = follower, feature_value = t.User.Follower });
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = following, feature_value = t.User.Following });
+                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = following, feature_value = t.User.IsV ? 1 : 0});
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = tweetLength, feature_value = t.Length });
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = hastagCount, feature_value = t.HashTag.Count });
-                tweets.Add(t);
             }
-            return features.OrderBy(f => f.feature_type).ToList();
+
+            return features.OrderBy(t => t.feature_type).ToList();
+            //List<Tweet> tweets = new List<Tweet>();
+            //while (tweets.Count < sampleCount)
+            //{
+            //    int index = rnd.Next(this.TweetsCount);
+            //    Tweet t = this.Tweets[index];
+            //    if (tweets.Contains(t)) continue;
+            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_0", feature_type = follower, feature_value = t.User.Follower });
+            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = following, feature_value = t.User.Following });
+            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = tweetLength, feature_value = t.Length });
+            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = hastagCount, feature_value = t.HashTag.Count });
+            //    tweets.Add(t);
+            //}
+            //return features.OrderBy(f => f.feature_type).ToList();
 
             //var tweets = this.Tweets.OrderByDescending(t=>t.User.Follower).Take(sampleCount);
             //foreach(Tweet t  in tweets )
