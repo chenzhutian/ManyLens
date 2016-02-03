@@ -65,7 +65,7 @@ module ManyLens {
             private _view_height: number;
             private _view_width: number;
             private _view_padding: { top: number, bottom: number, left: number, right: number } = { top: 15, bottom: 25, left: 50, right: 50 };
-            private _coordinate_margin_left: number = 1000;
+            private _coordinate_margin_left: number = 500;
 
             protected _data: Array<Point>;
             private _section_data: Object;
@@ -159,7 +159,7 @@ module ManyLens {
                 //    .domain(['follower','following','tweetLength','hastagCount'])
                 //;
 
-                this._voronoi_scale = this._coordinate_margin_left / 1500;
+                this._voronoi_scale = this._coordinate_margin_left / 500;
                 this._voronoi_color_scale = {};
 
 

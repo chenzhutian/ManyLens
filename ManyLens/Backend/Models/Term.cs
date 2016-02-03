@@ -149,6 +149,7 @@ namespace ManyLens.Models
             string following = "following";
             string tweetLength = "tweetLength";
             string hastagCount = "hastagCount";
+            string isV = "isV";
             int sampleCount = (int)(this.TweetsCount * 0.001);
             if (sampleCount < 10) sampleCount = 10;
             Random rnd = new Random();
@@ -164,7 +165,7 @@ namespace ManyLens.Models
             {
                 Tweet t = item.Key;
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_0", feature_type = follower, feature_value = t.User.Follower });
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = following, feature_value = t.User.IsV ? 1 : 0});
+                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = isV, feature_value = t.User.IsV ? 1 : 0});
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = tweetLength, feature_value = t.Length });
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = hastagCount, feature_value = t.HashTag.Count });
             }

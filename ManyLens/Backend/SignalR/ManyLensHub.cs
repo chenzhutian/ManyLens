@@ -42,7 +42,7 @@ namespace ManyLens.SignalR
             lensDatas.Clear();
             await Task.Run(() =>
              {
-                 if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.ebolaFile);
+                 if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
                  if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                  if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
              });
