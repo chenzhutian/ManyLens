@@ -151,13 +151,13 @@ namespace ManyLens.Models
             string hastagCount = "hastagCount";
             string isV = "isV";
             int sampleCount = (int)(this.TweetsCount * 0.001);
-            if (sampleCount < 10) sampleCount = 10;
+            if (sampleCount < 10) sampleCount = 20;
             Random rnd = new Random();
 
             Dictionary<Tweet, double> tweetsScore = new Dictionary<Tweet, double>();
             this.Tweets.ForEach(t =>
             {
-                double score = t.User.Follower / (1+Math.Log( t.User.Following +1));
+                double score = t.User.KloutScore;//t.User.Follower / (1+Math.Log( t.User.Following +1));
                 tweetsScore.Add(t, score);
             });
 

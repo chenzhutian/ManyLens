@@ -4,7 +4,7 @@ module ManyLens {
 
     export module TweetsCurve {
 
-        interface Feature{ x?: number, y?: number, feature_type: string, feature_value: number; }
+        interface Feature { x?: number, y?: number, feature_type: string, feature_value: number; }
 
 
         interface Point {
@@ -16,7 +16,6 @@ module ManyLens {
             beg: string;
             end: string;
         }
-
 
         interface Section {
             beg: number;
@@ -61,11 +60,11 @@ module ManyLens {
             private _sub_view_width: number;
             private _sub_view_height: number;
 
-            private _section_num: number = 50;
+            private _section_num: number = 40;
             private _view_height: number;
             private _view_width: number;
-            private _view_padding: { top: number, bottom: number, left: number, right: number } = { top: 15, bottom: 25, left: 50, right: 50 };
-            private _coordinate_margin_left: number = 500;
+            private _view_padding: { top: number, bottom: number, left: number, right: number } = { top: 50, bottom: 25, left: 50, right: 50 };
+            private _coordinate_margin_left: number = 600;
 
             protected _data: Array<Point>;
             private _section_data: Object;
@@ -86,16 +85,17 @@ module ManyLens {
             private _voronoi: D3.Geom.Voronoi<any> = null;
             private _voronoi_color: D3.Scale.OrdinalScale = null;
             private _voronoi_scale: number = null;
-            private _voronoi_color_scale:Object = null;
+            private _voronoi_color_scale: Object = null;
 
 
-            private _hack_entropy_for_sec = [5.731770623, 5.673758762, 5.708904568, 5.766106615, 5.271328797, 5.50350013, 5.650689424, 5.059556767, 5.150092845, 5.332915993, 5.538583789, 5.56513213, 5.618589058, 5.568604372, 5.601558072, 5.603160895, 5.552198033, 5.563398957, 5.545638613, 5.585914854, 5.541078274, 5.581189853, 5.610692756, 5.561532863, 5.662572096, 5.577863947, 5.697510354, 5.703647393, 5.578761725, 5.604709918, 5.443579203, 5.498566777, 5.692988236, 5.449706032, 5.316306331, 5.69077723, 5.830264994, 5.849802422, 5.764716822, 5.920337608, 5.854107674, 5.914982887, 5.872175529, 5.795052474, 5.590677484, 5.49128005, 5.611246233, 5.861593865, 5.760362888, 5.763031867, 5.715574693, 5.904532304, 6.024492893, 5.971005731, 5.410844221, 5.700768429, 5.788494599];
-            private _hack_entropy_for_minute = [5.439728938, 5.329790773, 5.586664525, 5.615747057, 5.639277057, 5.653881221, 5.497658424];
+            private _hack_entropy_for_sec = [5.52801983771866, 5.4039073835042, 5.45938781932472, 5.64250743333429, 4.93032087118836, 5.315961448569, 5.39588776065466, 4.65898722238974, 5.13062979174002, 5.33309072510927, 5.35641786696894, 5.60797765267891, 5.64988387523317, 5.59482123218907, 5.46264173515833, 5.48856459015412, 5.44034190298265, 5.45128763318033, 5.44438920405449, 5.48815635174213, 5.45029239874735, 5.48162359658213, 5.51425058455734, 5.46563788562995, 5.57272780600828, 5.46330296730694, 5.60273582067599, 5.62644804054953, 5.48286388833526, 5.52113525835715, 5.25754958192342, 5.34289384247398, 5.59875662298071, 5.26862406827515, 5.14805360492649, 5.54249244750256, 5.67943507560486, 5.71068019153901, 5.75938133509502, 5.76902770549809, 5.6978968138835, 5.91515365891259, 5.72912057307722, 5.65503261937499, 5.62699617989156, 5.48299298221877, 5.31362137362927, 5.51686127735103, 5.75727656236623, 5.65465538965307, 5.64206521599416, 5.61403218348421, 5.80250439167188, 5.91731972764689, 5.86487350971147, 5.38274841815246, 5.62215477204897, 5.70056092633215, 5.60632734047604];
+            private _hack_entropy_for_minute = [5.1308094928495, 4.91187594269681, 5.35133901571066, 5.51111302509791, 5.29629862396475, 5.28875741449833, 5.25065848788969, 4.95496661930616];
+
             //Day is for ebola
-            private _hack_entropy_for_day = [6.078795108, 5.841434121, 5.939489652, 5.938061597, 5.856967809, 5.831608227, 5.93391885, 5.993377279, 5.830555653, 5.802729553, 6.076953322, 5.894862096, 5.779206615, 5.969579388, 5.710407662];
-            private _hack_entropy_for_day_fullyear =
-            [5.991439819, 5.851983278, 5.948156068, 5.436286372, 5.291194338, 5.483132322, 5.335564514, 5.890816733, 6.296046929, 5.776935794, 6.178819818, 5.823461866, 6.276945033, 5.383821592, 5.780546756, 5.504823674, 5.459557571, 5.290890409, 5.711883642, 5.941650018, 5.931193478, 5.852722028, 5.823861489, 5.917398009, 5.975238027, 5.842076197, 5.8002751, 6.081009165, 5.892996018, 5.753263639, 5.879791592];
-            private _hack_selected_entropy:Array<number>;
+            private _hack_entropy_for_day_fullyear = [5.69374880264309, 5.54071690329108, 5.21375567493723, 5.7364591001623, 5.67266804090054, 5.44788632513456, 5.56507687813503, 5.30118124849182, 6.38924928692222, 5.49292138443575, 5.66255265557558, 5.68311929804944, 5.50092376414015, 5.26100836113391, 5.66074791315102, 5.80350167185585, 5.19784721560846, 5.43950287241348, 5.75844480001013, 5.96897758889492, 5.96287129509671, 5.86295184921975, 6.01269251274121, 5.68335437493067, 5.82393867456836, 5.7277711426753, 5.83250284442861, 6.10911174676642, 5.89750917427565, 5.74017174495036, 5.52521691479035, 5.99649012948925, 5.9454798874942];
+
+
+            private _hack_selected_entropy: Array<number>;
 
             public get Section_Num(): number {
                 return this._section_num;
@@ -152,16 +152,22 @@ module ManyLens {
                 this._voronoi = d3.geom.voronoi()
                     .x( function ( d ) { return d['x']; })
                     .y( function ( d ) { return d['y']; });
-                this._voronoi_color = d3.scale.category10();
+                this._voronoi_color = d3.scale.category20()
+                    .domain( ['tweetLength', 'follower', 'isV', 'hastagCount'] )
+                    ;
                     
                 //    d3.scale.ordinal()
                 //    .range(['#c5b0d5','#ffbb78','#98df8a','#ff9896'])
-                //    .domain(['follower','following','tweetLength','hastagCount'])
+                //    .domain(['follower','isV','tweetLength','hastagCount'])
                 //;
 
-                this._voronoi_scale = this._coordinate_margin_left / 500;
-                this._voronoi_color_scale = {};
-
+                this._voronoi_scale = 1;//this._coordinate_margin_left / 1400;
+                this._voronoi_color_scale = {
+                    'tweetLength': d3.scale.linear().range( ['#6baed6', '#3182bd'] ),
+                    'follower': d3.scale.log().range( ['#fdd0a2', 'rgb(232, 126, 4)'] ),
+                    'isV': d3.scale.ordinal().range( ['#ffffe5', '#1ABC9C'] ),
+                    'hastagCount': d3.scale.linear().range( ['#c6dbef', '#9ecae1'] )
+                };
 
                 this._time_formater = d3.time.format( "%Y%m%d%H%M%S" );
 
@@ -180,7 +186,7 @@ module ManyLens {
                     .separation( function ( a, b ) {
                         if ( a.parent == b.parent ) {
                             if ( a.children && b._children )
-                                return 2.5 / ( ( a.depth + 1 ) * ( a.depth + 1 ) );
+                                return 2 / ( ( a.depth + 1 ) * ( a.depth + 1 ) );
                         }
                         return 1 / ( ( a.depth + 1 ) * ( a.depth + 1 ) );
                     })
@@ -211,8 +217,7 @@ module ManyLens {
                     .attr( "clip-path", "url(#stackRectClip)" )
                     .append( "g" )
                     .attr( "id", "curve-subView" )
-                    .attr( "transform", "translate(0,-30)" )
-                    ;
+                    .attr( "transform", "translate(0,-30)" );
 
                 this._curveSvg.append( "defs" ).append( "clipPath" )
                     .attr( "id", "curveClip" )
@@ -220,26 +225,22 @@ module ManyLens {
                     .attr( "width", coordinate_view_width )
                     .attr( "height", this._view_height + this._view_padding.bottom + this._view_padding.top )
                     .attr( "x", this._view_padding.left + this._coordinate_margin_left )
-                    .attr( "y", 0 )
-                    ;
+                    .attr( "y", 0 );
 
                 this._mainView = this._curveSvg.append( "g" )
                     .attr( "clip-path", "url(#curveClip)" )
                     .append( "g" )
-                    .attr( "id", "curve-mainView" )
-                    ;
+                    .attr( "id", "curve-mainView" );
 
                 this._x_axis = this._curveSvg.append( "g" )
                     .attr( "class", "curve x axis" )
                     .attr( "transform", "translate(" + [0, ( this._view_height - this._view_padding.bottom )] + ")" )
-                    .call( this._x_axis_gen )
-                    ;
+                    .call( this._x_axis_gen );
 
                 this._y_axis = this._curveSvg.append( "g" )
                     .attr( "class", "curve y axis" )
                     .attr( "transform", "translate(" + ( this._coordinate_margin_left + this._view_padding.left ) + ",0)" )
-                    .call( this._y_axis_gen )
-                    ;
+                    .call( this._y_axis_gen );
 
             }
 
@@ -250,13 +251,11 @@ module ManyLens {
                     this._manyLens.ManyLensHubServerPullInterval( interalID, classifierID )
                         .progress(( percent ) => {
                             this._element.select( ".progress-bar" )
-                                .style( "width", percent * 100 + "%" )
-                                ;
+                                .style( "width", percent * 100 + "%" );
                         })
                         .done(() => {
                             this._element.select( ".progress-bar" )
-                                .style( "width", 0 )
-                                ;
+                                .style( "width", 0 );
                             this._element.select( ".progress" ).style( "display", "none" );
                             this._curveSvg.style( "margin-bottom", "17px" )
                         });
@@ -264,6 +263,7 @@ module ManyLens {
             }
 
             public AddPoint( point: Point ): void {
+                console.log(point);
                 this._data.push( point );
                 this.RefreshGraph( point );
                 if ( this._data.length > this._section_num + 1 ) {
@@ -329,8 +329,8 @@ module ManyLens {
 
             private CalVoronoi( fs: Array<Feature>, constR ) {
                 var self = this;
-                var _fs:Object = {};
-                if(!fs[0].x){
+                var _fs: Object = {};
+                if ( !fs[0].x ) {
                     //init seed position
                     var step = 2 * Math.PI / fs.length;
                     for ( var i = 0; i < fs.length; ++i ) {
@@ -344,8 +344,8 @@ module ManyLens {
                         }
                         _fs[t] = d3.max( [_fs[t], fs[i].feature_value] );
                     }
-                }else{
-                    for(var i = 0; i < fs.length; ++i){
+                } else {
+                    for ( var i = 0; i < fs.length; ++i ) {
                         var t = fs[i].feature_type;
                         if ( !_fs[t] ) {
                             _fs[t] = -Infinity;
@@ -355,22 +355,27 @@ module ManyLens {
                 }
 
                 //extend the scale or not
-                for(var p in _fs){
-                    if(_fs.hasOwnProperty(p)){
-                        if(this._voronoi_color_scale[p]){
-                            if(_fs[p] > this._voronoi_color_scale[p]){
-                                console.log("extend the scale");
-                                console.log("_fs["+p+"]:"+_fs[p]+","+"color_scale["+p+"]:"+this._voronoi_color_scale[p]);
-                                this._voronoi_color_scale[p] = _fs[p];    
-                                this._subView.selectAll('g.cell path')
-                                    .style( "fill-opacity", function ( d:Feature ) {
-                                        return  Math.sqrt( d.feature_value)/Math.sqrt(self._voronoi_color_scale[d.feature_type]);
+                for ( var p in _fs ) {
+                    if ( _fs.hasOwnProperty( p ) ) {
+                        if ( this._voronoi_color_scale[p] ) {
+                            var scaleDomain = this._voronoi_color_scale[p].domain();
+                            if ( _fs[p] > scaleDomain[1] ) {
+                                console.log( "extend the scale" );
+                                console.log( "_fs[" + p + "]:" + _fs[p] + "," + "color_scale[" + p + "]:" + this._voronoi_color_scale[p] );
+                                this._voronoi_color_scale[p].domain( [scaleDomain[0], _fs[p]] );
+                                this._subView.selectAll( 'g.cell path' )
+                                    .style( 'fill', function ( d: Feature ) {
+                                        return self._voronoi_color_scale[d.feature_type]( d.feature_value );
                                     })
-                                ;
+                                    //.style( "fill-opacity", function ( d: Feature ) {
+                                    //    return Math.log( d.feature_value ) / Math.log( self._voronoi_color_scale[d.feature_type] );
+                                    //})
+                                    ;
                             }
-                        }else{
-                            console.log("init the scale");
-                            this._voronoi_color_scale[p] = _fs[p];    
+                        } else {
+                            console.log( "init the scale" );
+                            var scaleDomain = this._voronoi_color_scale[p].domain();
+                            this._voronoi_color_scale[p].domain( [scaleDomain[0], _fs[p]] );
                         }
                     }
                 }
@@ -382,7 +387,7 @@ module ManyLens {
                 var iteration = 0;
                 var cnt = 0;
                 while ( cnt < 5 ) {
-                    var polygon:D3.Geom.Polygon[] = this._voronoi( fs );
+                    var polygon: D3.Geom.Polygon[] = this._voronoi( fs );
                     var dist = 0;
                     for ( var i = 0; i < polygon.length; ++i ) {
                         //for each voronoi polygon, clip their boundary
@@ -414,20 +419,20 @@ module ManyLens {
                 var duration = 500;
 
                 var self = this;
-                
+                //console.log(this._manyLens.TimeSpan);
                 switch ( this._manyLens.TimeSpan ) {
                     case 3: this._hack_selected_entropy = this._hack_entropy_for_sec; break;
                     case 2: this._hack_selected_entropy = this._hack_entropy_for_minute; break;
-                    case 1: this._hack_selected_entropy = this._hack_entropy_for_day;break;
-                    case 0: this._hack_selected_entropy = this._hack_entropy_for_day_fullyear;break;
+                    case 0: this._hack_selected_entropy = this._hack_entropy_for_day_fullyear; break;
                 }
+                //console.log(this._hack_selected_entropy);
                 var colorScale = d3.scale.linear().domain( d3.extent( this._hack_selected_entropy ) )
                     .range( ["#C5EFF7", "#34495E"] );
 
                 var arcScale = d3.scale.linear().domain( d3.extent( this._hack_selected_entropy ) )
                     .range( [0, 1] );
                 var constR = this._x_scale( 1 ) - this._x_scale( 0 );
-                var arc = d3.svg.arc().innerRadius( constR + 2 ).outerRadius( constR + 4 ).startAngle( 0 );
+                var arc = d3.svg.arc().innerRadius( constR * this._voronoi_scale + 2 ).outerRadius( constR * this._voronoi_scale + 4 ).startAngle( 0 );
 
                 //Nodes
                 var nodex = this._stack_bar_tree.nodes( this._root[""] ).filter( function ( d ) {
@@ -445,8 +450,7 @@ module ManyLens {
                         if ( d.date && mode )
                             return "translate(" + [this._sub_view_width, d.oy] + ")";
                         return "translate(" + [d.parent.x, d.parent.y] + ")";
-                    })
-                    ;
+                    });
 
                 enterNode.filter( function ( d ) { return d.parent; })
                     .on( "click", ( d ) => {
@@ -456,8 +460,7 @@ module ManyLens {
                     .transition().duration( duration )
                     .attr( "transform", ( d ) => {
                         return "translate(" + [d.x, d.y] + ")";
-                    })
-                    ;
+                    });
 
                 enterNode.filter( function ( d ) { return d.date; })
                     .each( function ( d ) {
@@ -468,31 +471,28 @@ module ManyLens {
                             .attr( "transform", null )
                             ;
                         cellsGroup.transition().duration( duration )
-                            .attr( "transform", "scale(" + self._voronoi_scale + ")" )
-                            ;
-                        if(cellsGroup.select('.entropy-ring').empty()){
+                            .attr( "transform", "scale(" + self._voronoi_scale + ")" );
+                        if ( cellsGroup.select( '.entropy-ring' ).empty() ) {
                             cellsGroup.append( 'path' )
                                 .attr( 'class', 'entropy-ring' )
                                 .attr( 'd', function () {
                                     arc.endAngle( 2 * Math.PI * arcScale( self.SumEntropy( d ) / sumLength( d ) ) );
                                     return arc( [0] );
                                 })
-                            ;
+                                //.attr( 'transform', "scale(" + ( 1 / self._voronoi_scale ) + ")" );
                         }
 
                     })
                     .on( "click", ( d ) => {
                         this.SelectSegment( d );
-                    })
-                ;
+                    });
 
                 enterNode.filter( function ( d ) { return !d.date; })
                     .append( 'circle' )
                     .attr( 'r', 7 )
                     .style( "fill", ( d ) => {
                         return colorScale( this.SumEntropy( d ) / sumLength( d ) );
-                    })
-                    ;
+                    });
 
                 enterNode.append( "text" )
                     .attr( "x", function ( d ) {
@@ -502,7 +502,7 @@ module ManyLens {
                     })
                     .attr( "dy", function ( d ) {
                         if ( d.date || ( d.name[0] == "d" && d._children ) )
-                            return "30";
+                            return "50";
                         return ".35em";
                     })
                     .attr( "text-anchor", function ( d ) { return "start"; })
@@ -562,8 +562,7 @@ module ManyLens {
                     .transition().duration( duration )
                     .attr( "transform", function ( d ) {
                         return "translate(" + [d.x, d.y] + ")";
-                    })
-                ;
+                    });
 
                 this._stack_bar_node.selectAll( "circle" )
                     .filter( function ( d ) { return d.children || d._children; })
@@ -586,8 +585,7 @@ module ManyLens {
                                 .attr( "transform", function () {
                                     var scale = sumLength( d );
                                     return "scale(" + ( self._voronoi_scale * Math.sqrt( scale ) ) + ")";
-                                })
-                            ;
+                                });
 
                             tempVoronoi.append( 'path' )
                                 .attr( 'class', 'entropy-ring' )
@@ -595,7 +593,7 @@ module ManyLens {
                                     arc.endAngle( 2 * Math.PI * arcScale( self.SumEntropy( d ) / sumLength( d ) ) );
                                     return arc( [0] );
                                 })
-                            ;
+                               // .attr( 'transform', "scale(" + ( 1 / self._voronoi_scale ) + ")" );
                             tempVoronoi.selectAll( ".cell" )
                                 .data( fs )
                                 .enter().append( "g" )
@@ -604,28 +602,29 @@ module ManyLens {
                                 .attr( "d", ( d ) => {
                                     return "M" + d.p.join( "L" ) + "Z";
                                 })
-                                .style( "fill", function ( d, i ) {
-                                    return self._voronoi_color( d.feature_type );
+                                .style( "fill", function ( d: Feature, i ) {
+                                    return self._voronoi_color_scale[d.feature_type]( d.feature_value );
                                 })
-                                .style( "fill-opacity", function ( d:Feature ) {
-                                    return Math.sqrt( d.feature_value)/Math.sqrt( self._voronoi_color_scale[d.feature_type]);
-                                })
+                                //.style( "fill-opacity", function ( d: Feature ) {
+                                    
+                                //    return Math.sqrt( d.feature_value ) / Math.sqrt( self._voronoi_color_scale[d.feature_type] );
+                                //})
                                 .style( "stroke", 'lightgrey' )
-                                .style( "stroke-width", .3 )
+                                .style( "stroke-width", 0 )
                                 .on( 'mouseout', function ( d ) {
-                                    d3.select( this.parentNode.parentNode.parentNode  ).select( "#cell-tip" ).remove();
+                                    d3.select( this.parentNode.parentNode.parentNode ).select( "#cell-tip" ).remove();
                                 })
                                 .on( 'mouseover', function ( d ) {
                                     var mouse = d3.mouse( this );
-                                    d3.select( this.parentNode.parentNode.parentNode  )
+                                    d3.select( this.parentNode.parentNode.parentNode )
                                         .append( 'text' )
                                         .attr( 'x', mouse[0] )
                                         .attr( 'y', mouse[1] )
                                         .attr( 'id', 'cell-tip' )
                                         .text( d.feature_type + ":" + d.feature_value )
                                         ;
-                                })
-                            ;
+                                });
+
                             voronoi = <HTMLElement>tempVoronoi.node();
                         }
                         d3.select( voronoi ).transition().duration( 100 ).style( 'opacity', 1 );
@@ -648,7 +647,7 @@ module ManyLens {
                     ;
 
                 this._stack_bar_node.selectAll( "text" )
-                    .filter( function ( d ) { return d && (d.children || d._children); })
+                    .filter( function ( d ) { return d && ( d.children || d._children ); })
                     .transition()
                     .attr( "x", function ( d ): any {
                         return d._children ? -15 : 5;
@@ -722,11 +721,11 @@ module ManyLens {
                     case 1: stackType = "-hour" + date.getHours() + stackType;
                     case 0: stackType = "-day" + date.getDate() + stackType;
                 }
-                return "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + stackType;
+                //return "" + "-year" + date.getFullYear() + "-mounth" + date.getMonth() + stackType;
+                return "" + stackType;
             }
 
             private RefreshGraph( point: Point ) {
-
 
                 //Refresh the curve view
                 this._y_scale.domain( [0, d3.max( this._data, function ( d ) { return d.value; })] );
@@ -847,16 +846,16 @@ module ManyLens {
                                 .attr( "d", ( d ) => {
                                     return "M" + d.p.join( "L" ) + "Z";
                                 })
-                                .style( "fill", ( d, i ) => {
-                                    return this._voronoi_color( d.feature_type );
+                                .style( "fill", ( d: Feature, i ) => {
+                                    return this._voronoi_color_scale[d.feature_type]( d.feature_value );// this._voronoi_color( d.feature_type );
                                 })
-                                .style( "fill-opacity", function ( d:Feature ) {
-                                    return  Math.sqrt( d.feature_value)/Math.sqrt(self._voronoi_color_scale[d.feature_type]);
-                                })
+                                //.style( "fill-opacity", function ( d: Feature ) {
+                                //    return Math.sqrt( d.feature_value ) / Math.sqrt( self._voronoi_color_scale[d.feature_type] );
+                                //})
                                 .style( "stroke", 'lightgrey' )
-                                .style( "stroke-width", .3 )
+                                .style( "stroke-width", .0 )
                                 .on( 'mouseout', function ( d ) {
-                                    d3.select( this.parentNode.parentNode  ).select( "#cell-tip" ).remove();
+                                    d3.select( this.parentNode.parentNode ).select( "#cell-tip" ).remove();
                                 })
                                 .on( 'mouseover', function ( d ) {
                                     var mouse = d3.mouse( this );
@@ -948,23 +947,25 @@ module ManyLens {
 
                 // move the main view
                 if ( this._data.length > ( this._section_num + 1 ) ) {
-                    this._mainView
-                        .attr( "transform", null )
-                        .transition()
-                        .duration( 80 )  //this time-step should be equale to the time step of AddPoint() in server.hub
-                        .ease( "linear" )
-                        .attr( "transform", "translate(" + ( this._x_scale( 0 ) - this._x_scale( 1 ) ) + ",0)" )
-                        ;
+                    d3.transition().duration( 80 )//this time-step should be equale to the time step of AddPoint() in server.hub
+                        .each(() => {
+                        this._mainView
+                            .attr( "transform", null )
+                            .transition()
+                            .ease( "linear" )
+                            .attr( "transform", "translate(" + ( this._x_scale( 0 ) - this._x_scale( 1 ) ) + ",0)" )
+                            ;
 
-                    cells
-                        .transition()
-                        .duration( 80 )
-                        .ease( "linear" )
-                        .attr( "transform", function ( d ) {
-                            var ty = self._y_scale( d.pathPoints[1].value ) + 30;//d3.select( this ).attr( 'tY' );
-                            return "translate(" + self._x_scale( d.end - 2 ) + "," + ty + ")";
-                        })
-                        ;
+                        cells
+                            .transition()
+                            .ease( "linear" )
+                            .attr( "transform", function ( d ) {
+                                var ty = self._y_scale( d.pathPoints[1].value ) + 30;//d3.select( this ).attr( 'tY' );
+                                return "translate(" + self._x_scale( d.end - 2 ) + "," + ty + ")";
+                            })
+                            ;
+                    });
+
                 }
 
 

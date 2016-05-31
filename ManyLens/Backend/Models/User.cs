@@ -16,6 +16,7 @@ namespace ManyLens.Models
         private bool isV;
         private double lon;
         private double lat;
+        private double kloutScore;
 
         private Dictionary<string, Tweet> tweets;
         private bool spamUser = false;
@@ -43,6 +44,11 @@ namespace ManyLens.Models
             {
                 this.userID = value;
             }
+        }
+        public double KloutScore
+        {
+            get { return this.kloutScore; }
+            private set { this.kloutScore = value; }
         }
         public string Homepage
         {
@@ -119,21 +125,23 @@ namespace ManyLens.Models
 
         //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
         //\t 8follower \9 13V \t 10gpsA \t 11gpsB
-        public User(string userID, string userName, string tweetsCount, string following, string follower, string V, string gpsA, string gpsB)
+        public User(string userID, string userName, string tweetsCount, string following, string follower, string V, string gpsA, string gpsB, double kloutScore)
         {
             this.UserID = userID;
+            this.KloutScore = kloutScore;
             this.UserName = userName;
             this.TweetsCount = int.Parse(tweetsCount);
             this.Following = int.Parse(following);
             this.Follower = int.Parse(follower);
             this.IsV = bool.Parse(V);
-            this.Lon =  double.Parse(gpsA);
+            this.Lon = double.Parse(gpsA);
             this.Lat = double.Parse(gpsB);
 
             this.tweets = new Dictionary<string, Tweet>();
         }
 
-        public void AddTweet(Tweet tweet){
+        public void AddTweet(Tweet tweet)
+        {
             if (this.tweets.ContainsKey(tweet.TweetID)) return;
             this.tweets.Add(tweet.TweetID, tweet);
         }

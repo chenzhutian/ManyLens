@@ -126,13 +126,10 @@
                 switch ( result ) {
                     case this._gl.FRAMEBUFFER_UNSUPPORTED:
                         throw 'Framebuffer is unsupported';
-                        break;
                     case this._gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
                         throw 'Framebuffer incomplete attachment';
-                        break;
                     case this._gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
                         throw 'Framebuffer incomplete dimensions';
-                        break;
                     case this._gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
                         throw 'Framebuffer incomplete missing attachment';
                 }

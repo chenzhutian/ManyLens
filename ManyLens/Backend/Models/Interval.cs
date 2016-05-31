@@ -14,6 +14,7 @@ namespace ManyLens.Models
         private DateTime beginDate;
         private DateTime endDate;
         private float[] intervalVector;
+        private List<string> userIds;
         private int hashDimension = config.Parameter.HashDimension;
 
         private bool hasVectorized = false;
@@ -130,18 +131,6 @@ namespace ManyLens.Models
                         }
                         this.tfidfVectors.Add(vector);
                     }
-
-                    //System.IO.StreamReader sr = new System.IO.StreamReader("C:\\Users\\xiaot_000\\Documents\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Backend\\DataBase\\TEST\\sklearnTFIDFVector");
-                    //this.tfidfVectors = new List<float[]>();
-                    //for (int i = 0; i < 5721; ++i)
-                    //{
-                    //    this.tfidfVectors.Add(new float[9147]);
-                    //}
-                    //while (!sr.EndOfStream)
-                    //{
-                    //    string[] element = sr.ReadLine().Split(' ');
-                    //    this.tfidfVectors[int.Parse(element[0]) - 1][int.Parse(element[1]) - 1] = float.Parse(element[2]);
-                    //}
                 }
 
 
@@ -183,21 +172,6 @@ namespace ManyLens.Models
                         this.hashVectors.Add(vector);
                     }
                 }
-                //if (this.hashVectors == null)
-                //{
-                //    System.IO.StreamReader sr = new System.IO.StreamReader("C:\\Users\\xiaot_000\\Documents\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Backend\\DataBase\\TEST\\sklearnHashVector");
-                //    this.hashVectors = new List<float[]>();
-                //    for (int i = 0; i < 5721; ++i)
-                //    {
-                //        this.hashVectors.Add(new float[this.hashDimension]);
-                //    }
-                //    while (!sr.EndOfStream)
-                //    {
-                //        string[] element = sr.ReadLine().Split(' ');
-                //        this.hashVectors[int.Parse(element[0]) - 1][int.Parse(element[1]) - 1] = float.Parse(element[2]);
-
-                //    }
-                //}
 
                 return this.hashVectors;
             }
@@ -247,7 +221,9 @@ namespace ManyLens.Models
             get
             {
                 if (!this.HasVectorized)
-                    return -1;
+                {
+                    ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this);
+                }
                 if (this.entropy == -1)
                 {
                     double entropy = 0;
@@ -334,6 +310,25 @@ namespace ManyLens.Models
             { 
                 visMap = value;
                 this.hasSOMed = true;
+            }
+        }
+        public List<string> UserIds
+        {
+            get
+            {
+                if (this.userIds == null)
+                {
+                    HashSet<string> tempUserIds = new HashSet<string>();
+                    this.Tweets.ForEach(t =>
+                    {
+                        if(!tempUserIds.Contains(t.User.UserID))
+                        {
+                            tempUserIds.Add(t.User.UserID);
+                        }
+                    });
+                    this.userIds = tempUserIds.ToList();
+                }
+                return this.userIds;
             }
         }
         #endregion

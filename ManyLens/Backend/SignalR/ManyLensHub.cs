@@ -10,6 +10,8 @@ using ManyLens.IO;
 using ManyLens.Preprocessing;
 using ManyLens.SOM;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace ManyLens.SignalR
 {
@@ -32,6 +34,7 @@ namespace ManyLens.SignalR
 
         public static List<TweetsIO.CityStruct> cities1000;
         public static HashSet<string> stopWords;
+        public static Dictionary<string, double> userKloutScore;
 
         private Random rnd = new Random();
 
@@ -42,9 +45,11 @@ namespace ManyLens.SignalR
             lensDatas.Clear();
             await Task.Run(() =>
              {
+                 if (userKloutScore == null) userKloutScore = TweetsIO.LoadUserKloutSocre(config.Parameter.fifaFile + "EventUserIdsMapMap");
                  if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
                  if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                  if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
+
              });
         }
 
@@ -89,7 +94,8 @@ namespace ManyLens.SignalR
             //set the parameter
             double alpha = 0.125;
             double beta = 1.5;
-
+            List<string> UserIds = new List<string>();
+            //StreamWriter sw = new StreamWriter(config.Parameter.fifaFile+"EventUserIds");
             await Task.Run(() =>
             {
                 Debug.WriteLine("Thread id of pull point " + Thread.CurrentThread.ManagedThreadId);
@@ -168,20 +174,22 @@ namespace ManyLens.SignalR
                             tp[end].EndPoint = tp[end].ID;
                             tp[end].PointType += 2;
 
-                            Interval interal = new Interval(tp[begin].TermDate, tp[begin]);
-                            if (!interals.ContainsKey(interal.ID))
+                            Interval interval = new Interval(tp[begin].TermDate, tp[begin]);
+                            if (!interals.ContainsKey(interval.ID))
                             {
-                                interals.Add(interal.ID, interal);
+                                interals.Add(interval.ID, interval);
 
                                 for (int k = begin + 1; k < end; ++k)
                                 {
                                     tp[k].BeginPoint = tp[begin].ID;
                                     tp[k].EndPoint = tp[end].ID;
                                     tp[k].PointType = 4;
-                                    interal.AddTerm(tp[k]);
+                                    interval.AddTerm(tp[k]);
                                 }
-                                interal.SetEndDate(tp[end].TermDate);
+                                interval.SetEndDate(tp[end].TermDate);
+                                //UserIds.AddRange(interal.UserIds);
                                 //LazyThreadForConditionalEntropy(interal);
+                                //Debug.WriteLine("Interval id is :"+interval.ID + " , " + interval.Entropy + "," + interval.TweetsCount);
                             }
 
                         }
@@ -195,7 +203,7 @@ namespace ManyLens.SignalR
                     #endregion
 
                     List<VoronoiTweetsFeature> features = null;
-                    if(tp[t].PointType != 0)
+                    if (tp[t].PointType != 0)
                     {
                         features = tp[t].GetVoronoiTweetsFeatures();
                     }
@@ -212,13 +220,15 @@ namespace ManyLens.SignalR
                     };
 
 
-                    //if (point.id == "20140709043600")
-                    //{
-                    //    int asdfw = 0;
-                    //    ++asdfw;
+                    if (point.id == "20140709043515")
+                    {
+                        int asdfw = 0;
+                        ++asdfw;
 
-                    //    Debug.WriteLine("Stop please");
-                    //}
+                        Debug.WriteLine("Stop please");
+                        return;
+                    }
+
 
                     Clients.Caller.addPoint(point);
                     //if (ctoken.IsCancellationRequested)
@@ -230,7 +240,8 @@ namespace ManyLens.SignalR
                 }
 
             }, ctoken);
-
+            //sw.WriteLine(JsonConvert.SerializeObject(UserIds));
+            //sw.Close();
         }
 
         public async Task PullPoint(string mode)

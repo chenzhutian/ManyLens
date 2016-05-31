@@ -15,7 +15,7 @@ module ManyLens {
         private _nav_sideBarView_id: string = "sidebar-nav";
         private _nav_sideBarView: D3.Selection;
         private _nav_sideBar: Navigation.SideBarNavigation;
-        private _nav_sideBar_timeSpan:number = 2;//0:Day, 1:Hour, 2:Minute,3:Second
+        private _nav_sideBar_timeSpan:number = 3;//0:Day, 1:Hour, 2:Minute,3:Second
 
         private _curveView_id: string = "curveView";
         private _curveView: D3.Selection;

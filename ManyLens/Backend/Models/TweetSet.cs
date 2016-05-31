@@ -57,7 +57,6 @@ namespace ManyLens.Models
                 return content;
             }
         }
-   
  
         #endregion
 

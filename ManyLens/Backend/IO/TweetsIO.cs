@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using ManyLens.Models;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace ManyLens.IO
 {
@@ -64,14 +65,20 @@ namespace ManyLens.IO
 
         public static SortedDictionary<string, Term> LoadTweetsAsTermsSortedByDate(string tweetFile)
         {
+            if(tweetFile.Equals(config.Parameter.ebolaFile))
+            {
+                config.Parameter.TimeSpan = 0;
+            }
+            else
+            {
+                config.Parameter.TimeSpan = 3;
+            }
             SortedDictionary<string, Term> sortedTerm = new SortedDictionary<string, Term>();
             //SortedDictionary<string, Term>[] sortedTerms = new SortedDictionary<string, Term>[4];
             //for (int i = 0; i < 4; ++i)
             //{
             //    sortedTerms[i] = new SortedDictionary<string, Term>();
             //}
-
-
 
             Dictionary<string, User> users = new Dictionary<string, User>();
             StreamReader sr;
@@ -89,7 +96,7 @@ namespace ManyLens.IO
                 string line = sr.ReadLine();
                 string[] tweetAttributes = line.Split('\t');
                 Tweet tweet = null;
-               
+                Dictionary<string, double> kloutScore = ManyLens.SignalR.ManyLensHub.userKloutScore;
                 #region cache
                 //if (isCache)
                 //{
@@ -118,8 +125,14 @@ namespace ManyLens.IO
                 }
                 else
                 {
-                    user = new User(tweetAttributes[2], tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11]);
-                    users.Add(tweetAttributes[2], user);
+                    double score = -1;
+                    string userId = tweetAttributes[2];
+                    if (kloutScore.ContainsKey(userId))
+                    {
+                        score = kloutScore[userId];
+                    }
+                    user = new User(userId, tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11], score);
+                    users.Add(userId, user);
                 }
                 tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], tweetAttributes[10], tweetAttributes[11], user);
                 if (tweetAttributes.Length == 13)
@@ -261,6 +274,19 @@ namespace ManyLens.IO
             }
 
             return _stop_word_dict;
+        }
+
+        public static Dictionary<string,double> LoadUserKloutSocre(string scoreFile)
+        {
+            if (scoreFile == null)
+                return null;
+
+            Dictionary<string, double> dict = new Dictionary<string, double>();
+            using(StreamReader reader = new StreamReader(scoreFile))
+            {
+                dict = JsonConvert.DeserializeObject<Dictionary<string, double>>(reader.ReadToEnd());
+            }
+            return dict;
         }
 
     }
