@@ -170,7 +170,6 @@ namespace ManyLens.SOM
             Debug.WriteLine("SOM Finish");
             Debug.WriteLine("SOM Time Consuming :" + sw.ElapsedTicks / (decimal)Stopwatch.Frequency);
 
-
             sw.Restart();
             int[] h_BID = new int[trainsetSize];
             Marshal.Copy(pointer, h_BID, 0, trainsetSize);

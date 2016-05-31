@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Web;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace ManyLens.Models
 {
@@ -51,11 +52,11 @@ namespace ManyLens.Models
         }
         public string[] ContentWords
         {
-            get 
+            get
             {
                 if (this.derivedWordsOfContent == null)
-                { 
-                    this.derivedWordsOfContent = this.derivedContent.Split(' '); 
+                {
+                    this.derivedWordsOfContent = this.derivedContent.Split(' ');
                 }
                 return this.derivedWordsOfContent;
             }
@@ -107,8 +108,6 @@ namespace ManyLens.Models
             this.OriginalContent = originalContent.Replace("\"", "\\\"");
             this.User = user;
 
-
-
             this.PostUserName = user.UserName;
             this.Lon = lon;
             this.Lat = lat;
@@ -138,7 +137,15 @@ namespace ManyLens.Models
         {
             //TimeZoneInfo brTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
             //this.PostDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Parse(postDate).ToUniversalTime(),brTimeZone);
-            this.PostDate = DateTime.Parse(postDate);
+            if(postDate.Length == 14)
+            {
+                string formatString = "yyyyMMddHHmmss";
+                this.PostDate = DateTime.ParseExact(postDate, formatString, null);
+            }
+            else
+            {
+                this.PostDate = DateTime.Parse(postDate);
+            }
         }
 
         public Tweet(string tweetID, string originalContent, DateTime postDate, double lon, double lat, User user)

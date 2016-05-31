@@ -40,9 +40,9 @@ namespace ManyLens.IO
         {
             List<float[]> vectors = interval.HashVecotrs;
             StreamWriter sw = new StreamWriter(filePath);
-            for(int i = 0, len = vectors.Count; i < len; ++i)
+            for (int i = 0, len = vectors.Count; i < len; ++i)
             {
-                string s  = "";
+                string s = "";
                 float[] vector = vectors[i];
                 for (int j = 0, lenj = vector.Length; j < lenj; ++j)
                 {
@@ -63,9 +63,9 @@ namespace ManyLens.IO
             sw.Close();
         }
 
-        public static SortedDictionary<string, Term> LoadTweetsAsTermsSortedByDate(string tweetFile)
+        public static SortedDictionary<string, Term> LoadTweetsAsTermsSortedByDate(string tweetFile, string cacheUserFile)
         {
-            if(tweetFile.Equals(config.Parameter.ebolaFile))
+            if (tweetFile.Equals(config.Parameter.ebolaFile))
             {
                 config.Parameter.TimeSpan = 0;
             }
@@ -92,7 +92,7 @@ namespace ManyLens.IO
 
             while (!sr.EndOfStream)
             {
-                                
+
                 string line = sr.ReadLine();
                 string[] tweetAttributes = line.Split('\t');
                 Tweet tweet = null;
@@ -159,13 +159,13 @@ namespace ManyLens.IO
                 else if (postDate.Second > 14)
                 {
                     sec = 15;
-                } 
+                }
                 else if (postDate.Second > 0)
                 {
                     sec = 0;
                 }
                 //DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec*mode[4]);
-                
+
                 string date = "";
                 switch (config.Parameter.TimeSpan)
                 {
@@ -174,9 +174,9 @@ namespace ManyLens.IO
                     case 1: date = postDate.Hour.ToString("D2") + date; goto case 0;
                     case 0: date = postDate.Day.ToString("D2") + date; break;
                 }
-                
+
                 date = postDate.Year.ToString("D4") + postDate.Month.ToString("D2") + date;
-                for (int t = 0, len = (14 - date.Length)/2; t < len; ++t) 
+                for (int t = 0, len = (14 - date.Length) / 2; t < len; ++t)
                 {
                     date += "00";
                 }
@@ -198,32 +198,21 @@ namespace ManyLens.IO
             }
             sr.Close();
 
-            #region
-            //if (!isCache)
+            //Cache the user file
+            //StreamWriter sw = new StreamWriter(cacheUserFile);
+            //foreach(KeyValuePair<string, User> item in users)
             //{
-            //    StreamWriter sw = new StreamWriter(tweetFile + "CACHE");
-            //    foreach (KeyValuePair<DateTime, Term> p in sortedTerm)
-            //    {
-            //        Term term = p.Value;
-            //        DateTime dateTime = p.Key;
-            //        for (int i = 0, len = term.TweetsCount; i < len; ++i)
-            //        {
-
-            //            Tweet tweet = term.Tweets[i];
-            //            User user = tweet.User;
-            //            sw.WriteLine(dateTime + "\t" + tweet.TweetID + "\t" + tweet.OriginalContent + "\t" + tweet.PostDate + '\t'
-            //                + user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + user.Following + '\t' + user.Follower + '\t'+ user.IsV + '\t' + tweet.Lon + '\t' + tweet.Lat);
-            //        }
-
-            //    }
-            //    sw.Close();
+            //    //0userId \t  1userName \t 2tweetsCount \t 3following \t 4follower \t 5V \t 6gpsA \t 7gpsB
+            //    User user = item.Value;
+            //    sw.WriteLine(user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + 
+            //        user.Following + '\t' + user.Follower + '\t' + user.IsV + '\t' + user.Lon + '\t' + user.Lat);
             //}
-            #endregion
+            //sw.Close();
 
             return sortedTerm;
         }
 
-        public struct CityStruct 
+        public struct CityStruct
         {
             public double lon;
             public double lat;
@@ -241,9 +230,9 @@ namespace ManyLens.IO
             StreamReader sr = new StreamReader(cities1000File);
             List<CityStruct> cities1000 = new List<CityStruct>();
             while (!sr.EndOfStream)
-            { 
+            {
                 string[] s = sr.ReadLine().Split('\t');
-                CityStruct city = new CityStruct(double.Parse(s[0]),double.Parse(s[1]),s[2]);
+                CityStruct city = new CityStruct(double.Parse(s[0]), double.Parse(s[1]), s[2]);
                 cities1000.Add(city);
             }
             return cities1000;
@@ -276,18 +265,106 @@ namespace ManyLens.IO
             return _stop_word_dict;
         }
 
-        public static Dictionary<string,double> LoadUserKloutSocre(string scoreFile)
+        public static Dictionary<string, double> LoadUserKloutSocre(string scoreFile)
         {
             if (scoreFile == null)
                 return null;
 
             Dictionary<string, double> dict = new Dictionary<string, double>();
-            using(StreamReader reader = new StreamReader(scoreFile))
+            using (StreamReader reader = new StreamReader(scoreFile))
             {
                 dict = JsonConvert.DeserializeObject<Dictionary<string, double>>(reader.ReadToEnd());
             }
             return dict;
         }
 
+        public static void DumpTermData(string tweetsFilePath, Term[] tp)
+        {
+            StreamWriter sw = new StreamWriter(tweetsFilePath);
+            foreach (Term term in tp)
+            {
+                //0date \t 1HasPreprocessed \t 2tweetId \t userId \t 3gpsA \t 4gpsB \t countryName \t 6hashTags \t 7derivedContent \t 8tweetContent
+                String s = term.TermDate.ToString("yyyy/MM/dd/HH/mm/ss") + "CZT" +
+                           term.TweetsCount + (term.WithinInterval ? "CZT" : "");
+                if (term.WithinInterval)
+                {
+                    List<String> tweetsData = new List<String>();
+                    foreach (Tweet tweet in term.Tweets)
+                    {
+                        string tempTweetData = tweet.TweetID + '\t' + 
+                            tweet.User.UserID + '\t' + 
+                            tweet.Lon + '\t' + tweet.Lat + '\t' + 
+                            tweet.CountryName + '\t' +
+                            String.Join("_", tweet.HashTag) + '\t' +
+                            tweet.DerivedContent + '\t' +
+                            tweet.OriginalContent;
+                        tweetsData.Add(tempTweetData);
+                    }
+                    s += String.Join("CTZ", tweetsData);
+                }
+                sw.WriteLine(s);
+            }
+            sw.Close();
+        }
+
+        public static SortedDictionary<string, Term> LoadCacheData(string cacheTermsFile, string cacheUsersFile)
+        {
+            StreamReader sr = new StreamReader(cacheUsersFile);
+            Dictionary<string, User> users = new Dictionary<string, User>();
+            Dictionary<string, double> kloutScore = ManyLens.SignalR.ManyLensHub.userKloutScore;
+            while(!sr.EndOfStream)
+            {
+                string line = sr.ReadLine();
+                string[] attributes = line.Split('\t');
+                double score = -1;
+                if (kloutScore.ContainsKey(attributes[0]))
+                {
+                    score = kloutScore[attributes[0]];
+                }
+                //0userId \t  1userName \t 2tweetsCount \t 3following \t 4follower \t 5V \t 6gpsA \t 7gpsB
+                User user = new User(attributes[0], attributes[1], attributes[2], attributes[3], attributes[4], attributes[5], attributes[6], attributes[7],score);
+                users.Add(attributes[0], user);
+            }
+            sr.Close();
+
+            sr = new StreamReader(cacheTermsFile);
+            SortedDictionary<string, Term> terms = new SortedDictionary<string, Term>();
+            while (!sr.EndOfStream)
+            {
+                string line = sr.ReadLine();
+
+                string[] attributes = line.Split(new string[] { "CZT" }, StringSplitOptions.None);
+                attributes[0] = attributes[0].Replace(@"/", "");
+                if(attributes.Length < 3)
+                {
+                    terms.Add(attributes[0], new Term(attributes[0], true, int.Parse(attributes[1])));
+                }
+                else
+                {
+                    Term term = new Term(attributes[0]);
+                    string[] rawTweetsData = attributes[2].Split(new string[] { "CTZ" }, StringSplitOptions.None);
+                    for (int i = 0, len = rawTweetsData.Length; i < len; ++i)
+                    {
+                        string tempData = rawTweetsData[i];
+                        string[] tweetsAttribute = tempData.Split('\t');
+                        if (tweetsAttribute.Length < 8) continue;
+                        //0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent
+
+                        Tweet tweet = new Tweet(tweetsAttribute[0], tweetsAttribute[7], attributes[0], tweetsAttribute[2], tweetsAttribute[3], users[tweetsAttribute[1]]);
+                        tweet.DerivedContent = tweetsAttribute[6];
+                        string[] hashTags = tweetsAttribute[5].Split('_');
+                        foreach(string hashTag in hashTags)
+                        {
+                            tweet.AddHashTag(hashTag);
+                        }
+                        term.AddTweet(tweet);
+                    }
+                    term.HasPreprocessed = true;
+                    terms.Add(attributes[0], term);
+                }
+            }
+            sr.Close();
+            return terms;
+        }
     }
 }

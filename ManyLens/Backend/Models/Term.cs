@@ -18,6 +18,9 @@ namespace ManyLens.Models
         private string begPoint;
         private string endPoint;
         private bool isPeak = false;
+        private bool isFake = false;
+        private bool withinInterval = false;
+        private int fakeTweetsCount = 0;
 
         //private double virtualCount = -1;
         //private double tempVirtualCount = 0;
@@ -30,7 +33,11 @@ namespace ManyLens.Models
                 return this.id;
             }
         }
-
+        public Boolean WithinInterval
+        {
+            get { return this.withinInterval; }
+            set { this.withinInterval = value; }
+        }
         public DateTime TermDate
         {
             get
@@ -114,6 +121,7 @@ namespace ManyLens.Models
         {
             get
             {
+                if (this.isFake) return this.fakeTweetsCount;
                 if (this.HasPreprocessed) return this.Tweets.Count;
                 this.PreproccessingParallel();
                 return this.Tweets.Count;
@@ -129,6 +137,16 @@ namespace ManyLens.Models
             this.id = date;//date.ToString("yyyyMMddHHmmss");
         }
 
+        public Term(string date, bool isFake, int tweetsCount)
+            :base()
+        {
+            string formatString = "yyyyMMddHHmmss";
+            this.TermDate = DateTime.ParseExact(date, formatString, null);
+            this.id = date;//date.ToString("yyyyMMddHHmmss");
+            this.isFake = isFake;
+            this.fakeTweetsCount = tweetsCount;
+        }
+
         public Term(DateTime date)
             :base()
         {
@@ -140,7 +158,6 @@ namespace ManyLens.Models
         {
             base.AddTweet(tweet);
         }
-
 
         public List<VoronoiTweetsFeature> GetVoronoiTweetsFeatures()
         {
@@ -171,45 +188,6 @@ namespace ManyLens.Models
             }
 
             return features.OrderBy(t => t.feature_type).ToList();
-            //List<Tweet> tweets = new List<Tweet>();
-            //while (tweets.Count < sampleCount)
-            //{
-            //    int index = rnd.Next(this.TweetsCount);
-            //    Tweet t = this.Tweets[index];
-            //    if (tweets.Contains(t)) continue;
-            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_0", feature_type = follower, feature_value = t.User.Follower });
-            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = following, feature_value = t.User.Following });
-            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = tweetLength, feature_value = t.Length });
-            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = hastagCount, feature_value = t.HashTag.Count });
-            //    tweets.Add(t);
-            //}
-            //return features.OrderBy(f => f.feature_type).ToList();
-
-            //var tweets = this.Tweets.OrderByDescending(t=>t.User.Follower).Take(sampleCount);
-            //foreach(Tweet t  in tweets )
-            //{
-            //      features.Add(new VoronoiTweetsFeature() { id = t.TweetID+"_0", feature_type = follower, feature_value = t.User.Follower });
-            //}
-
-            //tweets = this.Tweets.OrderByDescending(t=>t.User.Following).Take(sampleCount);
-            //foreach(Tweet t in tweets)
-            //{
-            //    features.Add(new VoronoiTweetsFeature() { id = t.TweetID+"_1", feature_type = following, feature_value = t.User.Following });
-            //}
-
-            //tweets = this.Tweets.OrderByDescending( t => t.Length).Take(sampleCount);
-            //foreach(Tweet t in tweets)
-            //{
-            //    features.Add(new VoronoiTweetsFeature(){ id = t.TweetID+"_2", feature_type = tweetLength, feature_value = t.Length });
-            //}
-
-            //tweets = this.Tweets.OrderByDescending(t=>t.HashTag.Count).Take(sampleCount);
-            //foreach(Tweet t in tweets)
-            //{
-            //    features.Add(new VoronoiTweetsFeature(){ id = t.TweetID+"_3", feature_type = hastagCount, feature_value = t.HashTag.Count});
-            //}
-
-        
         }
 
         public void Preproccessing()

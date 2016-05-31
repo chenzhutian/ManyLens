@@ -250,36 +250,6 @@ namespace ManyLens.Models
         //    get { return this.lastInterval; }
         //    set { this.lastInterval = value; }
         //}
-        //public double ConditionalEntropy
-        //{
-        //    get
-        //    {
-        //        if (this.LastInterval == null)
-        //            return -1;
-        //        if (!this.HasVectorized)
-        //            return -1;
-        //        if (this.conditionalEntropy == -1)
-        //        {
-        //            if (this.HXY == -1)
-        //            {
-        //                double hxy = 0;
-        //                foreach (KeyValuePair<string, double> item1 in this.Vocabulary.PofWords)
-        //                {
-        //                    double p1 = item1.Value;
-        //                    foreach (KeyValuePair<string, double> item2 in this.LastInterval.Vocabulary.PofWords)
-        //                    {
-        //                        double p2 = item2.Value;
-        //                        double p = p1 * p2;
-        //                        hxy += p * Math.Log(p);
-        //                    }
-        //                }
-        //                this.HXY = -hxy;
-        //            }
-        //            this.conditionalEntropy = this.HXY - this.LastInterval.Entropy;
-        //        }
-        //        return this.conditionalEntropy;
-        //    }
-        //}
         public override Vocabulary Vocabulary
         {
             get
@@ -395,15 +365,12 @@ namespace ManyLens.Models
 
         public void Preproccessing(IProgress<double> progress)
         {
-
             ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this, progress);
             ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this, progress);
-
         }
 
         public void PreproccessingParallel(IProgress<double> progress)
         {
-            
             ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweetParallel(this, progress);
             ManyLens.Preprocessing.TweetsVectorizer.VectorizeEachTweet(this, progress);
         }

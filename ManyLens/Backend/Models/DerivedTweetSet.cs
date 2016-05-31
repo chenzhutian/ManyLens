@@ -59,11 +59,28 @@ namespace ManyLens.Models
             }
         }
 
-        public int SaveTweetsCount
+        public List<string> TweetDerivedContents
         {
             get
             {
-                return this.Tweets.Count;
+                List<string> content = new List<string>();
+                for (int i = 0, len = this.TweetsCount; i < len; ++i)
+                {
+                    content.Add(this.Tweets[i].DerivedContent);
+                }
+                return content;
+            }
+        }
+        public List<string> TweetSetHashTags
+        {
+            get
+            {
+                List<string> hashTags = new List<string>();
+                for (int i = 0, len = this.TweetsCount; i < len; ++i)
+                {
+                    hashTags.Add(String.Join(",", this.Tweets[i].HashTag));
+                }
+                return hashTags;
             }
         }
         #endregion

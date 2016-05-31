@@ -14,6 +14,8 @@ namespace ManyLens.config
         public static string cities1000File = RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
         public static string stopwordFile = RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
         public static string twitterKeysFile = RootFolder + "Backend\\DataBase\\TWITTERKEY";
+        public static string processedTermsFile = RootFolder + "Backend\\DataBase\\ProcessedTermsData";
+        public static string processedUserFIle = RootFolder + "Backend\\DataBase\\ProcessedUsersData";
 
         //public static string tweetFile = ebolaFile;
         private static int timeSpan = 2;

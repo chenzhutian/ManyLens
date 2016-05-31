@@ -22,7 +22,7 @@ namespace ManyLens.Preprocessing
             List<Dictionary<string, int>> vectors = new List<Dictionary<string, int>>();
 
             int tweetsCount = interval.TweetsCount;
-            for (int i = 0, percent = 0; i < tweetsCount; ++i)
+            for (int i = 0; i < tweetsCount; ++i)
             {
                 Dictionary<string, int> tempVector = new Dictionary<string, int>();
                 string[] words = interval.GetTweetDerivedContentAt(i).Split(' ');
@@ -73,7 +73,7 @@ namespace ManyLens.Preprocessing
 
             //clear the tweet by clean vocabulary
             int vectorCount = vectors.Count - 1;
-            for (int i = vectorCount, percent = 0; i >= 0; --i)
+            for (int i = vectorCount; i >= 0; --i)
             {
                 Dictionary<string, int> vector = vectors[i];
                 keys = vector.Keys.ToList();

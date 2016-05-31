@@ -37,7 +37,7 @@ namespace ManyLens.SignalR
         public static Dictionary<string, double> userKloutScore;
 
         private Random rnd = new Random();
-
+        private bool useCache = true;
         public async Task LoadData(IProgress<double> progress)
         {
             //clear the static data
@@ -46,7 +46,13 @@ namespace ManyLens.SignalR
             await Task.Run(() =>
              {
                  if (userKloutScore == null) userKloutScore = TweetsIO.LoadUserKloutSocre(config.Parameter.fifaFile + "EventUserIdsMapMap");
-                 if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
+                 if (dateTweetsFreq == null)
+                 {
+                     if (useCache)
+                         dateTweetsFreq = TweetsIO.LoadCacheData(config.Parameter.processedTermsFile, config.Parameter.processedUserFIle);
+                     else
+                         dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile, config.Parameter.processedUserFIle);
+                 }
                  if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                  if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
              });
@@ -167,10 +173,12 @@ namespace ManyLens.SignalR
                             end = peak + 1;
                             tp[begin].BeginPoint = tp[begin].ID;
                             tp[begin].EndPoint = tp[end].ID;
+                            tp[begin].WithinInterval = true;
                             tp[begin].PointType += 1;
 
                             tp[end].BeginPoint = tp[begin].ID;
                             tp[end].EndPoint = tp[end].ID;
+                            tp[end].WithinInterval = true;
                             tp[end].PointType += 2;
 
                             Interval interval = new Interval(tp[begin].TermDate, tp[begin]);
@@ -182,6 +190,7 @@ namespace ManyLens.SignalR
                                 {
                                     tp[k].BeginPoint = tp[begin].ID;
                                     tp[k].EndPoint = tp[end].ID;
+                                    tp[k].WithinInterval = true;
                                     tp[k].PointType = 4;
                                     interval.AddTerm(tp[k]);
                                 }
@@ -248,6 +257,7 @@ namespace ManyLens.SignalR
             //init the cancellation token;
             CancellationToken ctoken = cts.Token;
             await this.PushPoint(mode, ctoken);
+            if (!useCache) TweetsIO.DumpTermData(config.Parameter.processedTermsFile, dateTweetsFreq.Values.ToArray());
         }
 
         public async Task ChangeTimeSpan(int index)
