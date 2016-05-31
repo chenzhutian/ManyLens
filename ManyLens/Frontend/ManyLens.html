@@ -29,9 +29,6 @@
     <script src="Scripts/flat-ui.js" type="text/javascript"></script>
     <script src="Scripts/jquery.signalR-2.2.0.js" type="text/javascript"></script>
     <script src="Scripts/bootstrap-paginator.js" type="text/javascript"></script>
-    <!--<script src="Scripts/html2canvas.js" type="text/javascript"></script>
-    <script src="Scripts/imagesloaded.pkgd.js" type="text/javascript"></script>-->
-    <!--<script src="Scripts/html2canvas.svg.js" type="text/javascript"></script>-->
 
     <script src="Scripts/ManyLens.js" type="text/javascript"></script>
     <!--generate command:signalr ghp /path:../bin/-->
@@ -61,14 +58,12 @@
         </div>
 
         <div class="nav-side-menu" id="sidebar-nav">
-            <div id="curve-btns" style="text-align:center">
-            </div>
-            <div id="map-btns">
-            </div>
+            <div id="curve-btns" style="text-align:center"></div>
+            <div id="map-btns"></div>
         </div>
 
-        <div class="container-fluid row-11" id="page-content">
-            <div class="row row-5">
+        <div class="container-fluid row-12" id="page-content">
+            <div class="row row-4">
                 <div class="col-md-12 row-12">
                     <div class="view row-11" id="curveView">
 
@@ -79,7 +74,7 @@
                 </div>
             </div>
 
-            <div class="row row-6" id="mainArea">
+            <div class="row row-8" id="mainArea">
                 <div class="col-md-12 row-11">
 
                     <div class="view" id="mapView">
@@ -87,46 +82,15 @@
                             <p>Topics Maps</p>
                         </div>
 
-                        
-
                         <svg width="100%" id="mapSvg">
 
                         </svg>
-                        <!--<div id="tweetsView"></div>-->
                     </div>
-
-                    <!--<div class="col-md-4 row-12">
-                        <div class="view" id="historyView">
-                            <div id="sidePanel" class="sidePanel">
-                                Settings<br /><br />
-
-                                <span>Kernel bandwidth</span><br />
-                                <input type="range" value="64" min="16" max="256" step="16" onchange="ManyLens.MapArea.config.setKernelBandWidth(this.value)" /><br /><br />
-
-                                <span>intensity For DensityMap</span><br />
-                                <input type="range" value="3" min="1" max="32" step="1" onchange="ManyLens.MapArea.config.setIntensity(this.value)" /><br /><br />
-
-                                <span>Shader</span><br />
-                                <form>
-                                    <input type="radio" name="shader" value="0" onchange="ManyLens.MapArea.config.setShader(this.value)" />Contour DensityMap<br />
-                                    <input type="radio" name="shader" value="1" onchange="ManyLens.MapArea.config.setShader(this.value)" />Raw DensityMap<br />
-                                </form>
-
-                            </div>
-                        </div>
-                    </div>-->
 
                 </div>
             </div>
         </div>
     </div>
     <!-- Add my Scripts here-->
-
-    <script>
-        // Switches
-
-
-
-    </script>
 </body>
 </html>

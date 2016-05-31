@@ -1,8 +1,8 @@
 ﻿html, body {
     height: 100%;
 
-    /*background-color: #E8E9EE;*/
-    background-color: #fff;
+    background-color: #E8E9EE;
+    /*background-color: #fff;*/
     -moz-user-select: -moz-none;
     -khtml-user-select: none;
     -webkit-user-select: none;
@@ -84,8 +84,8 @@ div#page-content {
 
 .view {
     height: 100%;
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0);
     margin-top: 20px;
 }
@@ -185,7 +185,7 @@ div#curveView {
 
     div#curveView text {
         fill:#000;
-        opacity:0;
+        opacity:1;
         cursor:default;
         pointer-events:none;
     }

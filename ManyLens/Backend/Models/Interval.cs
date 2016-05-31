@@ -18,7 +18,6 @@ namespace ManyLens.Models
         private int hashDimension = config.Parameter.HashDimension;
 
         private bool hasVectorized = false;
-
         private bool hasSOMed = false;
 
         private VisMap visMap = null;

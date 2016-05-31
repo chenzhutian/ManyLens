@@ -17,6 +17,97 @@ module ManyLens {
 
             private _element: D3.Selection;
             private _manyLens: ManyLens;
+            private _demo_data: MenuListData = {
+                name: "root",
+                icon: null,
+                children: [
+                    {
+                        name: "Tweet Length",
+
+                        children: [
+                            {
+                                name: "Pie Chart",
+                                icon: "fui-pie-chart",
+                                attributeName: "Tweet Length",
+                                lensConstructFunc: Lens.PieChartLens,
+                                extractDataFunc: new Lens.ExtractDataFunc( "tweetLengthDistribute" )
+                            }
+                        ]
+                    },
+                    {
+                        name: "Hashtag Count",
+
+                        children: [
+                            {
+                                name: "Pie Chart",
+                                icon: "fui-pie-chart",
+                                attributeName: "Hashtag Count",
+                                lensConstructFunc: Lens.PieChartLens,
+                                extractDataFunc: new Lens.ExtractDataFunc( "hashTagsDistribute" )
+                            },
+                            {
+                                name: "Words Cloud",
+                                icon: "fui-list-thumbnailed",
+                                attributeName: "Hashtag Count",
+                                lensConstructFunc: Lens.WordCloudLens,
+                                extractDataFunc: new Lens.ExtractDataFunc( "hashTagsDistribute" )
+                            }
+                        ]
+                    },
+                    {
+                        name: "Keywords",
+
+                        children: [
+                            {
+                                name: "Words Cloud",
+                                icon: "fui-list-thumbnailed",
+                                attributeName: "Keywords",
+                                lensConstructFunc: Lens.WordCloudLens,
+                                extractDataFunc: new Lens.ExtractDataFunc( "keywordsDistribute" )
+                            }
+                        ]
+                    },
+                    {
+                        name: "Retweet Network",
+
+                        children: [
+                            {
+                                name: "Network",
+                                icon: "fui-stats-dots",
+                                attributeName: "Retweet Network",
+                                lensConstructFunc: Lens.NetworkLens,
+                                extractDataFunc: new Lens.ExtractDataFunc( "retweetNetwork" )
+                            }
+                        ]
+                    },
+                    {
+                        name: "Tweets Content",
+
+                        children: [
+                            {
+                                name: "List",
+                                icon: "fui-list-numbered",
+                                attributeName: "Tweets Content",
+                                lensConstructFunc: Lens.TweetsListLens,
+                                extractDataFunc: new Lens.ExtractDataFunc( "tweetsContent" )
+                            }
+                        ]
+                    },
+                    {
+                        name: "Tweets Count",
+
+                        children: [
+                            {
+                                name: "Map",
+                                icon: "fui-stats-bars2",
+                                attributeName: "Tweets Count",
+                                lensConstructFunc: Lens.MapLens,
+                                extractDataFunc: new Lens.ExtractDataFunc( "tweetsLocationDistribute" )
+                            }
+                        ]
+                    }
+                ]
+            };
             /*-----------------Data menu-----------------*/
             private _isLoaded: boolean = false;
             private _launchDataBtn: D3.Selection;
@@ -69,30 +160,17 @@ module ManyLens {
                         var text = d3.select( this ).select( "a" ).text();
                         d3.select( "#hack-drop-down" ).text( text );
                         manyLens.TimeSpan = 3 - i;
-                        console.log(i+","+manyLens.TimeSpan);
+                        console.log( i + "," + manyLens.TimeSpan );
                         //manyLens.ManyLensHubServerChangeTimeSpan(manyLens.TimeSpan);
                     });
 
-                this._launchDataBtn = 
-                    //this._element.select("#curve-btns")
-                    //    .append("button")
-                    //    .attr({
-                    //        type: "button",
-                    //        class: "btn btn-primary btn-block disabled"
-                    //    })
-                    //    .style({
-                    //        "margin-top": "30px",
-                    //        "margin-bottom": "170px"
-                    //    })
-                    //    .text("Launch")
+                this._launchDataBtn =
                     d3.select( "#navbarInput-01" )
                         .on( "keydown", ( d ) => {
-
                             if ( d3.event.keyCode == 13 ) {
                                 d3.event.preventDefault();
-                                this._manyLens.ManyLensHubServerPullPoint("11");
+                                this._manyLens.ManyLensHubServerPullPoint( "11" );
                             }
-
                         })
                     //.on("click", () => {
                     //    this._launchDataBtn.classed("disabled", true);
@@ -103,8 +181,8 @@ module ManyLens {
                 d3.select( "#navbarInput-02" )
                     .on( "click", ( d ) => {
                         d3.event.preventDefault();
-                        console.log("pullPoint");
-                        this._manyLens.ManyLensHubServerPullPoint(  );
+                        console.log( "pullPoint" );
+                        this._manyLens.ManyLensHubServerPullPoint();
                     });
 
                 this._brand = this._element.select( "#map-btns" ).append( "div" )
@@ -115,8 +193,7 @@ module ManyLens {
                     .attr( "class", "menu-list" )
                     .append( "ul" )
                     .attr( "id", "side-menu-content" )
-                    .attr( "class", "menu-content" )
-                    ;
+                    .attr( "class", "menu-content" );
 
                 var mapBtns = this._element.select( "#map-btns" ).append( "div" )
                     .style( "text-align", "center" );
@@ -134,8 +211,7 @@ module ManyLens {
                     .text( " Refine  Map " )
                     .on( "click", () => {
                         this._manyLens.AddBrushToMap();
-                    })
-                    ;
+                    });
 
                 mapBtns.append( "input" )
                     .attr( {
@@ -146,123 +222,30 @@ module ManyLens {
                         "data-on-text": " Topics ",
                         "data-off-text": " GEO "
                     })
-                    .property( "checked", true )
-                    ;
+                    .property( "checked", true );
+
                 $( "#maps-switch" ).bootstrapSwitch( "handleWidth", 48 );
                 this._som_geo_switch_btn = $( "#maps-switch" )
                     .on( "switchChange.bootstrapSwitch", ( event, state ) => {
                         this._manyLens.SwitchMap();
                     });
 
+                this._manyLens.ManyLensHubRegisterClientFunction( this, "setTimeSpan", this.SetTimeSpan );
                 //this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
                 //this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
             }
 
-            private DemoData(): MenuListData {
-                var data: MenuListData = {
-                    name: "root",
-                    icon: null,
-                    children: [
-                        {
-                            name: "Tweet Length",
-
-                            children: [
-                                {
-                                    name: "Pie Chart",
-                                    icon: "fui-pie-chart",
-                                    attributeName: "Tweet Length",
-                                    lensConstructFunc: Lens.PieChartLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc( "tweetLengthDistribute" )
-                                }
-                            ]
-                        },
-                        {
-                            name: "Hashtag Count",
-
-                            children: [
-                                {
-                                    name: "Pie Chart",
-                                    icon: "fui-pie-chart",
-                                    attributeName: "Hashtag Count",
-                                    lensConstructFunc: Lens.PieChartLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc( "hashTagsDistribute" )
-                                },
-                                {
-                                    name: "Words Cloud",
-                                    icon: "fui-list-thumbnailed",
-                                    attributeName: "Hashtag Count",
-                                    lensConstructFunc: Lens.WordCloudLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc( "hashTagsDistribute" )
-                                }
-                            ]
-                        },
-                        {
-                            name: "Keywords",
-
-                            children: [
-                                {
-                                    name: "Words Cloud",
-                                    icon: "fui-list-thumbnailed",
-                                    attributeName: "Keywords",
-                                    lensConstructFunc: Lens.WordCloudLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc( "keywordsDistribute" )
-                                }
-                            ]
-                        },
-                        {
-                            name: "Retweet Network",
-
-                            children: [
-                                {
-                                    name: "Network",
-                                    icon: "fui-stats-dots",
-                                    attributeName: "Retweet Network",
-                                    lensConstructFunc: Lens.NetworkLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc( "retweetNetwork" )
-                                }
-                            ]
-                        },
-                        {
-                            name: "Tweets Content",
-
-                            children: [
-                                {
-                                    name: "List",
-                                    icon: "fui-list-numbered",
-                                    attributeName: "Tweets Content",
-                                    lensConstructFunc: Lens.TweetsListLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc( "tweetsContent" )
-                                }
-                            ]
-                        },
-                        {
-                            name: "Tweets Count",
-
-                            children: [
-                                {
-                                    name: "Map",
-                                    icon: "fui-stats-bars2",
-                                    attributeName: "Tweets Count",
-                                    lensConstructFunc: Lens.MapLens,
-                                    extractDataFunc: new Lens.ExtractDataFunc( "tweetsLocationDistribute" )
-                                }
-                            ]
-                        }
-                    ]
-                };
-
-                return data;
-            }
-
             public BuildList( listData: MenuListData ) {
-                this._menu_list_data = listData;
-                if ( !this._menu_list_data ) {
-                    this._menu_list_data = this.DemoData();
-                }
-
+                //TODO remove if default paramter works
+                //this._menu_list_data = listData;
+                //if ( !this._menu_list_data ) {
+                //    this._menu_list_data = this.DemoData();
+                //}
+                this._menu_list_data = listData || this._demo_data;
                 var menuList = this._menu_list_data.children;
 
                 for ( var i = 0, menu_len = menuList.length; i < menu_len; ++i ) {
+                    console.log( 'try init menu' );
                     var sub_menu: Array<MenuListData> = menuList[i].children;
                     var li = this._menu_list.append( "li" )
                         .attr( "class", "panel" )
@@ -297,8 +280,7 @@ module ManyLens {
                                 var lens: Lens.BaseSingleLens = new d.lensConstructFunc( this._map_Svg, d.attributeName, this._manyLens );
                                 lens
                                     .DataAccesser( d.extractDataFunc )
-                                    .Render( "red" )
-                                    ;
+                                    .Render( "red" );
                             });
                     }
                 }
@@ -309,6 +291,9 @@ module ManyLens {
                 this._launchDataBtn.classed( "disabled", false );
             }
 
+            private SetTimeSpan( index ): void {
+                d3.select( "ul.dropdown-menu" ).selectAll( "li" )[0][3 - index].click();
+            }
             private EnableReorganizeIntervalBtn(): void {
                 this._reorganizeIntervalBtn.bootstrapSwitch( "disabled", false );
             }
@@ -319,11 +304,10 @@ module ManyLens {
             private PullData(): void {
                 if ( ManyLens.TestMode ) {
                     this._manyLens.ManyLensHubServerTestPullPoint().done(() => {
-
                         this._launchDataBtn.classed( "disabled", false );
                     });
                 } else {
-                    this._manyLens.ManyLensHubServerPullPoint(  ).done(( d ) => {
+                    this._manyLens.ManyLensHubServerPullPoint().done(( d ) => {
                         this._launchDataBtn.classed( "disabled", false );
                     });
                 }

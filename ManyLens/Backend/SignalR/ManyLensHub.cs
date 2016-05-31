@@ -49,7 +49,6 @@ namespace ManyLens.SignalR
                  if (dateTweetsFreq == null) dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile);
                  if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                  if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
-
              });
         }
 
@@ -191,7 +190,6 @@ namespace ManyLens.SignalR
                                 //LazyThreadForConditionalEntropy(interal);
                                 //Debug.WriteLine("Interval id is :"+interval.ID + " , " + interval.Entropy + "," + interval.TweetsCount);
                             }
-
                         }
                         else
                         {
@@ -219,16 +217,14 @@ namespace ManyLens.SignalR
                         end = tp[t].EndPoint
                     };
 
+                    //if (point.id == "20140709043515")
+                    //{
+                    //    int asdfw = 0;
+                    //    ++asdfw;
 
-                    if (point.id == "20140709043515")
-                    {
-                        int asdfw = 0;
-                        ++asdfw;
-
-                        Debug.WriteLine("Stop please");
-                        return;
-                    }
-
+                    //    Debug.WriteLine("Stop please");
+                    //    return;
+                    //}
 
                     Clients.Caller.addPoint(point);
                     //if (ctoken.IsCancellationRequested)
@@ -248,11 +244,10 @@ namespace ManyLens.SignalR
         {
             //clear the static data
             interals.Clear();
-
+            Clients.Caller.setTimeSpan(ManyLens.config.Parameter.TimeSpan);
             //init the cancellation token;
             CancellationToken ctoken = cts.Token;
             await this.PushPoint(mode, ctoken);
-
         }
 
         public async Task ChangeTimeSpan(int index)

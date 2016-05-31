@@ -248,7 +248,6 @@ module ManyLens {
         
         }
 
-
         public ManyLensHubServerGetLensData(visMapID:string,lensID:string, unitsID: number[],baseData:string,subData?:string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");

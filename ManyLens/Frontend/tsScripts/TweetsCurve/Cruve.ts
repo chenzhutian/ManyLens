@@ -6,7 +6,6 @@ module ManyLens {
 
         interface Feature { x?: number, y?: number, feature_type: string, feature_value: number; }
 
-
         interface Point {
             value: number;
             isPeak: boolean;
@@ -124,37 +123,34 @@ module ManyLens {
 
                 this._x_scale
                     .domain( [0, this._section_num] )
-                    .range( [this._view_padding.left + this._coordinate_margin_left, this._view_width - this._view_padding.right] )
-                    ;
+                    .range( [this._view_padding.left + this._coordinate_margin_left, this._view_width - this._view_padding.right] );
+
                 this._y_scale
                     .domain( [0, 10000] )
-                    .range( [this._view_height - this._view_padding.bottom, this._view_padding.top] )
-                    ;
+                    .range( [this._view_height - this._view_padding.bottom, this._view_padding.top] );
+                    
                 this._x_axis_gen
                     .scale( d3.time.scale()
                         .domain( [0, this._section_num] )
                         .range( [this._view_padding.left + this._coordinate_margin_left, this._view_width - this._view_padding.right] )
                     )
                     .ticks( 0 )
-                    .orient( "bottom" )
-                    ;
+                    .orient( "bottom" );
+
                 this._y_axis_gen
                     .scale( this._y_scale )
                     .ticks( 5 )
-                    .orient( "left" )
-                    ;
+                    .orient( "left" );
 
                 this._fisheye_scale
                     .rangeRoundBands( [0, this._sub_view_width] )
-                    .focus( this._coordinate_margin_left + this._view_padding.left )
-                    ;
+                    .focus( this._coordinate_margin_left + this._view_padding.left );
 
                 this._voronoi = d3.geom.voronoi()
                     .x( function ( d ) { return d['x']; })
                     .y( function ( d ) { return d['y']; });
                 this._voronoi_color = d3.scale.category20()
-                    .domain( ['tweetLength', 'follower', 'isV', 'hastagCount'] )
-                    ;
+                    .domain( ['tweetLength', 'follower', 'isV', 'hastagCount'] );
                     
                 //    d3.scale.ordinal()
                 //    .range(['#c5b0d5','#ffbb78','#98df8a','#ff9896'])
@@ -210,8 +206,7 @@ module ManyLens {
                 this._curveSvg = this._element.insert( "svg", ".progress" )
                     .attr( "width", this._view_width )
                     .attr( "height", this._view_height )
-                    .style( "margin-bottom", "17px" )
-                    ;
+                    .style( "margin-bottom", "17px" );
 
                 this._subView = this._curveSvg.append( "g" )
                     .attr( "clip-path", "url(#stackRectClip)" )
@@ -468,8 +463,7 @@ module ManyLens {
                         var cellsGroup = d3.select( "#cells_group" + d.id )
                             .classed( "curve", false )
                             .style( "opacity", null )
-                            .attr( "transform", null )
-                            ;
+                            .attr( "transform", null );
                         cellsGroup.transition().duration( duration )
                             .attr( "transform", "scale(" + self._voronoi_scale + ")" );
                         if ( cellsGroup.select( '.entropy-ring' ).empty() ) {
@@ -523,8 +517,7 @@ module ManyLens {
                     .style( "fill-opacity", 1e-6 )
                     .transition().duration( duration )
                     .style( "fill-opacity", 1 );
-                ;
-
+                
                 //Update node
                 function sumLength( d ) {
                     if ( !d ) return 0;
@@ -656,8 +649,7 @@ module ManyLens {
                         return d._children ? 20 : ".35em";
                     })
                     .style( "fill-opacity", 1 );
-                ;
-
+                
                 //Exit node
                 var exitNode = this._stack_bar_node.exit();
                 exitNode
@@ -674,8 +666,7 @@ module ManyLens {
                         }
                         return "translate(" + [d.x, d.y] + ")";
                     })
-                    .remove()
-                    ;
+                    .remove();
                 exitNode.selectAll( "g.cells" ).transition().style( 'opacity', 1e-6 );
                 exitNode.select( "circle" ).transition().attr( "r", 1e-6 );
                 exitNode.select( "text" ).transition().style( "fill-opacity", 1e-6 );
@@ -787,7 +778,6 @@ module ManyLens {
 
                         if ( this._data[i] )
                             sectionRestPath.push( { index: i, value: this._data[i].value });
-
                         restPathData.push( sectionRestPath );
                     }
                 }
@@ -843,9 +833,7 @@ module ManyLens {
                                 .enter().append( "g" )
                                 .attr( "class", "cell" )
                                 .append( "path" )
-                                .attr( "d", ( d ) => {
-                                    return "M" + d.p.join( "L" ) + "Z";
-                                })
+                                .attr( "d", d => "M" + d.p.join( "L" ) + "Z" )
                                 .style( "fill", ( d: Feature, i ) => {
                                     return this._voronoi_color_scale[d.feature_type]( d.feature_value );// this._voronoi_color( d.feature_type );
                                 })
@@ -873,14 +861,9 @@ module ManyLens {
                 }
 
                 var xTime = this._mainView.selectAll( ".curve.seg.time-tick" ).data( sectionData );
-                xTime.attr( "x", ( d, i ) => {
-                    return this._x_scale( d.beg );
-                })
-                    ;
+                xTime.attr( "x", d => this._x_scale( d.beg ));
                 xTime.enter().append( "text" )
-                    .attr( "x", ( d, i ) => {
-                        return this._x_scale( d.beg );
-                    })
+                    .attr( "x",  d => this._x_scale( d.beg ))
                     .attr( "y", this._view_height )
                     .attr( "class", "curve seg time-tick" )
                     .text(( d ) => {
@@ -888,52 +871,41 @@ module ManyLens {
                         var mon = this.month_names[date.getMonth()];
                         var day = date.getDate();
                         return mon + " " + day;
-                    })
-                    ;
+                    });
+
                 xTime.exit().remove();
 
                 var truelineFunc = d3.svg.line()
-                    .x(( d, i ) => {
-                        return this._x_scale( d.index );
-                    })
-                    .y(( d, i ) => {
-                        return this._y_scale( d.value );
-                    })
-                    .interpolate( "linear" )
-                    ;
+                    .x( d => this._x_scale( d.index ))
+                    .y( d => this._y_scale( d.value ))
+                    .interpolate( "linear" );
 
-                var truepath = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, function ( d ) { return d.id; });
-                truepath.attr( "d", function ( d ) {
-                    return truelineFunc( d.pathPoints );
-                });
+                var truepath = this._mainView.selectAll( ".curve.section.path" ).data( sectionData, d => d.id );
+                truepath.attr( "d", d => truelineFunc( d.pathPoints ));
                 truepath
                     .enter().append( "path" )
-                    .attr( "d", function ( d ) { return truelineFunc( d.pathPoints ); })
-                    .attr( "class", "curve section path" )
-                    ;
+                    .attr( "d", d => truelineFunc( d.pathPoints ))
+                    .attr( "class", "curve section path" );
+                    
                 truepath.exit().remove();
 
                 var trueRestPath = this._mainView.selectAll( ".curve.rest.true.path" ).data( restPathData );
-                trueRestPath.attr( "d", function ( d ) {
-                    return truelineFunc( d );
-                })
+                trueRestPath.attr( "d", truelineFunc )
                 trueRestPath
                     .enter().append( "path" )
                     .attr( "d", truelineFunc )
-                    .attr( "class", "curve rest true path" )
-                    ;
+                    .attr( "class", "curve rest true path" );
                 trueRestPath.exit().remove();
 
                 //handle the seg node
-                var nodes = this._mainView.selectAll( ".curve.node" ).data( nodesData, function ( d ) { return d.index; });
+                var nodes = this._mainView.selectAll( ".curve.node" ).data( nodesData, d => d.index);
                 nodes
                     .attr( "cx", ( d, i ) => {
                         return this._x_scale( d.index );
                     })
                     .attr( "cy", ( d ) => {
                         return this._y_scale( d.value );
-                    })
-                    ;
+                    });
                 nodes.enter().append( "circle" )
                     .attr( "class", "curve node" )
                     .attr( "cx", ( d, i ) => {
@@ -953,8 +925,7 @@ module ManyLens {
                             .attr( "transform", null )
                             .transition()
                             .ease( "linear" )
-                            .attr( "transform", "translate(" + ( this._x_scale( 0 ) - this._x_scale( 1 ) ) + ",0)" )
-                            ;
+                            .attr( "transform", "translate(" + ( this._x_scale( 0 ) - this._x_scale( 1 ) ) + ",0)" );
 
                         cells
                             .transition()
@@ -962,10 +933,8 @@ module ManyLens {
                             .attr( "transform", function ( d ) {
                                 var ty = self._y_scale( d.pathPoints[1].value ) + 30;//d3.select( this ).attr( 'tY' );
                                 return "translate(" + self._x_scale( d.end - 2 ) + "," + ty + ")";
-                            })
-                            ;
+                            });
                     });
-
                 }
 
 
@@ -992,8 +961,6 @@ module ManyLens {
 
                     this.UpdateSubviewTree( exitParent );
                 }
-
-
             }
 
             private SelectSegment( d: Section | StackNode ) {
@@ -1016,8 +983,6 @@ module ManyLens {
                 d.setDate( d.getDate() + 4 - ( d.getDay() || 7 ) );
                 return Math.ceil(( ( ( d.getTime() - new Date( d.getFullYear(), 0, 1 ).getTime() ) / 8.64e7 ) + 1 ) / 7 );
             }
-
         }
-
     }
 }

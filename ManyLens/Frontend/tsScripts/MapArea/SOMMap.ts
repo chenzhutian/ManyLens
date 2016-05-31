@@ -78,17 +78,19 @@ module ManyLens {
                 super( element, manyLens );
                 // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
                 this._element.attr( "height", function () {
-                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                    let parentRect = this.parentNode.getBoundingClientRect();
+                    let selfRect = this.getBoundingClientRect();
+                    return parentRect.height - (selfRect.top - parentRect.top);
                 });
                 this._total_width = parseFloat( this._element.style( "width" ));
                 this._total_height = parseFloat(this._element.style("height"));
 
                 this._heatmap_container = document.createElement( 'div' );
                 this._heatmap_container.id = "heatmap-container";
-                this._heatmap_container.style.left = ( <HTMLElement>this._element.node() ).offsetLeft.toString() + "px";
-                this._heatmap_container.style.top = ( <HTMLElement>this._element.node() ).offsetTop.toString() + "px";
-                this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString() + "px";
-                this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString() + "px";
+                //this._heatmap_container.style.left = ( <HTMLElement>this._element.node() ).offsetLeft.toString() + "px";
+                //this._heatmap_container.style.top = ( <HTMLElement>this._element.node() ).offsetTop.toString() + "px";
+                //this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString() + "px";
+                //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString() + "px";
                 document.getElementById( "mapView" ).insertBefore( this._heatmap_container, this._element.node() );
 
                 this._center_x = 0.5 * parseFloat( this._element.style( "width" ) );

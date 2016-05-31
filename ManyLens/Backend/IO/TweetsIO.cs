@@ -71,7 +71,7 @@ namespace ManyLens.IO
             }
             else
             {
-                config.Parameter.TimeSpan = 3;
+                config.Parameter.TimeSpan = 2;
             }
             SortedDictionary<string, Term> sortedTerm = new SortedDictionary<string, Term>();
             //SortedDictionary<string, Term>[] sortedTerms = new SortedDictionary<string, Term>[4];

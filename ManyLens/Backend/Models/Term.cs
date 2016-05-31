@@ -136,7 +136,7 @@ namespace ManyLens.Models
             this.id = date.ToString("yyyyMMddHHmmss");
         }
 
-        public void AddTweet(Tweet tweet)
+        public new void AddTweet(Tweet tweet)
         {
             base.AddTweet(tweet);
         }
@@ -146,12 +146,12 @@ namespace ManyLens.Models
         {
             List<VoronoiTweetsFeature> features = new List<VoronoiTweetsFeature>();
             string follower = "follower";
-            string following = "following";
+            // string following = "following";
             string tweetLength = "tweetLength";
             string hastagCount = "hastagCount";
             string isV = "isV";
             int sampleCount = (int)(this.TweetsCount * 0.001);
-            if (sampleCount < 10) sampleCount = 20;
+            if (sampleCount < 20) sampleCount = 20;
             Random rnd = new Random();
 
             Dictionary<Tweet, double> tweetsScore = new Dictionary<Tweet, double>();

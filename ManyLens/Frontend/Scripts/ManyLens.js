@@ -46,111 +46,7 @@ var ManyLens;
         var SideBarNavigation = (function () {
             function SideBarNavigation(element, brandName, mapSvg, manyLens) {
                 var _this = this;
-                /*-----------------Data menu-----------------*/
-                this._isLoaded = false;
-                this._element = element;
-                this._manyLens = manyLens;
-                this._brand_name = brandName;
-                this._map_Svg = mapSvg;
-                // this._element.select("#curve-btns").append("input")
-                //    .attr({
-                //        "id":"intervals-organize-switch",
-                //        type:"checkbox",
-                //        "data-on-color":"info",
-                //         "data-off-color":"danger",
-                //         "data-on-text":"Time",
-                //         "data-off-text":"Content"
-                //    })
-                //    .property("checked",true)
-                //;
-                // $("#intervals-organize-switch").bootstrapSwitch("disabled",true);
-                // this._reorganizeIntervalBtn = $("#intervals-organize-switch")
-                //.on("switchChange.bootstrapSwitch",  (event,state)=> {
-                //    this._manyLens.ManyLensHubServerReOrganizePeak(state);
-                //});
-                this._element.select("#curve-btns")
-                    .append("div").attr("class", "btn-group").style({
-                    "margin-top": "30px",
-                    "margin-bottom": "250px"
-                })
-                    .html('<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Second</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Second</a></li><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>');
-                d3.select("ul.dropdown-menu").selectAll("li")
-                    .on("click", function (d, i) {
-                    var text = d3.select(this).select("a").text();
-                    d3.select("#hack-drop-down").text(text);
-                    manyLens.TimeSpan = 3 - i;
-                    console.log(i + "," + manyLens.TimeSpan);
-                    //manyLens.ManyLensHubServerChangeTimeSpan(manyLens.TimeSpan);
-                });
-                this._launchDataBtn =
-                    //this._element.select("#curve-btns")
-                    //    .append("button")
-                    //    .attr({
-                    //        type: "button",
-                    //        class: "btn btn-primary btn-block disabled"
-                    //    })
-                    //    .style({
-                    //        "margin-top": "30px",
-                    //        "margin-bottom": "170px"
-                    //    })
-                    //    .text("Launch")
-                    d3.select("#navbarInput-01")
-                        .on("keydown", function (d) {
-                        if (d3.event.keyCode == 13) {
-                            d3.event.preventDefault();
-                            _this._manyLens.ManyLensHubServerPullPoint("11");
-                        }
-                    });
-                d3.select("#navbarInput-02")
-                    .on("click", function (d) {
-                    d3.event.preventDefault();
-                    console.log("pullPoint");
-                    _this._manyLens.ManyLensHubServerPullPoint();
-                });
-                this._brand = this._element.select("#map-btns").append("div")
-                    .attr("class", "nav-brand")
-                    .text(this._brand_name);
-                this._menu_list = this._element.select("#map-btns").append("div")
-                    .attr("class", "menu-list")
-                    .append("ul")
-                    .attr("id", "side-menu-content")
-                    .attr("class", "menu-content");
-                var mapBtns = this._element.select("#map-btns").append("div")
-                    .style("text-align", "center");
-                this._refine_btn = mapBtns.append("button")
-                    .attr({
-                    type: "button",
-                    class: "btn btn-primary"
-                })
-                    .style({
-                    "margin-top": "90px",
-                    "margin-bottom": "30px",
-                    "padding": "9px 35px"
-                })
-                    .text(" Refine  Map ")
-                    .on("click", function () {
-                    _this._manyLens.AddBrushToMap();
-                });
-                mapBtns.append("input")
-                    .attr({
-                    "id": "maps-switch",
-                    type: "checkbox",
-                    "data-on-color": "info",
-                    "data-off-color": "danger",
-                    "data-on-text": " Topics ",
-                    "data-off-text": " GEO "
-                })
-                    .property("checked", true);
-                $("#maps-switch").bootstrapSwitch("handleWidth", 48);
-                this._som_geo_switch_btn = $("#maps-switch")
-                    .on("switchChange.bootstrapSwitch", function (event, state) {
-                    _this._manyLens.SwitchMap();
-                });
-                //this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
-                //this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
-            }
-            SideBarNavigation.prototype.DemoData = function () {
-                var data = {
+                this._demo_data = {
                     name: "root",
                     icon: null,
                     children: [
@@ -235,16 +131,110 @@ var ManyLens;
                         }
                     ]
                 };
-                return data;
-            };
+                /*-----------------Data menu-----------------*/
+                this._isLoaded = false;
+                this._element = element;
+                this._manyLens = manyLens;
+                this._brand_name = brandName;
+                this._map_Svg = mapSvg;
+                // this._element.select("#curve-btns").append("input")
+                //    .attr({
+                //        "id":"intervals-organize-switch",
+                //        type:"checkbox",
+                //        "data-on-color":"info",
+                //         "data-off-color":"danger",
+                //         "data-on-text":"Time",
+                //         "data-off-text":"Content"
+                //    })
+                //    .property("checked",true)
+                //;
+                // $("#intervals-organize-switch").bootstrapSwitch("disabled",true);
+                // this._reorganizeIntervalBtn = $("#intervals-organize-switch")
+                //.on("switchChange.bootstrapSwitch",  (event,state)=> {
+                //    this._manyLens.ManyLensHubServerReOrganizePeak(state);
+                //});
+                this._element.select("#curve-btns")
+                    .append("div").attr("class", "btn-group").style({
+                    "margin-top": "30px",
+                    "margin-bottom": "250px"
+                })
+                    .html('<button class="btn btn-primary" type="button" id="hack-drop-down" style="padding-left: 25px;padding-right: 24px;">Second</button><button data-toggle="dropdown" class="btn btn-primary dropdown-toggle" type="button"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul role="menu" class="dropdown-menu" style="min-width: 150px;border: 1px solid #dae1e8;"><li><a>Second</a></li><li><a>Minutes</a></li><li><a>Hours</a></li><li><a>Days</a></li></ul>');
+                d3.select("ul.dropdown-menu").selectAll("li")
+                    .on("click", function (d, i) {
+                    var text = d3.select(this).select("a").text();
+                    d3.select("#hack-drop-down").text(text);
+                    manyLens.TimeSpan = 3 - i;
+                    console.log(i + "," + manyLens.TimeSpan);
+                    //manyLens.ManyLensHubServerChangeTimeSpan(manyLens.TimeSpan);
+                });
+                this._launchDataBtn =
+                    d3.select("#navbarInput-01")
+                        .on("keydown", function (d) {
+                        if (d3.event.keyCode == 13) {
+                            d3.event.preventDefault();
+                            _this._manyLens.ManyLensHubServerPullPoint("11");
+                        }
+                    });
+                d3.select("#navbarInput-02")
+                    .on("click", function (d) {
+                    d3.event.preventDefault();
+                    console.log("pullPoint");
+                    _this._manyLens.ManyLensHubServerPullPoint();
+                });
+                this._brand = this._element.select("#map-btns").append("div")
+                    .attr("class", "nav-brand")
+                    .text(this._brand_name);
+                this._menu_list = this._element.select("#map-btns").append("div")
+                    .attr("class", "menu-list")
+                    .append("ul")
+                    .attr("id", "side-menu-content")
+                    .attr("class", "menu-content");
+                var mapBtns = this._element.select("#map-btns").append("div")
+                    .style("text-align", "center");
+                this._refine_btn = mapBtns.append("button")
+                    .attr({
+                    type: "button",
+                    class: "btn btn-primary"
+                })
+                    .style({
+                    "margin-top": "90px",
+                    "margin-bottom": "30px",
+                    "padding": "9px 35px"
+                })
+                    .text(" Refine  Map ")
+                    .on("click", function () {
+                    _this._manyLens.AddBrushToMap();
+                });
+                mapBtns.append("input")
+                    .attr({
+                    "id": "maps-switch",
+                    type: "checkbox",
+                    "data-on-color": "info",
+                    "data-off-color": "danger",
+                    "data-on-text": " Topics ",
+                    "data-off-text": " GEO "
+                })
+                    .property("checked", true);
+                $("#maps-switch").bootstrapSwitch("handleWidth", 48);
+                this._som_geo_switch_btn = $("#maps-switch")
+                    .on("switchChange.bootstrapSwitch", function (event, state) {
+                    _this._manyLens.SwitchMap();
+                });
+                this._manyLens.ManyLensHubRegisterClientFunction(this, "setTimeSpan", this.SetTimeSpan);
+                //this._manyLens.ManyLensHubRegisterClientFunction(this, "enableReorganizeIntervalBtn", this.EnableReorganizeIntervalBtn);
+                //this._manyLens.ManyLensHubRegisterClientFunction(this, "disableReorganizeIntervalBtn", this.DisableReorganizeIntervalBtn);
+            }
             SideBarNavigation.prototype.BuildList = function (listData) {
                 var _this = this;
-                this._menu_list_data = listData;
-                if (!this._menu_list_data) {
-                    this._menu_list_data = this.DemoData();
-                }
+                //TODO remove if default paramter works
+                //this._menu_list_data = listData;
+                //if ( !this._menu_list_data ) {
+                //    this._menu_list_data = this.DemoData();
+                //}
+                this._menu_list_data = listData || this._demo_data;
                 var menuList = this._menu_list_data.children;
                 for (var i = 0, menu_len = menuList.length; i < menu_len; ++i) {
+                    console.log('try init menu');
                     var sub_menu = menuList[i].children;
                     var li = this._menu_list.append("li")
                         .attr("class", "panel")
@@ -283,6 +273,9 @@ var ManyLens;
             SideBarNavigation.prototype.FinishLoadData = function () {
                 this._isLoaded = true;
                 this._launchDataBtn.classed("disabled", false);
+            };
+            SideBarNavigation.prototype.SetTimeSpan = function (index) {
+                d3.select("ul.dropdown-menu").selectAll("li")[0][3 - index].click();
             };
             SideBarNavigation.prototype.EnableReorganizeIntervalBtn = function () {
                 this._reorganizeIntervalBtn.bootstrapSwitch("disabled", false);
@@ -801,7 +794,6 @@ var ManyLens;
                     .style("fill-opacity", 1e-6)
                     .transition().duration(duration)
                     .style("fill-opacity", 1);
-                ;
                 //Update node
                 function sumLength(d) {
                     if (!d)
@@ -924,7 +916,6 @@ var ManyLens;
                     return d._children ? 20 : ".35em";
                 })
                     .style("fill-opacity", 1);
-                ;
                 //Exit node
                 var exitNode = this._stack_bar_node.exit();
                 exitNode
@@ -1092,9 +1083,7 @@ var ManyLens;
                                 .enter().append("g")
                                 .attr("class", "cell")
                                 .append("path")
-                                .attr("d", function (d) {
-                                return "M" + d.p.join("L") + "Z";
-                            })
+                                .attr("d", function (d) { return "M" + d.p.join("L") + "Z"; })
                                 .style("fill", function (d, i) {
                                 return _this._voronoi_color_scale[d.feature_type](d.feature_value); // this._voronoi_color( d.feature_type );
                             })
@@ -1116,13 +1105,9 @@ var ManyLens;
                     }
                 }
                 var xTime = this._mainView.selectAll(".curve.seg.time-tick").data(sectionData);
-                xTime.attr("x", function (d, i) {
-                    return _this._x_scale(d.beg);
-                });
+                xTime.attr("x", function (d) { return _this._x_scale(d.beg); });
                 xTime.enter().append("text")
-                    .attr("x", function (d, i) {
-                    return _this._x_scale(d.beg);
-                })
+                    .attr("x", function (d) { return _this._x_scale(d.beg); })
                     .attr("y", this._view_height)
                     .attr("class", "curve seg time-tick")
                     .text(function (d) {
@@ -1133,26 +1118,18 @@ var ManyLens;
                 });
                 xTime.exit().remove();
                 var truelineFunc = d3.svg.line()
-                    .x(function (d, i) {
-                    return _this._x_scale(d.index);
-                })
-                    .y(function (d, i) {
-                    return _this._y_scale(d.value);
-                })
+                    .x(function (d) { return _this._x_scale(d.index); })
+                    .y(function (d) { return _this._y_scale(d.value); })
                     .interpolate("linear");
                 var truepath = this._mainView.selectAll(".curve.section.path").data(sectionData, function (d) { return d.id; });
-                truepath.attr("d", function (d) {
-                    return truelineFunc(d.pathPoints);
-                });
+                truepath.attr("d", function (d) { return truelineFunc(d.pathPoints); });
                 truepath
                     .enter().append("path")
                     .attr("d", function (d) { return truelineFunc(d.pathPoints); })
                     .attr("class", "curve section path");
                 truepath.exit().remove();
                 var trueRestPath = this._mainView.selectAll(".curve.rest.true.path").data(restPathData);
-                trueRestPath.attr("d", function (d) {
-                    return truelineFunc(d);
-                });
+                trueRestPath.attr("d", truelineFunc);
                 trueRestPath
                     .enter().append("path")
                     .attr("d", truelineFunc)
@@ -6266,16 +6243,18 @@ var ManyLens;
                 ];
                 // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
                 this._element.attr("height", function () {
-                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                    var parentRect = this.parentNode.getBoundingClientRect();
+                    var selfRect = this.getBoundingClientRect();
+                    return parentRect.height - (selfRect.top - parentRect.top);
                 });
                 this._total_width = parseFloat(this._element.style("width"));
                 this._total_height = parseFloat(this._element.style("height"));
                 this._heatmap_container = document.createElement('div');
                 this._heatmap_container.id = "heatmap-container";
-                this._heatmap_container.style.left = this._element.node().offsetLeft.toString() + "px";
-                this._heatmap_container.style.top = this._element.node().offsetTop.toString() + "px";
-                this._heatmap_container.style.height = this._element.node().offsetHeight.toString() + "px";
-                this._heatmap_container.style.width = this._element.node().offsetWidth.toString() + "px";
+                //this._heatmap_container.style.left = ( <HTMLElement>this._element.node() ).offsetLeft.toString() + "px";
+                //this._heatmap_container.style.top = ( <HTMLElement>this._element.node() ).offsetTop.toString() + "px";
+                //this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString() + "px";
+                //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString() + "px";
                 document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
                 this._center_x = 0.5 * parseFloat(this._element.style("width"));
                 this._center_y = 0.5 * parseFloat(this._element.style("height"));
@@ -7746,7 +7725,9 @@ var ManyLens;
                 this._world_topojson_path = "./testData/countriesAlpha2.topo.json";
                 this._zoom = d3.behavior.zoom();
                 this._element.attr("height", function () {
-                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                    var parentRect = this.parentNode.getBoundingClientRect();
+                    var selfRect = this.getBoundingClientRect();
+                    return parentRect.height - (selfRect.top - parentRect.top);
                 });
                 this._total_width = parseFloat(this._element.style("width"));
                 this._total_height = parseFloat(this._element.style("height"));

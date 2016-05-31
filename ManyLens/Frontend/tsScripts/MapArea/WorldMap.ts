@@ -31,7 +31,9 @@ module ManyLens{
             constructor(element:D3.Selection,manyLens:ManyLens){
                 super(element,manyLens);
                 this._element.attr( "height", function () {
-                    return this.parentNode.clientHeight - this.offsetTop + 20;
+                    let parentRect = this.parentNode.getBoundingClientRect();
+                    let selfRect = this.getBoundingClientRect();
+                    return parentRect.height - (selfRect.top - parentRect.top);
                 });
                 this._total_width = parseFloat( this._element.style( "width" ));
                 this._total_height = parseFloat(this._element.style("height"));
