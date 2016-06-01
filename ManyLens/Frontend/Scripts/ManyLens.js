@@ -6251,10 +6251,11 @@ var ManyLens;
                 this._total_height = parseFloat(this._element.style("height"));
                 this._heatmap_container = document.createElement('div');
                 this._heatmap_container.id = "heatmap-container";
+                var heatmapContainerRect = this._element.node().getBoundingClientRect();
                 //this._heatmap_container.style.left = ( <HTMLElement>this._element.node() ).offsetLeft.toString() + "px";
                 //this._heatmap_container.style.top = ( <HTMLElement>this._element.node() ).offsetTop.toString() + "px";
-                //this._heatmap_container.style.height = ( <HTMLElement>this._element.node() ).offsetHeight.toString() + "px";
-                //this._heatmap_container.style.width = ( <HTMLElement>this._element.node() ).offsetWidth.toString() + "px";
+                this._heatmap_container.style.height = heatmapContainerRect.height + "px";
+                this._heatmap_container.style.width = heatmapContainerRect.width + "px";
                 document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
                 this._center_x = 0.5 * parseFloat(this._element.style("width"));
                 this._center_y = 0.5 * parseFloat(this._element.style("height"));
@@ -6504,7 +6505,8 @@ var ManyLens;
                     // translate output of Gaussian blur to the right and downwards with 2px
                     // store result in offsetBlur
                     filter.append("feOffset")
-                        .attr({ "in": "blur",
+                        .attr({
+                        "in": "blur",
                         "dx": 1,
                         "dy": 1,
                         "result": "offsetBlur"
