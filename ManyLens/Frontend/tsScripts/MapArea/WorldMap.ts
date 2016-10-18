@@ -102,7 +102,7 @@ module ManyLens{
             }
 
             public UpdateMap(mapData:[{countryName:string; tweets:any[]}]):void{
-                console.log(mapData);
+      
                 this._color.domain(d3.extent(mapData,function(d){return d.tweets.length;}));
                 this._data = mapData;
                 var countryColor = {};
@@ -119,7 +119,6 @@ module ManyLens{
                                 return this._color(countryColor[d.id]);
                             return "rgb(198,219,239)";
                     });
-
             }
 
             public Render(){

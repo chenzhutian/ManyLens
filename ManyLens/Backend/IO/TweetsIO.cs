@@ -5,6 +5,7 @@ using System.IO;
 using ManyLens.Models;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using ManyLens.Backend.Sentiment;
 
 namespace ManyLens.IO
 {
@@ -65,14 +66,14 @@ namespace ManyLens.IO
 
         public static SortedDictionary<string, Term> LoadTweetsAsTermsSortedByDate(string tweetFile, string cacheUserFile)
         {
-            if (tweetFile.Equals(config.Parameter.ebolaFile))
-            {
-                config.Parameter.TimeSpan = 0;
-            }
-            else
-            {
-                config.Parameter.TimeSpan = 2;
-            }
+            //if (tweetFile.Equals(config.Parameter.ebolaFile))
+            //{
+            //    config.Parameter.TimeSpan = 0;
+            //}
+            //else
+            //{
+            //    config.Parameter.TimeSpan = 2;
+            //}
             SortedDictionary<string, Term> sortedTerm = new SortedDictionary<string, Term>();
             //SortedDictionary<string, Term>[] sortedTerms = new SortedDictionary<string, Term>[4];
             //for (int i = 0; i < 4; ++i)
@@ -193,21 +194,20 @@ namespace ManyLens.IO
                     t.AddTweet(tweet);
                     sortedTerm.Add(date, t);
                 }
-
-
             }
+
             sr.Close();
 
-            //Cache the user file
-            //StreamWriter sw = new StreamWriter(cacheUserFile);
-            //foreach(KeyValuePair<string, User> item in users)
-            //{
-            //    //0userId \t  1userName \t 2tweetsCount \t 3following \t 4follower \t 5V \t 6gpsA \t 7gpsB
-            //    User user = item.Value;
-            //    sw.WriteLine(user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + 
-            //        user.Following + '\t' + user.Follower + '\t' + user.IsV + '\t' + user.Lon + '\t' + user.Lat);
-            //}
-            //sw.Close();
+            // Cache the user file
+            StreamWriter sw = new StreamWriter(cacheUserFile);
+            foreach(KeyValuePair<string, User> item in users)
+            {
+                //0userId \t  1userName \t 2tweetsCount \t 3following \t 4follower \t 5V \t 6gpsA \t 7gpsB
+                User user = item.Value;
+                sw.WriteLine(user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + 
+                    user.Following + '\t' + user.Follower + '\t' + user.IsV + '\t' + user.Lon + '\t' + user.Lat);
+            }
+            sw.Close();
 
             return sortedTerm;
         }
@@ -283,9 +283,9 @@ namespace ManyLens.IO
             StreamWriter sw = new StreamWriter(tweetsFilePath);
             foreach (Term term in tp)
             {
-                //0date \t 1HasPreprocessed \t 2tweetId \t userId \t 3gpsA \t 4gpsB \t countryName \t 6hashTags \t 7derivedContent \t 8tweetContent
-                String s = term.TermDate.ToString("yyyy/MM/dd/HH/mm/ss") + "CZT" +
-                           term.TweetsCount + (term.WithinInterval ? "CZT" : "");
+                //0date \t 1DTweetsCount 2[\t 0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent]
+                String s = term.TermDate.ToString("yyyyMMddHHmmss") + "CzTCZT" +
+                           term.DTweetsCount + (term.WithinInterval ? "CzTCZT" : "");
                 if (term.WithinInterval)
                 {
                     List<String> tweetsData = new List<String>();
@@ -300,7 +300,7 @@ namespace ManyLens.IO
                             tweet.OriginalContent;
                         tweetsData.Add(tempTweetData);
                     }
-                    s += String.Join("CTZ", tweetsData);
+                    s += String.Join("CtZCTZ", tweetsData);
                 }
                 sw.WriteLine(s);
             }
@@ -328,13 +328,15 @@ namespace ManyLens.IO
             sr.Close();
 
             sr = new StreamReader(cacheTermsFile);
+            Sentiment sentiment = new Sentiment();
             SortedDictionary<string, Term> terms = new SortedDictionary<string, Term>();
             while (!sr.EndOfStream)
             {
                 string line = sr.ReadLine();
 
-                string[] attributes = line.Split(new string[] { "CZT" }, StringSplitOptions.None);
-                attributes[0] = attributes[0].Replace(@"/", "");
+                string[] attributes = line.Split(new string[] { "CzTCZT" }, StringSplitOptions.None);
+                // attributes[0] = attributes[0].Replace(@"/", "");
+
                 if(attributes.Length < 3)
                 {
                     terms.Add(attributes[0], new Term(attributes[0], true, int.Parse(attributes[1])));
@@ -342,16 +344,17 @@ namespace ManyLens.IO
                 else
                 {
                     Term term = new Term(attributes[0]);
-                    string[] rawTweetsData = attributes[2].Split(new string[] { "CTZ" }, StringSplitOptions.None);
+                    string[] rawTweetsData = attributes[2].Split(new string[] { "CtZCTZ" }, StringSplitOptions.None);
                     for (int i = 0, len = rawTweetsData.Length; i < len; ++i)
                     {
                         string tempData = rawTweetsData[i];
                         string[] tweetsAttribute = tempData.Split('\t');
                         if (tweetsAttribute.Length < 8) continue;
-                        //0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent
-
+                        //0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent \t 8sentiment
                         Tweet tweet = new Tweet(tweetsAttribute[0], tweetsAttribute[7], attributes[0], tweetsAttribute[2], tweetsAttribute[3], users[tweetsAttribute[1]]);
                         tweet.DerivedContent = tweetsAttribute[6];
+                        tweet.CountryName = tweetsAttribute[4];
+                        tweet.Sentiment = int.Parse(tweetsAttribute[8]); //Sentiment.findSentiment(tweet.DerivedContent);
                         string[] hashTags = tweetsAttribute[5].Split('_');
                         foreach(string hashTag in hashTags)
                         {

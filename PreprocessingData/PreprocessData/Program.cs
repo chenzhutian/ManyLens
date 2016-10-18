@@ -52,7 +52,7 @@ namespace Examplinvi
             
         }
 
-        static  void Main()
+        static  void subMain()
         {
 
             string tweetFile = "D:\\Visual Studio 2013\\Projects\\ManyLens\\ManyLens\\Backend\\DataBase\\FIFACASESampleEventUserIds";

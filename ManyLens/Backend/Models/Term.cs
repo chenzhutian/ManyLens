@@ -13,7 +13,7 @@ namespace ManyLens.Models
         private DateTime termDate;
         private bool isTweetBurstPoint;//1 = this day is a burst point or 0=not in terms of tweetFreq or smoothedTweetFreq
         private double tweetBurstCutoff;//cutoff of tweet
-        
+
         private uint pointType = 0; // 1 = start, 2 = end, 3 = start+end, 4 = inside
         private string begPoint;
         private string endPoint;
@@ -122,8 +122,12 @@ namespace ManyLens.Models
             get
             {
                 if (this.isFake) return this.fakeTweetsCount;
+                // Debug.WriteLine("Before preproccessing:" + this.Tweets.Count);
+
+
                 if (this.HasPreprocessed) return this.Tweets.Count;
                 this.PreproccessingParallel();
+                // Debug.WriteLine("After preproccessing:" + this.Tweets.Count);
                 return this.Tweets.Count;
             }
         }
@@ -133,12 +137,12 @@ namespace ManyLens.Models
             : base()
         {
             string formatString = "yyyyMMddHHmmss";
-            this.TermDate =DateTime.ParseExact(date, formatString, null);
+            this.TermDate = DateTime.ParseExact(date, formatString, null);
             this.id = date;//date.ToString("yyyyMMddHHmmss");
         }
 
         public Term(string date, bool isFake, int tweetsCount)
-            :base()
+            : base()
         {
             string formatString = "yyyyMMddHHmmss";
             this.TermDate = DateTime.ParseExact(date, formatString, null);
@@ -148,7 +152,7 @@ namespace ManyLens.Models
         }
 
         public Term(DateTime date)
-            :base()
+            : base()
         {
             this.TermDate = date;
             this.id = date.ToString("yyyyMMddHHmmss");
@@ -164,9 +168,13 @@ namespace ManyLens.Models
             List<VoronoiTweetsFeature> features = new List<VoronoiTweetsFeature>();
             string follower = "follower";
             // string following = "following";
-            string tweetLength = "tweetLength";
-            string hastagCount = "hastagCount";
+            // string tweetLength = "tweetLength";
+            // string hastagCount = "hastagCount";
             string isV = "isV";
+            //string isRetweet = "isRetweet";
+            //string kloutScore = "kloutScore";
+            //string tweetsCount = "tweetsCount";
+            string sentiment = "sentiment";
             int sampleCount = (int)(this.TweetsCount * 0.001);
             if (sampleCount < 20) sampleCount = 20;
             Random rnd = new Random();
@@ -178,13 +186,17 @@ namespace ManyLens.Models
                 tweetsScore.Add(t, score);
             });
 
-            foreach(KeyValuePair<Tweet,double> item in tweetsScore.OrderByDescending(t => t.Value).Take(sampleCount).ToList())
+            foreach (KeyValuePair<Tweet, double> item in tweetsScore.OrderByDescending(t => t.Value).Take(sampleCount).ToList())
             {
                 Tweet t = item.Key;
                 features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_0", feature_type = follower, feature_value = t.User.Follower });
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = isV, feature_value = t.User.IsV ? 1 : 0});
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = tweetLength, feature_value = t.Length });
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = hastagCount, feature_value = t.HashTag.Count });
+                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = isV, feature_value = t.User.IsV ? 1 : 0 });
+                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = tweetLength, feature_value = t.Length });
+                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = isRetweet, feature_value = t.SourceUserName != null ? 1 : 0, feature_detail = t.SourceUserName });
+                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = hastagCount, feature_value = t.HashTag.Count == 0 ? 0 : 1 });
+                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = kloutScore, feature_value = (int)(t.User.KloutScore) });
+                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = tweetsCount, feature_value = t.User.TweetsCount });
+                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = sentiment, feature_value = t.Sentiment, feature_detail = t.OriginalContent });
             }
 
             return features.OrderBy(t => t.feature_type).ToList();

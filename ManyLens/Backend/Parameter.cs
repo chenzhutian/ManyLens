@@ -10,7 +10,6 @@ namespace ManyLens.config
     {
         //public static string tweetFile = ebolaFile;
         private static int timeSpan = 2;
-        private static int lastTimeSpan = 2;
         private static int hashDimension = 4096;
         private static int dimensionAfterRandomMapping = 1024;
         private static float[] rmMatrix = myMath.GaussianRandom.GetRMMatrix(DimensionAfterRandomMapping, HashDimension);
@@ -22,14 +21,15 @@ namespace ManyLens.config
         public static string cities1000File = RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
         public static string stopwordFile = RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
         public static string twitterKeysFile = RootFolder + "Backend\\DataBase\\TWITTERKEY";
-        public static string processedTermsFile = RootFolder + "Backend\\DataBase\\ProcessedTermsData" + timeSpan;
-        public static string processedUserFIle = RootFolder + "Backend\\DataBase\\ProcessedUsersData" + timeSpan;
+        public static string processedTermsFile = RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
+        public static string processedTermsFileWithSentiment = processedTermsFile + "WithSentiment_";
+        //public static string processedTermsFileWithSentiment = "Backend\\DataBase\\ProcessedTermsData" + "fifa" + 2 + "WithSentiment_";
+        public static string processedUserFIle = RootFolder + "Backend\\DataBase\\ProcessedUsersData" + "fifa" + timeSpan;
         public static string cacheMapDataDir = RootFolder + "Backend\\DataBase\\CacheMap\\";
 
         public static string RootFolder
         {
             get { return Parameter.rootFolder; }
-            set { Parameter.rootFolder = value; }
         }
         public static int HashDimension
         {
@@ -49,11 +49,7 @@ namespace ManyLens.config
         public static int TimeSpan
         {
             get { return Parameter.timeSpan; }
-            set { Parameter.lastTimeSpan = Parameter.timeSpan; Parameter.timeSpan = value > 3 ? 3 : value < 0 ? 0 : value; }
-        }
-        public static int LastTimeSpan
-        {
-            get { return Parameter.lastTimeSpan; }
+            set { Parameter.timeSpan = value > 3 ? 3 : value < 0 ? 0 : value; }
         }
 
         public static string[] intervals = { "Month", "Day", "Hour", "Minute" };

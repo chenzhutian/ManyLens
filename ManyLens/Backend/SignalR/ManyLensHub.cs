@@ -45,13 +45,13 @@ namespace ManyLens.SignalR
             lensDatas.Clear();
             await Task.Run(() =>
              {
-                 if (userKloutScore == null) userKloutScore = TweetsIO.LoadUserKloutSocre(config.Parameter.fifaFile + "EventUserIdsMapMap");
+                 if (userKloutScore == null) userKloutScore = TweetsIO.LoadUserKloutSocre(config.Parameter.ebolaFile + "EventUserIdsMapMap");
                  if (dateTweetsFreq == null)
                  {
                      if (useCache)
-                         dateTweetsFreq = TweetsIO.LoadCacheData(config.Parameter.processedTermsFile, config.Parameter.processedUserFIle);
+                         dateTweetsFreq = TweetsIO.LoadCacheData(config.Parameter.processedTermsFileWithSentiment, config.Parameter.processedUserFIle);
                      else
-                         dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile, config.Parameter.processedUserFIle);
+                         dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.ebolaFile, config.Parameter.processedUserFIle);
                  }
                  if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                  if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);
@@ -226,13 +226,11 @@ namespace ManyLens.SignalR
                         end = tp[t].EndPoint
                     };
 
-                    //if (point.id == "20140709043515")
+                    //if (point.id == "20141008000000")
                     //{
-                    //    int asdfw = 0;
-                    //    ++asdfw;
+
 
                     //    Debug.WriteLine("Stop please");
-                    //    return;
                     //}
 
                     Clients.Caller.addPoint(point);
@@ -241,7 +239,7 @@ namespace ManyLens.SignalR
                     //    Debug.WriteLine(seperatePoint.ID);
                     //    return tp[t];
                     //}
-                    Thread.Sleep(100);
+                    Thread.Sleep(150);
                 }
 
             }, ctoken);
@@ -291,7 +289,7 @@ namespace ManyLens.SignalR
                             Object obj = new Object();
                             double minDist = double.MaxValue;
                             string countryName = "";
-                            Parallel.ForEach(ManyLens.SignalR.ManyLensHub.cities1000, (city) =>
+                            Parallel.ForEach(ManyLensHub.cities1000, (city) =>
                             {
                                 double dx = tweet.Lon - city.lon;
                                 double dy = tweet.Lat - city.lat;
@@ -308,7 +306,6 @@ namespace ManyLens.SignalR
                                 }
                             });
                             tweet.CountryName = countryName;
-
                         }
 
                         if (!tweetsGroupByLocation.ContainsKey(tweet.CountryName))

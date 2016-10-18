@@ -43,6 +43,7 @@ namespace ManyLens.Models
         public string id { set; get; }
         public string feature_type { set; get; }
         public int feature_value { set; get; }
+        public string feature_detail { set; get; } 
     }
 
     public class Point

@@ -21,6 +21,7 @@ namespace ManyLens.Models
         private double lon;
         private double lat;
         private string countryName = null; // will be add later 
+        private int sentiment = 0;
 
         private User user;
         private string sourceUserName;
@@ -98,6 +99,11 @@ namespace ManyLens.Models
         {
             get { return countryName; }
             set { countryName = value; }
+        }
+        public int Sentiment
+        {
+            get { return sentiment; }
+            set { sentiment = value; }
         }
         #endregion
 

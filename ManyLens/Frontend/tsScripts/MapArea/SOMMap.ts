@@ -230,28 +230,11 @@ module ManyLens {
                         this._translate_y = d3.event.translate[1];
                         this._scale = currentLevel;
 
-                    })
-                    ;
+                    });
 
                 this.init();
 
-                var defs = this._element.append( 'svg:defs' );
-                // define arrow markers for leading arrow
-                defs.append( 'svg:marker' )
-                    .attr( {
-                        'id': 'mark-end-arrow',
-                        'viewBox': '0 -5 10 10',
-                        'refX': 7,
-                        'markerWidth': 3.5,
-                        'markerHeight': 3.5,
-                        'orient': 'auto'
-                    })
-                    .append( 'path' )
-                    .attr( {
-                        "class": "highlight-arrow",
-                        'd': 'M0,-5L10,0L0,5z'
-                    })
-                    ;
+
 
                 this._manyLens.ManyLensHubRegisterClientFunction( this, "showVisMap", this.ShowVisMap );
                 this._manyLens.ManyLensHubRegisterClientFunction( this, "updateVisMap", this.UpdateVisMap );
@@ -273,6 +256,23 @@ module ManyLens {
                 //this._element
                 //      .call( this._zoom )
                 //      .on("dblclick.zoom", null);
+
+                var defs = this._element.append( 'svg:defs' );
+                // define arrow markers for leading arrow
+                defs.append( 'svg:marker' )
+                    .attr( {
+                        'id': 'mark-end-arrow',
+                        'viewBox': '0 -5 10 10',
+                        'refX': 7,
+                        'markerWidth': 3.5,
+                        'markerHeight': 3.5,
+                        'orient': 'auto'
+                    })
+                    .append( 'path' )
+                    .attr( {
+                        "class": "highlight-arrow",
+                        'd': 'M0,-5L10,0L0,5z'
+                    });
 
             }
 
@@ -459,8 +459,7 @@ module ManyLens {
                                         })
                                         .attr( "d", ( d ) => {
                                             return 'M' + ( -50 + d.leftOffset + d.width * this._unit_width * 0.5 ) + ',-10L' + ( d.leftOffset + d.width * this._unit_width * 0.5 ) + ',70';
-                                        })
-                                        ;
+                                        });
                                 }
                                     break;
                                 case 1: {
@@ -474,11 +473,9 @@ module ManyLens {
                                     break;
                             }
 
-
                             this._classifier_context_menu.remove();
                             this._classifier_context_menu = null;
-                        })
-                        ;
+                        });
 
                     this._classifier_context_menu.append( "line" )
                         .attr( {
@@ -486,8 +483,7 @@ module ManyLens {
                             x2: 180,
                             y1: 40,
                             y2: 40
-                        })
-                        ;
+                        });
                 }
 
                 this._classifier_context_menu.attr( "transform", "translate(" + [p[0], p[1]] + ")" );
@@ -518,6 +514,7 @@ module ManyLens {
 
                 var labels = d3.selectAll( "#mapSvg" + visData.mapID ).selectAll( "text.map.label" ).remove();
                 var fontSizeScale = d3.scale.pow().domain( d3.extent( visData.labels, function ( d ) { return d.value; }) ).range( [10, 30] );
+                console.log(visData.labels);
                 d3.selectAll( "#mapSvg" + visData.mapID ).selectAll( "text.map.label" )
                     .data( visData.labels, function ( d ) { return d.x + "-" + d.y; })
                     .enter().append( "text" )
@@ -531,7 +528,6 @@ module ManyLens {
                         return fontSizeScale( d.value ) + "px";
                     })
                     .text( function ( d ) { return d.label; })
-                    ;
 
 
             }
@@ -577,21 +573,21 @@ module ManyLens {
 
                 var fontSizeScale = d3.scale.pow().domain( d3.extent( visData.labels, function ( d ) { return d.value; }) ).range( [10, 30] );
 
-                console.log( visData.unitsData.filter( function ( d: UnitData ) { return d.isSpam; }) );
-                svg.selectAll( "text.map.spam" )
-                    .data( visData.unitsData.filter( function ( d: UnitData ) { return d.isSpam; }), function ( d ) { return d.unitID; })
-                    .enter().append( "text" )
-                    .attr( "x", ( d ) => { return this._left_offset + d.x * this._unit_width; })
-                    .attr( "y", ( d ) => { return this._top_offset + d.y * this._unit_height; })
-                    .attr( "dy", ( d ) => { return this._unit_width })
-                    .attr( {
-                        "class": "map spam"
-                    })
-                    .style( "font-size", ( d ) => {
-                        return fontSizeScale( d.value ) + "px";
-                    })
-                    .text( function ( d ) { return "spam"; })
-                    ;
+                // console.log( visData.unitsData.filter( function ( d: UnitData ) { return d.isSpam; }) );
+                //svg.selectAll( "text.map.spam" )
+                //    .data( visData.unitsData.filter( function ( d: UnitData ) { return d.isSpam; }), function ( d ) { return d.unitID; })
+                //    .enter().append( "text" )
+                //    .attr( "x", ( d ) => { return this._left_offset + d.x * this._unit_width; })
+                //    .attr( "y", ( d ) => { return this._top_offset + d.y * this._unit_height; })
+                //    .attr( "dy", ( d ) => { return this._unit_width })
+                //    .attr( {
+                //        "class": "map spam"
+                //    })
+                //    .style( "font-size", ( d ) => {
+                //        return fontSizeScale( d.value ) + "px";
+                //    })
+                //    .text( function ( d ) { return "spam"; })
+                //    ;
 
                 svg.selectAll( "text.map.label" )
                     .data( visData.labels, function ( d ) { return d.x + "-" + d.y; })

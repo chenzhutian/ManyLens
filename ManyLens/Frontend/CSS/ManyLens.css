@@ -1,12 +1,6 @@
 ﻿html, body {
     height: 100%;
-
     background-color: #E8E9EE;
-    /*background-color: #fff;*/
-    -moz-user-select: -moz-none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
     user-select: none;
 }
 
@@ -21,46 +15,47 @@ div#page-content {
 
 /*-------------------top menu------------------*/
 .navbar-header {
-    text-align:center;
-    width:180px;
-    height:48px;
-    padding-top:5px;
+    text-align: center;
+    width: 180px;
+    height: 48px;
+    padding-top: 5px;
 }
 
 .navbar-brand {
-    float:none;
-    font-size:30px;
+    float: none;
+    font-size: 30px;
 }
+
     .navbar-brand i {
-        padding-right:4px;
+        padding-right: 4px;
     }
 
 .navbar-form {
-    padding-top:7px;
-    padding-bottom:7px;
+    padding-top: 7px;
+    padding-bottom: 7px;
 }
 
 /*------------Define each view------------------*/
 .view-title {
-    text-align:center;
+    text-align: center;
     border: none;
     border-radius: 0;
-    cursor:default;
+    cursor: default;
 }
 
 .view-title-md-red {
-    font-size:15px;
-    color:#fff;
+    font-size: 15px;
+    color: #fff;
     padding-top: 0;
     padding-bottom: 0;
     background: #E9573F;
 }
 
-.view-title-md-red p {
-    font-size:20px;
-    margin: 0;
-    font-weight : 400;
-}
+    .view-title-md-red p {
+        font-size: 20px;
+        margin: 0;
+        font-weight: 400;
+    }
 
 .view-title-lg-yellow {
     padding-top: 30px;
@@ -68,13 +63,14 @@ div#page-content {
     background: #F6BB42;
 }
 
-.view-title-lg-yellow .glyphicon {
-    font-size:80px;
-}
-.view-title-lg-yellow p {
-    font-size:30px;
-    margin:0 0 5px;
-}
+    .view-title-lg-yellow .glyphicon {
+        font-size: 80px;
+    }
+
+    .view-title-lg-yellow p {
+        font-size: 30px;
+        margin: 0 0 5px;
+    }
 
 .view-title-sm-green {
     /*padding-top: 10px;
@@ -94,32 +90,36 @@ div#page-content {
 div#mapView {
     background-color: #fff;
 }
+
 svg#mapSvg {
-    position:relative;
+    position: relative;
 }
+
     svg#mapSvg .som-map rect.unit {
-        opacity:0;
+        opacity: 0;
     }
-        svg#mapSvg .som-map text.map.label {
-            fill:#F4D03F;
-        }
+
+    svg#mapSvg .som-map text.map.label {
+        fill: #F4D03F;
+    }
 
     svg#mapSvg .som-map path.control-layout {
         fill: none;
-        pointer-events:visible;
+        pointer-events: visible;
     }
+
     svg#mapSvg .som-map path.classifier-link {
-        stroke:#BFBFBF;
-        stroke-width:2;
-        fill:none;
-        pointer-events:visible;
-        marker-end: url(#mark-end-arrow)
+        stroke: #BFBFBF;
+        stroke-width: 2;
+        fill: none;
+        pointer-events: visible;
+        marker-end: url(#mark-end-arrow);
     }
 
     svg#mapSvg .som-map path.control-layout:hover,
-    svg#mapSvg .som-map path.control-layout:hover ~ path.classifier-link{
+    svg#mapSvg .som-map path.control-layout:hover ~ path.classifier-link {
         stroke: #F7CA18;
-        stroke-width:5px;
+        stroke-width: 5px;
     }
 
 g#som-map-context-menu rect#context-menu-base {
@@ -129,78 +129,81 @@ g#som-map-context-menu rect#context-menu-base {
 
 g#som-map-context-menu line {
     stroke-width: 1px;
-    stroke:#dae3e9;
+    stroke: #dae3e9;
 }
 
-g#som-map-context-menu .context-menu-option text{
-    font-size:15px;
-    pointer-events:none;
+g#som-map-context-menu .context-menu-option text {
+    font-size: 15px;
+    pointer-events: none;
     cursor: default;
 }
 
-g#som-map-context-menu .context-menu-option rect{
-    fill:#f7f7f7;
+g#som-map-context-menu .context-menu-option rect {
+    fill: #f7f7f7;
 }
 
-g#som-map-context-menu .context-menu-option rect:hover {
-    fill:#59ABE3;
-}
+    g#som-map-context-menu .context-menu-option rect:hover {
+        fill: #59ABE3;
+    }
 
 
 path.highlight-arrow {
-    stroke:#F5AB35;
-    fill:#F5AB35;
+    stroke: #F5AB35;
+    fill: #F5AB35;
 }
+
 path#hightlight-arrow-line {
-    stroke-width:10px;
+    stroke-width: 10px;
     marker-end: url(#mark-end-arrow);
 }
 
 div#heatmap-container {
-      pointer-events:none;
-      position:absolute;           
-      overflow:hidden;  
+    pointer-events: none;
+    position: absolute;
+    overflow: hidden;
 }
+
     div#heatmap-container > canvas {
-        position:absolute;
+        position: absolute;
     }
 
 
 .brush .extent {
-  fill-opacity: .1;
-  stroke: #fff;
-  shape-rendering: crispEdges;
+    fill-opacity: .1;
+    stroke: #fff;
+    shape-rendering: crispEdges;
 }
 
 svg#mapSvg g#world-countries {
-    
 }
 
 /*-----------curve view------------*/
 div#curveView {
-    background-color:#3EAFDB;
-    background-color:#BAEAFF;
-    background-color:rgba(255,255,255,1);
+    background-color: #3EAFDB;
+    background-color: #BAEAFF;
+    background-color: rgba(255,255,255,1);
 }
 
     div#curveView text {
-        fill:#000;
-        opacity:1;
-        cursor:default;
-        pointer-events:none;
+        fill: #000;
+        opacity: 1;
+        cursor: default;
+        pointer-events: none;
     }
 
-.stack.node rect{
-    fill:#E87E04;/*rgb(31, 145, 189);*/
+.stack.node rect {
+    fill: #E87E04; /*rgb(31, 145, 189);*/
     stroke: #fff;
     stroke-width: 0.5px;
 }
-.stack.node rect:hover{
-    stroke: #F5AB35;
-    stroke-width: 1.5px;
-}
+
+    .stack.node rect:hover {
+        stroke: #F5AB35;
+        stroke-width: 1.5px;
+    }
+
 g.cells path.entropy-ring {
-    fill:#1abc9c;
+    fill: #546E7A;
 }
 /*rgb(31, 145, 189);*/
 path.stack.link,
@@ -208,7 +211,7 @@ path.stack.link,
 .curve.axis line {
     fill: none;
     stroke: #ccc;
-    stroke-width:1.5px;
+    stroke-width: 1.5px;
 }
 
 .curve.axis path,
@@ -220,8 +223,8 @@ path.stack.link,
     font-size: 12px;
 }
 
-g.curve.seg rect{
-    fill: rgb(31, 145, 189);/*#E87E04;*/
+g.curve.seg rect {
+    fill: rgb(31, 145, 189); /*#E87E04;*/
     stroke: #fff;
     stroke-width: 0.5px;
 }
@@ -233,28 +236,28 @@ path.curve.section.path {
 }
 
 path.curve.rest.path {
-    stroke:rgb(31, 145, 189); /*#E87E04;*/
+    stroke: rgb(31, 145, 189); /*#E87E04;*/
     stroke-width: 3px;
     fill: none;
 }
 
 circle.curve.node {
     fill: #fff;
-    stroke: rgb(31, 145, 189);;/*#E87E04*/
+    stroke: rgb(31, 145, 189);
+    ; /*#E87E04*/
     stroke-width: 1.5px;
 }
 
 .progress {
-    border-radius:0;
+    border-radius: 0;
 }
+
 .progress-bar {
-    background-color:#3EAFDB;
+    background-color: #3EAFDB;
 }
 
 /*-----------WordCloudLens------------*/
 text.word-cloud {
-    
-
 }
 
 /*-----------MapLens------------*/
@@ -341,8 +344,9 @@ text.word-cloud {
         .nav-side-menu .menu-list li.panel {
             background-color: #f7f7f7;
         }
+
             .nav-side-menu .menu-list li.panel div {
-                text-indent:15px;
+                text-indent: 15px;
             }
     /*.nav-side-menu .menu-list ul .active,
         .nav-side-menu .menu-list li .active {
@@ -447,12 +451,12 @@ text.word-cloud {
 
 
 .list-group {
-    background-color:#fff;
+    background-color: #fff;
     margin-bottom: 0;
-    position:absolute;
-    border:1px solid #E8E9EE;
-    padding-right:0;
-    cursor:default;
+    position: absolute;
+    border: 1px solid #E8E9EE;
+    padding-right: 0;
+    cursor: default;
 }
 
 .list-group-item {
@@ -472,4 +476,18 @@ text.word-cloud {
 
 .pagination {
     margin: 0;
+}
+
+.test{
+    color:#FFF8E1;
+    color:#FFECB3;
+    color:#FFD54F;
+    color:#FFB300;
+    color:#FF6F00;
+
+    color:#C62828;
+    color:#F44336;
+    color:#FAFAFA;
+    color:#A5D6A7;
+    color:#4CAF50;
 }
