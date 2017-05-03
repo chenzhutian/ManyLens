@@ -1,5 +1,5 @@
 ﻿import * as d3 from "d3";
-import { Selection, behavior } from "d3";
+import { Selection, behavior, ZoomEvent, DragEvent, BaseEvent } from "d3";
 import { D3ChartObject } from "../D3ChartObject";
 import { ExtractDataFunc } from "./index";
 import { ManyLens } from "../ManyLens";
@@ -65,25 +65,23 @@ export class TweetsListLens extends D3ChartObject {
             .scaleExtent([1, 4])
             .on("zoom", () => {
                 this.SelectCircleZoomFunc();
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as ZoomEvent).sourceEvent.stopPropagation();
             })
             ;
 
         this._select_circle_drag
             .origin(function (d) { return d; })
             .on("dragstart", () => {
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as DragEvent).sourceEvent.stopPropagation();
             })
             .on("drag", () => {
                 this.SelectCircleDragFunc();
-
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as DragEvent).sourceEvent.stopPropagation();
             })
             .on("dragend", (d) => {
                 this.SelectCircleDragendFunc(d);
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as DragEvent).sourceEvent.stopPropagation();
             })
-            ;
 
         this._list_drag
             .origin(function (d) { return { x: d.ox, y: d.oy }; })
@@ -99,19 +97,16 @@ export class TweetsListLens extends D3ChartObject {
                         left: (tData.tx + this._list_x) + "px",
                         top: (tData.ty + this._list_y) + "px",
                     })
-                    ;
 
                 this._sc_lc_svg.select("line")
                     .attr("x1", this._select_circle_cx)
                     .attr("y1", this._select_circle_cy)
                     .attr("x2", tData.tx + this._list_x / tData.scale)
                     .attr("y2", tData.ty + this._list_y / tData.scale)
-                    ;
             })
             .on("dragend", () => {
 
             })
-            ;
 
     }
 
@@ -364,7 +359,7 @@ export class TweetsListLens extends D3ChartObject {
     //The entrance of new data
     protected SelectCircleDragendFunc(selectCircle): void {
         if (!this._has_put_down) return;
-        if (d3.event.sourceEvent.button != 0) return;
+        if ((d3.event as DragEvent).sourceEvent.button != 0) return;
 
         //传递数据给Lens显示
         if (!this._has_showed_lens) {
@@ -384,10 +379,6 @@ export class TweetsListLens extends D3ChartObject {
                     + this._sc_lc_default_dist) * sinTheta;
 
             this.ExtractData(); //it will invoke display automatically when finishing extractdata
-
-
-
-
             this._has_showed_lens = true;
         }
 

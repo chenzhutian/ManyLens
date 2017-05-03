@@ -4,6 +4,8 @@ import { BaseD3Lens } from "./Lens/index";
 import { ManyLensHub } from "./Hub";
 import { SideBarNavigation } from "./SideBarNavigation";
 import { Curve } from "./Cruve";
+import { SOMMap } from "./MapArea/SOMMap";
+import { WorldMap } from "./MapArea/WorldMap";
 // import "signalr";
 
 export class ManyLens {
@@ -22,8 +24,8 @@ export class ManyLens {
 
     private _mapSvg_id: string = "mapSvg";
     private _mapSvg: Selection<any>;
-    private _SOM_mapArea: MapArea.SOMMap;
-    private _GEO_mapArea: MapArea.WorldMap;
+    private _SOM_mapArea: SOMMap;
+    private _GEO_mapArea: WorldMap;
     private _geo_map_mode: boolean = false;
     // private _current_map;
 
@@ -65,10 +67,10 @@ export class ManyLens {
 
         /*------------------------Initial other Component--------------------------------*/
         this._mapSvg = d3.select("#" + this._mapSvg_id);
-        this._SOM_mapArea = new MapArea.SOMMap(this._mapSvg, this);
+        this._SOM_mapArea = new SOMMap(this._mapSvg, this);
         this._SOM_mapArea.Render();
 
-        this._GEO_mapArea = new MapArea.WorldMap(this._mapSvg, this);
+        this._GEO_mapArea = new WorldMap(this._mapSvg, this);
         //this._GEO_mapArea.Render();
 
         //var listViewContainer = d3.select("#tweetsView")

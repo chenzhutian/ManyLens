@@ -58,12 +58,10 @@ export class NetworkLens extends BaseSingleLens {
         });
 
         this._location_x_scale
-            .domain(d3.extent(nodes, function (d: Node) { return d.x; }))
-            ;
+            .domain(d3.extent(nodes, (d: Node) => d.x))
 
         this._location_y_scale
-            .domain(d3.extent(nodes, function (d: Node) { return d.y; }))
-            ;
+            .domain(d3.extent(nodes, (d: Node) => d.y))
 
         nodes.forEach((d) => {
             if ((d.x * d.x + d.y * d.y) > this.LensRadius * this.LensRadius) {
@@ -95,8 +93,8 @@ export class NetworkLens extends BaseSingleLens {
             .enter().append("circle")
             .attr("class", "network node")
             .attr("r", 4)
-            .attr('cx', d => d.x)
-            .attr('cy', d => d.y)
+            .attr('cx', (d: Node) => d.x)
+            .attr('cy', (d: Node) => d.y)
             .style({
                 "stroke": "steelblue",
                 "fill": "#fff",
@@ -107,8 +105,8 @@ export class NetworkLens extends BaseSingleLens {
         this._force.on("tick", () => {
 
             node
-                .attr('cx', d => d.x)
-                .attr('cy', d => d.y);
+                .attr('cx', (d: Node) => d.x)
+                .attr('cy', (d: Node) => d.y);
 
             link
                 .attr('x1', d => d.source.x)

@@ -3504,236 +3504,234 @@ define("Lens/TreeNetworkLens", ["require", "exports", "d3", "Lens/index"], funct
     TreeNetworkLens.Type = "TreeNetworkLens";
     exports.TreeNetworkLens = TreeNetworkLens;
 });
-var ManyLens;
-(function (ManyLens) {
-    var MapArea;
-    (function (MapArea) {
-        class Shader {
-            constructor(gl, arg) {
-                var fragment, vertex;
-                this._gl = gl;
-                vertex = arg.vertex, fragment = arg.fragment;
-                this._program = this._gl.createProgram();
-                this._vs = this._gl.createShader(this._gl.VERTEX_SHADER);
-                this._fs = this._gl.createShader(this._gl.FRAGMENT_SHADER);
-                this._gl.attachShader(this._program, this._vs);
-                this._gl.attachShader(this._program, this._fs);
-                this.compileShader(this._vs, vertex);
-                this.compileShader(this._fs, fragment);
-                this.link();
-                this._value_cache = {};
-                this._uniform_cache = {};
-                this._attribCache = {};
+define("MapArea/WebGLLod", ["require", "exports", "MapArea/heatmapLayer"], function (require, exports, heatmapLayer_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class Shader {
+        constructor(gl, arg) {
+            var fragment, vertex;
+            this._gl = gl;
+            vertex = arg.vertex, fragment = arg.fragment;
+            this._program = this._gl.createProgram();
+            this._vs = this._gl.createShader(this._gl.VERTEX_SHADER);
+            this._fs = this._gl.createShader(this._gl.FRAGMENT_SHADER);
+            this._gl.attachShader(this._program, this._vs);
+            this._gl.attachShader(this._program, this._fs);
+            this.compileShader(this._vs, vertex);
+            this.compileShader(this._fs, fragment);
+            this.link();
+            this._value_cache = {};
+            this._uniform_cache = {};
+            this._attribCache = {};
+        }
+        attribLocation(name) {
+            var location;
+            location = this._attribCache[name];
+            if (location === void 0) {
+                location = this._attribCache[name] = this._gl.getAttribLocation(this._program, name);
             }
-            attribLocation(name) {
-                var location;
-                location = this._attribCache[name];
-                if (location === void 0) {
-                    location = this._attribCache[name] = this._gl.getAttribLocation(this._program, name);
-                }
-                return location;
+            return location;
+        }
+        compileShader(shader, source) {
+            this._gl.shaderSource(shader, source);
+            this._gl.compileShader(shader);
+            if (!this._gl.getShaderParameter(shader, this._gl.COMPILE_STATUS)) {
+                throw "Shader Compile Error: " + (this._gl.getShaderInfoLog(shader));
             }
-            compileShader(shader, source) {
-                this._gl.shaderSource(shader, source);
-                this._gl.compileShader(shader);
-                if (!this._gl.getShaderParameter(shader, this._gl.COMPILE_STATUS)) {
-                    throw "Shader Compile Error: " + (this._gl.getShaderInfoLog(shader));
-                }
+        }
+        link() {
+            this._gl.linkProgram(this._program);
+            if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
+                throw "Shader Link Error: " + (this._gl.getProgramInfoLog(this._program));
             }
-            link() {
-                this._gl.linkProgram(this._program);
-                if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
-                    throw "Shader Link Error: " + (this._gl.getProgramInfoLog(this._program));
-                }
+        }
+        use() {
+            this._gl.useProgram(this._program);
+            return this;
+        }
+        uniformLoc(name) {
+            var location;
+            location = this._uniform_cache[name];
+            if (location === void 0) {
+                location = this._uniform_cache[name] = this._gl.getUniformLocation(this._program, name);
             }
-            use() {
-                this._gl.useProgram(this._program);
-                return this;
-            }
-            uniformLoc(name) {
-                var location;
-                location = this._uniform_cache[name];
-                if (location === void 0) {
-                    location = this._uniform_cache[name] = this._gl.getUniformLocation(this._program, name);
-                }
-                return location;
-            }
-            int(name, value) {
-                var cached, loc;
-                cached = this._value_cache[name];
-                if (cached !== value) {
-                    this._value_cache[name] = value;
-                    loc = this.uniformLoc(name);
-                    if (loc) {
-                        this._gl.uniform1i(loc, value);
-                    }
-                }
-                return this;
-            }
-            vec2(name, a, b) {
-                var loc;
+            return location;
+        }
+        int(name, value) {
+            var cached, loc;
+            cached = this._value_cache[name];
+            if (cached !== value) {
+                this._value_cache[name] = value;
                 loc = this.uniformLoc(name);
                 if (loc) {
-                    this._gl.uniform2f(loc, a, b);
+                    this._gl.uniform1i(loc, value);
                 }
-                return this;
             }
-            float(name, value) {
-                var cached, loc;
-                cached = this._value_cache[name];
-                if (cached !== value) {
-                    this._value_cache[name] = value;
-                    loc = this.uniformLoc(name);
-                    if (loc) {
-                        this._gl.uniform1f(loc, value);
-                    }
-                }
-                return this;
-            }
+            return this;
         }
-        class Framebuffer {
-            constructor(gl) {
-                this._gl = gl;
-                this._buffer = this._gl.createFramebuffer();
+        vec2(name, a, b) {
+            var loc;
+            loc = this.uniformLoc(name);
+            if (loc) {
+                this._gl.uniform2f(loc, a, b);
             }
-            bind() {
-                this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._buffer);
-                return this;
-            }
-            unbind() {
-                this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
-                return this;
-            }
-            check() {
-                var result;
-                result = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
-                switch (result) {
-                    case this._gl.FRAMEBUFFER_UNSUPPORTED:
-                        throw 'Framebuffer is unsupported';
-                    case this._gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                        throw 'Framebuffer incomplete attachment';
-                    case this._gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-                        throw 'Framebuffer incomplete dimensions';
-                    case this._gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                        throw 'Framebuffer incomplete missing attachment';
-                }
-                return this;
-            }
-            color(texture) {
-                this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, texture.target, texture.handle, 0);
-                this.check();
-                return this;
-            }
+            return this;
         }
-        class Texture {
-            constructor(gl, params) {
-                var _ref, _ref1;
-                this._gl = gl;
-                if (params == null) {
-                    params = {};
+        float(name, value) {
+            var cached, loc;
+            cached = this._value_cache[name];
+            if (cached !== value) {
+                this._value_cache[name] = value;
+                loc = this.uniformLoc(name);
+                if (loc) {
+                    this._gl.uniform1f(loc, value);
                 }
-                this._channels = this._gl[((_ref = params.channels) != null ? _ref : 'rgba').toUpperCase()];
-                if (typeof params.type === 'number') {
-                    this._type = params.type;
-                }
-                else {
-                    this._type = this._gl[((_ref1 = params.type) != null ? _ref1 : 'unsigned_byte').toUpperCase()];
-                }
-                switch (this._channels) {
-                    case this._gl.RGBA:
-                        this._chancount = 4;
-                        break;
-                    case this._gl.RGB:
-                        this._chancount = 3;
-                        break;
-                    case this._gl.LUMINANCE_ALPHA:
-                        this._chancount = 2;
-                        break;
-                    default:
-                        this._chancount = 1;
-                }
-                this.target = this._gl.TEXTURE_2D;
-                this.handle = this._gl.createTexture();
             }
-            bind(unit) {
-                if (unit == null) {
-                    unit = 0;
-                }
-                if (unit > 15) {
-                    throw 'Texture unit too large: ' + unit;
-                }
-                this._gl.activeTexture(this._gl.TEXTURE0 + unit);
-                this._gl.bindTexture(this.target, this.handle);
-                return this;
+            return this;
+        }
+    }
+    class Framebuffer {
+        constructor(gl) {
+            this._gl = gl;
+            this._buffer = this._gl.createFramebuffer();
+        }
+        bind() {
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._buffer);
+            return this;
+        }
+        unbind() {
+            this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+            return this;
+        }
+        check() {
+            var result;
+            result = this._gl.checkFramebufferStatus(this._gl.FRAMEBUFFER);
+            switch (result) {
+                case this._gl.FRAMEBUFFER_UNSUPPORTED:
+                    throw 'Framebuffer is unsupported';
+                case this._gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                    throw 'Framebuffer incomplete attachment';
+                case this._gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+                    throw 'Framebuffer incomplete dimensions';
+                case this._gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                    throw 'Framebuffer incomplete missing attachment';
             }
-            setSize(width, height) {
+            return this;
+        }
+        color(texture) {
+            this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, texture.target, texture.handle, 0);
+            this.check();
+            return this;
+        }
+    }
+    class Texture {
+        constructor(gl, params) {
+            var _ref, _ref1;
+            this._gl = gl;
+            if (params == null) {
+                params = {};
+            }
+            this._channels = this._gl[((_ref = params.channels) != null ? _ref : 'rgba').toUpperCase()];
+            if (typeof params.type === 'number') {
+                this._type = params.type;
+            }
+            else {
+                this._type = this._gl[((_ref1 = params.type) != null ? _ref1 : 'unsigned_byte').toUpperCase()];
+            }
+            switch (this._channels) {
+                case this._gl.RGBA:
+                    this._chancount = 4;
+                    break;
+                case this._gl.RGB:
+                    this._chancount = 3;
+                    break;
+                case this._gl.LUMINANCE_ALPHA:
+                    this._chancount = 2;
+                    break;
+                default:
+                    this._chancount = 1;
+            }
+            this.target = this._gl.TEXTURE_2D;
+            this.handle = this._gl.createTexture();
+        }
+        bind(unit) {
+            if (unit == null) {
+                unit = 0;
+            }
+            if (unit > 15) {
+                throw 'Texture unit too large: ' + unit;
+            }
+            this._gl.activeTexture(this._gl.TEXTURE0 + unit);
+            this._gl.bindTexture(this.target, this.handle);
+            return this;
+        }
+        setSize(width, height) {
+            this._width = width;
+            this._height = height;
+            this._gl.texImage2D(this.target, 0, this._channels, this._width, this._height, 0, this._channels, this._type, null);
+            return this;
+        }
+        upload(data) {
+            this._width = data.width;
+            this._height = data.height;
+            this._gl.texImage2D(this.target, 0, this._channels, this._channels, this._type, data);
+            return this;
+        }
+        linear() {
+            this._gl.texParameteri(this.target, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
+            this._gl.texParameteri(this.target, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR);
+            return this;
+        }
+        nearest() {
+            this._gl.texParameteri(this.target, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
+            this._gl.texParameteri(this.target, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
+            return this;
+        }
+        clampToEdge() {
+            this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
+            this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
+            return this;
+        }
+        repeat() {
+            this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT);
+            this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_T, this._gl.REPEAT);
+            return this;
+        }
+    }
+    class NodeH {
+        constructor(gl, width, height) {
+            this.use = function () {
+                return this._fbo.bind();
+            };
+            this.bind = function (unit) {
+                return this._texture.bind(unit);
+            };
+            this.end = function () {
+                return this._fbo.unbind();
+            };
+            this.resize = function (width, height) {
                 this._width = width;
                 this._height = height;
-                this._gl.texImage2D(this.target, 0, this._channels, this._width, this._height, 0, this._channels, this._type, null);
-                return this;
-            }
-            upload(data) {
-                this._width = data.width;
-                this._height = data.height;
-                this._gl.texImage2D(this.target, 0, this._channels, this._channels, this._type, data);
-                return this;
-            }
-            linear() {
-                this._gl.texParameteri(this.target, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
-                this._gl.texParameteri(this.target, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR);
-                return this;
-            }
-            nearest() {
-                this._gl.texParameteri(this.target, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
-                this._gl.texParameteri(this.target, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
-                return this;
-            }
-            clampToEdge() {
-                this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
-                this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
-                return this;
-            }
-            repeat() {
-                this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_S, this._gl.REPEAT);
-                this._gl.texParameteri(this.target, this._gl.TEXTURE_WRAP_T, this._gl.REPEAT);
-                return this;
-            }
+                return this._texture.bind(0).setSize(this._width, this._height);
+            };
+            this._gl = gl;
+            this._width = width;
+            this._height = height;
+            gl.getExtension('OES_texture_float');
+            this._texture = new Texture(this._gl, {
+                type: this._gl.FLOAT
+            }).bind(0).setSize(this._width, this._height).nearest().clampToEdge();
+            this._fbo = new Framebuffer(this._gl).bind().color(this._texture).unbind();
         }
-        class NodeH {
-            constructor(gl, width, height) {
-                this.use = function () {
-                    return this._fbo.bind();
-                };
-                this.bind = function (unit) {
-                    return this._texture.bind(unit);
-                };
-                this.end = function () {
-                    return this._fbo.unbind();
-                };
-                this.resize = function (width, height) {
-                    this._width = width;
-                    this._height = height;
-                    return this._texture.bind(0).setSize(this._width, this._height);
-                };
-                var floatExt;
-                this._gl = gl;
-                this._width = width;
-                this._height = height;
-                gl.getExtension('OES_texture_float');
-                this._texture = new Texture(this._gl, {
-                    type: this._gl.FLOAT
-                }).bind(0).setSize(this._width, this._height).nearest().clampToEdge();
-                this._fbo = new Framebuffer(this._gl).bind().color(this._texture).unbind();
-            }
-        }
-        var vertexShaderBlit = '\
+    }
+    var vertexShaderBlit = '\
 attribute vec4 position;\n\
 varying vec2 texcoord;\n\
 void main(){\n\
     texcoord = position.xy*0.5+0.5;\n\
     gl_Position = position;\n\
 }';
-        var vertexShaderBlit1 = '\
+    var vertexShaderBlit1 = '\
 uniform float times;\n\
 uniform vec2 center;\n\
 attribute vec4 position;\n\
@@ -3742,7 +3740,7 @@ void main(){\n\
     texcoord = ((position.xy - center)* 0.5 * times + center * 0.5 + 0.5);\n\
     gl_Position = position;\n\
 }';
-        var fragmentShaderBlit = '\
+    var fragmentShaderBlit = '\
 #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
 precision highp int;\n\
 precision highp float;\n\
@@ -3752,7 +3750,7 @@ precision mediump float;\n\
 #endif\n\
 uniform sampler2D source;\n\
 varying vec2 texcoord;';
-        var fragmentShaderHill = '\
+    var fragmentShaderHill = '\
 #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
 precision highp int;\n\
 precision highp float;\n\
@@ -3825,7 +3823,7 @@ void main(){\
     }\
     gl_FragColor = vec4(vec2(texPos), currentVal, 1.0);\
 }';
-        var fragmentShaderFinalHill = '\
+    var fragmentShaderFinalHill = '\
 #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
 precision highp int;\n\
 precision highp float;\n\
@@ -3846,8 +3844,8 @@ void main(){\
     float y = floor(newTexPos.y*viewport.y);\
     gl_FragColor = vec4(x,y,0.0,0.0);\
 }';
-        var vsCopy = vertexShaderBlit;
-        var fsCopy = '\
+    var vsCopy = vertexShaderBlit;
+    var fsCopy = '\
 #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
 precision highp int;\n\
 precision highp float;\n\
@@ -3861,16 +3859,16 @@ void main(){\
     float intensity = texture2D(source, texcoord).a;\
     gl_FragColor = vec4(intensity);\
 }';
-        class Heights {
-            constructor(heatmap, gl, width, height) {
-                var i, _i, _ref;
-                this._heatmap = heatmap;
-                this._gl = gl;
-                this._width = width;
-                this._height = height;
-                this._textureBuffer = new Float32Array(this._width * this._height * 4);
-                this._shader = new Shader(this._gl, {
-                    vertex: '\
+    class Heights {
+        constructor(heatmap, gl, width, height) {
+            var i, _i, _ref;
+            this._heatmap = heatmap;
+            this._gl = gl;
+            this._width = width;
+            this._height = height;
+            this._textureBuffer = new Float32Array(this._width * this._height * 4);
+            this._shader = new Shader(this._gl, {
+                vertex: '\
 attribute vec4 position, intensity;\n\
 varying vec2 off, dim;\n\
 varying float vIntensity;\n\
@@ -3882,7 +3880,7 @@ void main(){\n\
     vIntensity = intensity.x;\n\
     gl_Position = vec4((pos / viewport) * 2.0 - 1.0, 0.0, 1.0);\n\
 }',
-                    fragment: '\
+                fragment: '\
 #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
 precision highp int;\n\
 precision highp float;\n\
@@ -3897,9 +3895,9 @@ void main(){\n\
     float intensity = falloff * vIntensity;\n\
     gl_FragColor = vec4(intensity, intensity, intensity, intensity);\n\
 }'
-                });
-                this._rawEdgeShader = new Shader(this._gl, {
-                    vertex: '\
+            });
+            this._rawEdgeShader = new Shader(this._gl, {
+                vertex: '\
 attribute vec4 position, intensity;\n\
 varying vec2 off, dim;\n\
 varying float vIntensity;\n\
@@ -3911,7 +3909,7 @@ void main(){\n\
     vIntensity = intensity.x;\n\
     gl_Position = vec4((pos/viewport)*2.0-1.0, 0.0, 1.0);\n\
 }',
-                    fragment: '\
+                fragment: '\
 #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
 precision highp int;\n\
 precision highp float;\n\
@@ -3926,1270 +3924,1290 @@ void main(){\n\
     float intensity = falloff * vIntensity;\n\
     gl_FragColor = vec4(-intensity);\n\
 }'
-                });
-                this._hillShader = new Shader(this._gl, {
-                    vertex: vertexShaderBlit,
-                    //fragment: this.getShaderByScriptID("fragmentShaderHill")
-                    fragment: fragmentShaderHill
-                });
-                this._dumpHillShader = new Shader(this._gl, {
-                    vertex: vertexShaderBlit,
-                    fragment: fragmentShaderFinalHill
-                });
-                this._copyShader = new Shader(this._gl, {
-                    vertex: vsCopy,
-                    fragment: fsCopy
-                });
-                this._nodeBack = new NodeH(this._gl, this._width, this._height);
-                this.nodeFront = new NodeH(this._gl, this._width, this._height);
-                this._nodeHill = new NodeH(this._gl, this._width, this._height);
-                this._nodeDensity = new NodeH(this._gl, this._width, this._height);
-                //for Nodes
-                this._vertexBuffer = this._gl.createBuffer();
-                this._vertexSize = 8;
-                this._maxPointCount = 1024 * 256;
-                this._vertexBufferData = new Float32Array(this._maxPointCount * this._vertexSize * 6);
-                this._vertexBufferViews = [];
-                for (i = _i = 0, _ref = this._maxPointCount; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-                    this._vertexBufferViews.push(new Float32Array(this._vertexBufferData.buffer, 0, i * this._vertexSize * 6));
-                }
-                this._bufferIndex = 0;
-                this._pointCount = 0;
-                //for Edges
-                this._edgevertexBuffer = this._gl.createBuffer();
-                this._edgevertexSize = 8;
-                this._edgemaxPointCount = 1024 * 256;
-                this._edgevertexBufferData = new Float32Array(this._edgemaxPointCount * this._edgevertexSize * 6);
-                this._edgevertexBufferViews = [];
-                for (i = _i = 0, _ref = this._edgemaxPointCount; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-                    this._edgevertexBufferViews.push(new Float32Array(this._edgevertexBufferData.buffer, 0, i * this._edgevertexSize * 6));
-                }
-                this._edgebufferIndex = 0;
-                this._edgepointCount = 0;
+            });
+            this._hillShader = new Shader(this._gl, {
+                vertex: vertexShaderBlit,
+                //fragment: this.getShaderByScriptID("fragmentShaderHill")
+                fragment: fragmentShaderHill
+            });
+            this._dumpHillShader = new Shader(this._gl, {
+                vertex: vertexShaderBlit,
+                fragment: fragmentShaderFinalHill
+            });
+            this._copyShader = new Shader(this._gl, {
+                vertex: vsCopy,
+                fragment: fsCopy
+            });
+            this._nodeBack = new NodeH(this._gl, this._width, this._height);
+            this.nodeFront = new NodeH(this._gl, this._width, this._height);
+            this._nodeHill = new NodeH(this._gl, this._width, this._height);
+            this._nodeDensity = new NodeH(this._gl, this._width, this._height);
+            //for Nodes
+            this._vertexBuffer = this._gl.createBuffer();
+            this._vertexSize = 8;
+            this._maxPointCount = 1024 * 256;
+            this._vertexBufferData = new Float32Array(this._maxPointCount * this._vertexSize * 6);
+            this._vertexBufferViews = [];
+            for (i = _i = 0, _ref = this._maxPointCount; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+                this._vertexBufferViews.push(new Float32Array(this._vertexBufferData.buffer, 0, i * this._vertexSize * 6));
             }
-            //将某个script转化成字符串
-            getShaderByScriptID(id) {
-                var shaderScript = document.getElementById(id);
-                if (!shaderScript) {
-                    alert("Error: getShader.");
-                    return null;
-                }
-                var str = "";
-                var k = shaderScript.firstChild;
-                while (k) {
-                    if (k.nodeType == 3) {
-                        str += k.textContent;
-                    }
-                    k = k.nextSibling;
-                }
-                return str;
+            this._bufferIndex = 0;
+            this._pointCount = 0;
+            //for Edges
+            this._edgevertexBuffer = this._gl.createBuffer();
+            this._edgevertexSize = 8;
+            this._edgemaxPointCount = 1024 * 256;
+            this._edgevertexBufferData = new Float32Array(this._edgemaxPointCount * this._edgevertexSize * 6);
+            this._edgevertexBufferViews = [];
+            for (i = _i = 0, _ref = this._edgemaxPointCount; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+                this._edgevertexBufferViews.push(new Float32Array(this._edgevertexBufferData.buffer, 0, i * this._edgevertexSize * 6));
             }
-            resize(width, height) {
-                this._width = width;
-                this._height = height;
-                this._textureBuffer = new Float32Array(this._width * this._height * 4);
-                this._nodeHill.resize(this._width, this._height);
-                this._nodeBack.resize(this._width, this._height);
-                this._nodeDensity.resize(this._width, this._height);
-                return this.nodeFront.resize(this._width, this._height);
+            this._edgebufferIndex = 0;
+            this._edgepointCount = 0;
+        }
+        //将某个script转化成字符串
+        getShaderByScriptID(id) {
+            var shaderScript = document.getElementById(id);
+            if (!shaderScript) {
+                alert("Error: getShader.");
+                return null;
             }
-            clear() {
+            var str = "";
+            var k = shaderScript.firstChild;
+            while (k) {
+                if (k.nodeType == 3) {
+                    str += k.textContent;
+                }
+                k = k.nextSibling;
+            }
+            return str;
+        }
+        resize(width, height) {
+            this._width = width;
+            this._height = height;
+            this._textureBuffer = new Float32Array(this._width * this._height * 4);
+            this._nodeHill.resize(this._width, this._height);
+            this._nodeBack.resize(this._width, this._height);
+            this._nodeDensity.resize(this._width, this._height);
+            return this.nodeFront.resize(this._width, this._height);
+        }
+        clear() {
+            this.nodeFront.use();
+            this._gl.clearColor(0, 0, 0, 0);
+            this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+            return this.nodeFront.end();
+        }
+        //将点画到帧缓冲区（nodeFront）
+        update() {
+            var intensityLoc, positionLoc;
+            if (this._pointCount > 0) {
+                this._gl.enable(this._gl.BLEND);
                 this.nodeFront.use();
-                this._gl.clearColor(0, 0, 0, 0);
-                this._gl.clear(this._gl.COLOR_BUFFER_BIT);
-                return this.nodeFront.end();
-            }
-            //将点画到帧缓冲区（nodeFront）
-            update() {
-                var intensityLoc, positionLoc;
-                if (this._pointCount > 0) {
-                    this._gl.enable(this._gl.BLEND);
-                    this.nodeFront.use();
-                    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._vertexBuffer);
-                    this._gl.bufferData(this._gl.ARRAY_BUFFER, this._vertexBufferViews[this._pointCount], this._gl.STREAM_DRAW);
-                    positionLoc = this._shader.attribLocation('position');
-                    intensityLoc = this._shader.attribLocation('intensity');
-                    this._gl.enableVertexAttribArray(1);
-                    this._gl.vertexAttribPointer(positionLoc, 4, this._gl.FLOAT, false, 8 * 4, 0 * 4);
-                    this._gl.vertexAttribPointer(intensityLoc, 4, this._gl.FLOAT, false, 8 * 4, 4 * 4);
-                    this._shader.use().vec2('viewport', this._width, this._height);
-                    this._gl.drawArrays(this._gl.TRIANGLES, 0, this._pointCount * 6);
-                    this._gl.disableVertexAttribArray(1);
-                    this._pointCount = 0;
-                    this._bufferIndex = 0;
-                    this.nodeFront.end();
-                    this._nodeDensity = this.nodeFront;
-                    this._gl.disable(this._gl.BLEND);
-                }
-            }
-            //将边画到帧缓冲区（nodeFront）
-            updateEdges() {
-                var intensityLoc, positionLoc;
-                if (this._edgepointCount > 0) {
-                    this.nodeFront.use();
-                    this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._edgevertexBuffer);
-                    this._gl.bufferData(this._gl.ARRAY_BUFFER, this._edgevertexBufferViews[this._edgepointCount], this._gl.STREAM_DRAW);
-                    positionLoc = this._rawEdgeShader.attribLocation('position');
-                    intensityLoc = this._rawEdgeShader.attribLocation('intensity');
-                    this._gl.enableVertexAttribArray(1);
-                    this._gl.vertexAttribPointer(positionLoc, 4, this._gl.FLOAT, false, 8 * 4, 0 * 4);
-                    this._gl.vertexAttribPointer(intensityLoc, 4, this._gl.FLOAT, false, 8 * 4, 4 * 4);
-                    this._rawEdgeShader.use().int('source', 0).vec2('viewport', this._width, this._height);
-                    this._gl.drawArrays(this._gl.TRIANGLES, 0, this._edgepointCount * 6);
-                    this._gl.disableVertexAttribArray(1);
-                    this._edgepointCount = 0;
-                    this._edgebufferIndex = 0;
-                    this.nodeFront.end();
-                }
-            }
-            addVertex(x, y, xs, ys, intensity) {
-                this._vertexBufferData[this._bufferIndex++] = x;
-                this._vertexBufferData[this._bufferIndex++] = y;
-                this._vertexBufferData[this._bufferIndex++] = xs;
-                this._vertexBufferData[this._bufferIndex++] = ys;
-                this._vertexBufferData[this._bufferIndex++] = intensity;
-                this._vertexBufferData[this._bufferIndex++] = intensity;
-                this._vertexBufferData[this._bufferIndex++] = intensity;
-                return this._vertexBufferData[this._bufferIndex++] = intensity;
-            }
-            addNode(x, y, size, intensity) {
-                var s;
-                if (size == null) {
-                    size = 50;
-                }
-                if (intensity == null) {
-                    intensity = 0.2;
-                }
-                if (this._pointCount >= this._maxPointCount - 1) {
-                    this.update();
-                }
-                s = size / 2;
-                this.addVertex(x, y, -s, -s, intensity);
-                this.addVertex(x, y, +s, -s, intensity);
-                this.addVertex(x, y, -s, +s, intensity);
-                this.addVertex(x, y, -s, +s, intensity);
-                this.addVertex(x, y, +s, -s, intensity);
-                this.addVertex(x, y, +s, +s, intensity);
-                return this._pointCount += 1;
-            }
-            addEdgeVertex(x, y, xs, ys, intensity) {
-                this._edgevertexBufferData[this._edgebufferIndex++] = x;
-                this._edgevertexBufferData[this._edgebufferIndex++] = y;
-                this._edgevertexBufferData[this._edgebufferIndex++] = xs;
-                this._edgevertexBufferData[this._edgebufferIndex++] = ys;
-                this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
-                this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
-                this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
-                return this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
-            }
-            addEdge(x0, y0, x1, y1, size, intensity) {
-                var s, x, y;
-                if (size == null) {
-                    size = 50;
-                }
-                if (intensity == null) {
-                    intensity = 0.2;
-                }
-                if (this._edgepointCount >= this._edgemaxPointCount - 1) {
-                    this.updateEdges();
-                }
-                var lineLength = Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
-                x = (x0 + x1) / 2;
-                y = (y0 + y1) / 2;
-                size = size / 2;
-                var px0, px1, px2, px3, px4, py0, py1, py2, py3, py4;
-                py0 = (x1 - x0) / lineLength;
-                px0 = (y0 - y1) / lineLength;
-                px1 = x0 + px0 * size;
-                py1 = y0 + py0 * size;
-                px2 = x1 + px0 * size;
-                py2 = y1 + py0 * size;
-                px3 = x0 - px0 * size;
-                py3 = y0 - py0 * size;
-                px4 = x1 - px0 * size;
-                py4 = y1 - py0 * size;
-                this.addEdgeVertex(x, y, px1 - x, py1 - y, intensity);
-                this.addEdgeVertex(x, y, px2 - x, py2 - y, intensity);
-                this.addEdgeVertex(x, y, px3 - x, py3 - y, intensity);
-                this.addEdgeVertex(x, y, px3 - x, py3 - y, intensity);
-                this.addEdgeVertex(x, y, px2 - x, py2 - y, intensity);
-                this.addEdgeVertex(x, y, px4 - x, py4 - y, intensity);
-                this._edgepointCount += 1;
-            }
-            //将帧缓冲区的内容copy回本地(CPU上的内存)
-            dumpDensityMapTexureBuffer() {
-                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
-                this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
-                this._nodeDensity.bind(0);
-                this._nodeBack.use();
-                this._gl.clearColor(0, 0, 0, 0);
-                this._gl.clear(this._gl.COLOR_BUFFER_BIT);
-                this._copyShader.use().int('source', 0).vec2('viewport', this._width, this._height);
-                this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
-                this._gl.readPixels(0, 0, this._width, this._height, this._gl.RGBA, this._gl.FLOAT, this._textureBuffer);
-                this._nodeBack.end();
-            }
-            //获得当前本地端内存所存储的帧缓冲区内容
-            getTextureBuffer() {
-                return this._textureBuffer;
-            }
-            //进行点聚合爬山算法
-            hillClimbing() {
-                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
-                this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
-                this.nodeFront.bind(0);
-                this._nodeHill.use();
-                this._gl.clearColor(0, 0, 0, 0);
-                this._gl.clear(this._gl.COLOR_BUFFER_BIT);
-                this._hillShader.use().int('source', 0).vec2('viewport', this._width, this._height);
-                this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
-                this._nodeHill.end();
-            }
-            //将爬山结果copy回本地端内存缓冲区
-            dumpFinalHillClimbingResult() {
-                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
-                this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
-                this._nodeHill.bind(0);
-                this._nodeBack.use();
-                this._gl.clearColor(0, 0, 0, 0);
-                this._gl.clear(this._gl.COLOR_BUFFER_BIT);
-                this._dumpHillShader.use().int('source', 0).vec2('viewport', this._width, this._height);
-                this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
-                this._gl.readPixels(0, 0, this._width, this._height, this._gl.RGBA, this._gl.FLOAT, this._textureBuffer);
-                this._nodeBack.end();
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._vertexBuffer);
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, this._vertexBufferViews[this._pointCount], this._gl.STREAM_DRAW);
+                positionLoc = this._shader.attribLocation('position');
+                intensityLoc = this._shader.attribLocation('intensity');
+                this._gl.enableVertexAttribArray(1);
+                this._gl.vertexAttribPointer(positionLoc, 4, this._gl.FLOAT, false, 8 * 4, 0 * 4);
+                this._gl.vertexAttribPointer(intensityLoc, 4, this._gl.FLOAT, false, 8 * 4, 4 * 4);
+                this._shader.use().vec2('viewport', this._width, this._height);
+                this._gl.drawArrays(this._gl.TRIANGLES, 0, this._pointCount * 6);
+                this._gl.disableVertexAttribArray(1);
+                this._pointCount = 0;
+                this._bufferIndex = 0;
+                this.nodeFront.end();
+                this._nodeDensity = this.nodeFront;
+                this._gl.disable(this._gl.BLEND);
             }
         }
-        class WebGLHeatmap {
-            constructor(arg) {
-                var _ref;
-                _ref = arg != null ? arg : {}, this.canvas = _ref.canvas, this._width = _ref.width, this._height = _ref.height;
-                if (!this.canvas) {
-                    this.canvas = document.createElement('canvas');
-                }
-                this._gl = this.canvas.getContext('experimental-webgl', { antialias: true });
-                if (this._gl === null) {
-                    throw 'WebGL not supported';
-                }
-                this._gl.enableVertexAttribArray(0);
-                this._gl.getExtension('OES_texture_float');
-                this._gl.blendFunc(this._gl.ONE, this._gl.ONE);
-                var alphaRange;
-                var _ref1 = alphaRange != null ? alphaRange : [0, 1], alphaStart = _ref1[0], alphaEnd = _ref1[1];
-                var output = "vec4 alphaFun(vec3 color, float intensity){\n    float alpha = smoothstep(" + (alphaStart.toFixed(8)) + ", " + (alphaEnd.toFixed(8)) + ", intensity);\n    return vec4(color*alpha, alpha);\n}";
-                /*-----------------different color scheme------------*/
-                //var getColorFun = 'float a0 = 0.3; float a1 = 0.6; vec4 getColor(float intensity){\n vec4 color;\n if(intensity>=0.0) {if(intensity>=level6)color= vec4(0.03,0.19,0.42,1);else if(intensity>=level5)color= vec4(0.03,0.32,0.61,1);else if(intensity>=level4)color= vec4(0.13,0.44,0.71,1);else if(intensity>=level3)color= vec4(0.26,0.57,0.78,1);else if(intensity>=level2)color= vec4(0.42,0.68,0.84,1);else if(intensity>=level1)color= vec4(0.62,0.80,0.88,1);else if(intensity>=level0)color= vec4(0.78,0.86,0.94,1); else color=vec4(0,0,0,intensity);}\nelse{color = vec4((1.0+intensity)*0.7,(1.0+intensity)*0.7,1.0,1.0);}\n    return color;\n}';
-                var getColorFun = 'float a0 = 0.3; float a1 = 0.6; vec4 getColor(float intensity){\n vec4 color;\n if(intensity>=0.0) {if(intensity>=level6)color= vec4(0.1,0.2,0.4,0.85);else if(intensity>=level5)color= vec4(0.1,0.2,0.5,0.7);else if(intensity>=level4)color= vec4(0.15,0.4,0.7,0.9);else if(intensity>=level3)color= vec4(0.15,0.4,0.7,0.7);else if(intensity>=level2)color= vec4(0.2,0.4,0.6,0.60);else if(intensity>=level1)color= vec4(0.55*a1,0.8*a1,0.95*a1,a1);else if(intensity>=level0)color= vec4(0.55*a0,0.8*a0,0.95*a0,a0); else color=vec4(0,0,0,intensity);}\nelse{color = vec4((1.0+intensity)*0.7,(1.0+intensity)*0.7,1.0,1.0);}\n  return color;\n}';
-                var rawgetColorFun = 'vec3 getColor(float intensity){\n    vec3 blue = vec3(0.0, 0.0, 1.0);\n    vec3 cyan = vec3(0.0, 1.0, 1.0);\n    vec3 green = vec3(0.0, 1.0, 0.0);\n    vec3 yellow = vec3(1.0, 1.0, 0.0);\n    vec3 red = vec3(1.0, 0.0, 0.0);\n\n    vec3 color = (\n        fade(-0.25, 0.25, intensity)*blue +\n        fade(0.0, 0.5, intensity)*cyan +\n        fade(0.25, 0.75, intensity)*green +\n        fade(0.5, 1.0, intensity)*yellow +\n        smoothstep(0.75, 1.0, intensity)*red\n    );\n    return color;\n}';
-                this._shader = new Shader(this._gl, {
-                    vertex: vertexShaderBlit1,
-                    fragment: fragmentShaderBlit + ("uniform float level0;\nuniform float level1;\nuniform float level2;\nuniform float level3;\nuniform float level4;\nuniform float level5;\nuniform float level6;\n") + ("float linstep(float low, float high, float value){\n    return clamp((value-low)/(high-low), 0.0, 1.0);\n}\n\nfloat fade(float low, float high, float value){\n    float mid = (low+high)*0.5;\n    float range = (high-low)*0.5;\n    float x = 1.0 - clamp(abs(mid-value)/range, 0.0, 1.0);\n    return smoothstep(0.0, 1.0, x);\n}\n\n" + getColorFun + "\n" + "\n\nvoid main(){\n    float intensity = (texture2D(source, texcoord).r);\n    vec4 color = getColor(intensity);\n   gl_FragColor = color;\n}")
-                });
-                this._rawshader = new Shader(this._gl, {
-                    vertex: vertexShaderBlit1,
-                    fragment: fragmentShaderBlit + ("float linstep(float low, float high, float value){\n    return clamp((value-low)/(high-low), 0.0, 1.0);\n}\n\nfloat fade(float low, float high, float value){\n    float mid = (low+high)*0.5;\n    float range = (high-low)*0.5;\n    float x = 1.0 - clamp(abs(mid-value)/range, 0.0, 1.0);\n    return smoothstep(0.0, 1.0, x);\n}\n\n" + rawgetColorFun + "\n" + output + "\n\nvoid main(){\n    float intensity = smoothstep(0.0, 1.0, texture2D(source, texcoord).r);\n    vec3 color = getColor(intensity);\n    gl_FragColor = alphaFun(color, intensity);\n}")
-                });
-                if (this._width == null) {
-                    this._width = this.canvas.offsetWidth || 2;
-                }
-                if (this._height == null) {
-                    this._height = this.canvas.offsetHeight || 2;
-                }
-                this.canvas.width = this._width;
-                this.canvas.height = this._height;
-                this._gl.viewport(0, 0, this._width, this._height);
-                this.quad = this._gl.createBuffer();
-                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.quad);
-                var quad = new Float32Array([-1, -1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, 1, 0, 1, 1, -1, 0, 1, 1, 1, 0, 1]);
-                this._gl.bufferData(this._gl.ARRAY_BUFFER, quad, this._gl.STATIC_DRAW);
-                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
-                this._heights = new Heights(this, this._gl, this._width, this._height);
+        //将边画到帧缓冲区（nodeFront）
+        updateEdges() {
+            var intensityLoc, positionLoc;
+            if (this._edgepointCount > 0) {
+                this.nodeFront.use();
+                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._edgevertexBuffer);
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, this._edgevertexBufferViews[this._edgepointCount], this._gl.STREAM_DRAW);
+                positionLoc = this._rawEdgeShader.attribLocation('position');
+                intensityLoc = this._rawEdgeShader.attribLocation('intensity');
+                this._gl.enableVertexAttribArray(1);
+                this._gl.vertexAttribPointer(positionLoc, 4, this._gl.FLOAT, false, 8 * 4, 0 * 4);
+                this._gl.vertexAttribPointer(intensityLoc, 4, this._gl.FLOAT, false, 8 * 4, 4 * 4);
+                this._rawEdgeShader.use().int('source', 0).vec2('viewport', this._width, this._height);
+                this._gl.drawArrays(this._gl.TRIANGLES, 0, this._edgepointCount * 6);
+                this._gl.disableVertexAttribArray(1);
+                this._edgepointCount = 0;
+                this._edgebufferIndex = 0;
+                this.nodeFront.end();
             }
-            adjustSize() {
-                var canvasHeight, canvasWidth;
-                canvasWidth = this.canvas.offsetWidth || 2;
-                canvasHeight = this.canvas.offsetHeight || 2;
-                if (this._width !== canvasWidth || this._height !== canvasHeight) {
-                    this._gl.viewport(0, 0, canvasWidth, canvasHeight);
-                    this.canvas.width = canvasWidth;
-                    this.canvas.height = canvasHeight;
-                    this._width = canvasWidth;
-                    this._height = canvasHeight;
-                    this._heights.resize(this._width, this._height);
-                }
+        }
+        addVertex(x, y, xs, ys, intensity) {
+            this._vertexBufferData[this._bufferIndex++] = x;
+            this._vertexBufferData[this._bufferIndex++] = y;
+            this._vertexBufferData[this._bufferIndex++] = xs;
+            this._vertexBufferData[this._bufferIndex++] = ys;
+            this._vertexBufferData[this._bufferIndex++] = intensity;
+            this._vertexBufferData[this._bufferIndex++] = intensity;
+            this._vertexBufferData[this._bufferIndex++] = intensity;
+            return this._vertexBufferData[this._bufferIndex++] = intensity;
+        }
+        addNode(x, y, size, intensity) {
+            var s;
+            if (size == null) {
+                size = 50;
             }
-            display(x, y, times, contourForIntensity) {
-                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.quad);
-                this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
-                this._heights.nodeFront.bind(0);
-                if (!times)
-                    times = 1.0;
-                if (!x)
-                    x = 0;
-                if (!y)
-                    y = 0;
-                if (!contourForIntensity) {
-                    contourForIntensity = [1, 1, 1, 1, 1, 1, 1];
-                }
-                if (this._gradientTexture) {
-                    this._gradientTexture.bind(1);
-                }
-                var flag = true;
-                if (MapArea.config.shaderStyle == null)
-                    flag = true;
-                else if (MapArea.config.shaderStyle == 0)
-                    flag = true;
-                else
-                    flag = false;
-                if (flag) {
-                    this._shader.use().int('source', 0)
-                        .int('gradientTexture', 1)
-                        .float('level0', contourForIntensity[0])
-                        .float('level1', contourForIntensity[1])
-                        .float('level2', contourForIntensity[2])
-                        .float('level3', contourForIntensity[3])
-                        .float('level4', contourForIntensity[4])
-                        .float('level5', contourForIntensity[5])
-                        .float('level6', contourForIntensity[6])
-                        .float('times', times)
-                        .vec2('center', x, y);
-                }
+            if (intensity == null) {
+                intensity = 0.2;
+            }
+            if (this._pointCount >= this._maxPointCount - 1) {
+                this.update();
+            }
+            s = size / 2;
+            this.addVertex(x, y, -s, -s, intensity);
+            this.addVertex(x, y, +s, -s, intensity);
+            this.addVertex(x, y, -s, +s, intensity);
+            this.addVertex(x, y, -s, +s, intensity);
+            this.addVertex(x, y, +s, -s, intensity);
+            this.addVertex(x, y, +s, +s, intensity);
+            return this._pointCount += 1;
+        }
+        addEdgeVertex(x, y, xs, ys, intensity) {
+            this._edgevertexBufferData[this._edgebufferIndex++] = x;
+            this._edgevertexBufferData[this._edgebufferIndex++] = y;
+            this._edgevertexBufferData[this._edgebufferIndex++] = xs;
+            this._edgevertexBufferData[this._edgebufferIndex++] = ys;
+            this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
+            this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
+            this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
+            return this._edgevertexBufferData[this._edgebufferIndex++] = intensity;
+        }
+        addEdge(x0, y0, x1, y1, size, intensity) {
+            var x, y;
+            if (size == null) {
+                size = 50;
+            }
+            if (intensity == null) {
+                intensity = 0.2;
+            }
+            if (this._edgepointCount >= this._edgemaxPointCount - 1) {
+                this.updateEdges();
+            }
+            var lineLength = Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
+            x = (x0 + x1) / 2;
+            y = (y0 + y1) / 2;
+            size = size / 2;
+            var px0, px1, px2, px3, px4, py0, py1, py2, py3, py4;
+            py0 = (x1 - x0) / lineLength;
+            px0 = (y0 - y1) / lineLength;
+            px1 = x0 + px0 * size;
+            py1 = y0 + py0 * size;
+            px2 = x1 + px0 * size;
+            py2 = y1 + py0 * size;
+            px3 = x0 - px0 * size;
+            py3 = y0 - py0 * size;
+            px4 = x1 - px0 * size;
+            py4 = y1 - py0 * size;
+            this.addEdgeVertex(x, y, px1 - x, py1 - y, intensity);
+            this.addEdgeVertex(x, y, px2 - x, py2 - y, intensity);
+            this.addEdgeVertex(x, y, px3 - x, py3 - y, intensity);
+            this.addEdgeVertex(x, y, px3 - x, py3 - y, intensity);
+            this.addEdgeVertex(x, y, px2 - x, py2 - y, intensity);
+            this.addEdgeVertex(x, y, px4 - x, py4 - y, intensity);
+            this._edgepointCount += 1;
+        }
+        //将帧缓冲区的内容copy回本地(CPU上的内存)
+        dumpDensityMapTexureBuffer() {
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
+            this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
+            this._nodeDensity.bind(0);
+            this._nodeBack.use();
+            this._gl.clearColor(0, 0, 0, 0);
+            this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+            this._copyShader.use().int('source', 0).vec2('viewport', this._width, this._height);
+            this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+            this._gl.readPixels(0, 0, this._width, this._height, this._gl.RGBA, this._gl.FLOAT, this._textureBuffer);
+            this._nodeBack.end();
+        }
+        //获得当前本地端内存所存储的帧缓冲区内容
+        getTextureBuffer() {
+            return this._textureBuffer;
+        }
+        //进行点聚合爬山算法
+        hillClimbing() {
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
+            this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
+            this.nodeFront.bind(0);
+            this._nodeHill.use();
+            this._gl.clearColor(0, 0, 0, 0);
+            this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+            this._hillShader.use().int('source', 0).vec2('viewport', this._width, this._height);
+            this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+            this._nodeHill.end();
+        }
+        //将爬山结果copy回本地端内存缓冲区
+        dumpFinalHillClimbingResult() {
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._heatmap.quad);
+            this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
+            this._nodeHill.bind(0);
+            this._nodeBack.use();
+            this._gl.clearColor(0, 0, 0, 0);
+            this._gl.clear(this._gl.COLOR_BUFFER_BIT);
+            this._dumpHillShader.use().int('source', 0).vec2('viewport', this._width, this._height);
+            this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+            this._gl.readPixels(0, 0, this._width, this._height, this._gl.RGBA, this._gl.FLOAT, this._textureBuffer);
+            this._nodeBack.end();
+        }
+    }
+    class WebGLHeatmap {
+        constructor(arg) {
+            var _ref;
+            _ref = arg != null ? arg : {}, this.canvas = _ref.canvas, this._width = _ref.width, this._height = _ref.height;
+            if (!this.canvas) {
+                this.canvas = document.createElement('canvas');
+            }
+            this._gl = this.canvas.getContext('experimental-webgl', { antialias: true });
+            if (this._gl === null) {
+                throw 'WebGL not supported';
+            }
+            this._gl.enableVertexAttribArray(0);
+            this._gl.getExtension('OES_texture_float');
+            this._gl.blendFunc(this._gl.ONE, this._gl.ONE);
+            var alphaRange;
+            var _ref1 = alphaRange != null ? alphaRange : [0, 1], alphaStart = _ref1[0], alphaEnd = _ref1[1];
+            var output = "vec4 alphaFun(vec3 color, float intensity){\n    float alpha = smoothstep(" + (alphaStart.toFixed(8)) + ", " + (alphaEnd.toFixed(8)) + ", intensity);\n    return vec4(color*alpha, alpha);\n}";
+            /*-----------------different color scheme------------*/
+            //var getColorFun = 'float a0 = 0.3; float a1 = 0.6; vec4 getColor(float intensity){\n vec4 color;\n if(intensity>=0.0) {if(intensity>=level6)color= vec4(0.03,0.19,0.42,1);else if(intensity>=level5)color= vec4(0.03,0.32,0.61,1);else if(intensity>=level4)color= vec4(0.13,0.44,0.71,1);else if(intensity>=level3)color= vec4(0.26,0.57,0.78,1);else if(intensity>=level2)color= vec4(0.42,0.68,0.84,1);else if(intensity>=level1)color= vec4(0.62,0.80,0.88,1);else if(intensity>=level0)color= vec4(0.78,0.86,0.94,1); else color=vec4(0,0,0,intensity);}\nelse{color = vec4((1.0+intensity)*0.7,(1.0+intensity)*0.7,1.0,1.0);}\n    return color;\n}';
+            var getColorFun = 'float a0 = 0.3; float a1 = 0.6; vec4 getColor(float intensity){\n vec4 color;\n if(intensity>=0.0) {if(intensity>=level6)color= vec4(0.1,0.2,0.4,0.85);else if(intensity>=level5)color= vec4(0.1,0.2,0.5,0.7);else if(intensity>=level4)color= vec4(0.15,0.4,0.7,0.9);else if(intensity>=level3)color= vec4(0.15,0.4,0.7,0.7);else if(intensity>=level2)color= vec4(0.2,0.4,0.6,0.60);else if(intensity>=level1)color= vec4(0.55*a1,0.8*a1,0.95*a1,a1);else if(intensity>=level0)color= vec4(0.55*a0,0.8*a0,0.95*a0,a0); else color=vec4(0,0,0,intensity);}\nelse{color = vec4((1.0+intensity)*0.7,(1.0+intensity)*0.7,1.0,1.0);}\n  return color;\n}';
+            var rawgetColorFun = 'vec3 getColor(float intensity){\n    vec3 blue = vec3(0.0, 0.0, 1.0);\n    vec3 cyan = vec3(0.0, 1.0, 1.0);\n    vec3 green = vec3(0.0, 1.0, 0.0);\n    vec3 yellow = vec3(1.0, 1.0, 0.0);\n    vec3 red = vec3(1.0, 0.0, 0.0);\n\n    vec3 color = (\n        fade(-0.25, 0.25, intensity)*blue +\n        fade(0.0, 0.5, intensity)*cyan +\n        fade(0.25, 0.75, intensity)*green +\n        fade(0.5, 1.0, intensity)*yellow +\n        smoothstep(0.75, 1.0, intensity)*red\n    );\n    return color;\n}';
+            this._shader = new Shader(this._gl, {
+                vertex: vertexShaderBlit1,
+                fragment: fragmentShaderBlit + ("uniform float level0;\nuniform float level1;\nuniform float level2;\nuniform float level3;\nuniform float level4;\nuniform float level5;\nuniform float level6;\n") + ("float linstep(float low, float high, float value){\n    return clamp((value-low)/(high-low), 0.0, 1.0);\n}\n\nfloat fade(float low, float high, float value){\n    float mid = (low+high)*0.5;\n    float range = (high-low)*0.5;\n    float x = 1.0 - clamp(abs(mid-value)/range, 0.0, 1.0);\n    return smoothstep(0.0, 1.0, x);\n}\n\n" + getColorFun + "\n" + "\n\nvoid main(){\n    float intensity = (texture2D(source, texcoord).r);\n    vec4 color = getColor(intensity);\n   gl_FragColor = color;\n}")
+            });
+            this._rawshader = new Shader(this._gl, {
+                vertex: vertexShaderBlit1,
+                fragment: fragmentShaderBlit + ("float linstep(float low, float high, float value){\n    return clamp((value-low)/(high-low), 0.0, 1.0);\n}\n\nfloat fade(float low, float high, float value){\n    float mid = (low+high)*0.5;\n    float range = (high-low)*0.5;\n    float x = 1.0 - clamp(abs(mid-value)/range, 0.0, 1.0);\n    return smoothstep(0.0, 1.0, x);\n}\n\n" + rawgetColorFun + "\n" + output + "\n\nvoid main(){\n    float intensity = smoothstep(0.0, 1.0, texture2D(source, texcoord).r);\n    vec3 color = getColor(intensity);\n    gl_FragColor = alphaFun(color, intensity);\n}")
+            });
+            if (this._width == null) {
+                this._width = this.canvas.offsetWidth || 2;
+            }
+            if (this._height == null) {
+                this._height = this.canvas.offsetHeight || 2;
+            }
+            this.canvas.width = this._width;
+            this.canvas.height = this._height;
+            this._gl.viewport(0, 0, this._width, this._height);
+            this.quad = this._gl.createBuffer();
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.quad);
+            var quad = new Float32Array([-1, -1, 0, 1, 1, -1, 0, 1, -1, 1, 0, 1, -1, 1, 0, 1, 1, -1, 0, 1, 1, 1, 0, 1]);
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, quad, this._gl.STATIC_DRAW);
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+            this._heights = new Heights(this, this._gl, this._width, this._height);
+        }
+        adjustSize() {
+            var canvasHeight, canvasWidth;
+            canvasWidth = this.canvas.offsetWidth || 2;
+            canvasHeight = this.canvas.offsetHeight || 2;
+            if (this._width !== canvasWidth || this._height !== canvasHeight) {
+                this._gl.viewport(0, 0, canvasWidth, canvasHeight);
+                this.canvas.width = canvasWidth;
+                this.canvas.height = canvasHeight;
+                this._width = canvasWidth;
+                this._height = canvasHeight;
+                this._heights.resize(this._width, this._height);
+            }
+        }
+        display(x, y, times, contourForIntensity) {
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this.quad);
+            this._gl.vertexAttribPointer(0, 4, this._gl.FLOAT, false, 0, 0);
+            this._heights.nodeFront.bind(0);
+            if (!times)
+                times = 1.0;
+            if (!x)
+                x = 0;
+            if (!y)
+                y = 0;
+            if (!contourForIntensity) {
+                contourForIntensity = [1, 1, 1, 1, 1, 1, 1];
+            }
+            if (this._gradientTexture) {
+                this._gradientTexture.bind(1);
+            }
+            var flag = true;
+            if (heatmapLayer_1.config.shaderStyle == null)
+                flag = true;
+            else if (heatmapLayer_1.config.shaderStyle == 0)
+                flag = true;
+            else
+                flag = false;
+            if (flag) {
+                this._shader.use().int('source', 0)
+                    .int('gradientTexture', 1)
+                    .float('level0', contourForIntensity[0])
+                    .float('level1', contourForIntensity[1])
+                    .float('level2', contourForIntensity[2])
+                    .float('level3', contourForIntensity[3])
+                    .float('level4', contourForIntensity[4])
+                    .float('level5', contourForIntensity[5])
+                    .float('level6', contourForIntensity[6])
+                    .float('times', times)
+                    .vec2('center', x, y);
+            }
+            else {
+                this._rawshader.use().int('source', 0)
+                    .int('gradientTexture', 1)
+                    .float('times', times)
+                    .vec2('center', x, y);
+            }
+            return this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
+        }
+        dumpDensityMapTexureBuffer() {
+            this._heights.dumpDensityMapTexureBuffer();
+        }
+        getTextureBuffer() {
+            return this._heights.getTextureBuffer();
+        }
+        getDensityMapTextureBuffer() {
+            return this._heights.getTextureBuffer();
+        }
+        getHillClimbingResultTextureBuffer() {
+            return this._heights.getTextureBuffer();
+        }
+        hillClimbing() {
+            this._heights.hillClimbing();
+        }
+        dumpFinalHillClimbingResult() {
+            this._heights.dumpFinalHillClimbingResult();
+        }
+        addNode(x, y, size, intensity) {
+            return this._heights.addNode(x, y, size, intensity);
+        }
+        updateNodes() {
+            return this._heights.update();
+        }
+        addEdge(x0, y0, x1, y1, size, intensity) {
+            return this._heights.addEdge(x0, y0, x1, y1, size, intensity);
+        }
+        updateEdges() {
+            return this._heights.updateEdges();
+        }
+        clear() {
+            return this._heights.clear();
+        }
+        changTimes(x, y, times) {
+            //this._width *= times;
+            //this._height *= times;
+            //this._gl.viewport( 0, 0, this._width, this._height );
+            this._gl.viewport(x, y, this._width * times, this._height * times);
+            //this._gl.viewport( -x * ( times - 1 ), -( this._height - y ) * ( times - 1 ), this._width * times, this._height * times );
+        }
+        returnToInitial() {
+            this._gl.viewport(0, 0, this._width, this._height);
+        }
+    }
+    exports.WebGLHeatmap = WebGLHeatmap;
+});
+define("MapArea/heatmapLayer", ["require", "exports", "MapArea/WebGLLod"], function (require, exports, WebGLLoD_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class config {
+        static setKernelBandWidth(val) {
+            config.kernelBandwidth = val;
+            config.LoDMap.DrawCanvas();
+        }
+        static setIntensity(val) {
+            config.intensity = val;
+            config.LoDMap.DrawCanvas();
+        }
+        static setShader(val) {
+            config.shaderStyle = val;
+            config.LoDMap.DrawCanvas();
+        }
+    }
+    config.kernelBandwidth = 64;
+    config.intensity = 3;
+    config.shaderStyle = 0;
+    //public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
+    config.stops = [0.000, 0.067, 0.117, 0.24, 0.44, 0.51, 0.6];
+    exports.config = config;
+    class HeatMapLayer {
+        constructor(id, parentContainer, canvasWidth, canvasHeight, unitWidth, unitHeight, topOffset, leftOffset, nodeArray) {
+            config.LoDMap = this;
+            this._id = id;
+            this._parent_container = parentContainer;
+            this._canvas_width = canvasWidth * unitWidth;
+            this._canvas_height = canvasHeight * unitHeight;
+            this._canvas_top_offset = topOffset;
+            this._canvas_left_offset = leftOffset;
+            //this._unit_size = unitSize;
+            this._nodeArray = nodeArray.map((d) => {
+                return { x: d.x * unitWidth + unitWidth * 0.5, y: d.y * unitHeight + unitHeight * 0.5, value: d.value };
+            });
+            this.addAndInitCanvas();
+            this.DrawCanvas();
+        }
+        //在html上添加canvas并初始化，热力图和LoD就画在这个canvas上
+        addAndInitCanvas() {
+            this._canvas = document.createElement('canvas');
+            this._canvas.id = this._id;
+            this._canvas.height = this._canvas_height;
+            this._canvas.width = this._canvas_width;
+            this._canvas.style.top = this._canvas_top_offset + 'px';
+            this._canvas.style.left = this._canvas_left_offset + 'px';
+            this._parent_container.appendChild(this._canvas);
+            //创建热力图
+            this._LoD = new WebGLLoD_1.WebGLHeatmap({ canvas: this._canvas });
+            //初始化像素矩阵
+            var width = this._LoD.canvas.width;
+            var height = this._LoD.canvas.height;
+            this._pixelMatrix = new Array(this._canvas_height);
+            for (var i = 0; i < height; ++i) {
+                this._pixelMatrix[i] = new Array(this._canvas_width);
+                //for ( var j = 0; j < width; ++j )
+                //    this._pixelMatrix[i][j] = 0;
+            }
+            ;
+            //初始化等高线值,这里设置为7层
+            this._contourForIntensity = new Array(7);
+            for (var i = 0, len = this._contourForIntensity.length; i < len; ++i) {
+                this._contourForIntensity[i] = 0.0;
+            }
+            ;
+        }
+        UpdateNodeArray(unitWidth, unitHeight, nodeArray) {
+            this._nodeArray = nodeArray.map((d) => {
+                return { x: d.x * unitWidth + unitWidth * 0.5, y: d.y * unitHeight + unitHeight * 0.5, value: d.value };
+            });
+            this.DrawCanvas();
+        }
+        //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
+        DrawCanvas() {
+            var dStart = new Date();
+            this.getEdgesNodesAndDraw();
+            var nSpan = (new Date()).getMilliseconds() - dStart.getMilliseconds();
+            console.log("overall time is :" + nSpan + "ms");
+        }
+        //1、统计pixel矩阵上每个点出现的次数，然后根据每个Pixel点上不同的点个数赋予不同的强度，然后画到帧缓冲区中;并将当前的densityMap的结果copy回CPU端
+        //2、根据densityMap的强度矩阵获得强度矩阵的最大值，并设置等高线的值;
+        getEdgesNodesAndDraw() {
+            this._LoD.clear(); //每次重新绘制图时都需要将GPU的帧缓冲区清零
+            //var s: string = "[";
+            //this._nodeArray.forEach(( d ) => {
+            //    s += '{"x":'+d.x+',"y":'+d.y+',"value":'+d.value+'},'
+            //});
+            //s += "]";
+            //console.log( s );
+            this.drawNodes(this._nodeArray); //画点，渲染的结果在帧缓冲区中
+            this._LoD.display(0, 0, 1.0, this._contourForIntensity); //将最终渲染的帧缓冲区的结果展示到屏幕上
+        }
+        drawNodes(nodes) {
+            //初始像素矩阵为零
+            var width = this._pixelMatrix[0].length;
+            var height = this._pixelMatrix.length;
+            for (var i = 0; i < height; i++) {
+                for (var j = 0; j < width; j++)
+                    this._pixelMatrix[i][j] = 0;
+            }
+            //点聚合，对于每一个像素，统计累加落到同一个像素的点的个数
+            //for ( var i = 0, len = nodes.length; i < len; i++ ) {
+            //    var x = Math.floor( nodes[i].x );
+            //    var y = height - Math.floor( nodes[i].y );
+            //    if ( x >= 0 && x < width && y >= 0 && y < height ) {
+            //        this._pixelMatrix[y][x]++;
+            //    }
+            //}
+            for (var i = 0, len = nodes.length; i < len; ++i) {
+                var x = Math.floor(nodes[i].x); //* this._unit_size;
+                var y = Math.floor(height - 1 - nodes[i].y); //* this._unit_size;
+                if (this._pixelMatrix[y][x] != null)
+                    this._pixelMatrix[y][x] = nodes[i].value;
                 else {
-                    this._rawshader.use().int('source', 0)
-                        .int('gradientTexture', 1)
-                        .float('times', times)
-                        .vec2('center', x, y);
+                    console.log(nodes[i]);
+                    console.log(this._pixelMatrix[y]);
                 }
-                return this._gl.drawArrays(this._gl.TRIANGLES, 0, 6);
             }
-            dumpDensityMapTexureBuffer() {
-                this._heights.dumpDensityMapTexureBuffer();
+            //获得当前bing Map的放大倍数
+            var zoomLevel = 5; //this._map.getZoom();
+            //根据不同的zoomLevel设置不同的强度基数和核半径
+            var density = config.intensity;
+            density = density * zoomLevel / 5.0; //Math.max(zoomLevel-4.0, 1.0);
+            var ans = 0;
+            var kernelBand = 0;
+            var BaseKernelBand = config.kernelBandwidth;
+            if (zoomLevel < 5.0) {
+                kernelBand = BaseKernelBand * Math.pow(0.75, 5.0 - zoomLevel);
             }
-            getTextureBuffer() {
-                return this._heights.getTextureBuffer();
-            }
-            getDensityMapTextureBuffer() {
-                return this._heights.getTextureBuffer();
-            }
-            getHillClimbingResultTextureBuffer() {
-                return this._heights.getTextureBuffer();
-            }
-            hillClimbing() {
-                this._heights.hillClimbing();
-            }
-            dumpFinalHillClimbingResult() {
-                this._heights.dumpFinalHillClimbingResult();
-            }
-            addNode(x, y, size, intensity) {
-                return this._heights.addNode(x, y, size, intensity);
-            }
-            updateNodes() {
-                return this._heights.update();
-            }
-            addEdge(x0, y0, x1, y1, size, intensity) {
-                return this._heights.addEdge(x0, y0, x1, y1, size, intensity);
-            }
-            updateEdges() {
-                return this._heights.updateEdges();
-            }
-            clear() {
-                return this._heights.clear();
-            }
-            changTimes(x, y, times) {
-                //this._width *= times;
-                //this._height *= times;
-                //this._gl.viewport( 0, 0, this._width, this._height );
-                this._gl.viewport(x, y, this._width * times, this._height * times);
-                //this._gl.viewport( -x * ( times - 1 ), -( this._height - y ) * ( times - 1 ), this._width * times, this._height * times );
-            }
-            returnToInitial() {
-                this._gl.viewport(0, 0, this._width, this._height);
-            }
-        }
-        MapArea.WebGLHeatmap = WebGLHeatmap;
-    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./WebGLLod.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var MapArea;
-    (function (MapArea) {
-        class config {
-            static setKernelBandWidth(val) {
-                config.kernelBandwidth = val;
-                config.LoDMap.DrawCanvas();
-            }
-            static setIntensity(val) {
-                config.intensity = val;
-                config.LoDMap.DrawCanvas();
-            }
-            static setShader(val) {
-                config.shaderStyle = val;
-                config.LoDMap.DrawCanvas();
-            }
-        }
-        config.kernelBandwidth = 64;
-        config.intensity = 3;
-        config.shaderStyle = 0;
-        //public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
-        config.stops = [0.000, 0.067, 0.117, 0.24, 0.44, 0.51, 0.6];
-        MapArea.config = config;
-        class HeatMapLayer {
-            constructor(id, parentContainer, canvasWidth, canvasHeight, unitWidth, unitHeight, topOffset, leftOffset, nodeArray) {
-                config.LoDMap = this;
-                this._id = id;
-                this._parent_container = parentContainer;
-                this._canvas_width = canvasWidth * unitWidth;
-                this._canvas_height = canvasHeight * unitHeight;
-                this._canvas_top_offset = topOffset;
-                this._canvas_left_offset = leftOffset;
-                //this._unit_size = unitSize;
-                this._nodeArray = nodeArray.map((d) => {
-                    return { x: d.x * unitWidth + unitWidth * 0.5, y: d.y * unitHeight + unitHeight * 0.5, value: d.value };
-                });
-                this.addAndInitCanvas();
-                this.DrawCanvas();
-            }
-            //在html上添加canvas并初始化，热力图和LoD就画在这个canvas上
-            addAndInitCanvas() {
-                this._canvas = document.createElement('canvas');
-                this._canvas.id = this._id;
-                this._canvas.height = this._canvas_height;
-                this._canvas.width = this._canvas_width;
-                this._canvas.style.top = this._canvas_top_offset + 'px';
-                this._canvas.style.left = this._canvas_left_offset + 'px';
-                this._parent_container.appendChild(this._canvas);
-                //创建热力图
-                this._LoD = new MapArea.WebGLHeatmap({ canvas: this._canvas });
-                //初始化像素矩阵
-                var width = this._LoD.canvas.width;
-                var height = this._LoD.canvas.height;
-                this._pixelMatrix = new Array(this._canvas_height);
-                for (var i = 0; i < height; ++i) {
-                    this._pixelMatrix[i] = new Array(this._canvas_width);
-                    //for ( var j = 0; j < width; ++j )
-                    //    this._pixelMatrix[i][j] = 0;
-                }
-                ;
-                //初始化等高线值,这里设置为7层
-                this._contourForIntensity = new Array(7);
-                for (var i = 0, len = this._contourForIntensity.length; i < len; ++i) {
-                    this._contourForIntensity[i] = 0.0;
-                }
-                ;
-            }
-            UpdateNodeArray(unitWidth, unitHeight, nodeArray) {
-                this._nodeArray = nodeArray.map((d) => {
-                    return { x: d.x * unitWidth + unitWidth * 0.5, y: d.y * unitHeight + unitHeight * 0.5, value: d.value };
-                });
-                this.DrawCanvas();
-            }
-            //每次页面刷新，或者Bing Map的视角改变时，就根据当前Bing Map的状态重新绘制热力图或LoD
-            DrawCanvas() {
-                var dStart = new Date();
-                this.getEdgesNodesAndDraw();
-                var nSpan = (new Date()).getMilliseconds() - dStart.getMilliseconds();
-                console.log("overall time is :" + nSpan + "ms");
-            }
-            //1、统计pixel矩阵上每个点出现的次数，然后根据每个Pixel点上不同的点个数赋予不同的强度，然后画到帧缓冲区中;并将当前的densityMap的结果copy回CPU端
-            //2、根据densityMap的强度矩阵获得强度矩阵的最大值，并设置等高线的值;
-            getEdgesNodesAndDraw() {
-                this._LoD.clear(); //每次重新绘制图时都需要将GPU的帧缓冲区清零
-                //var s: string = "[";
-                //this._nodeArray.forEach(( d ) => {
-                //    s += '{"x":'+d.x+',"y":'+d.y+',"value":'+d.value+'},'
-                //});
-                //s += "]";
-                //console.log( s );
-                this.drawNodes(this._nodeArray); //画点，渲染的结果在帧缓冲区中
-                this._LoD.display(0, 0, 1.0, this._contourForIntensity); //将最终渲染的帧缓冲区的结果展示到屏幕上
-            }
-            drawNodes(nodes) {
-                //初始像素矩阵为零
-                var width = this._pixelMatrix[0].length;
-                var height = this._pixelMatrix.length;
-                for (var i = 0; i < height; i++) {
-                    for (var j = 0; j < width; j++)
-                        this._pixelMatrix[i][j] = 0;
-                }
-                //点聚合，对于每一个像素，统计累加落到同一个像素的点的个数
-                //for ( var i = 0, len = nodes.length; i < len; i++ ) {
-                //    var x = Math.floor( nodes[i].x );
-                //    var y = height - Math.floor( nodes[i].y );
-                //    if ( x >= 0 && x < width && y >= 0 && y < height ) {
-                //        this._pixelMatrix[y][x]++;
-                //    }
-                //}
-                for (var i = 0, len = nodes.length; i < len; ++i) {
-                    var x = Math.floor(nodes[i].x); //* this._unit_size;
-                    var y = Math.floor(height - 1 - nodes[i].y); //* this._unit_size;
-                    if (this._pixelMatrix[y][x] != null)
-                        this._pixelMatrix[y][x] = nodes[i].value;
-                    else {
-                        console.log(nodes[i]);
-                        console.log(this._pixelMatrix[y]);
+            else
+                kernelBand = BaseKernelBand * Math.atan(zoomLevel - 3.3) * Math.pow(1.05, zoomLevel - 5.0);
+            // adds the buffered points
+            //准备画点所需要的点坐标和强度
+            for (var i = 0; i < height; i++) {
+                for (var j = 0; j < width; j++) {
+                    if (this._pixelMatrix[i][j] > 0) {
+                        //遍历点聚合后的像素矩阵，将点的坐标以及其对应的核半径和强度值加入点缓冲区中
+                        this._LoD.addNode(j, i, kernelBand, Math.sqrt(this._pixelMatrix[i][j]) * density / 300);
+                        ans++;
                     }
                 }
-                //获得当前bing Map的放大倍数
-                var zoomLevel = 5; //this._map.getZoom();
-                //根据不同的zoomLevel设置不同的强度基数和核半径
-                var density = config.intensity;
-                density = density * zoomLevel / 5.0; //Math.max(zoomLevel-4.0, 1.0);
-                var ans = 0;
-                var kernelBand = 0;
-                var BaseKernelBand = config.kernelBandwidth;
-                if (zoomLevel < 5.0) {
-                    kernelBand = BaseKernelBand * Math.pow(0.75, 5.0 - zoomLevel);
-                }
-                else
-                    kernelBand = BaseKernelBand * Math.atan(zoomLevel - 3.3) * Math.pow(1.05, zoomLevel - 5.0);
-                // adds the buffered points
-                //准备画点所需要的点坐标和强度
-                for (var i = 0; i < height; i++) {
-                    for (var j = 0; j < width; j++) {
-                        if (this._pixelMatrix[i][j] > 0) {
-                            //遍历点聚合后的像素矩阵，将点的坐标以及其对应的核半径和强度值加入点缓冲区中
-                            this._LoD.addNode(j, i, kernelBand, Math.sqrt(this._pixelMatrix[i][j]) * density / 300);
-                            ans++;
+            }
+            //在GPU中画点的热力图，帧缓冲与纹理nodeFront绑定
+            this._LoD.updateNodes();
+            // get the Maximum Val of density from the retrieved Buffer, and compute the contour Map
+            //画完热力图，将热力图的强度矩阵拷贝回CPU端，CPU端计算热力图中的最大强度，然后根据这个最大强度设置等高线的值。
+            this.getTextureBufferIntensity(null);
+        }
+        getTextureBufferIntensity(textureBuffer) {
+            // dump the densityMap from GPU's FrameBuffer (bind the TextureBuffer)
+            this._LoD.dumpDensityMapTexureBuffer();
+            if (textureBuffer == null)
+                textureBuffer = this._LoD.getDensityMapTextureBuffer();
+            var maxVal = 0;
+            for (var idx = 0, len = textureBuffer.length; idx < len; idx += 16) {
+                maxVal = Math.max(textureBuffer[idx], maxVal);
+            }
+            //var rate = [0.01,0.02,0.04,0.08,0.15,0.19,0.28];
+            if (maxVal == 0)
+                maxVal = 1.0;
+            //提前估算好各个等高线的值与最大值的比率，然后根据得到的densityMap的最大值计算出当前各个等高线的值
+            var rate = config.stops;
+            for (var idx = 0, len = this._contourForIntensity.length; idx < len; idx++) {
+                this._contourForIntensity[idx] = maxVal * rate[idx];
+            }
+        }
+        //zoom in zoom out 操作
+        transform(times, centerX, centerY) {
+            //if ( type == 1 ) {//zoom in 放大
+            //    //this._LoD.display( x / this._canvas.width * 2 - 1,( this._canvas.height - y ) / this._canvas.height * 2 - 1, 1 / ( 1 + times ), this._contourForIntensity );
+            //    var scale = ( 1 + times );
+            //    this._canvas.style.width = this._canvas_width * scale + "px";
+            //    this._canvas.style.height = this._canvas_height * scale + "px";
+            //    this._LoD.changTimes( x, y, scale );
+            //    this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
+            //}
+            //else if ( type == 0 ) {//zoom out 缩小
+            //    var scale = 1 / ( 1 + times );
+            //    this._canvas.style.width = this._canvas_width * scale + "px";
+            //    this._canvas.style.height = this._canvas_height * scale + "px";
+            //    this._LoD.changTimes( x, y, scale );
+            //    this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
+            //}
+            //var l = Math.sqrt( this._canvas_height * this._canvas_height + this._canvas_width * this._canvas_width );
+            //var widthScale = ( this._canvas_width / l ) * times;
+            //var heightScale = ( this._canvas_height / l ) * times;
+            this._canvas.width = this._canvas_width * times;
+            this._canvas.height = this._canvas_height * times;
+            this._LoD.changTimes(0, 0, times);
+            this._LoD.display(0, 0, 1.0, this._contourForIntensity);
+            //this._LoD.returnToInitial();
+        }
+        //平移操作
+        transformPan(xDif, yDif, times) {
+            this._canvas.style.top = this._canvas_top_offset * times + yDif + 'px';
+            this._canvas.style.left = this._canvas_left_offset * times + xDif + 'px';
+            this._LoD.display(0, 0, 1.0, this._contourForIntensity);
+        }
+    }
+    exports.HeatMapLayer = HeatMapLayer;
+});
+define("MapArea/SOMMap", ["require", "exports", "d3", "MapArea/heatmapLayer", "D3ChartObject"], function (require, exports, d3, heatmapLayer_2, D3ChartObject_4) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class SOMMap extends D3ChartObject_4.D3ChartObject {
+        constructor(element, manyLens) {
+            super(element, manyLens);
+            // private _lensPane: Pane.ClassicLensPane;
+            //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
+            this._state = true;
+            this._maps = [];
+            this._heatMaps = [];
+            this._mapIDs = [];
+            this._scale = 1;
+            this._left_offset = 0;
+            this._top_offset = null;
+            this._translate_x = 0;
+            this._translate_y = 0;
+            this._map_gap = 50;
+            this._unit_width = 20;
+            this._unit_height = 20;
+            this._classifier_context_menu = null;
+            this._hightlight_classifier_arrow = null;
+            this._colorPalettes = ["rgb(198,219,239)",
+                "rgb(158,202,225)",
+                "rgb(107, 174, 214)",
+                "rgb(66, 146, 198)",
+                "rgb(33, 113, 181)",
+                "rgb(8, 81, 156)",
+                "rgb(8, 81, 156)"
+            ];
+            // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
+            this._element.attr("height", function () {
+                let parentRect = this.parentNode.getBoundingClientRect();
+                let selfRect = this.getBoundingClientRect();
+                return parentRect.height - (selfRect.top - parentRect.top);
+            });
+            this._total_width = parseFloat(this._element.style("width"));
+            this._total_height = parseFloat(this._element.style("height"));
+            this._heatmap_container = document.createElement('div');
+            this._heatmap_container.id = "heatmap-container";
+            const heatmapContainerRect = this._element.node().getBoundingClientRect();
+            //this._heatmap_container.style.left = ( <HTMLElement>this._element.node() ).offsetLeft.toString() + "px";
+            //this._heatmap_container.style.top = ( <HTMLElement>this._element.node() ).offsetTop.toString() + "px";
+            this._heatmap_container.style.height = heatmapContainerRect.height + "px";
+            this._heatmap_container.style.width = heatmapContainerRect.width + "px";
+            document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
+            this._center_x = 0.5 * parseFloat(this._element.style("width"));
+            this._center_y = 0.5 * parseFloat(this._element.style("height"));
+            this._brush = d3.svg.brush()
+                .on("brushstart", () => {
+                if (d3.event.sourceEvent.altKey) {
+                    var extent = d3.event.target.extent();
+                    var rect = this._element.node().createSVGRect();
+                    rect.x = extent[0][0] * this._scale + this._translate_x;
+                    rect.y = extent[0][1] * this._scale + this._translate_y;
+                    rect.width = (extent[1][0] - extent[0][0]) * this._scale;
+                    rect.height = (extent[1][1] - extent[0][1]) * this._scale;
+                    //this._element.select( "#rectForTest" ).remove();
+                    //this._element.append( "rect" ).attr( {
+                    //    id:"rectForTest",
+                    //    x: rect.x,
+                    //    y: rect.y,
+                    //    width: rect.width,
+                    //    height:rect.height
+                    //})
+                    //.style("pointer-events","none");
+                    var ele = this._element.node().getIntersectionList(rect, null);
+                    var res = [];
+                    for (var i = 0, len = ele.length; i < len; ++i) {
+                        var node = d3.select(ele.item(i));
+                        if (node.classed("unit")) {
+                            res.push(node.data()[0]['unitID']);
                         }
                     }
+                    this._fromUnitsID = res;
                 }
-                //在GPU中画点的热力图，帧缓冲与纹理nodeFront绑定
-                this._LoD.updateNodes();
-                // get the Maximum Val of density from the retrieved Buffer, and compute the contour Map
-                //画完热力图，将热力图的强度矩阵拷贝回CPU端，CPU端计算热力图中的最大强度，然后根据这个最大强度设置等高线的值。
-                this.getTextureBufferIntensity(null);
-            }
-            getTextureBufferIntensity(textureBuffer) {
-                // dump the densityMap from GPU's FrameBuffer (bind the TextureBuffer)
-                this._LoD.dumpDensityMapTexureBuffer();
-                if (textureBuffer == null)
-                    textureBuffer = this._LoD.getDensityMapTextureBuffer();
-                var maxVal = 0;
-                for (var idx = 0, len = textureBuffer.length; idx < len; idx += 16) {
-                    maxVal = Math.max(textureBuffer[idx], maxVal);
+                d3.event.sourceEvent.stopPropagation();
+            })
+                .on("brush", () => {
+                d3.event.sourceEvent.stopImmediatePropagation();
+            })
+                .on("brushend", () => {
+                if (d3.event.sourceEvent.altKey) {
+                    var extent = d3.event.target.extent();
+                    var rect = this._element.node().createSVGRect();
+                    rect.x = extent[0][0] * this._scale + this._translate_x;
+                    rect.y = extent[0][1] * this._scale + this._translate_y;
+                    rect.width = (extent[1][0] - extent[0][0]) * this._scale;
+                    rect.height = (extent[1][1] - extent[0][1]) * this._scale;
+                    //this._element.select( "#rectForTest" ).remove();
+                    //this._element.append( "rect" ).attr( {
+                    //    id:"rectForTest",
+                    //    x: rect.x,
+                    //    y: rect.y,
+                    //    width: rect.width,
+                    //    height:rect.height
+                    //})
+                    //.style("pointer-events","none");
+                    var ele = this._element.node().getIntersectionList(rect, null);
+                    var res = [];
+                    var mapID;
+                    for (var i = 0, len = ele.length; i < len; ++i) {
+                        var node = d3.select(ele.item(i));
+                        if (node.classed("unit")) {
+                            res.push(node.data()[0]['unitID']);
+                            mapID = node.data()[0]['mapID'];
+                            console.log(node);
+                        }
+                    }
+                    this._toUnitsID = res;
+                    if (this._fromUnitsID && this._toUnitsID) {
+                        console.log(this._fromUnitsID, this._toUnitsID);
+                        this._manyLens.ManyLensHubServerRefineMap(mapID, this._mapIDs.indexOf(mapID), this._fromUnitsID, this._toUnitsID);
+                    }
                 }
-                //var rate = [0.01,0.02,0.04,0.08,0.15,0.19,0.28];
-                if (maxVal == 0)
-                    maxVal = 1.0;
-                //提前估算好各个等高线的值与最大值的比率，然后根据得到的densityMap的最大值计算出当前各个等高线的值
-                var rate = config.stops;
-                for (var idx = 0, len = this._contourForIntensity.length; idx < len; idx++) {
-                    this._contourForIntensity[idx] = maxVal * rate[idx];
-                }
-            }
-            //zoom in zoom out 操作
-            transform(times, centerX, centerY) {
-                //if ( type == 1 ) {//zoom in 放大
-                //    //this._LoD.display( x / this._canvas.width * 2 - 1,( this._canvas.height - y ) / this._canvas.height * 2 - 1, 1 / ( 1 + times ), this._contourForIntensity );
-                //    var scale = ( 1 + times );
-                //    this._canvas.style.width = this._canvas_width * scale + "px";
-                //    this._canvas.style.height = this._canvas_height * scale + "px";
-                //    this._LoD.changTimes( x, y, scale );
-                //    this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
-                //}
-                //else if ( type == 0 ) {//zoom out 缩小
-                //    var scale = 1 / ( 1 + times );
-                //    this._canvas.style.width = this._canvas_width * scale + "px";
-                //    this._canvas.style.height = this._canvas_height * scale + "px";
-                //    this._LoD.changTimes( x, y, scale );
-                //    this._LoD.display( 0, 0, 1.0, this._contourForIntensity );
-                //}
-                //var l = Math.sqrt( this._canvas_height * this._canvas_height + this._canvas_width * this._canvas_width );
-                //var widthScale = ( this._canvas_width / l ) * times;
-                //var heightScale = ( this._canvas_height / l ) * times;
-                this._canvas.width = this._canvas_width * times;
-                this._canvas.height = this._canvas_height * times;
-                this._LoD.changTimes(0, 0, times);
-                this._LoD.display(0, 0, 1.0, this._contourForIntensity);
-                //this._LoD.returnToInitial();
-            }
-            //平移操作
-            transformPan(xDif, yDif, times) {
-                this._canvas.style.top = this._canvas_top_offset * times + yDif + 'px';
-                this._canvas.style.left = this._canvas_left_offset * times + xDif + 'px';
-                this._LoD.display(0, 0, 1.0, this._contourForIntensity);
-            }
+                d3.event.sourceEvent.stopPropagation();
+            });
+            this._zoom = d3.behavior.zoom()
+                .scaleExtent([0.2, 1.5])
+                .on("zoomstart", () => {
+                var p = d3.mouse(this._element.node());
+                this._zoom
+                    .center([p[0], this._center_y]);
+            })
+                .on("zoom", () => {
+                clearInterval(this._move_view_timer);
+                var currentLevel = d3.event.scale;
+                this._heatMaps.forEach((d, i) => {
+                    if (this._scale != currentLevel) {
+                        d.transform(currentLevel, 0, 0);
+                    }
+                    d.transformPan(d3.event.translate[0], d3.event.translate[1], currentLevel);
+                });
+                this._element.selectAll(".som-map")
+                    .attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                this._element.selectAll(".lens")
+                    .attr("transform", function (d) {
+                    if (d.cx == 0) {
+                        d.cx = d3.event.translate[0];
+                        d.cy = d3.event.translate[1];
+                    }
+                    d.scale = currentLevel;
+                    d.tx = d3.event.translate[0] - d.cx * d.scale;
+                    d.ty = d3.event.translate[1] - d.cy * d.scale;
+                    return "translate(" + [d.tx, d.ty] + ")scale(" + currentLevel + ")";
+                });
+                d3.select("#mapView")
+                    .selectAll(".list-group")
+                    .style("left", function (d) { var x = d.ox + d3.event.translate[0]; return x + "px"; })
+                    .style("top", function (d) { var y = d.oy + d3.event.translate[1]; return y + "px"; })
+                    .style("width", function (d) {
+                    var w = d.oWidth * currentLevel;
+                    w = w < 260 ? 260 : w;
+                    return w + "px";
+                })
+                    .selectAll("p")
+                    .style("font-size", function (d) {
+                    var fontSize = d3.select(this).style("font-size");
+                    fontSize = parseFloat(fontSize.substring(0, fontSize.length - 2));
+                    fontSize = fontSize * currentLevel > 18 ? 18 : fontSize * currentLevel;
+                    return fontSize + "px";
+                });
+                this._translate_x = d3.event.translate[0];
+                this._translate_y = d3.event.translate[1];
+                this._scale = currentLevel;
+            });
+            this.init();
+            this._manyLens.ManyLensHubRegisterClientFunction(this, "showVisMap", this.ShowVisMap);
+            this._manyLens.ManyLensHubRegisterClientFunction(this, "updateVisMap", this.UpdateVisMap);
         }
-        MapArea.HeatMapLayer = HeatMapLayer;
-    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "./HeatmapLayer.ts" />
-var ManyLens;
-(function (ManyLens) {
-    var MapArea;
-    (function (MapArea) {
-        class SOMMap extends D3ChartObject {
-            constructor(element, manyLens) {
-                super(element, manyLens);
-                // private _lensPane: Pane.ClassicLensPane;
-                //private _colorPalettes: string[] = ["rgb(99,133,255)", "rgb(98,252,250)", "rgb(99,255,127)", "rgb(241,255,99)", "rgb(255,187,99)", "rgb(255,110,99)", "rgb(255,110,99)"];
-                this._state = true;
-                this._maps = [];
-                this._heatMaps = [];
-                this._mapIDs = [];
-                this._scale = 1;
-                this._left_offset = 0;
-                this._top_offset = null;
-                this._translate_x = 0;
-                this._translate_y = 0;
-                this._map_gap = 50;
-                this._unit_width = 20;
-                this._unit_height = 20;
-                this._classifier_context_menu = null;
-                this._hightlight_classifier_arrow = null;
-                this._colorPalettes = ["rgb(198,219,239)",
-                    "rgb(158,202,225)",
-                    "rgb(107, 174, 214)",
-                    "rgb(66, 146, 198)",
-                    "rgb(33, 113, 181)",
-                    "rgb(8, 81, 156)",
-                    "rgb(8, 81, 156)"
+        init() {
+            this._element.on("dblclick", null);
+            this._element
+                .on("mousedown", () => {
+                if (d3.event.button)
+                    d3.event.stopImmediatePropagation();
+                if (this._classifier_context_menu) {
+                    this._classifier_context_menu.remove();
+                    this._classifier_context_menu = null;
+                }
+            });
+            //this._element
+            //      .call( this._zoom )
+            //      .on("dblclick.zoom", null);
+            var defs = this._element.append('svg:defs');
+            // define arrow markers for leading arrow
+            defs.append('svg:marker')
+                .attr({
+                'id': 'mark-end-arrow',
+                'viewBox': '0 -5 10 10',
+                'refX': 7,
+                'markerWidth': 3.5,
+                'markerHeight': 3.5,
+                'orient': 'auto'
+            })
+                .append('path')
+                .attr({
+                "class": "highlight-arrow",
+                'd': 'M0,-5L10,0L0,5z'
+            });
+        }
+        Toggle() {
+            if (this._state) {
+                this.RemoveMap();
+            }
+            else {
+                this.init();
+                this.Render();
+            }
+            this._state = !this._state;
+        }
+        RemoveMap() {
+            this._element.selectAll("*").remove();
+            this._heatmap_container.innerHTML = "";
+            this._left_offset = 0;
+            this._heatMaps = [];
+            this._maps = [];
+        }
+        Render() {
+            //this._lensPane.Render();
+        }
+        AddBrush() {
+            this._element
+                .style("cursor", "pointer")
+                .on("click", () => {
+                var p = d3.mouse(document.body);
+                console.log(p[0], p[1]);
+                var data = d3.select(document.elementFromPoint(p[0], p[1])).data();
+                if (data && data.length > 0 && data[0]) {
+                    var mapID = data[0].mapID;
+                    var map = d3.select("#mapSvg" + mapID);
+                    if (map) {
+                        var mapData = map.data()[0];
+                        if (this._brush_svg) {
+                            this._brush.clear();
+                            this._brush_svg.remove();
+                        }
+                        this._brush.x(d3.scale.identity().domain([mapData.leftOffset, mapData.width * this._unit_width + mapData.leftOffset]))
+                            .y(d3.scale.identity().domain([mapData.topOffset, mapData.height * this._unit_height + mapData.topOffset]));
+                        this._brush_svg = map.append("g")
+                            .attr("class", "brush")
+                            .on("contextmenu", () => {
+                            this._brush.clear();
+                            this._brush_svg.remove();
+                            d3.event.preventDefault();
+                        })
+                            .call(this._brush);
+                    }
+                }
+                this._element.style("cursor", "default")
+                    .on("click", null);
+            });
+        }
+        ContextMenu(preMapID) {
+            var p = d3.mouse(this._element.node());
+            if (!this._classifier_context_menu) {
+                var contextWidth = 200;
+                this._classifier_context_menu = this._element.append("g")
+                    .attr("id", "som-map-context-menu")
+                    .attr("transform", "translate(" + [p[0], p[1]] + ")");
+                this._classifier_context_menu.append("rect")
+                    .attr({
+                    id: "context-menu-base",
+                    width: contextWidth
+                })
+                    .attr("height", () => {
+                    if (this._manyLens.CurrentClassifierMapID)
+                        return 150;
+                    return 50;
+                });
+                // filters go in defs element
+                var defs = this._classifier_context_menu.append("defs");
+                // create filter with id #drop-shadow
+                // height=130% so that the shadow is not clipped
+                var filter = defs.append("filter")
+                    .attr({
+                    "id": "drop-shadow",
+                    "height": "130%"
+                });
+                // SourceAlpha refers to opacity of graphic that this filter will be applied to
+                // convolve that with a Gaussian with standard deviation 3 and store result
+                // in blur
+                filter.append("feGaussianBlur")
+                    .attr({
+                    "in": "SourceAlpha",
+                    "stdDeviation": 2,
+                    "result": "blur"
+                });
+                // translate output of Gaussian blur to the right and downwards with 2px
+                // store result in offsetBlur
+                filter.append("feOffset")
+                    .attr({
+                    "in": "blur",
+                    "dx": 1,
+                    "dy": 1,
+                    "result": "offsetBlur"
+                });
+                // overlay original SourceGraphic over translated blurred opacity by using
+                // feMerge filter. Order of specifying inputs is important!
+                var feMerge = filter.append("feMerge");
+                feMerge.append("feMergeNode")
+                    .attr("in", "offsetBlur");
+                feMerge.append("feMergeNode")
+                    .attr("in", "SourceGraphic");
+                var option = [
+                    { mapID: preMapID, text: "Set this map as classifier" },
+                    { mapID: this._manyLens.CurrentClassifierMapID, text: "Current classifier: " },
+                    { mapID: this._manyLens.CurrentClassifierMapID, text: "Remove classifier" }
                 ];
-                // this._lensPane = new Pane.ClassicLensPane(element, manyLens);
-                this._element.attr("height", function () {
-                    let parentRect = this.parentNode.getBoundingClientRect();
-                    let selfRect = this.getBoundingClientRect();
-                    return parentRect.height - (selfRect.top - parentRect.top);
+                var optionG = this._classifier_context_menu.selectAll(".context-menu-option")
+                    .data(option.filter(function (d) { return d.mapID != null; }))
+                    .enter().append("g")
+                    .attr("class", "context-menu-option")
+                    .attr("transform", function (d, i) {
+                    if (i == 2)
+                        return "translate(10," + (i * 50 + 10) + ")";
+                    return "translate(10," + (i * 40 + 10) + ")";
                 });
-                this._total_width = parseFloat(this._element.style("width"));
-                this._total_height = parseFloat(this._element.style("height"));
-                this._heatmap_container = document.createElement('div');
-                this._heatmap_container.id = "heatmap-container";
-                const heatmapContainerRect = this._element.node().getBoundingClientRect();
-                //this._heatmap_container.style.left = ( <HTMLElement>this._element.node() ).offsetLeft.toString() + "px";
-                //this._heatmap_container.style.top = ( <HTMLElement>this._element.node() ).offsetTop.toString() + "px";
-                this._heatmap_container.style.height = heatmapContainerRect.height + "px";
-                this._heatmap_container.style.width = heatmapContainerRect.width + "px";
-                document.getElementById("mapView").insertBefore(this._heatmap_container, this._element.node());
-                this._center_x = 0.5 * parseFloat(this._element.style("width"));
-                this._center_y = 0.5 * parseFloat(this._element.style("height"));
-                this._brush = d3.svg.brush()
-                    .on("brushstart", () => {
-                    if (d3.event.sourceEvent.altKey) {
-                        var extent = d3.event.target.extent();
-                        var rect = this._element.node().createSVGRect();
-                        rect.x = extent[0][0] * this._scale + this._translate_x;
-                        rect.y = extent[0][1] * this._scale + this._translate_y;
-                        rect.width = (extent[1][0] - extent[0][0]) * this._scale;
-                        rect.height = (extent[1][1] - extent[0][1]) * this._scale;
-                        //this._element.select( "#rectForTest" ).remove();
-                        //this._element.append( "rect" ).attr( {
-                        //    id:"rectForTest",
-                        //    x: rect.x,
-                        //    y: rect.y,
-                        //    width: rect.width,
-                        //    height:rect.height
-                        //})
-                        //.style("pointer-events","none");
-                        var ele = this._element.node().getIntersectionList(rect, null);
-                        var res = [];
-                        for (var i = 0, len = ele.length; i < len; ++i) {
-                            var node = d3.select(ele.item(i));
-                            if (node.classed("unit")) {
-                                res.push(node.data()[0]['unitID']);
-                            }
-                        }
-                        this._fromUnitsID = res;
-                    }
-                    d3.event.sourceEvent.stopPropagation();
+                var textHeight;
+                this._classifier_context_menu.append("text").text("text")
+                    .attr("x", function (d) {
+                    var box = this.getBBox();
+                    textHeight = box.height;
                 })
-                    .on("brush", () => {
-                    d3.event.sourceEvent.stopImmediatePropagation();
-                })
-                    .on("brushend", () => {
-                    if (d3.event.sourceEvent.altKey) {
-                        var extent = d3.event.target.extent();
-                        var rect = this._element.node().createSVGRect();
-                        rect.x = extent[0][0] * this._scale + this._translate_x;
-                        rect.y = extent[0][1] * this._scale + this._translate_y;
-                        rect.width = (extent[1][0] - extent[0][0]) * this._scale;
-                        rect.height = (extent[1][1] - extent[0][1]) * this._scale;
-                        //this._element.select( "#rectForTest" ).remove();
-                        //this._element.append( "rect" ).attr( {
-                        //    id:"rectForTest",
-                        //    x: rect.x,
-                        //    y: rect.y,
-                        //    width: rect.width,
-                        //    height:rect.height
-                        //})
-                        //.style("pointer-events","none");
-                        var ele = this._element.node().getIntersectionList(rect, null);
-                        var res = [];
-                        var mapID;
-                        for (var i = 0, len = ele.length; i < len; ++i) {
-                            var node = d3.select(ele.item(i));
-                            if (node.classed("unit")) {
-                                res.push(node.data()[0]['unitID']);
-                                mapID = node.data()[0]['mapID'];
-                                console.log(node);
-                            }
-                        }
-                        this._toUnitsID = res;
-                        if (this._fromUnitsID && this._toUnitsID) {
-                            console.log(this._fromUnitsID, this._toUnitsID);
-                            this._manyLens.ManyLensHubServerRefineMap(mapID, this._mapIDs.indexOf(mapID), this._fromUnitsID, this._toUnitsID);
-                        }
+                    .remove();
+                optionG.append("text")
+                    .html(function (d) {
+                    if (d.text[0] == "C") {
+                        return '<tspan>Current classifier:</tspan><tspan x="40" dy=' + textHeight + '>' + d.mapID + '</tspan>';
                     }
-                    d3.event.sourceEvent.stopPropagation();
+                    return d.text;
+                })
+                    .attr("y", textHeight);
+                optionG.insert("rect", ".context-menu-option text")
+                    .attr("width", contextWidth - 20)
+                    .attr("height", function (d, i) {
+                    if (i == 1)
+                        return 2 * (textHeight + 6);
+                    return textHeight + 6;
+                })
+                    .on("mousedown", function () { d3.event.stopPropagation(); })
+                    .on("click", (d, i) => {
+                    switch (i) {
+                        case 0:
+                            {
+                                this._manyLens.CurrentClassifierMapID = d.mapID;
+                                if (this._hightlight_classifier_arrow)
+                                    this._hightlight_classifier_arrow.remove();
+                                this._hightlight_classifier_arrow = d3.select("#mapSvg" + d.mapID)
+                                    .append("path")
+                                    .attr({
+                                    id: "hightlight-arrow-line",
+                                    "class": "highlight-arrow"
+                                })
+                                    .attr("d", (d) => {
+                                    return 'M' + (-50 + d.leftOffset + d.width * this._unit_width * 0.5) + ',-10L' + (d.leftOffset + d.width * this._unit_width * 0.5) + ',70';
+                                });
+                            }
+                            break;
+                        case 1:
+                            {
+                            }
+                            break;
+                        case 2:
+                            {
+                                this._manyLens.CurrentClassifierMapID = null;
+                                if (this._hightlight_classifier_arrow)
+                                    this._hightlight_classifier_arrow.remove();
+                            }
+                            break;
+                    }
+                    this._classifier_context_menu.remove();
+                    this._classifier_context_menu = null;
                 });
-                this._zoom = d3.behavior.zoom()
-                    .scaleExtent([0.2, 1.5])
-                    .on("zoomstart", () => {
-                    var p = d3.mouse(this._element.node());
-                    this._zoom
-                        .center([p[0], this._center_y]);
-                })
-                    .on("zoom", () => {
-                    clearInterval(this._move_view_timer);
-                    var currentLevel = d3.event.scale;
-                    this._heatMaps.forEach((d, i) => {
-                        if (this._scale != currentLevel) {
-                            d.transform(currentLevel, 0, 0);
-                        }
-                        d.transformPan(d3.event.translate[0], d3.event.translate[1], currentLevel);
+                this._classifier_context_menu.append("line")
+                    .attr({
+                    x1: 10,
+                    x2: 180,
+                    y1: 40,
+                    y2: 40
+                });
+            }
+            this._classifier_context_menu.attr("transform", "translate(" + [p[0], p[1]] + ")");
+        }
+        UpdateVisMap(index, visData) {
+            this._brush.clear();
+            this._brush_svg.remove();
+            this._maps[index] = visData;
+            this._heatMaps[index].UpdateNodeArray(this._unit_width, this._unit_height, visData.unitsData);
+            this._heatMaps[index].transform(this._scale, 0, 0);
+            this._heatMaps[index].transformPan(this._translate_x, this._translate_y, this._scale);
+            var mapData = d3.select("#mapSvg" + visData.mapID).data()[0];
+            var units = d3.select("#mapSvg" + visData.mapID).selectAll("rect.unit")
+                .data(visData.unitsData, d => d.unitID);
+            units.exit().remove();
+            units.enter().append("rect")
+                .attr("x", (d) => { return mapData.leftOffset + d.x * this._unit_width; })
+                .attr("y", (d) => { return mapData.topOffset + d.y * this._unit_height; })
+                .attr({
+                "class": "unit",
+                width: this._unit_width,
+                height: this._unit_height
+            });
+            d3.selectAll("#mapSvg" + visData.mapID).selectAll("text.map.label").remove();
+            var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) { return d.value; })).range([10, 30]);
+            console.log(visData.labels);
+            d3.selectAll("#mapSvg" + visData.mapID).selectAll("text.map.label")
+                .data(visData.labels, function (d) { return d.x + "-" + d.y; })
+                .enter().append("text")
+                .attr("x", (d) => { return mapData.leftOffset + d.x * this._unit_width; })
+                .attr("y", (d) => { return mapData.topOffset + d.y * this._unit_height; })
+                .attr("dy", (d) => { return this._unit_width; })
+                .attr({
+                "class": "map label"
+            })
+                .style("font-size", (d) => {
+                return fontSizeScale(d.value) + "px";
+            })
+                .text(function (d) { return d.label; });
+        }
+        ShowVisMap(visData, classifierID) {
+            this._maps.push(visData);
+            this._mapIDs.push(visData.mapID);
+            this._top_offset = this._top_offset || (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
+            var newHeatMap = new heatmapLayer_2.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.width, visData.height, this._unit_width, this._unit_height, this._top_offset, this._left_offset, visData.unitsData);
+            newHeatMap.transform(this._scale, 0, 0);
+            newHeatMap.transformPan(this._translate_x, this._translate_y, this._scale);
+            this._heatMaps.push(newHeatMap);
+            var svg = this._element
+                .append("g")
+                .data([{ mapID: visData.mapID, width: visData.width, height: visData.height, leftOffset: this._left_offset, topOffset: this._top_offset }])
+                .attr("id", function (d) { return "mapSvg" + d.mapID; })
+                .attr("class", "som-map")
+                .attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")");
+            svg.selectAll("rect.unit")
+                .data(visData.unitsData, function (d) { return d.unitID; })
+                .enter().append("rect")
+                .attr("x", (d) => { return this._left_offset + d.x * this._unit_width; })
+                .attr("y", (d) => { return this._top_offset + d.y * this._unit_height; })
+                .attr({
+                "class": "unit",
+                width: this._unit_width,
+                height: this._unit_height
+            });
+            var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) { return d.value; })).range([10, 30]);
+            // console.log( visData.unitsData.filter( function ( d: UnitData ) { return d.isSpam; }) );
+            //svg.selectAll( "text.map.spam" )
+            //    .data( visData.unitsData.filter( function ( d: UnitData ) { return d.isSpam; }), function ( d ) { return d.unitID; })
+            //    .enter().append( "text" )
+            //    .attr( "x", ( d ) => { return this._left_offset + d.x * this._unit_width; })
+            //    .attr( "y", ( d ) => { return this._top_offset + d.y * this._unit_height; })
+            //    .attr( "dy", ( d ) => { return this._unit_width })
+            //    .attr( {
+            //        "class": "map spam"
+            //    })
+            //    .style( "font-size", ( d ) => {
+            //        return fontSizeScale( d.value ) + "px";
+            //    })
+            //    .text( function ( d ) { return "spam"; })
+            //    ;
+            svg.selectAll("text.map.label")
+                .data(visData.labels, function (d) { return d.x + "-" + d.y; })
+                .enter().append("text")
+                .attr("x", (d) => this._left_offset + d.x * this._unit_width)
+                .attr("y", (d) => this._top_offset + d.y * this._unit_height)
+                .attr("dy", (d) => this._unit_width)
+                .attr({
+                "class": "map label"
+            })
+                .style("font-size", (d) => fontSizeScale(d.value) + "px")
+                .text(d => d.label);
+            console.log(visData);
+            //Add the hightlight and contextmenu layout
+            var line = d3.svg.line()
+                .x(d => d.x)
+                .y(d => d.y)
+                .interpolate("linear-closed");
+            svg.append("path")
+                .data([{
+                    mapID: visData.mapID,
+                    path: [
+                        { x: this._left_offset, y: this._top_offset },
+                        { x: this._left_offset, y: this._top_offset + this._unit_height * visData.height },
+                        { x: this._left_offset + this._unit_width * visData.width, y: this._top_offset + this._unit_height * visData.height },
+                        { x: this._left_offset + this._unit_width * visData.width, y: this._top_offset }
+                    ]
+                }])
+                .attr("d", d => line(d.path))
+                .attr("class", "control-layout")
+                .on("contextmenu", (d) => {
+                this.ContextMenu(d.mapID);
+                d3.event.preventDefault();
+            });
+            //Whether to add the connection link
+            if (classifierID) {
+                console.log(classifierID);
+                var classifierMap = d3.select("#mapSvg" + classifierID).data()[0];
+                //var linkArrow = svg.append("g").attr("class","classifier-link");
+                //var defs = linkArrow.append('svg:defs');
+                //                // define arrow markers for leading arrow
+                //                defs.append('svg:marker')
+                //                    .attr({
+                //                        'id': 'classifier-mark-end-arrow',
+                //                        'viewBox': '0 -5 10 10',
+                //                        'refX': 7,
+                //                        'markerWidth': 3.5,
+                //                        'markerHeight': 3.5,
+                //                        'orient': 'auto'
+                //                    })
+                //                    .append('path')
+                //                    .attr({
+                //                        'd':'M0,-5L10,0L0,5z'
+                //                    })
+                //                ;
+                var scale = d3.scale.linear().domain([classifierMap.width * this._unit_width, classifierMap.width * this._unit_width * 7]).range([0, -classifierMap.topOffset * 6]);
+                var gapWidth = 0.5 * (this._left_offset + classifierMap.leftOffset + (visData.width + classifierMap.width) * this._unit_width * 0.5);
+                svg.append("path")
+                    .attr("class", "classifier-link")
+                    .datum([
+                    [classifierMap.leftOffset + classifierMap.width * this._unit_width * 0.5, classifierMap.topOffset],
+                    [gapWidth, scale(gapWidth)],
+                    [this._left_offset + visData.width * this._unit_width * 0.5, classifierMap.topOffset - 10]
+                ])
+                    .attr("d", d3.svg.line().interpolate("basis"));
+            }
+            //whether to move or not
+            this._left_offset += this._unit_width * visData.width + this._map_gap;
+            var leftMost = this._left_offset * this._scale + this._translate_x;
+            if (leftMost > this._total_width) {
+                var t = d3.interpolate(0, leftMost - this._total_width + this._map_gap);
+                var i = 0;
+                var sTx = this._translate_x;
+                clearInterval(this._move_view_timer);
+                this._move_view_timer = setInterval(() => {
+                    this._translate_x = sTx - t(i / 100);
+                    this._heatMaps.forEach((d) => {
+                        d.transformPan(this._translate_x, this._translate_y, this._scale);
                     });
                     this._element.selectAll(".som-map")
-                        .attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                        .attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")");
                     this._element.selectAll(".lens")
-                        .attr("transform", function (d) {
+                        .attr("transform", (d) => {
                         if (d.cx == 0) {
-                            d.cx = d3.event.translate[0];
-                            d.cy = d3.event.translate[1];
+                            d.cx = this._translate_x;
+                            d.cy = this._translate_y;
                         }
-                        d.scale = currentLevel;
-                        d.tx = d3.event.translate[0] - d.cx * d.scale;
-                        d.ty = d3.event.translate[1] - d.cy * d.scale;
-                        return "translate(" + [d.tx, d.ty] + ")scale(" + currentLevel + ")";
+                        d.scale = this._scale;
+                        d.tx = this._translate_x - d.cx * d.scale;
+                        d.ty = this._translate_y - d.cy * d.scale;
+                        return "translate(" + [d.tx, d.ty] + ")scale(" + this._scale + ")";
                     });
-                    d3.select("#mapView")
-                        .selectAll(".list-group")
-                        .style("left", function (d) { var x = d.ox + d3.event.translate[0]; return x + "px"; })
-                        .style("top", function (d) { var y = d.oy + d3.event.translate[1]; return y + "px"; })
-                        .style("width", function (d) {
-                        var w = d.oWidth * currentLevel;
-                        w = w < 260 ? 260 : w;
-                        return w + "px";
-                    })
-                        .selectAll("p")
-                        .style("font-size", function (d) {
-                        var fontSize = d3.select(this).style("font-size");
-                        fontSize = parseFloat(fontSize.substring(0, fontSize.length - 2));
-                        fontSize = fontSize * currentLevel > 18 ? 18 : fontSize * currentLevel;
-                        return fontSize + "px";
-                    });
-                    this._translate_x = d3.event.translate[0];
-                    this._translate_y = d3.event.translate[1];
-                    this._scale = currentLevel;
-                });
-                this.init();
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "showVisMap", this.ShowVisMap);
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "updateVisMap", this.UpdateVisMap);
-            }
-            init() {
-                this._element.on("dblclick", null);
-                this._element
-                    .on("mousedown", () => {
-                    if (d3.event.button)
-                        d3.event.stopImmediatePropagation();
-                    if (this._classifier_context_menu) {
-                        this._classifier_context_menu.remove();
-                        this._classifier_context_menu = null;
+                    this._zoom
+                        .scale(this._scale)
+                        .translate([this._translate_x, this._translate_y]);
+                    this._element.call(this._zoom);
+                    ++i;
+                    if (i >= 100) {
+                        clearInterval(this._move_view_timer);
+                        this._move_view_timer = -1;
                     }
-                });
-                //this._element
-                //      .call( this._zoom )
-                //      .on("dblclick.zoom", null);
-                var defs = this._element.append('svg:defs');
-                // define arrow markers for leading arrow
-                defs.append('svg:marker')
-                    .attr({
-                    'id': 'mark-end-arrow',
-                    'viewBox': '0 -5 10 10',
-                    'refX': 7,
-                    'markerWidth': 3.5,
-                    'markerHeight': 3.5,
-                    'orient': 'auto'
-                })
-                    .append('path')
-                    .attr({
-                    "class": "highlight-arrow",
-                    'd': 'M0,-5L10,0L0,5z'
-                });
-            }
-            Toggle() {
-                if (this._state) {
-                    this.RemoveMap();
-                }
-                else {
-                    this.init();
-                    this.Render();
-                }
-                this._state = !this._state;
-            }
-            RemoveMap() {
-                this._element.selectAll("*").remove();
-                this._heatmap_container.innerHTML = "";
-                this._left_offset = 0;
-                this._heatMaps = [];
-                this._maps = [];
-            }
-            Render() {
-                //this._lensPane.Render();
-            }
-            AddBrush() {
-                this._element
-                    .style("cursor", "pointer")
-                    .on("click", () => {
-                    var p = d3.mouse(document.body);
-                    console.log(p[0], p[1]);
-                    var data = d3.select(document.elementFromPoint(p[0], p[1])).data();
-                    if (data && data.length > 0 && data[0]) {
-                        var mapID = data[0].mapID;
-                        var map = d3.select("#mapSvg" + mapID);
-                        if (map) {
-                            var mapData = map.data()[0];
-                            if (this._brush_svg) {
-                                this._brush.clear();
-                                this._brush_svg.remove();
-                            }
-                            this._brush.x(d3.scale.identity().domain([mapData.leftOffset, mapData.width * this._unit_width + mapData.leftOffset]))
-                                .y(d3.scale.identity().domain([mapData.topOffset, mapData.height * this._unit_height + mapData.topOffset]));
-                            this._brush_svg = map.append("g")
-                                .attr("class", "brush")
-                                .on("contextmenu", () => {
-                                this._brush.clear();
-                                this._brush_svg.remove();
-                                d3.event.preventDefault();
-                            })
-                                .call(this._brush);
-                        }
-                    }
-                    this._element.style("cursor", "default")
-                        .on("click", null);
-                });
-            }
-            ContextMenu(preMapID) {
-                var p = d3.mouse(this._element.node());
-                if (!this._classifier_context_menu) {
-                    var contextWidth = 200;
-                    this._classifier_context_menu = this._element.append("g")
-                        .attr("id", "som-map-context-menu")
-                        .attr("transform", "translate(" + [p[0], p[1]] + ")");
-                    this._classifier_context_menu.append("rect")
-                        .attr({
-                        id: "context-menu-base",
-                        width: contextWidth
-                    })
-                        .attr("height", () => {
-                        if (this._manyLens.CurrentClassifierMapID)
-                            return 150;
-                        return 50;
-                    });
-                    // filters go in defs element
-                    var defs = this._classifier_context_menu.append("defs");
-                    // create filter with id #drop-shadow
-                    // height=130% so that the shadow is not clipped
-                    var filter = defs.append("filter")
-                        .attr({
-                        "id": "drop-shadow",
-                        "height": "130%"
-                    });
-                    // SourceAlpha refers to opacity of graphic that this filter will be applied to
-                    // convolve that with a Gaussian with standard deviation 3 and store result
-                    // in blur
-                    filter.append("feGaussianBlur")
-                        .attr({
-                        "in": "SourceAlpha",
-                        "stdDeviation": 2,
-                        "result": "blur"
-                    });
-                    // translate output of Gaussian blur to the right and downwards with 2px
-                    // store result in offsetBlur
-                    filter.append("feOffset")
-                        .attr({
-                        "in": "blur",
-                        "dx": 1,
-                        "dy": 1,
-                        "result": "offsetBlur"
-                    });
-                    // overlay original SourceGraphic over translated blurred opacity by using
-                    // feMerge filter. Order of specifying inputs is important!
-                    var feMerge = filter.append("feMerge");
-                    feMerge.append("feMergeNode")
-                        .attr("in", "offsetBlur");
-                    feMerge.append("feMergeNode")
-                        .attr("in", "SourceGraphic");
-                    var option = [
-                        { mapID: preMapID, text: "Set this map as classifier" },
-                        { mapID: this._manyLens.CurrentClassifierMapID, text: "Current classifier: " },
-                        { mapID: this._manyLens.CurrentClassifierMapID, text: "Remove classifier" }
-                    ];
-                    var optionG = this._classifier_context_menu.selectAll(".context-menu-option")
-                        .data(option.filter(function (d) { return d.mapID != null; }))
-                        .enter().append("g")
-                        .attr("class", "context-menu-option")
-                        .attr("transform", function (d, i) {
-                        if (i == 2)
-                            return "translate(10," + (i * 50 + 10) + ")";
-                        return "translate(10," + (i * 40 + 10) + ")";
-                    });
-                    var textHeight;
-                    this._classifier_context_menu.append("text").text("text")
-                        .attr("x", function (d) {
-                        var box = this.getBBox();
-                        textHeight = box.height;
-                    })
-                        .remove();
-                    optionG.append("text")
-                        .html(function (d) {
-                        if (d.text[0] == "C") {
-                            return '<tspan>Current classifier:</tspan><tspan x="40" dy=' + textHeight + '>' + d.mapID + '</tspan>';
-                        }
-                        return d.text;
-                    })
-                        .attr("y", textHeight);
-                    optionG.insert("rect", ".context-menu-option text")
-                        .attr("width", contextWidth - 20)
-                        .attr("height", function (d, i) {
-                        if (i == 1)
-                            return 2 * (textHeight + 6);
-                        return textHeight + 6;
-                    })
-                        .on("mousedown", function () { d3.event.stopPropagation(); })
-                        .on("click", (d, i) => {
-                        switch (i) {
-                            case 0:
-                                {
-                                    this._manyLens.CurrentClassifierMapID = d.mapID;
-                                    if (this._hightlight_classifier_arrow)
-                                        this._hightlight_classifier_arrow.remove();
-                                    this._hightlight_classifier_arrow = d3.select("#mapSvg" + d.mapID)
-                                        .append("path")
-                                        .attr({
-                                        id: "hightlight-arrow-line",
-                                        "class": "highlight-arrow"
-                                    })
-                                        .attr("d", (d) => {
-                                        return 'M' + (-50 + d.leftOffset + d.width * this._unit_width * 0.5) + ',-10L' + (d.leftOffset + d.width * this._unit_width * 0.5) + ',70';
-                                    });
-                                }
-                                break;
-                            case 1:
-                                {
-                                }
-                                break;
-                            case 2:
-                                {
-                                    this._manyLens.CurrentClassifierMapID = null;
-                                    if (this._hightlight_classifier_arrow)
-                                        this._hightlight_classifier_arrow.remove();
-                                }
-                                break;
-                        }
-                        this._classifier_context_menu.remove();
-                        this._classifier_context_menu = null;
-                    });
-                    this._classifier_context_menu.append("line")
-                        .attr({
-                        x1: 10,
-                        x2: 180,
-                        y1: 40,
-                        y2: 40
-                    });
-                }
-                this._classifier_context_menu.attr("transform", "translate(" + [p[0], p[1]] + ")");
-            }
-            UpdateVisMap(index, visData) {
-                this._brush.clear();
-                this._brush_svg.remove();
-                this._maps[index] = visData;
-                this._heatMaps[index].UpdateNodeArray(this._unit_width, this._unit_height, visData.unitsData);
-                this._heatMaps[index].transform(this._scale, 0, 0);
-                this._heatMaps[index].transformPan(this._translate_x, this._translate_y, this._scale);
-                var mapData = d3.select("#mapSvg" + visData.mapID).data()[0];
-                var units = d3.select("#mapSvg" + visData.mapID).selectAll("rect.unit")
-                    .data(visData.unitsData, function (d) { return d.unitID; });
-                units.exit().remove();
-                units.enter().append("rect")
-                    .attr("x", (d) => { return mapData.leftOffset + d.x * this._unit_width; })
-                    .attr("y", (d) => { return mapData.topOffset + d.y * this._unit_height; })
-                    .attr({
-                    "class": "unit",
-                    width: this._unit_width,
-                    height: this._unit_height
-                });
-                var labels = d3.selectAll("#mapSvg" + visData.mapID).selectAll("text.map.label").remove();
-                var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) { return d.value; })).range([10, 30]);
-                console.log(visData.labels);
-                d3.selectAll("#mapSvg" + visData.mapID).selectAll("text.map.label")
-                    .data(visData.labels, function (d) { return d.x + "-" + d.y; })
-                    .enter().append("text")
-                    .attr("x", (d) => { return mapData.leftOffset + d.x * this._unit_width; })
-                    .attr("y", (d) => { return mapData.topOffset + d.y * this._unit_height; })
-                    .attr("dy", (d) => { return this._unit_width; })
-                    .attr({
-                    "class": "map label"
-                })
-                    .style("font-size", (d) => {
-                    return fontSizeScale(d.value) + "px";
-                })
-                    .text(function (d) { return d.label; });
-            }
-            ShowVisMap(visData, classifierID) {
-                this._maps.push(visData);
-                this._mapIDs.push(visData.mapID);
-                this._top_offset = this._top_offset || (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
-                var newHeatMap = new MapArea.HeatMapLayer("mapCanvas" + visData.mapID, this._heatmap_container, visData.width, visData.height, this._unit_width, this._unit_height, this._top_offset, this._left_offset, visData.unitsData);
-                newHeatMap.transform(this._scale, 0, 0);
-                newHeatMap.transformPan(this._translate_x, this._translate_y, this._scale);
-                this._heatMaps.push(newHeatMap);
-                var svg = this._element
-                    .append("g")
-                    .data([{ mapID: visData.mapID, width: visData.width, height: visData.height, leftOffset: this._left_offset, topOffset: this._top_offset }])
-                    .attr("id", function (d) { return "mapSvg" + d.mapID; })
-                    .attr("class", "som-map")
-                    .attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")");
-                svg.selectAll("rect.unit")
-                    .data(visData.unitsData, function (d) { return d.unitID; })
-                    .enter().append("rect")
-                    .attr("x", (d) => { return this._left_offset + d.x * this._unit_width; })
-                    .attr("y", (d) => { return this._top_offset + d.y * this._unit_height; })
-                    .attr({
-                    "class": "unit",
-                    width: this._unit_width,
-                    height: this._unit_height
-                });
-                var fontSizeScale = d3.scale.pow().domain(d3.extent(visData.labels, function (d) { return d.value; })).range([10, 30]);
-                // console.log( visData.unitsData.filter( function ( d: UnitData ) { return d.isSpam; }) );
-                //svg.selectAll( "text.map.spam" )
-                //    .data( visData.unitsData.filter( function ( d: UnitData ) { return d.isSpam; }), function ( d ) { return d.unitID; })
-                //    .enter().append( "text" )
-                //    .attr( "x", ( d ) => { return this._left_offset + d.x * this._unit_width; })
-                //    .attr( "y", ( d ) => { return this._top_offset + d.y * this._unit_height; })
-                //    .attr( "dy", ( d ) => { return this._unit_width })
-                //    .attr( {
-                //        "class": "map spam"
-                //    })
-                //    .style( "font-size", ( d ) => {
-                //        return fontSizeScale( d.value ) + "px";
-                //    })
-                //    .text( function ( d ) { return "spam"; })
-                //    ;
-                svg.selectAll("text.map.label")
-                    .data(visData.labels, function (d) { return d.x + "-" + d.y; })
-                    .enter().append("text")
-                    .attr("x", (d) => { return this._left_offset + d.x * this._unit_width; })
-                    .attr("y", (d) => { return this._top_offset + d.y * this._unit_height; })
-                    .attr("dy", (d) => { return this._unit_width; })
-                    .attr({
-                    "class": "map label"
-                })
-                    .style("font-size", (d) => {
-                    return fontSizeScale(d.value) + "px";
-                })
-                    .text(function (d) { return d.label; });
-                console.log(visData);
-                //Add the hightlight and contextmenu layout
-                var line = d3.svg.line()
-                    .x(function (d) { return d.x; })
-                    .y(function (d) { return d.y; })
-                    .interpolate("linear-closed");
-                svg.append("path")
-                    .data([{
-                        mapID: visData.mapID,
-                        path: [
-                            { x: this._left_offset, y: this._top_offset },
-                            { x: this._left_offset, y: this._top_offset + this._unit_height * visData.height },
-                            { x: this._left_offset + this._unit_width * visData.width, y: this._top_offset + this._unit_height * visData.height },
-                            { x: this._left_offset + this._unit_width * visData.width, y: this._top_offset }
-                        ]
-                    }])
-                    .attr("d", function (d) { return line(d.path); })
-                    .attr("class", "control-layout")
-                    .on("contextmenu", (d) => {
-                    this.ContextMenu(d.mapID);
-                    d3.event.preventDefault();
-                });
-                //Whether to add the connection link
-                if (classifierID) {
-                    console.log(classifierID);
-                    var classifierMap = d3.select("#mapSvg" + classifierID).data()[0];
-                    //var linkArrow = svg.append("g").attr("class","classifier-link");
-                    //var defs = linkArrow.append('svg:defs');
-                    //                // define arrow markers for leading arrow
-                    //                defs.append('svg:marker')
-                    //                    .attr({
-                    //                        'id': 'classifier-mark-end-arrow',
-                    //                        'viewBox': '0 -5 10 10',
-                    //                        'refX': 7,
-                    //                        'markerWidth': 3.5,
-                    //                        'markerHeight': 3.5,
-                    //                        'orient': 'auto'
-                    //                    })
-                    //                    .append('path')
-                    //                    .attr({
-                    //                        'd':'M0,-5L10,0L0,5z'
-                    //                    })
-                    //                ;
-                    var scale = d3.scale.linear().domain([classifierMap.width * this._unit_width, classifierMap.width * this._unit_width * 7]).range([0, -classifierMap.topOffset * 6]);
-                    var gapWidth = 0.5 * (this._left_offset + classifierMap.leftOffset + (visData.width + classifierMap.width) * this._unit_width * 0.5);
-                    svg.append("path")
-                        .attr("class", "classifier-link")
-                        .datum([
-                        [classifierMap.leftOffset + classifierMap.width * this._unit_width * 0.5, classifierMap.topOffset],
-                        [gapWidth, scale(gapWidth)],
-                        [this._left_offset + visData.width * this._unit_width * 0.5, classifierMap.topOffset - 10]
-                    ])
-                        .attr("d", d3.svg.line().interpolate("basis"));
-                }
-                //whether to move or not
-                this._left_offset += this._unit_width * visData.width + this._map_gap;
-                var leftMost = this._left_offset * this._scale + this._translate_x;
-                if (leftMost > this._total_width) {
-                    var t = d3.interpolate(0, leftMost - this._total_width + this._map_gap);
-                    var i = 0;
-                    var sTx = this._translate_x;
-                    clearInterval(this._move_view_timer);
-                    this._move_view_timer = setInterval(() => {
-                        this._translate_x = sTx - t(i / 100);
-                        this._heatMaps.forEach((d) => {
-                            d.transformPan(this._translate_x, this._translate_y, this._scale);
-                        });
-                        this._element.selectAll(".som-map")
-                            .attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")");
-                        this._element.selectAll(".lens")
-                            .attr("transform", (d) => {
-                            if (d.cx == 0) {
-                                d.cx = this._translate_x;
-                                d.cy = this._translate_y;
-                            }
-                            d.scale = this._scale;
-                            d.tx = this._translate_x - d.cx * d.scale;
-                            d.ty = this._translate_y - d.cy * d.scale;
-                            return "translate(" + [d.tx, d.ty] + ")scale(" + this._scale + ")";
-                        });
-                        this._zoom
-                            .scale(this._scale)
-                            .translate([this._translate_x, this._translate_y]);
-                        this._element.call(this._zoom);
-                        ++i;
-                        if (i >= 100) {
-                            clearInterval(this._move_view_timer);
-                            this._move_view_timer = -1;
-                        }
-                    }, 2);
-                }
+                }, 2);
             }
         }
-        MapArea.SOMMap = SOMMap;
-    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
-})(ManyLens || (ManyLens = {}));
-///<reference path = "../../Scripts/typings/topojson/topojson.d.ts" />s 
-var ManyLens;
-(function (ManyLens) {
-    var MapArea;
-    (function (MapArea) {
-        class WorldMap extends D3ChartObject {
-            constructor(element, manyLens) {
-                super(element, manyLens);
-                this._state = false;
-                this._projection = d3.geo.equirectangular();
-                this._path = d3.geo.path();
-                this._color = d3.scale.sqrt();
-                this._world_topojson_path = "./testData/countriesAlpha2.topo.json";
-                this._zoom = d3.behavior.zoom();
-                this._element.attr("height", function () {
-                    let parentRect = this.parentNode.getBoundingClientRect();
-                    let selfRect = this.getBoundingClientRect();
-                    return parentRect.height - (selfRect.top - parentRect.top);
-                });
-                this._total_width = parseFloat(this._element.style("width"));
-                this._total_height = parseFloat(this._element.style("height"));
-                this._color
-                    .range([
-                    "rgb(158,202,225)",
-                    //"rgb(158,202,225)",
-                    //"rgb(107, 174, 214)",
-                    //"rgb(66, 146, 198)",
-                    //"rgb(33, 113, 181)",
-                    "rgb(8, 81, 156)"
-                ]);
+    }
+    exports.SOMMap = SOMMap;
+});
+define("MapArea/WorldMap", ["require", "exports", "d3", "D3ChartObject"], function (require, exports, d3, D3ChartObject_5) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class WorldMap extends D3ChartObject_5.D3ChartObject {
+        constructor(element, manyLens) {
+            super(element, manyLens);
+            this._state = false;
+            this._projection = d3.geo.equirectangular();
+            this._path = d3.geo.path();
+            this._color = d3.scale.sqrt();
+            this._world_topojson_path = "./testData/countriesAlpha2.topo.json";
+            this._zoom = d3.behavior.zoom();
+            this._element.attr("height", function () {
+                let parentRect = this.parentNode.getBoundingClientRect();
+                let selfRect = this.getBoundingClientRect();
+                return parentRect.height - (selfRect.top - parentRect.top);
+            });
+            this._total_width = parseFloat(this._element.style("width"));
+            this._total_height = parseFloat(this._element.style("height"));
+            this._color
+                .range([
+                "rgb(158,202,225)",
+                //"rgb(158,202,225)",
+                //"rgb(107, 174, 214)",
+                //"rgb(66, 146, 198)",
+                //"rgb(33, 113, 181)",
+                "rgb(8, 81, 156)"
+            ]);
+            this._projection
+                .scale(1)
+                .rotate([80, 0, 0])
+                .translate([0, 0]);
+            this._path
+                .projection(this._projection);
+            this._zoom
+                .scaleExtent([1, 3])
+                .on("zoomstart", () => {
+                //d3.event.sourceEvent.stopPropagation();
+            })
+                .on("zoom", () => {
+                this.Zoom(d3.event.translate, d3.event.scale);
+            })
+                .on("zoomend", () => {
+                //d3.event.sourceEvent.stopPropagation();
+            });
+            this._manyLens.ManyLensHubRegisterClientFunction(this, "upDateGeoMap", this.UpdateMap);
+        }
+        init() {
+            this._element.on("mousedown", null);
+            this._element
+                .on("dblclick", (d) => {
+                this.Country_Clicked(d);
+            })
+                .call(this._zoom)
+                .on("dblclick.zoom", null);
+        }
+        Toggle() {
+            if (this._state) {
+                this.RemoveMap();
+            }
+            else {
+                this.init();
+                this.Render();
+            }
+            this._state = !this._state;
+        }
+        RemoveMap() {
+            this._map.transition().style("opacity", 0).remove();
+        }
+        UpdateMap(mapData) {
+            this._color.domain(d3.extent(mapData, function (d) { return d.tweets.length; }));
+            this._data = mapData;
+            var countryColor = {};
+            mapData.forEach((d) => {
+                countryColor[d.countryName] = d.tweets.length;
+            });
+            this._map.selectAll("path")
+                .attr("fill", (d) => {
+                return "rgb(198,219,239)";
+            })
+                .transition()
+                .attr("fill", (d) => {
+                if (countryColor[d.id])
+                    return this._color(countryColor[d.id]);
+                return "rgb(198,219,239)";
+            });
+        }
+        Render() {
+            if (this._world_topojson_data) {
                 this._projection
                     .scale(1)
-                    .rotate([80, 0])
+                    .rotate([80, 0, 0])
                     .translate([0, 0]);
-                this._path
-                    .projection(this._projection);
-                this._zoom
-                    .scaleExtent([1, 3])
-                    .on("zoomstart", () => {
-                    //d3.event.sourceEvent.stopPropagation();
-                })
-                    .on("zoom", () => {
-                    this.Zoom(d3.event.translate, d3.event.scale);
-                })
-                    .on("zoomend", () => {
-                    //d3.event.sourceEvent.stopPropagation();
-                });
-                this._manyLens.ManyLensHubRegisterClientFunction(this, "upDateGeoMap", this.UpdateMap);
-            }
-            init() {
-                this._element.on("mousedown", null);
-                this._element
-                    .on("dblclick", (d) => {
-                    this.Country_Clicked(d);
-                })
-                    .call(this._zoom)
-                    .on("dblclick.zoom", null);
-            }
-            Toggle() {
-                if (this._state) {
-                    this.RemoveMap();
-                }
-                else {
-                    this.init();
-                    this.Render();
-                }
-                this._state = !this._state;
-            }
-            RemoveMap() {
-                this._map.transition().style("opacity", 0).remove();
-            }
-            UpdateMap(mapData) {
-                this._color.domain(d3.extent(mapData, function (d) { return d.tweets.length; }));
-                this._data = mapData;
-                var countryColor = {};
-                mapData.forEach((d) => {
-                    countryColor[d.countryName] = d.tweets.length;
-                });
+                // Compute the bounds of a feature of interest, then derive scale & translate.
+                var bounds = this._path.bounds(this._world_topojson_data);
+                var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
+                this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
+                this._projection
+                    .scale(s)
+                    .translate(this._center_xy);
+                this._map = this._element.append("g")
+                    .attr("id", "world-countries");
                 this._map.selectAll("path")
+                    .data(this._world_topojson_data.features, d => d.id)
+                    .enter()
+                    .append("path")
+                    .attr("id", function (d) { return d.id; })
+                    .attr("d", this._path)
                     .attr("fill", (d) => {
                     return "rgb(198,219,239)";
                 })
-                    .transition()
-                    .attr("fill", (d) => {
-                    if (countryColor[d.id])
-                        return this._color(countryColor[d.id]);
-                    return "rgb(198,219,239)";
+                    .style({
+                    stroke: "#fff",
+                    "stoke-width": "0.5px"
+                })
+                    .on("dblclick", (d) => {
+                    d3.event.stopPropagation();
+                    this.Country_Clicked(d);
                 });
             }
-            Render() {
-                if (this._world_topojson_data) {
-                    this._projection
-                        .scale(1)
-                        .rotate([80, 0])
-                        .translate([0, 0]);
+            else {
+                d3.json(this._world_topojson_path, (error, world) => {
+                    this._world_topojson_data = topojson.feature(world, world.objects.countries);
                     // Compute the bounds of a feature of interest, then derive scale & translate.
                     var bounds = this._path.bounds(this._world_topojson_data);
                     var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
-                    this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
+                    this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2,
+                        (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
                     this._projection
                         .scale(s)
                         .translate(this._center_xy);
                     this._map = this._element.append("g")
                         .attr("id", "world-countries");
                     this._map.selectAll("path")
-                        .data(this._world_topojson_data.features, function (d) { return d.id; })
+                        .data(this._world_topojson_data.features, d => d.id)
                         .enter()
                         .append("path")
                         .attr("id", function (d) { return d.id; })
@@ -5205,115 +5223,84 @@ var ManyLens;
                         d3.event.stopPropagation();
                         this.Country_Clicked(d);
                     });
-                }
-                else {
-                    d3.json(this._world_topojson_path, (error, world) => {
-                        this._world_topojson_data = topojson.feature(world, world.objects.countries);
-                        // Compute the bounds of a feature of interest, then derive scale & translate.
-                        var bounds = this._path.bounds(this._world_topojson_data);
-                        var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
-                        this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
-                        this._projection
-                            .scale(s)
-                            .translate(this._center_xy);
-                        this._map = this._element.append("g")
-                            .attr("id", "world-countries");
-                        this._map.selectAll("path")
-                            .data(this._world_topojson_data.features, function (d) { return d.id; })
-                            .enter()
-                            .append("path")
-                            .attr("id", function (d) { return d.id; })
-                            .attr("d", this._path)
-                            .attr("fill", (d) => {
-                            return "rgb(198,219,239)";
-                        })
-                            .style({
-                            stroke: "#fff",
-                            "stoke-width": "0.5px"
-                        })
-                            .on("dblclick", (d) => {
-                            d3.event.stopPropagation();
-                            this.Country_Clicked(d);
-                        });
-                    });
-                }
-            }
-            Country_Clicked(d) {
-                //if(this._target_country){
-                //    this._map.selectAll("#"+this._target_country.id).style("display",null);
-                //}
-                if (d && this._target_country !== d) {
-                    var xyz = this.Get_XYZ(d);
-                    this._target_country = d;
-                    console.log("d and different country");
-                    this.Click_Zoom(xyz);
-                }
-                else {
-                    this._target_country = null;
-                    this.Click_Zoom([this._center_xy[0], this._center_xy[1], 1]);
-                }
-            }
-            Get_XYZ(d) {
-                var bounds = this._path.bounds(d);
-                var w_scale = (bounds[1][0] - bounds[0][0]) / this._total_width;
-                var h_scale = (bounds[1][1] - bounds[0][1]) / this._total_height;
-                var z = .96 / Math.max(w_scale, h_scale);
-                var x = (bounds[1][0] + bounds[0][0]) / 2;
-                var y = (bounds[1][1] + bounds[0][1]) / 2 + (this._total_height / z / 6);
-                return [x, y, z];
-            }
-            Click_Zoom(xyz) {
-                this._map.transition().duration(500)
-                    .attr("transform", "translate(" + this._projection.translate() + ")scale(" + xyz[2] + ")translate(-" + xyz[0] + ",-" + xyz[1] + ")")
-                    .style("stroke-width", 1.0 / xyz[2] + "px");
-                this._zoom
-                    .translate([
-                    -xyz[0] * xyz[2] + this._projection.translate()[0],
-                    -xyz[1] * xyz[2] + this._projection.translate()[1]
-                ])
-                    .scale(xyz[2]);
-                this._element
-                    .call(this._zoom)
-                    .on("dblclick.zoom", null);
-                ;
-                this._scale = xyz[2];
-            }
-            Zoom(translate, scale) {
-                if (d3.event.sourceEvent.type == "wheel") {
-                    //if(d3.event.scale > this._scale){
-                    //    this._zoom
-                    //        .center(null);
-                    //}else{
-                    //    this._zoom
-                    //        .center(this._center_xy);
-                    //}
-                    //this._element
-                    //    .call(this._zoom)
-                    //    .on("dblclick.zoom", null);
-                    //;
-                    this._map
-                        .attr("transform", "translate(" + translate + ")scale(" + scale + ")")
-                        .style("stroke-width", 1.0 / scale + "px");
-                    this._scale = scale;
-                }
-                else if (d3.event.sourceEvent.type == "mousemove") {
-                    this._projection.rotate([translate[0] + 80]);
-                    this._map.selectAll("path")
-                        .data(this._world_topojson_data.features, function (d) { return d.id; })
-                        .attr("d", this._path);
-                    //    this._zoom.translate([
-                    //            0,0
-                    //        ]);
-                    //     this._element
-                    //    .call(this._zoom)
-                    //    .on("dblclick.zoom", null);
-                    //;
-                }
+                });
             }
         }
-        MapArea.WorldMap = WorldMap;
-    })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
-})(ManyLens || (ManyLens = {}));
+        Country_Clicked(d) {
+            //if(this._target_country){
+            //    this._map.selectAll("#"+this._target_country.id).style("display",null);
+            //}
+            if (d && this._target_country !== d) {
+                var xyz = this.Get_XYZ(d);
+                this._target_country = d;
+                console.log("d and different country");
+                this.Click_Zoom(xyz);
+            }
+            else {
+                this._target_country = null;
+                this.Click_Zoom([this._center_xy[0], this._center_xy[1], 1]);
+            }
+        }
+        Get_XYZ(d) {
+            var bounds = this._path.bounds(d);
+            var w_scale = (bounds[1][0] - bounds[0][0]) / this._total_width;
+            var h_scale = (bounds[1][1] - bounds[0][1]) / this._total_height;
+            var z = .96 / Math.max(w_scale, h_scale);
+            var x = (bounds[1][0] + bounds[0][0]) / 2;
+            var y = (bounds[1][1] + bounds[0][1]) / 2 + (this._total_height / z / 6);
+            return [x, y, z];
+        }
+        Click_Zoom(xyz) {
+            this._map.transition().duration(500)
+                .attr("transform", "translate(" + this._projection.translate() + ")scale(" + xyz[2] + ")translate(-" + xyz[0] + ",-" + xyz[1] + ")")
+                .style("stroke-width", 1.0 / xyz[2] + "px");
+            this._zoom
+                .translate([
+                -xyz[0] * xyz[2] + this._projection.translate()[0],
+                -xyz[1] * xyz[2] + this._projection.translate()[1]
+            ])
+                .scale(xyz[2]);
+            this._element
+                .call(this._zoom)
+                .on("dblclick.zoom", null);
+            ;
+            this._scale = xyz[2];
+        }
+        Zoom(translate, scale) {
+            if (d3.event.sourceEvent.type == "wheel") {
+                //if(d3.event.scale > this._scale){
+                //    this._zoom
+                //        .center(null);
+                //}else{
+                //    this._zoom
+                //        .center(this._center_xy);
+                //}
+                //this._element
+                //    .call(this._zoom)
+                //    .on("dblclick.zoom", null);
+                //;
+                this._map
+                    .attr("transform", "translate(" + translate + ")scale(" + scale + ")")
+                    .style("stroke-width", 1.0 / scale + "px");
+                this._scale = scale;
+            }
+            else if (d3.event.sourceEvent.type == "mousemove") {
+                this._projection.rotate([translate[0] + 80, 0, 0]);
+                this._map.selectAll("path")
+                    .data(this._world_topojson_data.features, d => d.id)
+                    .attr("d", this._path);
+                //    this._zoom.translate([
+                //            0,0
+                //        ]);
+                //     this._element
+                //    .call(this._zoom)
+                //    .on("dblclick.zoom", null);
+                //;
+            }
+        }
+    }
+    exports.WorldMap = WorldMap;
+});
 ///<reference path = "../Lens/LensList.ts" />
 //module ManyLens {
 //    export module Pane {

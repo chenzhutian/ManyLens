@@ -105,13 +105,11 @@ export class MapLens extends BaseSingleLens {
                     if (!d3.event.defaultPrevented)
                         this.ClickedMap(d);
                 })
-                ;
 
             this._lens_circle_svg.append("path")
                 .datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.countries, function (a, b) { return a !== b; }))
                 .attr("id", "state-borders")
                 .attr("d", this._path)
-                ;
 
         } else {
             d3.json("./testData/countriesAlpha2.topo.json", (error, mapData) => {
