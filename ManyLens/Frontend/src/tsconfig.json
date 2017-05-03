@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "outDir": "../../Frontend/Scripts",
+        "outFile": "../../Frontend/Scripts/ManyLens.js",
+        "module": "amd",
+        "sourceMap": true,
+        "preserveConstEnums": true,
+        "noUnusedLocals": true,
+        "experimentalDecorators": true,
+        "rootDir": ".",
+        "declaration": false,
+        "baseUrl": "."
+    },
+    "include":[
+        "**/*.ts"
+    ]
+}

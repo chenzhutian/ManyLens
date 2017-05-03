@@ -1,0 +1,22 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/d3": "^3.5.38",
+    "@types/d3.cloud.layout": "^1.2.32",
+    "@types/signalr": "^2.2.33",
+    "@types/topojson": "^3.0.1"
+  },
+  "dependencies": {
+    "d3": "^3.5.17",
+    "signalr": "^2.2.1",
+    "topojson": "^3.0.0"
+  }
+}
