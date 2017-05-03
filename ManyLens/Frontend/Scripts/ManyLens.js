@@ -1214,9 +1214,9 @@ define("Lens/NetworkLens", ["require", "exports", "d3", "Lens/index"], function 
                 d.y = d.y * this.LensRadius;
             });
             this._location_x_scale
-                .domain(d3.extent(nodes, function (d) { return d.x; }));
+                .domain(d3.extent(nodes, (d) => d.x));
             this._location_y_scale
-                .domain(d3.extent(nodes, function (d) { return d.y; }));
+                .domain(d3.extent(nodes, (d) => d.y));
             nodes.forEach((d) => {
                 if ((d.x * d.x + d.y * d.y) > this.LensRadius * this.LensRadius) {
                     d.x = this._location_x_scale(d.x),
@@ -1241,8 +1241,8 @@ define("Lens/NetworkLens", ["require", "exports", "d3", "Lens/index"], function 
                 .enter().append("circle")
                 .attr("class", "network node")
                 .attr("r", 4)
-                .attr('cx', d => d.x)
-                .attr('cy', d => d.y)
+                .attr('cx', (d) => d.x)
+                .attr('cy', (d) => d.y)
                 .style({
                 "stroke": "steelblue",
                 "fill": "#fff",
@@ -1250,8 +1250,8 @@ define("Lens/NetworkLens", ["require", "exports", "d3", "Lens/index"], function 
             });
             this._force.on("tick", () => {
                 node
-                    .attr('cx', d => d.x)
-                    .attr('cy', d => d.y);
+                    .attr('cx', (d) => d.x)
+                    .attr('cy', (d) => d.y);
                 link
                     .attr('x1', d => d.source.x)
                     .attr('y1', d => d.source.y)
@@ -3132,378 +3132,6 @@ define("Cruve", ["require", "exports", "d3", "D3ChartObject", "ManyLens"], funct
     }
     exports.Curve = Curve;
 });
-define("ManyLens", ["require", "exports", "d3", "Hub", "SideBarNavigation", "Cruve"], function (require, exports, d3, Hub_1, SideBarNavigation_1, Cruve_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    // import "signalr";
-    class ManyLens {
-        constructor() {
-            this._nav_sideBarView_id = "sidebar-nav";
-            this._nav_sideBar_timeSpan = 3; //0:Day, 1:Hour, 2:Minute,3:Second
-            this._curveView_id = "curveView";
-            this._mapSvg_id = "mapSvg";
-            this._geo_map_mode = false;
-            // private _current_map;
-            // private _historyView_id: string = "historyView";
-            // private _historyView: D3.Selection;
-            // private _historySvg_id: string = "historySvg";
-            // private _historySvg: D3.Selection;
-            // private _historyTrees: ManyLens.LensHistory.HistoryTrees;
-            // private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
-            this._lens = new Map();
-            this._lens_id_generator = 0;
-            // private _lens_count: number = 0;
-            this._current_classifier_map_id = null;
-            /*--------------------------Initial all the hub------------------------------*/
-            this._manyLens_hub = new Hub_1.ManyLensHub();
-            /*------------------------Initial other Component--------------------------------*/
-            this._mapSvg = d3.select("#" + this._mapSvg_id);
-            this._SOM_mapArea = new MapArea.SOMMap(this._mapSvg, this);
-            this._SOM_mapArea.Render();
-            this._GEO_mapArea = new MapArea.WorldMap(this._mapSvg, this);
-            //this._GEO_mapArea.Render();
-            //var listViewContainer = d3.select("#tweetsView")
-            //                                .style({
-            //                                        left:(<HTMLElement>this._mapSvg.node()).offsetLeft.toString()+"px",
-            //                                        top:(<HTMLElement>this._mapSvg.node()).offsetTop.toString()+"px",
-            //                                        height:(<HTMLElement>this._mapSvg.node()).offsetHeight.toString()+"px",
-            //                                        width:(<HTMLElement>this._mapSvg.node()).offsetWidth.toString()+"px"
-            //                                    });
-            this._curveView = d3.select("#" + this._curveView_id);
-            this._curve = new Cruve_1.Curve(this._curveView, this);
-            this._curve.Render();
-            this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
-            this._nav_sideBar = new SideBarNavigation_1.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
-            this._nav_sideBar.BuildList(null);
-            //this._historySvg = d3.select("#" + this._historySvg_id);
-            //this._historyTrees = new LensHistory.HistoryTrees(this._historySvg, this);
-            //Add a new tree here, actually the tree should not be add here
-            //this._historyTrees.addTree();
-            // this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
-            /*-------------------------Start the hub-------------------------------------------*/
-            this._manyLens_hub.connection.start().done(() => {
-                console.log("start connection");
-                if (ManyLens.TestMode) {
-                    this._nav_sideBar.FinishLoadData();
-                }
-                else {
-                    this._manyLens_hub.proxy.invoke("loadData")
-                        .done(() => {
-                        console.log("Load data success");
-                        this._nav_sideBar.FinishLoadData();
-                    })
-                        .fail(() => {
-                        console.log("load data fail");
-                    });
-                }
-            });
-        }
-        get LensIDGenerator() {
-            return this._lens_id_generator++;
-        }
-        get LensCount() {
-            return this._lens.size;
-        }
-        get CurrentClassifierMapID() {
-            return this._current_classifier_map_id;
-        }
-        set CurrentClassifierMapID(value) {
-            this._current_classifier_map_id = value;
-        }
-        set TimeSpan(index) {
-            this._nav_sideBar_timeSpan = index;
-        }
-        get TimeSpan() {
-            return this._nav_sideBar_timeSpan;
-        }
-        AddBrushToMap() {
-            this._SOM_mapArea.AddBrush();
-        }
-        SwitchMap() {
-            this._SOM_mapArea.Toggle();
-            this._GEO_mapArea.Toggle();
-            this._geo_map_mode = !this._geo_map_mode;
-            if (this._geo_map_mode) {
-                d3.select("div.view-title.view-title-md-red p").text("Geo Map");
-            }
-            else {
-                d3.select("div.view-title.view-title-md-red p").text("Topic Maps");
-            }
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            this._manyLens_hub.proxy.invoke("switchMap", this._geo_map_mode);
-        }
-        /* -------------------- Lens related Function -----------------------*/
-        GetLens(id) {
-            return this._lens.get(id);
-        }
-        AddLens(lens) {
-            this._lens.set(lens.ID, lens);
-        }
-        AddLensToHistoryTree(lens) {
-            //this._historyTrees.addNode({
-            //    color: lens.LensTypeColor,
-            //    lensType: lens.Type,
-            //    tree_id: 0
-            //});
-        }
-        //TODO need to implementation
-        RemoveLens(lens) {
-            this._lens.delete(lens.ID);
-            this.ManyLensHubServerRemoveLensData(lens.MapID, lens.ID);
-            return lens;
-        }
-        /* -------------------- Hub related Function -----------------------*/
-        ManyLensHubRegisterClientFunction(registerObj, funcName, func) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            this._manyLens_hub.proxy.on(funcName, function () {
-                func.apply(registerObj, arguments);
-            });
-            //this._manyLens_hub.client[funcName] = function () {
-            //    func.apply(registerObj, arguments);
-            //}
-        }
-        ManyLensHubServerReOrganizePeak(state) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("reOrganizePeak", state);
-        }
-        ManyLensHubServerChangeTimeSpan(index) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("changeTimeSpan", index);
-        }
-        ManyLensHubServerPullPoint(start = null) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("pullPoint", start);
-            //return this._manyLens_hub.server.pullPoint(start);
-        }
-        ManyLensHubServerTestPullPoint() {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("testPullPoint");
-            //return this._manyLens_hub.server.testPullPoint();
-        }
-        ManyLensHubServerPullInterval(id, classifierID) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("pullInterval", id, classifierID);
-            //return this._manyLens_hub.server.pullInterval(id);
-        }
-        ManyLensHubServerTestPullInterval(id) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("testPullInterval", id);
-            //return this._manyLens_hub.server.testPullInterval(id);
-        }
-        ManyLensHubServerRefineMap(mapId, mapIndex, fromUnitsId, toUnitsID) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("refineTheMap", mapId, mapIndex, fromUnitsId, toUnitsID);
-        }
-        ManyLensHubServerGetLensData(visMapID, lensID, unitsID, baseData, subData) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, baseData, subData);
-            //return this._manyLens_hub.server.getLensData(visMapID,lensID, unitsID, whichData);
-        }
-        ManyLensHubServerRemoveLensData(visMapID, lensID) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("removeLensData", visMapID, lensID);
-            //return this._manyLens_hub.server.removeLensData(visMapID, lensID);
-        }
-        ManyLensHubServercWordCloudPieLens(lensID, pieKey, baseData, subData) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, baseData, subData);
-        }
-        ManyLensHubServercMapPieLens(lensID, pieKey, baseData, subData) {
-            if (!this._manyLens_hub) {
-                console.log("No hub");
-                this._manyLens_hub = new Hub_1.ManyLensHub();
-            }
-            return this._manyLens_hub.proxy.invoke("cMapPieLens", lensID, pieKey, baseData, subData);
-        }
-    }
-    ManyLens.TestMode = false;
-    exports.ManyLens = ManyLens;
-});
-define("app", ["require", "exports", "ManyLens"], function (require, exports, ManyLens_3) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var manyLens;
-    document.addEventListener('DOMContentLoaded', function () {
-        manyLens = new ManyLens_3.ManyLens();
-    });
-});
-define("Lens/BarChartLens", ["require", "exports", "d3", "Lens/index"], function (require, exports, d3, index_8) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    class BarChartLens extends index_8.BaseHackLens {
-        constructor(element, attributeName, manyLens) {
-            super(element, attributeName, BarChartLens.Type, manyLens);
-            this._x_axis_gen = d3.svg.axis();
-            this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
-            this._bar_chart_height = this._bar_chart_width;
-        }
-        Render(color) {
-            super.Render(color);
-        }
-        ExtractData() {
-            var data = d3.range(12).map(function (d) {
-                return 10 + 70 * Math.random();
-            });
-            this._data = data;
-            this.DisplayLens();
-        }
-        DisplayLens() {
-            if (!super.DisplayLens())
-                return;
-            var x = d3.scale.linear()
-                .range([0, this._bar_chart_width])
-                .domain([0, this._data.length]);
-            this._x_axis_gen
-                .scale(x)
-                .ticks(0)
-                .orient("bottom");
-            this._x_axis = this._lens_circle_svg.append("g")
-                .attr("class", "x-axis")
-                .attr("transform", () => {
-                return "translate(" + [-this._bar_chart_width / 2, this._bar_chart_height / 2] + ")";
-            })
-                .attr("fill", "none")
-                .attr("stroke", "black")
-                .attr("stroke-width", 1)
-                .call(this._x_axis_gen);
-            this._bar_width = (this._bar_chart_width - 20) / this._data.length;
-            var barHeight = d3.scale.linear()
-                .range([10, this._bar_chart_height])
-                .domain(d3.extent(this._data));
-            var bar = this._lens_circle_svg.selectAll(".bar")
-                .data(this._data)
-                .enter().append("g")
-                .attr("transform", (d, i) => {
-                return "translate(" + [10 + i * this._bar_width - this._bar_chart_width / 2, this._bar_chart_height / 2 - barHeight(d)] + ")";
-            });
-            bar.append("rect")
-                .attr("width", this._bar_width)
-                .attr("height", d => barHeight(d))
-                .attr("fill", "steelblue");
-        }
-    }
-    BarChartLens.Type = "BarChartLens";
-    exports.BarChartLens = BarChartLens;
-});
-define("Lens/TreeNetworkLens", ["require", "exports", "d3", "Lens/index"], function (require, exports, d3, index_9) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    class TreeNetworkLens extends index_9.BaseSingleLens {
-        constructor(element, attributeName, manyLens) {
-            super(element, attributeName, TreeNetworkLens.Type, manyLens);
-            this._theta = 360;
-            this._tree = d3.layout.tree();
-        }
-        Render(color) {
-            super.Render(color);
-        }
-        // public ExtractData(): layout.tree.Node {
-        //     var data: layout.tree.Node = {
-        //         "name": "flare",
-        //         "children": [
-        //             {
-        //                 "name": "analytics",
-        //                 "children": [
-        //                     {
-        //                         "name": "cluster",
-        //                         "children": [
-        //                             { "name": "AgglomerativeCluster", "size": 3938 },
-        //                             { "name": "CommunityStructure", "size": 3812 },
-        //                             { "name": "HierarchicalCluster", "size": 6714 },
-        //                             { "name": "MergeEdge", "size": 743 }
-        //                         ]
-        //                     },
-        //                     {
-        //                         "name": "graph",
-        //                         "children": [
-        //                             { "name": "BetweennessCentrality", "size": 3534 },
-        //                             { "name": "LinkDistance", "size": 5731 },
-        //                             { "name": "MaxFlowMinCut", "size": 7840 },
-        //                             { "name": "ShortestPaths", "size": 5914 },
-        //                             { "name": "SpanningTree", "size": 3416 }
-        //                         ]
-        //                     },
-        //                     {
-        //                         "name": "optimization",
-        //                         "children": [
-        //                             { "name": "AspectRatioBanker", "size": 7074 }
-        //                         ]
-        //                     }
-        //                 ]
-        //             }
-        //         ]
-        //     };
-        //     return data;
-        // }
-        DisplayLens() {
-            super.DisplayLens();
-            var nodeRadius = 4.5;
-            var diagonal = d3.svg.diagonal.radial()
-                .projection(function (d) { return [d.y, d.x / 180 * Math.PI]; });
-            this._tree
-                .size([this._theta, this._lens_circle_radius - nodeRadius])
-                .separation(function (a, b) {
-                return (a.parent == b.parent ? 1 : 2) / a.depth;
-            });
-            var nodes = this._tree.nodes(this._data), links = this._tree.links(nodes);
-            this._lens_circle_svg.selectAll("path")
-                .data(links)
-                .enter().append("path")
-                .attr("fill", "none")
-                .attr("stroke", "#ccc")
-                .attr("stroke-width", 1.5)
-                .attr("d", diagonal);
-            var node = this._lens_circle_svg.selectAll(".node")
-                .data(nodes)
-                .enter().append("g")
-                .attr("class", "node")
-                .attr("transform", d => "rotate(" + (d.x - 90) + ")translate(" + d.y + ")");
-            node.append("circle")
-                .attr("r", nodeRadius)
-                .style("stroke", "steelblue")
-                .style("fill", "#fff")
-                .style("stroke-width", 1.5);
-        }
-    }
-    TreeNetworkLens.Type = "TreeNetworkLens";
-    exports.TreeNetworkLens = TreeNetworkLens;
-});
 define("MapArea/WebGLLod", ["require", "exports", "MapArea/heatmapLayer"], function (require, exports, heatmapLayer_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -5300,6 +4928,378 @@ define("MapArea/WorldMap", ["require", "exports", "d3", "D3ChartObject"], functi
         }
     }
     exports.WorldMap = WorldMap;
+});
+define("ManyLens", ["require", "exports", "d3", "Hub", "SideBarNavigation", "Cruve", "MapArea/SOMMap", "MapArea/WorldMap"], function (require, exports, d3, Hub_1, SideBarNavigation_1, Cruve_1, SOMMap_1, WorldMap_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    // import "signalr";
+    class ManyLens {
+        constructor() {
+            this._nav_sideBarView_id = "sidebar-nav";
+            this._nav_sideBar_timeSpan = 3; //0:Day, 1:Hour, 2:Minute,3:Second
+            this._curveView_id = "curveView";
+            this._mapSvg_id = "mapSvg";
+            this._geo_map_mode = false;
+            // private _current_map;
+            // private _historyView_id: string = "historyView";
+            // private _historyView: D3.Selection;
+            // private _historySvg_id: string = "historySvg";
+            // private _historySvg: D3.Selection;
+            // private _historyTrees: ManyLens.LensHistory.HistoryTrees;
+            // private _lens: Array<Lens.BaseD3Lens> = new Array<Lens.BaseD3Lens>();
+            this._lens = new Map();
+            this._lens_id_generator = 0;
+            // private _lens_count: number = 0;
+            this._current_classifier_map_id = null;
+            /*--------------------------Initial all the hub------------------------------*/
+            this._manyLens_hub = new Hub_1.ManyLensHub();
+            /*------------------------Initial other Component--------------------------------*/
+            this._mapSvg = d3.select("#" + this._mapSvg_id);
+            this._SOM_mapArea = new SOMMap_1.SOMMap(this._mapSvg, this);
+            this._SOM_mapArea.Render();
+            this._GEO_mapArea = new WorldMap_1.WorldMap(this._mapSvg, this);
+            //this._GEO_mapArea.Render();
+            //var listViewContainer = d3.select("#tweetsView")
+            //                                .style({
+            //                                        left:(<HTMLElement>this._mapSvg.node()).offsetLeft.toString()+"px",
+            //                                        top:(<HTMLElement>this._mapSvg.node()).offsetTop.toString()+"px",
+            //                                        height:(<HTMLElement>this._mapSvg.node()).offsetHeight.toString()+"px",
+            //                                        width:(<HTMLElement>this._mapSvg.node()).offsetWidth.toString()+"px"
+            //                                    });
+            this._curveView = d3.select("#" + this._curveView_id);
+            this._curve = new Cruve_1.Curve(this._curveView, this);
+            this._curve.Render();
+            this._nav_sideBarView = d3.select("#" + this._nav_sideBarView_id);
+            this._nav_sideBar = new SideBarNavigation_1.SideBarNavigation(this._nav_sideBarView, "Attribute", this._mapSvg, this);
+            this._nav_sideBar.BuildList(null);
+            //this._historySvg = d3.select("#" + this._historySvg_id);
+            //this._historyTrees = new LensHistory.HistoryTrees(this._historySvg, this);
+            //Add a new tree here, actually the tree should not be add here
+            //this._historyTrees.addTree();
+            // this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
+            /*-------------------------Start the hub-------------------------------------------*/
+            this._manyLens_hub.connection.start().done(() => {
+                console.log("start connection");
+                if (ManyLens.TestMode) {
+                    this._nav_sideBar.FinishLoadData();
+                }
+                else {
+                    this._manyLens_hub.proxy.invoke("loadData")
+                        .done(() => {
+                        console.log("Load data success");
+                        this._nav_sideBar.FinishLoadData();
+                    })
+                        .fail(() => {
+                        console.log("load data fail");
+                    });
+                }
+            });
+        }
+        get LensIDGenerator() {
+            return this._lens_id_generator++;
+        }
+        get LensCount() {
+            return this._lens.size;
+        }
+        get CurrentClassifierMapID() {
+            return this._current_classifier_map_id;
+        }
+        set CurrentClassifierMapID(value) {
+            this._current_classifier_map_id = value;
+        }
+        set TimeSpan(index) {
+            this._nav_sideBar_timeSpan = index;
+        }
+        get TimeSpan() {
+            return this._nav_sideBar_timeSpan;
+        }
+        AddBrushToMap() {
+            this._SOM_mapArea.AddBrush();
+        }
+        SwitchMap() {
+            this._SOM_mapArea.Toggle();
+            this._GEO_mapArea.Toggle();
+            this._geo_map_mode = !this._geo_map_mode;
+            if (this._geo_map_mode) {
+                d3.select("div.view-title.view-title-md-red p").text("Geo Map");
+            }
+            else {
+                d3.select("div.view-title.view-title-md-red p").text("Topic Maps");
+            }
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            this._manyLens_hub.proxy.invoke("switchMap", this._geo_map_mode);
+        }
+        /* -------------------- Lens related Function -----------------------*/
+        GetLens(id) {
+            return this._lens.get(id);
+        }
+        AddLens(lens) {
+            this._lens.set(lens.ID, lens);
+        }
+        AddLensToHistoryTree(lens) {
+            //this._historyTrees.addNode({
+            //    color: lens.LensTypeColor,
+            //    lensType: lens.Type,
+            //    tree_id: 0
+            //});
+        }
+        //TODO need to implementation
+        RemoveLens(lens) {
+            this._lens.delete(lens.ID);
+            this.ManyLensHubServerRemoveLensData(lens.MapID, lens.ID);
+            return lens;
+        }
+        /* -------------------- Hub related Function -----------------------*/
+        ManyLensHubRegisterClientFunction(registerObj, funcName, func) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            this._manyLens_hub.proxy.on(funcName, function () {
+                func.apply(registerObj, arguments);
+            });
+            //this._manyLens_hub.client[funcName] = function () {
+            //    func.apply(registerObj, arguments);
+            //}
+        }
+        ManyLensHubServerReOrganizePeak(state) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("reOrganizePeak", state);
+        }
+        ManyLensHubServerChangeTimeSpan(index) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("changeTimeSpan", index);
+        }
+        ManyLensHubServerPullPoint(start = null) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("pullPoint", start);
+            //return this._manyLens_hub.server.pullPoint(start);
+        }
+        ManyLensHubServerTestPullPoint() {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("testPullPoint");
+            //return this._manyLens_hub.server.testPullPoint();
+        }
+        ManyLensHubServerPullInterval(id, classifierID) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("pullInterval", id, classifierID);
+            //return this._manyLens_hub.server.pullInterval(id);
+        }
+        ManyLensHubServerTestPullInterval(id) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("testPullInterval", id);
+            //return this._manyLens_hub.server.testPullInterval(id);
+        }
+        ManyLensHubServerRefineMap(mapId, mapIndex, fromUnitsId, toUnitsID) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("refineTheMap", mapId, mapIndex, fromUnitsId, toUnitsID);
+        }
+        ManyLensHubServerGetLensData(visMapID, lensID, unitsID, baseData, subData) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, baseData, subData);
+            //return this._manyLens_hub.server.getLensData(visMapID,lensID, unitsID, whichData);
+        }
+        ManyLensHubServerRemoveLensData(visMapID, lensID) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("removeLensData", visMapID, lensID);
+            //return this._manyLens_hub.server.removeLensData(visMapID, lensID);
+        }
+        ManyLensHubServercWordCloudPieLens(lensID, pieKey, baseData, subData) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, baseData, subData);
+        }
+        ManyLensHubServercMapPieLens(lensID, pieKey, baseData, subData) {
+            if (!this._manyLens_hub) {
+                console.log("No hub");
+                this._manyLens_hub = new Hub_1.ManyLensHub();
+            }
+            return this._manyLens_hub.proxy.invoke("cMapPieLens", lensID, pieKey, baseData, subData);
+        }
+    }
+    ManyLens.TestMode = false;
+    exports.ManyLens = ManyLens;
+});
+define("app", ["require", "exports", "ManyLens"], function (require, exports, ManyLens_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var manyLens;
+    document.addEventListener('DOMContentLoaded', function () {
+        manyLens = new ManyLens_3.ManyLens();
+    });
+});
+define("Lens/BarChartLens", ["require", "exports", "d3", "Lens/index"], function (require, exports, d3, index_8) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class BarChartLens extends index_8.BaseHackLens {
+        constructor(element, attributeName, manyLens) {
+            super(element, attributeName, BarChartLens.Type, manyLens);
+            this._x_axis_gen = d3.svg.axis();
+            this._bar_chart_width = this._lens_circle_radius * Math.SQRT2;
+            this._bar_chart_height = this._bar_chart_width;
+        }
+        Render(color) {
+            super.Render(color);
+        }
+        ExtractData() {
+            var data = d3.range(12).map(function (d) {
+                return 10 + 70 * Math.random();
+            });
+            this._data = data;
+            this.DisplayLens();
+        }
+        DisplayLens() {
+            if (!super.DisplayLens())
+                return;
+            var x = d3.scale.linear()
+                .range([0, this._bar_chart_width])
+                .domain([0, this._data.length]);
+            this._x_axis_gen
+                .scale(x)
+                .ticks(0)
+                .orient("bottom");
+            this._x_axis = this._lens_circle_svg.append("g")
+                .attr("class", "x-axis")
+                .attr("transform", () => {
+                return "translate(" + [-this._bar_chart_width / 2, this._bar_chart_height / 2] + ")";
+            })
+                .attr("fill", "none")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .call(this._x_axis_gen);
+            this._bar_width = (this._bar_chart_width - 20) / this._data.length;
+            var barHeight = d3.scale.linear()
+                .range([10, this._bar_chart_height])
+                .domain(d3.extent(this._data));
+            var bar = this._lens_circle_svg.selectAll(".bar")
+                .data(this._data)
+                .enter().append("g")
+                .attr("transform", (d, i) => {
+                return "translate(" + [10 + i * this._bar_width - this._bar_chart_width / 2, this._bar_chart_height / 2 - barHeight(d)] + ")";
+            });
+            bar.append("rect")
+                .attr("width", this._bar_width)
+                .attr("height", d => barHeight(d))
+                .attr("fill", "steelblue");
+        }
+    }
+    BarChartLens.Type = "BarChartLens";
+    exports.BarChartLens = BarChartLens;
+});
+define("Lens/TreeNetworkLens", ["require", "exports", "d3", "Lens/index"], function (require, exports, d3, index_9) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class TreeNetworkLens extends index_9.BaseSingleLens {
+        constructor(element, attributeName, manyLens) {
+            super(element, attributeName, TreeNetworkLens.Type, manyLens);
+            this._theta = 360;
+            this._tree = d3.layout.tree();
+        }
+        Render(color) {
+            super.Render(color);
+        }
+        // public ExtractData(): layout.tree.Node {
+        //     var data: layout.tree.Node = {
+        //         "name": "flare",
+        //         "children": [
+        //             {
+        //                 "name": "analytics",
+        //                 "children": [
+        //                     {
+        //                         "name": "cluster",
+        //                         "children": [
+        //                             { "name": "AgglomerativeCluster", "size": 3938 },
+        //                             { "name": "CommunityStructure", "size": 3812 },
+        //                             { "name": "HierarchicalCluster", "size": 6714 },
+        //                             { "name": "MergeEdge", "size": 743 }
+        //                         ]
+        //                     },
+        //                     {
+        //                         "name": "graph",
+        //                         "children": [
+        //                             { "name": "BetweennessCentrality", "size": 3534 },
+        //                             { "name": "LinkDistance", "size": 5731 },
+        //                             { "name": "MaxFlowMinCut", "size": 7840 },
+        //                             { "name": "ShortestPaths", "size": 5914 },
+        //                             { "name": "SpanningTree", "size": 3416 }
+        //                         ]
+        //                     },
+        //                     {
+        //                         "name": "optimization",
+        //                         "children": [
+        //                             { "name": "AspectRatioBanker", "size": 7074 }
+        //                         ]
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     };
+        //     return data;
+        // }
+        DisplayLens() {
+            super.DisplayLens();
+            var nodeRadius = 4.5;
+            var diagonal = d3.svg.diagonal.radial()
+                .projection(function (d) { return [d.y, d.x / 180 * Math.PI]; });
+            this._tree
+                .size([this._theta, this._lens_circle_radius - nodeRadius])
+                .separation(function (a, b) {
+                return (a.parent == b.parent ? 1 : 2) / a.depth;
+            });
+            var nodes = this._tree.nodes(this._data), links = this._tree.links(nodes);
+            this._lens_circle_svg.selectAll("path")
+                .data(links)
+                .enter().append("path")
+                .attr("fill", "none")
+                .attr("stroke", "#ccc")
+                .attr("stroke-width", 1.5)
+                .attr("d", diagonal);
+            var node = this._lens_circle_svg.selectAll(".node")
+                .data(nodes)
+                .enter().append("g")
+                .attr("class", "node")
+                .attr("transform", d => "rotate(" + (d.x - 90) + ")translate(" + d.y + ")");
+            node.append("circle")
+                .attr("r", nodeRadius)
+                .style("stroke", "steelblue")
+                .style("fill", "#fff")
+                .style("stroke-width", 1.5);
+        }
+    }
+    TreeNetworkLens.Type = "TreeNetworkLens";
+    exports.TreeNetworkLens = TreeNetworkLens;
 });
 ///<reference path = "../Lens/LensList.ts" />
 //module ManyLens {

@@ -1,7 +1,7 @@
 ﻿import { Selection } from "d3";
 import * as d3 from "d3";
 import { ManyLens } from "./ManyLens";
-import { PieChartLens, ExtractDataFunc, WordCloudLens, NetworkLens, MapLens, TweetsListLens } from "./Lens/index";
+import { PieChartLens, ExtractDataFunc, WordCloudLens, NetworkLens, MapLens, TweetsListLens, BaseSingleLens } from "./Lens/index";
 
 interface MenuListData {
     name?: string;
@@ -87,7 +87,7 @@ export class SideBarNavigation {
                         icon: "fui-list-numbered",
                         attributeName: "Tweets Content",
                         lensConstructFunc: TweetsListLens,
-                        extractDataFunc: ExtractDataFunc("tweetsContent")
+                        extractDataFunc: new ExtractDataFunc("tweetsContent")
                     }
                 ]
             },
@@ -275,7 +275,7 @@ export class SideBarNavigation {
                     .enter().append("li")
                     .html(function (d) { return '<i class= "' + d.icon + '"></i>' + d.name; })
                     .on("click", (d: MenuListData) => {
-                        var lens: Lens.BaseSingleLens = new d.lensConstructFunc(this._map_Svg, d.attributeName, this._manyLens);
+                        var lens: BaseSingleLens = new d.lensConstructFunc(this._map_Svg, d.attributeName, this._manyLens);
                         lens
                             .DataAccesser(d.extractDataFunc)
                             .Render("red");
@@ -292,22 +292,22 @@ export class SideBarNavigation {
     private SetTimeSpan(index): void {
         d3.select("ul.dropdown-menu").selectAll("li")[0][3 - index].click();
     }
-    private EnableReorganizeIntervalBtn(): void {
-        this._reorganizeIntervalBtn.bootstrapSwitch("disabled", false);
-    }
-    private DisableReorganizeIntervalBtn(): void {
-        this._reorganizeIntervalBtn.bootstrapSwitch("disabled", true);
-    }
+    // private EnableReorganizeIntervalBtn(): void {
+    //     this._reorganizeIntervalBtn.bootstrapSwitch("disabled", false);
+    // }
+    // private DisableReorganizeIntervalBtn(): void {
+    //     this._reorganizeIntervalBtn.bootstrapSwitch("disabled", true);
+    // }
 
-    private PullData(): void {
-        if (ManyLens.TestMode) {
-            this._manyLens.ManyLensHubServerTestPullPoint().done(() => {
-                this._launchDataBtn.classed("disabled", false);
-            });
-        } else {
-            this._manyLens.ManyLensHubServerPullPoint().done((d) => {
-                this._launchDataBtn.classed("disabled", false);
-            });
-        }
-    }
+    // private PullData(): void {
+    //     if (ManyLens.TestMode) {
+    //         this._manyLens.ManyLensHubServerTestPullPoint().done(() => {
+    //             this._launchDataBtn.classed("disabled", false);
+    //         });
+    //     } else {
+    //         this._manyLens.ManyLensHubServerPullPoint().done((d) => {
+    //             this._launchDataBtn.classed("disabled", false);
+    //         });
+    //     }
+    // }
 }
