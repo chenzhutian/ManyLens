@@ -1,5 +1,5 @@
 ﻿import * as d3 from "d3";
-import { Selection, behavior, ZoomEvent, DragEvent, BaseEvent } from "d3";
+import { Selection, behavior, ZoomEvent, DragEvent } from "d3";
 import { D3ChartObject } from "../D3ChartObject";
 import { ExtractDataFunc } from "./index";
 import { ManyLens } from "../ManyLens";
@@ -89,8 +89,8 @@ export class TweetsListLens extends D3ChartObject {
 
             })
             .on("drag", (d) => {
-                this._list_x = d.ox = d3.event.x;
-                this._list_y = d.oy = d3.event.y;
+                this._list_x = d.ox = (d3.event as DragEvent).x;
+                this._list_y = d.oy = (d3.event as DragEvent).y;
                 var tData = d3.select("#" + this.ID).data()[0];
                 this._list_container
                     .style({
@@ -147,8 +147,8 @@ export class TweetsListLens extends D3ChartObject {
                 }
             })
             .on("contextmenu", () => {
-                d3.event.preventDefault();
-                d3.event.stopPropagation();
+                (d3.event as Event).preventDefault();
+                (d3.event as Event).stopPropagation();
                 this._list_container.remove();
                 this._sc_lc_svg.remove();
             })
@@ -335,24 +335,23 @@ export class TweetsListLens extends D3ChartObject {
 
     protected SelectCircleDragFunc(): void {
         if (!this._has_put_down) return;
-        if (d3.event.sourceEvent.button != 0) return;
+        if ((d3.event as DragEvent).sourceEvent.button != 0) return;
 
         d3.select("#mapView").select("div#listView-" + this.ID).remove();
         this._sc_lc_svg.select("line")
-            .attr("x1", d3.event.x)
-            .attr("x2", d3.event.x)
-            .attr("y1", d3.event.y)
-            .attr("y2", d3.event.y);
+            .attr("x1", (d3.event as DragEvent).x)
+            .attr("x2", (d3.event as DragEvent).x)
+            .attr("y1", (d3.event as DragEvent).y)
+            .attr("y2", (d3.event as DragEvent).y);
 
         this._select_circle
             .attr("cx", (d) => {
-                return d.x = d3.event.x;//Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
+                return d.x = (d3.event as DragEvent).x;//Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
             })
             .attr("cy", (d) => {
-                return d.y = d3.event.y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
+                return d.y = (d3.event as DragEvent).y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
             })
-            ;
-
+            
         this._has_showed_lens = false;
     }
 
@@ -385,28 +384,26 @@ export class TweetsListLens extends D3ChartObject {
     }
 
     protected SelectCircleZoomFunc(): void {
-
-        if (d3.event.sourceEvent.type != "wheel") {
+        const zoomEvent = d3.event as ZoomEvent;
+        if (zoomEvent.sourceEvent.type != "wheel") {
             return;
         }
 
-        if (d3.event.scale == this._select_circle_scale) {
+        if (zoomEvent.scale == this._select_circle_scale) {
             return;
         }
 
-        this._select_circle_scale = d3.event.scale;
+        this._select_circle_scale = zoomEvent.scale;
         var theta = Math.PI / 4;//Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
         var cosTheta = Math.cos(theta); //this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
         var sinTheta = Math.sin(theta); //this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
 
         this._select_circle
             .attr("r", this._select_circle_radius * this._select_circle_scale)
-            ;
 
         this._sc_lc_svg.select("line")
-            .attr("x1", this._select_circle_cx + this._select_circle_radius * d3.event.scale * cosTheta)
-            .attr("y1", this._select_circle_cy + this._select_circle_radius * d3.event.scale * sinTheta)
-            ;
+            .attr("x1", this._select_circle_cx + this._select_circle_radius * zoomEvent.scale * cosTheta)
+            .attr("y1", this._select_circle_cy + this._select_circle_radius * zoomEvent.scale * sinTheta)
     }
 
     protected GetElementByMouse(): { unitsID: number[]; mapID: string } {

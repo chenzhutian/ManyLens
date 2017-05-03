@@ -102,7 +102,7 @@ export class MapLens extends BaseSingleLens {
                     return color;
                 })
                 .on("click", (d) => {
-                    if (!d3.event.defaultPrevented)
+                    if (!(d3.event as Event).defaultPrevented)
                         this.ClickedMap(d);
                 })
 
@@ -146,7 +146,7 @@ export class MapLens extends BaseSingleLens {
     }
 
     private ClickedMap(d: any) {
-        if (d3.event.defaultPrevented) return;
+        if ((d3.event as Event).defaultPrevented) return;
         var x, y, k;
 
         if (d && this._centered_state !== d) {
@@ -201,7 +201,7 @@ export class MapLens extends BaseSingleLens {
             })
             .style("stroke-width", 1.5 / k + "px");
 
-        d3.event.stopPropagation();
+        (d3.event as Event).stopPropagation();
     }
 
 }

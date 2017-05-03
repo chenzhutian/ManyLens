@@ -1,5 +1,5 @@
 ﻿import * as d3 from "d3";
-import { Selection, behavior, svg } from "d3";
+import { Selection, behavior, svg, ZoomEvent } from "d3";
 import { HeatMapLayer } from "./heatmapLayer";
 import { D3ChartObject } from "../D3ChartObject";
 import { ManyLens } from "../ManyLens";
@@ -128,14 +128,14 @@ export class SOMMap extends D3ChartObject {
                     }
                     this._fromUnitsID = res;
                 }
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as ZoomEvent).sourceEvent.stopPropagation();
             })
             .on("brush", () => {
-                d3.event.sourceEvent.stopImmediatePropagation();
+                (d3.event as ZoomEvent).sourceEvent.stopImmediatePropagation();
             })
             .on("brushend", () => {
-                if (d3.event.sourceEvent.altKey) {
-                    var extent = (<any>d3.event.target).extent();
+                if ((d3.event as ZoomEvent).sourceEvent.altKey) {
+                    var extent = ((d3.event as DragEvent).target).extent();
                     var rect: SVGRect = (<SVGSVGElement>this._element.node()).createSVGRect();
                     rect.x = extent[0][0] * this._scale + this._translate_x;
                     rect.y = extent[0][1] * this._scale + this._translate_y;
@@ -173,9 +173,8 @@ export class SOMMap extends D3ChartObject {
                             this._toUnitsID);
                     }
                 }
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as Event).sourceEvent.stopPropagation();
             })
-            ;
 
         this._zoom = d3.behavior.zoom()
             .scaleExtent([0.2, 1.5])
@@ -187,33 +186,34 @@ export class SOMMap extends D3ChartObject {
             })
             .on("zoom", () => {
                 clearInterval(this._move_view_timer);
-                var currentLevel = d3.event.scale;
+                const zoomEvent = d3.event as ZoomEvent;
+                var currentLevel = zoomEvent.scale;
                 this._heatMaps.forEach((d, i) => {
                     if (this._scale != currentLevel) {
                         d.transform(currentLevel, 0, 0);
                     }
-                    d.transformPan(d3.event.translate[0], d3.event.translate[1], currentLevel);
+                    d.transformPan(zoomEvent.translate[0], zoomEvent.translate[1], currentLevel);
                 });
                 this._element.selectAll(".som-map")
-                    .attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                    .attr("transform", "translate(" + zoomEvent.translate + ")scale(" + zoomEvent.scale + ")");
 
                 this._element.selectAll(".lens")
                     .attr("transform", function (d) {
                         if (d.cx == 0) {
-                            d.cx = d3.event.translate[0];
-                            d.cy = d3.event.translate[1];
+                            d.cx = zoomEvent.translate[0];
+                            d.cy = zoomEvent.translate[1];
                         }
                         d.scale = currentLevel;
-                        d.tx = d3.event.translate[0] - d.cx * d.scale;
-                        d.ty = d3.event.translate[1] - d.cy * d.scale;
+                        d.tx = zoomEvent.translate[0] - d.cx * d.scale;
+                        d.ty = zoomEvent.translate[1] - d.cy * d.scale;
 
                         return "translate(" + [d.tx, d.ty] + ")scale(" + currentLevel + ")"
                     });
 
                 d3.select("#mapView")
                     .selectAll(".list-group")
-                    .style("left", function (d) { var x = d.ox + d3.event.translate[0]; return x + "px"; })
-                    .style("top", function (d) { var y = d.oy + d3.event.translate[1]; return y + "px"; })
+                    .style("left", function (d) { var x = d.ox + zoomEvent.translate[0]; return x + "px"; })
+                    .style("top", function (d) { var y = d.oy + zoomEvent.translate[1]; return y + "px"; })
                     .style("width", function (d) {
                         var w = d.oWidth * currentLevel;
                         w = w < 260 ? 260 : w;
@@ -228,8 +228,8 @@ export class SOMMap extends D3ChartObject {
                     })
                     ;
 
-                this._translate_x = d3.event.translate[0];
-                this._translate_y = d3.event.translate[1];
+                this._translate_x = zoomEvent.translate[0];
+                this._translate_y = zoomEvent.translate[1];
                 this._scale = currentLevel;
 
             });
@@ -312,9 +312,7 @@ export class SOMMap extends D3ChartObject {
                     var mapID = data[0].mapID;
                     var map = d3.select("#mapSvg" + mapID);
 
-
                     if (map) {
-
                         var mapData: { mapID: string; width: number; height: number; leftOffset: number; topOffset: number } = map.data()[0];
 
                         if (this._brush_svg) {
@@ -329,7 +327,7 @@ export class SOMMap extends D3ChartObject {
                             .on("contextmenu", () => {
                                 this._brush.clear();
                                 this._brush_svg.remove();
-                                d3.event.preventDefault();
+                                (d3.event as Event).preventDefault();
                             })
                             .call(this._brush);
                     }
@@ -337,7 +335,6 @@ export class SOMMap extends D3ChartObject {
                 this._element.style("cursor", "default")
                     .on("click", null);
             })
-            ;
 
     }
 
@@ -350,7 +347,6 @@ export class SOMMap extends D3ChartObject {
             this._classifier_context_menu = this._element.append("g")
                 .attr("id", "som-map-context-menu")
                 .attr("transform", "translate(" + [p[0], p[1]] + ")")
-                ;
 
             this._classifier_context_menu.append("rect")
                 .attr({
@@ -362,7 +358,6 @@ export class SOMMap extends D3ChartObject {
                         return 150;
                     return 50;
                 })
-                ;
 
             // filters go in defs element
             var defs = this._classifier_context_menu.append("defs");
@@ -444,7 +439,7 @@ export class SOMMap extends D3ChartObject {
                         return 2 * (textHeight + 6);
                     return textHeight + 6;
                 })
-                .on("mousedown", function () { d3.event.stopPropagation(); })
+                .on("mousedown", function () { (d3.event as Event).stopPropagation(); })
                 .on("click", (d, i) => {
 
                     switch (i) {
@@ -607,10 +602,10 @@ export class SOMMap extends D3ChartObject {
 
         //Add the hightlight and contextmenu layout
         var line = d3.svg.line()
-            .x(d => d.x)
-            .y(d => d.y)
+            .x((d: any) => d.x)
+            .y((d: any) => d.y)
             .interpolate("linear-closed")
-            ;
+
         svg.append("path")
             .data(
             [{
@@ -627,9 +622,8 @@ export class SOMMap extends D3ChartObject {
             .attr("class", "control-layout")
             .on("contextmenu", (d) => {
                 this.ContextMenu(d.mapID);
-                d3.event.preventDefault();
+                (d3.event as Event).preventDefault();
             })
-            ;
 
         //Whether to add the connection link
         if (classifierID) {

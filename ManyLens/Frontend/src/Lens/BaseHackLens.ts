@@ -1,7 +1,7 @@
 ﻿import * as d3 from "d3";
-import { Selection, behavior } from "d3";
+import { Selection, behavior, ZoomEvent, DragEvent } from "d3";
 import { ManyLens } from "../ManyLens";
-import { BaseD3Lens, BaseCompositeLens, ExtractDataFunc } from "./index";
+import { BaseD3Lens, ExtractDataFunc } from "./index";
 
 export class BaseHackLens extends BaseD3Lens {
 
@@ -56,9 +56,8 @@ export class BaseHackLens extends BaseD3Lens {
             .on("zoom", () => {
                 this.SelectCircleZoomFunc();
                 //console.log("sc_zoom " + this._type);
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as ZoomEvent).sourceEvent.stopPropagation();
             })
-            ;
 
         this._select_circle_drag
             .origin(function (d) { return d; })
@@ -66,7 +65,7 @@ export class BaseHackLens extends BaseD3Lens {
                 //this._sc_drag_event_flag = false;
 
                 //console.log("sc_dragstart " + this._type);
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as DragEvent).sourceEvent.stopPropagation();
             })
             .on("drag", () => {
                 //if (this._sc_drag_event_flag) {
@@ -75,16 +74,13 @@ export class BaseHackLens extends BaseD3Lens {
                 //    this._sc_drag_event_flag = true;
                 //}
                 //console.log("sc_drag " + this._type);
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as DragEvent).sourceEvent.stopPropagation();
             })
             .on("dragend", (d) => {
                 this.SelectCircleDragendFunc(d);
                 //console.log("sc_dragend " + this._type);
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as DragEvent).sourceEvent.stopPropagation();
             })
-            ;
-
-
     }
 
     public Render(color: string): void {
@@ -93,12 +89,10 @@ export class BaseHackLens extends BaseD3Lens {
 
         this._select_circle_svg = this._sc_lc_svg.append("g")
             .attr("class", "select-circle")
-            ;
 
         var selectCircle = this._select_circle =
             this._select_circle_svg.append("circle")
                 .data([{ x: this._select_circle_cx, y: this._select_circle_cy }])
-            ;
 
         selectCircle
             .attr("r", this._select_circle_radius)
@@ -119,23 +113,19 @@ export class BaseHackLens extends BaseD3Lens {
                 }
             })
             .on("contextmenu", () => {
-                d3.event.preventDefault();
-                d3.event.stopPropagation();
-
+                (d3.event as Event).preventDefault();
+                (d3.event as Event).stopPropagation();
                 this._sc_lc_svg.remove();
                 this._manyLens.RemoveLens(this);
-
-
             })
             .call(this._select_circle_zoom)
             .on("dblclick.zoom", null)
             .on("mousedown.zoom", null)
             .call(this._select_circle_drag)
-            ;
+
         this._sc_lc_svg.append("line")
             .attr("stoke-width", 2)
             .attr("stroke", "red")
-            ;
 
         container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
         function moveSelectCircle() {
@@ -143,7 +133,6 @@ export class BaseHackLens extends BaseD3Lens {
             selectCircle
                 .attr("cx", p[0])
                 .attr("cy", p[1])
-                ;
         }
     }
 
@@ -194,21 +183,22 @@ export class BaseHackLens extends BaseD3Lens {
 
     protected SelectCircleDragFunc(): void {
         if (!this._has_put_down) return;
-        if (d3.event.sourceEvent.button != 0) return;
+        const dragEvent = d3.event as DragEvent;
+        if (dragEvent.sourceEvent.button != 0) return;
 
         this._sc_lc_svg.select("g.lens-circle-g").remove();
         this._sc_lc_svg.select("line")
-            .attr("x1", d3.event.x)
-            .attr("x2", d3.event.x)
-            .attr("y1", d3.event.y)
-            .attr("y2", d3.event.y);
+            .attr("x1", dragEvent.x)
+            .attr("x2", dragEvent.x)
+            .attr("y1", dragEvent.y)
+            .attr("y2", dragEvent.y);
 
         this._select_circle
             .attr("cx", (d) => {
-                return d.x = d3.event.x;//Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
+                return d.x = dragEvent.x;//Math.max(0, Math.min(parseFloat(this._element.style("width")), d3.event.x));
             })
             .attr("cy", (d) => {
-                return d.y = d3.event.y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
+                return d.y = dragEvent.y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
             })
             ;
 
@@ -219,7 +209,7 @@ export class BaseHackLens extends BaseD3Lens {
     //The entrance of new data
     protected SelectCircleDragendFunc(selectCircle): void {
         if (!this._has_put_down) return;
-        if (d3.event.sourceEvent.button != 0) return;
+        if ((d3.event as DragEvent).sourceEvent.button != 0) return;
 
         //传递数据给Lens显示
         if (!this._has_showed_lens) {
@@ -244,32 +234,29 @@ export class BaseHackLens extends BaseD3Lens {
 
             this._has_showed_lens = true;
         }
-
     }
 
     protected SelectCircleZoomFunc(): void {
-
-        if (d3.event.sourceEvent.type != "wheel") {
+        const zoomEvent = d3.event as ZoomEvent;
+        if (zoomEvent.sourceEvent.type != "wheel") {
             return;
         }
 
-        if (d3.event.scale == this._select_circle_scale) {
+        if (zoomEvent.scale == this._select_circle_scale) {
             return;
         }
 
-        this._select_circle_scale = d3.event.scale;
+        this._select_circle_scale = zoomEvent.scale;
         var theta = Math.atan((this._lens_circle_cy - this._select_circle_cy) / (this._lens_circle_cx - this._select_circle_cx));
         var cosTheta = this._lens_circle_cx > this._select_circle_cx ? Math.cos(theta) : -Math.cos(theta);
         var sinTheta = this._lens_circle_cx > this._select_circle_cx ? Math.sin(theta) : -Math.sin(theta);
 
         this._select_circle
             .attr("r", this._select_circle_radius * this._select_circle_scale)
-            ;
 
         this._sc_lc_svg.select("line")
-            .attr("x1", this._select_circle_cx + this._select_circle_radius * d3.event.scale * cosTheta)
-            .attr("y1", this._select_circle_cy + this._select_circle_radius * d3.event.scale * sinTheta)
-            ;
+            .attr("x1", this._select_circle_cx + this._select_circle_radius * zoomEvent.scale * cosTheta)
+            .attr("y1", this._select_circle_cy + this._select_circle_radius * zoomEvent.scale * sinTheta)
     }
 
     protected LensCircleDragFunc(): void {
@@ -319,24 +306,6 @@ export class BaseHackLens extends BaseD3Lens {
             .attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta)
             .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
             ;
-    }
-
-    public DetachHostLens(): BaseCompositeLens {
-        if (this.IsComponentLens) {
-            var hostLens: BaseCompositeLens = this._host_lens;
-            this.HostLens = null;
-            return hostLens;
-        } else {
-            return null;
-        }
-    }
-
-    public ChangeHostTo(hostLens: BaseCompositeLens): void {
-        if (this.IsComponentLens) {
-            this.HostLens = hostLens;
-        } else {
-            return;
-        }
     }
 
     protected GetElementByMouse(): { unitsID: number[]; mapID: string } {

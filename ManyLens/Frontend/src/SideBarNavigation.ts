@@ -109,7 +109,7 @@ export class SideBarNavigation {
     /*-----------------Data menu-----------------*/
     private _isLoaded: boolean = false;
     private _launchDataBtn: Selection<any>;
-    private _reorganizeIntervalBtn: JQuery;
+    // private _reorganizeIntervalBtn: JQuery;
 
     /*--------------Attribute menu---------------*/
     private _brand: Selection<any>;
@@ -120,7 +120,7 @@ export class SideBarNavigation {
     /*--------------Map menu---------------*/
     private _refine_btn: Selection<any>;
     private _som_geo_switch_btn: JQuery;
-    private _screen_shot_btn: Selection<any>;
+    // private _screen_shot_btn: Selection<any>;
 
     private _map_Svg: Selection<any>;
 
@@ -178,7 +178,7 @@ export class SideBarNavigation {
 
         d3.select("#navbarInput-02")
             .on("click", (d) => {
-                d3.event.preventDefault();
+                (d3.event as Event).preventDefault();
                 console.log("pullPoint");
                 this._manyLens.ManyLensHubServerPullPoint();
             });
@@ -253,7 +253,7 @@ export class SideBarNavigation {
             //add high light function
             li.select("div")
                 .on("click", function () {
-                    d3.event.preventDefault();
+                    (d3.event as Event).preventDefault();
                     if (d3.select(this.parentNode).classed("active")) {
                         d3.select("li.active").classed("active", false);
                     } else {

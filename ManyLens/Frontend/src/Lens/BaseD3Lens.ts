@@ -1,7 +1,6 @@
-﻿import { Selection, behavior } from "d3";
+﻿import { Selection, behavior, ZoomEvent } from "d3";
 import * as d3 from "d3";
 import { ManyLens } from "../ManyLens";
-import { BaseCompositeLens } from "./index";
 import { D3ChartObject } from "../D3ChartObject";
 
 export class ExtractDataFunc {
@@ -47,7 +46,6 @@ export class BaseD3Lens extends D3ChartObject {
 
     protected _is_component_lens: boolean = false;
     protected _is_composite_lens: boolean = null;
-    protected _host_lens: BaseCompositeLens;
 
     public get ID(): string {
         return this._id;
@@ -97,18 +95,6 @@ export class BaseD3Lens extends D3ChartObject {
     public get IsComponentLens(): boolean {
         return this._is_component_lens;
     }
-    public get HostLens(): BaseCompositeLens {
-        return this._host_lens;
-    }
-    public set HostLens(hostLens: BaseCompositeLens) {
-        if (hostLens) {
-            this._host_lens = hostLens;
-            this._is_component_lens = true;
-        } else {
-            this._host_lens = null;
-            this._is_component_lens = false;
-        }
-    }
     public get RawData(): any {
         return this._data;
     }
@@ -125,25 +111,24 @@ export class BaseD3Lens extends D3ChartObject {
             .scaleExtent([1, 2])
             .on("zoom", () => {
                 this.LensCircleZoomFunc();
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as ZoomEvent).sourceEvent.stopPropagation();
             });
 
         this._lens_circle_drag
             .origin(function (d) { return d; })
             .on("dragstart", () => {
-
                 this.LensCircleDragstartFunc();
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as ZoomEvent).sourceEvent.stopPropagation();
                 //console.log("lc_dragstart " + this._type);
             })
             .on("drag", () => {
                 this.LensCircleDragFunc();
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as ZoomEvent).sourceEvent.stopPropagation();
                 //console.log("lc_drag " + this._type);
             })
             .on("dragend", () => {
                 this.LensCircleDragendFunc();
-                d3.event.sourceEvent.stopPropagation();
+                (d3.event as ZoomEvent).sourceEvent.stopPropagation();
                 //console.log("lc_dragend " + this._type);
             });
     }
@@ -196,7 +181,6 @@ export class BaseD3Lens extends D3ChartObject {
             .call(this._lens_circle_zoom)
             .on("dblclick.zoom", null)
             .call(this._lens_circle_drag)
-            ;
 
         this._lens_circle = this._lens_circle_svg.append("path")
             .attr("class", "lens-circle")
@@ -207,7 +191,6 @@ export class BaseD3Lens extends D3ChartObject {
                 "stroke": "#ccc",
                 "stroke-width": 1.5
             })
-            ;
 
         this._manyLens.AddLensToHistoryTree(this);
 
@@ -217,13 +200,12 @@ export class BaseD3Lens extends D3ChartObject {
             .each("end", function () {
                 d3.select(this).style("pointer-events", "");
             });
-        ;
 
         return duration;
     }
 
     protected LensCircleDragstartFunc(): void {
-        if (d3.event.sourceEvent.button != 0) return;
+        if ((d3.event as DragEvent).sourceEvent.button != 0) return;
 
         var tempGs = d3.select("#mapView").selectAll("svg > g");
         var index = tempGs[0].indexOf(this._sc_lc_svg[0][0]);
@@ -237,82 +219,83 @@ export class BaseD3Lens extends D3ChartObject {
 
     protected LensCircleDragFunc(): void {
         var transform = this._lens_circle_svg.attr("transform");
+        const dragEvent = d3.event as DragEvent;
         this._lens_circle_svg.attr("transform", (d) => {
 
-            this._lens_circle_cx = d.x = d3.event.x;//Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("width")) - this._lens_circle_radius, d3.event.x));
-            this._lens_circle_cy = d.y = d3.event.y;//Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("height")) - this._lens_circle_radius, d3.event.y));
+            this._lens_circle_cx = d.x = dragEvent.x;//Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("width")) - this._lens_circle_radius, d3.event.x));
+            this._lens_circle_cy = d.y = dragEvent.y;//Math.max(this._lens_circle_radius, Math.min(parseFloat(this._element.style("height")) - this._lens_circle_radius, d3.event.y));
             transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
             return transform;
         });
     }
 
     protected LensCircleDragendFunc(): boolean {
-        var res = [];
-        var eles = [];
-        var x = d3.event.sourceEvent.x,
-            y = d3.event.sourceEvent.y;
+        // const dragEvent = d3.event as DragEvent;
+        // var res = [];
+        // var eles = [];
+        // var x = dragEvent.sourceEvent.x,
+        //     y = dragEvent.sourceEvent.y;
 
         var p = d3.mouse(this._element.node());
         if (p[0] < 0 || p[0] > parseFloat(this._element.style("width")) || p[1] < 0 || p[1] > parseFloat(this._element.style("height")))
             return;
 
-        var ele = d3.select(document.elementFromPoint(x, y));
-        while (ele && ele.attr("id") != "mapSvg") {
-            if (ele.classed("lens-circle")) res.push(ele[0][0]);
-            eles.push(ele);
-            ele.style("visibility", "hidden");
-            ele = d3.select(document.elementFromPoint(x, y));
-            if (eles.length > 10) {
-                throw new Error("what the fuck");
-            }
-        }
+        // var ele = d3.select(document.elementFromPoint(x, y));
+        // while (ele && ele.attr("id") != "mapSvg") {
+        //     if (ele.classed("lens-circle")) res.push(ele[0][0]);
+        //     eles.push(ele);
+        //     ele.style("visibility", "hidden");
+        //     ele = d3.select(document.elementFromPoint(x, y));
+        //     if (eles.length > 10) {
+        //         throw new Error("what the fuck");
+        //     }
+        // }
 
-        for (var i = 0, len = eles.length; i < len; ++i) {
-            eles[i].style("visibility", "");
-        }
+        // for (var i = 0, len = eles.length; i < len; ++i) {
+        //     eles[i].style("visibility", "");
+        // }
 
-        if (res.length == 2) {
-            var lensA_id: string = d3.select(res[0].parentNode.parentNode).attr("id");
-            var lensB_id: string = d3.select(res[1].parentNode.parentNode).attr("id");
-            var lensC: BaseCompositeLens = LensAssemblyFactory.CombineLens(
-                this._element,
-                this._manyLens,
-                this._manyLens.GetLens(lensA_id),
-                this._manyLens.GetLens(lensB_id));
+        // if (res.length == 2) {
+        //     var lensA_id: string = d3.select(res[0].parentNode.parentNode).attr("id");
+        //     var lensB_id: string = d3.select(res[1].parentNode.parentNode).attr("id");
+        //     var lensC: BaseCompositeLens = LensAssemblyFactory.CombineLens(
+        //         this._element,
+        //         this._manyLens,
+        //         this._manyLens.GetLens(lensA_id),
+        //         this._manyLens.GetLens(lensB_id));
 
-            if (lensC) {
-                lensC.Render("black");
-                //lensC.DisplayLens();
+        //     if (lensC) {
+        //         lensC.Render("black");
+        //         //lensC.DisplayLens();
 
-                return true;
-            } else {
+        //         return true;
+        //     } else {
 
-                var transform = this._lens_circle_svg.attr("transform");
-                this._lens_circle_svg.transition()
-                    .ease('back-out')
-                    .duration(this._combine_failure_rebound_duration)
-                    .attr("transform", (d) => {
-                        this._lens_circle_cx = d.x = this._lens_drag_start_cx;
-                        this._lens_circle_cy = d.y = this._lens_drag_start_cy;
-                        transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
-                        return transform;
-                    })
-                    ;
-
-            }
-        }
+        //         var transform = this._lens_circle_svg.attr("transform");
+        //         this._lens_circle_svg.transition()
+        //             .ease('back-out')
+        //             .duration(this._combine_failure_rebound_duration)
+        //             .attr("transform", (d) => {
+        //                 this._lens_circle_cx = d.x = this._lens_drag_start_cx;
+        //                 this._lens_circle_cy = d.y = this._lens_drag_start_cy;
+        //                 transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
+        //                 return transform;
+        //             })
+        //     }
+        // }
         return false;
     }
 
     protected LensCircleZoomFunc(): void {
-        if (d3.event.sourceEvent.type != "wheel") {
+        const zoomEvent = d3.event as ZoomEvent;
+        if (zoomEvent.sourceEvent.type != "wheel") {
             return;
         }
 
-        if (d3.event.scale == this._lens_circle_scale) {
+        if (zoomEvent.scale == this._lens_circle_scale) {
             return;
         }
-        var scale = this._lens_circle_scale = d3.event.scale;
+        var scale = this._lens_circle_scale = zoomEvent.scale;
 
         this._lens_circle_svg
             .attr("transform", function () {
@@ -320,8 +303,6 @@ export class BaseD3Lens extends D3ChartObject {
                 transform = transform.replace(/(scale\()\d+\.?\d*\,?\d*\.?\d*(\))/, "$1" + scale + "$2");
                 return transform;
             })
-            ;
-
     }
 
     //public HideLens() {

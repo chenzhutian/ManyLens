@@ -1,7 +1,8 @@
 ﻿import * as d3 from "d3";
-import { Selection, geo, behavior, scale } from "d3";
+import { Selection, geo, behavior, scale, ZoomEvent } from "d3";
 import { D3ChartObject } from "../D3ChartObject";
 import { ManyLens } from "../ManyLens";
+import * as topojson from "topojson";
 
 interface Country {
     type: string;
@@ -65,12 +66,12 @@ export class WorldMap extends D3ChartObject {
                 //d3.event.sourceEvent.stopPropagation();
             })
             .on("zoom", () => {
-                this.Zoom(d3.event.translate, d3.event.scale);
+                const zoomEvent = d3.event as ZoomEvent;
+                this.Zoom(zoomEvent.translate, zoomEvent.scale);
             })
             .on("zoomend", () => {
                 //d3.event.sourceEvent.stopPropagation();
             })
-            ;
 
         this._manyLens.ManyLensHubRegisterClientFunction(this, "upDateGeoMap", this.UpdateMap);
     }
@@ -83,7 +84,6 @@ export class WorldMap extends D3ChartObject {
             })
             .call(this._zoom)
             .on("dblclick.zoom", null)
-            ;
 
     }
 
@@ -142,7 +142,7 @@ export class WorldMap extends D3ChartObject {
                 .attr("id", "world-countries");
 
             this._map.selectAll("path")
-                .data(this._world_topojson_data.features, d => d.id)
+                .data(this._world_topojson_data.features, (d:any) => d.id)
                 .enter()
                 .append("path")
                 .attr("id", function (d: Country) { return d.id; })
@@ -155,10 +155,9 @@ export class WorldMap extends D3ChartObject {
                     "stoke-width": "0.5px"
                 })
                 .on("dblclick", (d: Country) => {
-                    d3.event.stopPropagation();
+                    (d3.event as Event).stopPropagation();
                     this.Country_Clicked(d);
                 })
-                ;
         } else {
             d3.json(this._world_topojson_path, (error, world) => {
                 this._world_topojson_data = topojson.feature(world, world.objects.countries);
@@ -190,10 +189,9 @@ export class WorldMap extends D3ChartObject {
                         "stoke-width": "0.5px"
                     })
                     .on("dblclick", (d: Country) => {
-                        d3.event.stopPropagation();
+                        (d3.event as Event).stopPropagation();
                         this.Country_Clicked(d);
                     })
-                    ;
 
             });
         }
@@ -231,7 +229,6 @@ export class WorldMap extends D3ChartObject {
         this._map.transition().duration(500)
             .attr("transform", "translate(" + this._projection.translate() + ")scale(" + xyz[2] + ")translate(-" + xyz[0] + ",-" + xyz[1] + ")")
             .style("stroke-width", 1.0 / xyz[2] + "px")
-            ;
 
         this._zoom
             .translate([
@@ -243,12 +240,12 @@ export class WorldMap extends D3ChartObject {
         this._element
             .call(this._zoom)
             .on("dblclick.zoom", null);
-        ;
+
         this._scale = xyz[2];
     }
 
     private Zoom(translate: number[], scale: number) {
-        if (d3.event.sourceEvent.type == "wheel") {
+        if ((d3.event as ZoomEvent).sourceEvent.type == "wheel") {
             //if(d3.event.scale > this._scale){
             //    this._zoom
             //        .center(null);
@@ -265,16 +262,14 @@ export class WorldMap extends D3ChartObject {
             this._map
                 .attr("transform", "translate(" + translate + ")scale(" + scale + ")")
                 .style("stroke-width", 1.0 / scale + "px")
-                ;
 
             this._scale = scale;
-        } else if (d3.event.sourceEvent.type == "mousemove") {
+        } else if ((d3.event as ZoomEvent).sourceEvent.type == "mousemove") {
             this._projection.rotate([translate[0] + 80, 0, 0]);
 
             this._map.selectAll("path")
-                .data(this._world_topojson_data.features, d => d.id)
+                .data(this._world_topojson_data.features, (d:any) => d.id)
                 .attr("d", this._path)
-                ;
 
             //    this._zoom.translate([
             //            0,0

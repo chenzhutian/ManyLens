@@ -50,7 +50,6 @@ export class NetworkLens extends BaseSingleLens {
 
         var nodes = graph.nodes,
             links = graph.links
-            ;
 
         nodes.forEach((d) => {
             d.x = d.x * this.LensRadius;
@@ -65,16 +64,14 @@ export class NetworkLens extends BaseSingleLens {
 
         nodes.forEach((d) => {
             if ((d.x * d.x + d.y * d.y) > this.LensRadius * this.LensRadius) {
-
                 d.x = this._location_x_scale(d.x),
-                    d.y = this._location_y_scale(d.y);
+                d.y = this._location_y_scale(d.y);
             }
         });
 
         this._force
             .nodes(nodes)
             .links(links)
-            ;
 
         var link = this._lens_circle_svg
             .selectAll(".network.link")
@@ -85,8 +82,7 @@ export class NetworkLens extends BaseSingleLens {
                 "stroke": "#777",
                 "stroke-width": "1px"
             })
-            ;
-
+            
         var node = this._lens_circle_svg
             .selectAll(".network.node")
             .data(nodes)
@@ -100,7 +96,6 @@ export class NetworkLens extends BaseSingleLens {
                 "fill": "#fff",
                 "stroke-width": 1.5
             })
-            ;
 
         this._force.on("tick", () => {
 
