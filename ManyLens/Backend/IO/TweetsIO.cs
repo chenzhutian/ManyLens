@@ -328,7 +328,7 @@ namespace ManyLens.IO
             sr.Close();
 
             sr = new StreamReader(cacheTermsFile);
-            Sentiment sentiment = new Sentiment();
+            // Sentiment sentiment = new Sentiment();
             SortedDictionary<string, Term> terms = new SortedDictionary<string, Term>();
             while (!sr.EndOfStream)
             {
@@ -351,7 +351,14 @@ namespace ManyLens.IO
                         string[] tweetsAttribute = tempData.Split('\t');
                         if (tweetsAttribute.Length < 8) continue;
                         //0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent \t 8sentiment
+                        Debug.WriteLine(tempData);
+                        Debug.WriteLine(tweetsAttribute.Length);
+                        Debug.WriteLine(tweetsAttribute[1]);
+                        Debug.WriteLine(users.ContainsKey(tweetsAttribute[1]));
+                        Debug.WriteLine(users.Count);
+
                         Tweet tweet = new Tweet(tweetsAttribute[0], tweetsAttribute[7], attributes[0], tweetsAttribute[2], tweetsAttribute[3], users[tweetsAttribute[1]]);
+                        Debug.WriteLine(tweetsAttribute.Length);
                         tweet.DerivedContent = tweetsAttribute[6];
                         tweet.CountryName = tweetsAttribute[4];
                         tweet.Sentiment = int.Parse(tweetsAttribute[8]); //Sentiment.findSentiment(tweet.DerivedContent);

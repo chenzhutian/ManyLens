@@ -46,7 +46,6 @@ module ManyLens {
                     .rotate( [0, 0] )
                     .center([-0.6, 38.7])
                     .translate( [0, -30] )
-                ;
 
                 this._path
                     .projection( this._projection );
@@ -106,14 +105,11 @@ module ManyLens {
                             if ( !d3.event.defaultPrevented )
                                 this.ClickedMap( d );
                         })
-                    ;
 
                     this._lens_circle_svg.append( "path" )
                         .datum( topojson.mesh( this._map_data.raw, this._map_data.raw.objects.countries, function ( a, b ) { return a !== b; }) )
                         .attr( "id", "state-borders" )
                         .attr( "d", this._path )
-                    ;
-
                 } else {
                     d3.json( "./testData/countriesAlpha2.topo.json", ( error, mapData ) => {
                         this._map_data = {
@@ -136,13 +132,11 @@ module ManyLens {
                             .on( "click", ( d ) => {
                                 this.ClickedMap( d );
                             })
-                        ;
 
                         this._lens_circle_svg.append( "path" )
                             .datum( topojson.mesh( mapData, mapData.objects.countries, function ( a, b ) { return a !== b; }) )
                             .attr( "id", "state-borders" )
                             .attr( "d", this._path )
-                        ;
 
                     });
                 }
@@ -163,7 +157,7 @@ module ManyLens {
                         .on( "dragstart", null )
                         .on( "drag", null )
                         .on( "dragend", null )
-                    ;
+
                     this._element.on( "click", () => {
                         this.ClickedMap( this._centered_state );
                     });
@@ -183,7 +177,7 @@ module ManyLens {
                         .on( "dragend", () => {
                             this.LensCircleDragendFunc();
                         })
-                    ;
+
                     this._lens_circle_zoom
                         .scale( this._lens_circle_scale )
                         .on( "zoom", () => {

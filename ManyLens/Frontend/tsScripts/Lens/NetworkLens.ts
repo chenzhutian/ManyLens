@@ -24,15 +24,12 @@ module ManyLens {
                     .charge(-50)
                     .gravity(0.1)
                     .friction(0.5)
-                ;
 
                 this._location_x_scale
                     .range([-this._lens_circle_radius, this._lens_circle_radius])
-                ;
 
                 this._location_y_scale
                     .range([-this._lens_circle_radius, this._lens_circle_radius])
-                ;
             }
 
             public Render(color: string): void {
@@ -51,7 +48,6 @@ module ManyLens {
            
                 var nodes = graph.nodes,
                     links = graph.links
-                ;
 
                 nodes.forEach((d) => {
                     d.x = d.x * this.LensRadius;
@@ -60,11 +56,9 @@ module ManyLens {
 
                 this._location_x_scale
                     .domain(d3.extent(nodes, function (d:Node) { return d.x; }))
-                ;
 
                 this._location_y_scale
                     .domain(d3.extent(nodes, function (d:Node) { return d.y; }))
-                ;
 
                 nodes.forEach((d) => {
                     if ((d.x * d.x + d.y * d.y) > this.LensRadius * this.LensRadius) {
@@ -77,7 +71,6 @@ module ManyLens {
                 this._force
                     .nodes(nodes)
                     .links(links)
-                ;
 
                 var link = this._lens_circle_svg
                     .selectAll(".network.link")
@@ -88,7 +81,6 @@ module ManyLens {
                         "stroke": "#777",
                         "stroke-width": "1px"
                     })
-                ;
 
                 var node = this._lens_circle_svg
                     .selectAll(".network.node")
@@ -103,7 +95,6 @@ module ManyLens {
                         "fill": "#fff",
                         "stroke-width": 1.5
                     })
-                ;
 
                 this._force.on("tick", ()=>{
                  

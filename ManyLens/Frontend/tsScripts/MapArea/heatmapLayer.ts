@@ -22,7 +22,6 @@ module ManyLens {
                 config.shaderStyle = val;
                 config.LoDMap.DrawCanvas();
             }
-
         }
 
         export class HeatMapLayer {

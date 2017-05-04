@@ -45,7 +45,6 @@ module ManyLens {
 
             protected _is_component_lens: boolean = false;
             protected _is_composite_lens: boolean = null;
-            protected _host_lens: BaseCompositeLens;
 
             public get ID(): string {
                 return this._id;
@@ -94,18 +93,6 @@ module ManyLens {
             }
             public get IsComponentLens(): boolean {
                 return this._is_component_lens;
-            }
-            public get HostLens(): BaseCompositeLens {
-                return this._host_lens;
-            }
-            public set HostLens(hostLens: BaseCompositeLens) {
-                if (hostLens) {
-                    this._host_lens = hostLens;
-                    this._is_component_lens = true;
-                } else {
-                    this._host_lens = null;
-                    this._is_component_lens = false;
-                }
             }
             public get RawData(): any {
                 return this._data;
@@ -196,7 +183,6 @@ module ManyLens {
                     .call(this._lens_circle_zoom)
                     .on("dblclick.zoom", null)
                     .call(this._lens_circle_drag)
-                ;
 
                 this._lens_circle = this._lens_circle_svg.append("path")
                     .attr("class", "lens-circle")
@@ -207,7 +193,6 @@ module ManyLens {
                         "stroke": "#ccc",
                         "stroke-width": 1.5
                     })
-                ;
 
                 this._manyLens.AddLensToHistoryTree(this);
 
@@ -217,7 +202,6 @@ module ManyLens {
                     .each("end", function () {
                         d3.select(this).style("pointer-events", "");
                     });
-                ;
 
                 return duration;
             }
@@ -256,51 +240,6 @@ module ManyLens {
                 if (p[0] < 0 || p[0] >parseFloat(this._element.style("width")) || p[1] < 0 || p[1] >parseFloat(this._element.style("height")))
                     return;
 
-                var ele = d3.select(document.elementFromPoint(x, y));
-                while (ele && ele.attr("id") != "mapSvg") {
-                    if (ele.classed("lens-circle")) res.push(ele[0][0]);
-                    eles.push(ele);
-                    ele.style("visibility", "hidden");
-                    ele = d3.select(document.elementFromPoint(x, y));
-                    if (eles.length > 10) {
-                        throw new Error("what the fuck");
-                    }
-                }
-
-                for (var i = 0, len = eles.length; i < len; ++i) {
-                    eles[i].style("visibility", "");
-                }
-
-                if (res.length == 2) {
-                    var lensA_id: string = d3.select(res[0].parentNode.parentNode).attr("id");
-                    var lensB_id: string = d3.select(res[1].parentNode.parentNode).attr("id");
-                    var lensC:BaseCompositeLens = LensAssemblyFactory.CombineLens(
-                        this._element,
-                        this._manyLens,
-                        this._manyLens.GetLens(lensA_id),
-                        this._manyLens.GetLens(lensB_id));
-
-                    if (lensC) {
-                        lensC.Render("black");
-                        //lensC.DisplayLens();
-
-                        return true;
-                    } else {
-
-                        var transform = this._lens_circle_svg.attr("transform");
-                        this._lens_circle_svg.transition()
-                            .ease('back-out')
-                            .duration(this._combine_failure_rebound_duration)
-                            .attr("transform", (d) => {
-                                this._lens_circle_cx = d.x = this._lens_drag_start_cx;
-                                this._lens_circle_cy = d.y = this._lens_drag_start_cy;
-                                transform = transform.replace(/(translate\()\-?\d+\.?\d*,\-?\d+\.?\d*(\))/, "$1" + d.x + "," + d.y + "$2");
-                                return transform;
-                            })
-                        ;
-
-                    }
-                }
                 return false;
             }
 
@@ -320,8 +259,6 @@ module ManyLens {
                         transform = transform.replace(/(scale\()\d+\.?\d*\,?\d*\.?\d*(\))/, "$1" + scale + "$2");
                         return transform;
                     })
-                ;
-
             }
 
             //public HideLens() {

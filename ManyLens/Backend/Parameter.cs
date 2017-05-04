@@ -16,15 +16,16 @@ namespace ManyLens.config
         public static double filterWords = 0.3;
 
         private static string rootFolder = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-        public static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
-        public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
         public static string cities1000File = RootFolder + "Backend\\DataBase\\GEODATA\\cities1000short";
         public static string stopwordFile = RootFolder + "Backend\\DataBase\\PREPROCESSINGDICT\\stopwords";
         public static string twitterKeysFile = RootFolder + "Backend\\DataBase\\TWITTERKEY";
-        public static string processedTermsFile = RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
+        public static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
+        public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
+        public static string processedTermsFile = fifaFile + "ProcessedTermData" + timeSpan; // RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
         public static string processedTermsFileWithSentiment = processedTermsFile + "WithSentiment_";
+        public static string userkloutfile = fifaFile + "klout";
         //public static string processedTermsFileWithSentiment = "Backend\\DataBase\\ProcessedTermsData" + "fifa" + 2 + "WithSentiment_";
-        public static string processedUserFIle = RootFolder + "Backend\\DataBase\\ProcessedUsersData" + "fifa" + timeSpan;
+        public static string processedUserFIle = processedTermsFile + "user"; //RootFolder + "Backend\\DataBase\\ProcessedUsersData" + "fifa" + timeSpan;
         public static string cacheMapDataDir = RootFolder + "Backend\\DataBase\\CacheMap\\";
 
         public static string RootFolder

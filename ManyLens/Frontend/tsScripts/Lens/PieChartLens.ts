@@ -23,7 +23,6 @@ module ManyLens{
                     .innerRadius(this._pie_innerRadius)
                     .outerRadius(this._pie_outterRadius)
                 //    .startAngle(0)
-                ;
 
                 this._pie
                     .value((d) => {
@@ -36,7 +35,6 @@ module ManyLens{
                     })
                 .startAngle(0)
                    // .padAngle(.02)
-                ;
 
                 this._color
                     .range([

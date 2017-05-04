@@ -81,7 +81,6 @@ module ManyLens {
                     .attr("stroke", "#ccc")
                     .attr("stroke-width", 1.5)
                     .attr("d", diagonal)
-                ;
 
                 var node = this._lens_circle_svg.selectAll(".node")
                     .data(nodes)
@@ -90,15 +89,12 @@ module ManyLens {
                     .attr("transform", function (d) {
                         return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")";
                     })
-                ;
 
                 node.append("circle")
                     .attr("r", nodeRadius)
                     .style("stroke", "steelblue")
                     .style("fill", "#fff")
                     .style("stroke-width", 1.5)
-                ;
-
             }
 
         }

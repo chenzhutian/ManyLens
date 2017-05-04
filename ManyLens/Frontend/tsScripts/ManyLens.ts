@@ -1,9 +1,7 @@
-﻿///<reference path = "../tsScripts/Hub/Hub.ts" />
-///<reference path="../tsScripts/Navigation/SideBarNavigation.ts" />
-///<reference path = "../tsScripts/TweetsCurve/Cruve.ts" />
-///<reference path = "../tsScripts/LensHistory/HistoryTree.ts" />
-///<reference path = "../tsScripts/Pane/ClassicLensPane.ts" />
-///<reference path = "../tsScripts/MapArea/SOMMAP.ts" />
+﻿///<reference path = "./Hub.ts" />
+///<reference path = "./SideBarNavigation.ts" />
+///<reference path = "./Cruve.ts" />
+///<reference path = "./MapArea/SOMMAP.ts" />
 'use strict'
 module ManyLens {
 
@@ -94,7 +92,7 @@ module ManyLens {
             //Add a new tree here, actually the tree should not be add here
             //this._historyTrees.addTree();
 
-            this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
+            //this.ManyLensHubRegisterClientFunction(this, "interactiveOnLens", this.InteractiveOnLens);
             /*-------------------------Start the hub-------------------------------------------*/
             this._manyLens_hub.connection.start().done(() => {
                 console.log("start connection");
@@ -157,21 +155,7 @@ module ManyLens {
             this.ManyLensHubServerRemoveLensData(lens.MapID, lens.ID);
             return lens;
         }
-        public DetachCompositeLens(element: D3.Selection,
-            hostLens: Lens.BaseCompositeLens,
-            componentLens: Lens.BaseSingleLens): void {
-            var lensC: Lens.BaseD3Lens = LensAssemblyFactory.DetachLens(element, hostLens, componentLens, this);
-            if (lensC.IsCompositeLens) {
-                if ((<Lens.BaseCompositeLens>lensC).NeedtoReshape)
-                    this._lens.set(hostLens.ID, lensC);
-                lensC.Render("black");
-            } else {
-                this.RemoveLens(hostLens);
-                lensC.DisplayLens();
-            }
-
-        }
-
+        
         /* -------------------- Hub related Function -----------------------*/
         public ManyLensHubRegisterClientFunction(registerObj: any, funcName: string, func: (...any) => any) {
             if (!this._manyLens_hub) {
@@ -267,16 +251,6 @@ module ManyLens {
         }
 
         /*-------------Lens interactivation method-------------*/
-        public InteractiveOnLens(lensID: string, ...args: Array<any>) {
-            var lens: Lens.BaseD3Lens = this._lens.get(lensID);
-            console.log(args);
-            if (lens.Type == "cWordCloudPieLens") {
-                (<Lens.cWordCloudPieLens>lens).HightLightWordsOfTweetsAtLengthOf(args[0]);
-            } else if(lens.Type == "cMapPieLens"){
-                (<Lens.cMapPieLens>lens).HightLightCountry(args[0]);
-            }
-        }
-
         public ManyLensHubServercWordCloudPieLens(lensID: string, pieKey: string, baseData: string, subData:string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");

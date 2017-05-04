@@ -122,12 +122,6 @@ module ManyLens {
 
                         this._sc_lc_svg.remove();
                         this._manyLens.RemoveLens(this);
-
-                        var hostLens: BaseCompositeLens = this.DetachHostLens()
-                        if (hostLens) {
-                            this._manyLens.DetachCompositeLens(this._element, hostLens, this);
-                        }
-                        
                     })
                     .call(this._select_circle_zoom)
                     .on("dblclick.zoom", null)
@@ -231,14 +225,8 @@ module ManyLens {
                     .attr("cy", (d) => {
                         return d.y = d3.event.y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
                     })
-                ;
                 
                 this._has_showed_lens = false;
-
-                var hostLens: BaseCompositeLens = this.DetachHostLens()
-                if (hostLens) {
-                    this._manyLens.DetachCompositeLens(this._element, hostLens, this);
-                }
             }
 
             //The entrance of new data
@@ -345,25 +333,7 @@ module ManyLens {
                     .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
                 ;
             }
-
-            public DetachHostLens(): BaseCompositeLens {
-                if (this.IsComponentLens) {
-                    var hostLens: BaseCompositeLens = this._host_lens;
-                    this.HostLens = null;
-                    return hostLens;
-                } else {
-                    return null;
-                }
-            }
-
-            public ChangeHostTo(hostLens: BaseCompositeLens): void {
-                if (this.IsComponentLens) {
-                    this.HostLens = hostLens;
-                } else {
-                    return;
-                }
-            }
-
+            
             protected GetElementByMouse(): { unitsID: number[]; mapID: string } {
                 
                 var unitsID = [];

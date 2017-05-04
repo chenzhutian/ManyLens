@@ -45,7 +45,7 @@ namespace ManyLens.SignalR
             lensDatas.Clear();
             await Task.Run(() =>
              {
-                 if (userKloutScore == null) userKloutScore = TweetsIO.LoadUserKloutSocre(config.Parameter.ebolaFile + "EventUserIdsMapMap");
+                 if (userKloutScore == null) userKloutScore = TweetsIO.LoadUserKloutSocre(config.Parameter.userkloutfile);
                  if (dateTweetsFreq == null)
                  {
                      if (useCache)
@@ -77,7 +77,6 @@ namespace ManyLens.SignalR
         private Task task = null;
         private void LazyThreadForConditionalEntropy(Interval interval)
         {
-
             taskList.Add(interval);
             if (task == null)
             {
@@ -89,13 +88,11 @@ namespace ManyLens.SignalR
                 task = new Task(PreprocesInterval);
                 Clients.Caller.disableReorganizeIntervalBtn();
                 task.Start();
-
             }
         }
 
         private async Task PushPoint(string mode, CancellationToken ctoken)
         {
-
             //set the parameter
             double alpha = 0.125;
             double beta = 1.5;
@@ -251,7 +248,7 @@ namespace ManyLens.SignalR
         {
             //clear the static data
             interals.Clear();
-            Clients.Caller.setTimeSpan(ManyLens.config.Parameter.TimeSpan);
+            Clients.Caller.setTimeSpan(config.Parameter.TimeSpan);
             //init the cancellation token;
             CancellationToken ctoken = cts.Token;
             await this.PushPoint(mode, ctoken);
@@ -384,24 +381,6 @@ namespace ManyLens.SignalR
 
                 });
             }
-
-
-            //try
-            //{
-            //    Debug.Write("Let's cache the visData as  json");
-
-            //    VISData visData = visMap.GetVisData();
-            //    System.IO.StreamWriter sw = new System.IO.StreamWriter(rootFolder + "Backend\\DataBase\\visData_test.json");
-            //    var jser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(VISData));
-            //    jser.WriteObject(sw.BaseStream, visData);
-            //    sw.Close();
-            //    Debug.Write("finish json");
-            //
-            //catch (Exception e)
-            //{
-            //    Debug.WriteLine(e.InnerException.Message);
-            //    Debug.WriteLine(e.Message);
-            //}
         }
 
         public async Task RefineTheMap(string visMapID, int index, int[] fromUnitsID, int[] toUnitsID)

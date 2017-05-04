@@ -24,6 +24,7 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <NuGetPackageImportStamp>19e48249</NuGetPackageImportStamp>
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -457,26 +458,10 @@
     <TypeScriptCompile Include="Frontend\Scripts\typings\topojson\topojson.d.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\app.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\D3ChartObject.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\LensAssemblyFactory.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\LensHistory\HistoryTree.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\BarChartLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseCompositeLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseD3Lens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseHackLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\BaseSingleLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cBaseMapLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cBoundleLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cChordDiagramLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapPieLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapNetworkLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cMapWordCloudLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cPieChartLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cSunBrustLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cTreeNetworkLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cWordCloudLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cWordCloudNetworkLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Lens\cWordCloudPieLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\LensList.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\MapLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\NetworkLens.ts" />
@@ -485,15 +470,13 @@
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\TweetsListLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\Lens\WordCloudLens.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\ManyLens.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Hub\Hub.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Hub.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\MapArea\HeatmapLayer.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\MapArea\SOMMap.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\MapArea\WebGLLoD.ts" />
     <TypeScriptCompile Include="Frontend\tsScripts\MapArea\WorldMap.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Navigation\SideBarNavigation.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Pane\BlossomLensPane.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\Pane\ClassicLensPane.ts" />
-    <TypeScriptCompile Include="Frontend\tsScripts\TweetsCurve\Cruve.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\SideBarNavigation.ts" />
+    <TypeScriptCompile Include="Frontend\tsScripts\Cruve.ts" />
     <TypeScriptCompile Include="Frontend\Scripts\typings\jquery\jquery.d.ts" />
   </ItemGroup>
   <ItemGroup />

@@ -56,7 +56,6 @@ module ManyLens {
                         //console.log("sc_zoom " + this._type);
                         d3.event.sourceEvent.stopPropagation();
                     })
-                ;
 
                 this._select_circle_drag
                     .origin(function (d) { return d; })
@@ -80,9 +79,6 @@ module ManyLens {
                         //console.log("sc_dragend " + this._type);
                         d3.event.sourceEvent.stopPropagation();
                     })
-                ;
-
-
             }
 
             public Render(color: string): void {
@@ -92,12 +88,10 @@ module ManyLens {
 
                 this._select_circle_svg = this._sc_lc_svg.append("g")
                     .attr("class", "select-circle")
-                ;
 
                 var selectCircle = this._select_circle =
                     this._select_circle_svg.append("circle")
                         .data([{ x: this._select_circle_cx, y: this._select_circle_cy }])
-                ;
 
                 selectCircle
                     .attr("r", this._select_circle_radius)
@@ -130,11 +124,10 @@ module ManyLens {
                     .on("dblclick.zoom", null)
                     .on("mousedown.zoom", null)
                     .call(this._select_circle_drag)
-                ;
+
                 this._sc_lc_svg.append("line")
                     .attr("stoke-width", 2)
                     .attr("stroke", "red")
-                ;
 
                 container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 function moveSelectCircle() {
@@ -142,7 +135,6 @@ module ManyLens {
                     selectCircle
                         .attr("cx", p[0])
                         .attr("cy", p[1])
-                    ;
                 }
             }
 
@@ -184,7 +176,6 @@ module ManyLens {
                         .attr("y2", () => {
                             return this._lens_circle_cy;//cy + (this._sc_lc_default_dist * sinTheta);
                         })
-                    ;
                     return true;
                 } else {
                     return null;
@@ -209,7 +200,6 @@ module ManyLens {
                     .attr("cy", (d) => {
                         return d.y = d3.event.y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
                     })
-                ;
                 
                 this._has_showed_lens = false;
 
@@ -263,12 +253,10 @@ module ManyLens {
 
                 this._select_circle
                     .attr("r", this._select_circle_radius * this._select_circle_scale)
-                ;
 
                 this._sc_lc_svg.select("line")
                     .attr("x1", this._select_circle_cx + this._select_circle_radius * d3.event.scale * cosTheta)
                     .attr("y1", this._select_circle_cy + this._select_circle_radius * d3.event.scale * sinTheta)
-                ;
             }
 
             protected LensCircleDragFunc(): void {
@@ -294,7 +282,6 @@ module ManyLens {
                         .attr("y1", this._select_circle_cy + this._select_circle_radius * this._select_circle_scale * sinTheta)
                         .attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta)
                         .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
-                    ;
                 }
 
                 return res;
@@ -317,25 +304,6 @@ module ManyLens {
                     .attr("y1", this._select_circle_cy + this._select_circle_radius * this._select_circle_scale * sinTheta)
                     .attr("x2", this._lens_circle_cx - this._lens_circle_radius * this._lens_circle_scale * cosTheta)
                     .attr("y2", this._lens_circle_cy - this._lens_circle_radius * this._lens_circle_scale * sinTheta)
-                ;
-            }
-
-            public DetachHostLens(): BaseCompositeLens {
-                if (this.IsComponentLens) {
-                    var hostLens: BaseCompositeLens = this._host_lens;
-                    this.HostLens = null;
-                    return hostLens;
-                } else {
-                    return null;
-                }
-            }
-
-            public ChangeHostTo(hostLens: BaseCompositeLens): void {
-                if (this.IsComponentLens) {
-                    this.HostLens = hostLens;
-                } else {
-                    return;
-                }
             }
 
             protected GetElementByMouse(): { unitsID: number[]; mapID: string } {
