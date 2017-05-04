@@ -1,6 +1,6 @@
 ﻿///<reference path = "./BaseSingleLens.ts" />
-module ManyLens{
-    export module Lens{
+module ManyLens {
+    export module Lens {
 
         export class PieChartLens extends BaseSingleLens {
 
@@ -17,13 +17,12 @@ module ManyLens{
             //    return this._color;
             //}
 
-            constructor(element: D3.Selection,attributeName:string, manyLens: ManyLens) {
-                super(element,attributeName, PieChartLens.Type,manyLens);
+            constructor(element: D3.Selection, attributeName: string, manyLens: ManyLens) {
+                super(element, attributeName, PieChartLens.Type, manyLens);
                 this._arc
                     .innerRadius(this._pie_innerRadius)
                     .outerRadius(this._pie_outterRadius)
                 //    .startAngle(0)
-                ;
 
                 this._pie
                     .value((d) => {
@@ -34,9 +33,8 @@ module ManyLens{
                             return -1;
                         return 1;
                     })
-                .startAngle(0)
-                   // .padAngle(.02)
-                ;
+                    .startAngle(0)
+                // .padAngle(.02)
 
                 this._color
                     .range([
@@ -65,18 +63,18 @@ module ManyLens{
 
                 this._lens_circle.style({
                     "stroke": null,
-                    "stroke-width":null
+                    "stroke-width": null
                 });
-                
+
                 this._lens_circle_svg.selectAll(".pie")
                     .data(this._pie(this._extract_data_map_func.Extract(this._data)))
                     .enter().append("path")
                     .attr("id", "pie-" + this.ID)
-                    .attr("class","pie")
+                    .attr("class", "pie")
                     .attr("fill", (d) => {
                         return this._color(d.value) || "rgb(158,202,225)";
                     })
-                    .attr("stroke","#fff")
+                    .attr("stroke", "#fff")
                     .attr("d", this._arc)
                     .on("mouseover", (d) => {
                         this.ShowLabel(d);
@@ -84,7 +82,6 @@ module ManyLens{
                     .on("mouseout", () => {
                         this.ShowLabel(null);
                     })
-                ;
 
                 var r = this._lens_circle_radius;
                 this._lens_circle_svg
@@ -97,9 +94,8 @@ module ManyLens{
                     .attr("dy", "-5")
                     .text("")
                     .append("textPath")
-                    .attr("xlink:href", "#lens-circle-"+this.ID)
+                    .attr("xlink:href", "#lens-circle-" + this.ID)
                     .text(this._attribute_name)
-                ;
             }
 
             private ShowLabel(d: any): void {
@@ -153,7 +149,5 @@ module ManyLens{
                 }
             }
         }
-
-
     }
 } 

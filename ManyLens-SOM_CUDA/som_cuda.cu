@@ -302,7 +302,7 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	cudaError_t cudaStatus;
 	dim3 threads(DIMENSION);
 	dim3 blocks(ceil((double)batch_size / (double)CHKSIZE));
-	Calculate_Euclidean_Distance_Kernel << <blocks, threads >> >(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
+	Calculate_Euclidean_Distance_Kernel <<<blocks, threads>>>(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching EuclideanDistancesBMU!\n", cudaStatus);
@@ -310,7 +310,7 @@ bool Find_Best_Match_Neuron(const float* d_weights,
 	}
 
 	cudaFuncSetCacheConfig(Min_Reduce_Kernel, cudaFuncCachePreferL1);
-	Min_Reduce_Kernel <<<batch_size, 512 >>>(d_result, d_BID,neuron_number);
+	Min_Reduce_Kernel <<<batch_size, 512>>>(d_result, d_BID,neuron_number);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching min reduce!\n", cudaStatus);
@@ -416,7 +416,7 @@ bool Output_BID_Error(const float* d_weights,
 	cudaError_t cudaStatus;
 	dim3 threads(DIMENSION);
 	dim3 blocks(ceil((double)batch_size / (double)CHKSIZE));
-	Calculate_Euclidean_Distance_Kernel << <blocks, threads >> >(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
+	Calculate_Euclidean_Distance_Kernel <<<blocks, threads>>>(d_weights, d_input_set, input_index_of_this_batch, batch_size, neuron_number, d_result);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching EuclideanDistancesBMU!\n", cudaStatus);
@@ -425,7 +425,7 @@ bool Output_BID_Error(const float* d_weights,
 
 
 	cudaFuncSetCacheConfig(Min_Reduce_Kernel, cudaFuncCachePreferL1);
-	Output_Min_Reduce_Kernel << <batch_size, 512 >> >(d_result, d_BID, d_error, neuron_number);
+	Output_Min_Reduce_Kernel <<<batch_size, 512>>>(d_result, d_BID, d_error, neuron_number);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching min reduce!\n", cudaStatus);
@@ -499,7 +499,7 @@ bool Update_Map(const float* d_distance,
 	cudaFuncSetCacheConfig(Update_Map_Map_Kernel, cudaFuncCachePreferL1);
 	//dim3 blocks(ceil((double)dimension/512.0),neuron_number);
 	//Update_Map_Map_Kernel<<<blocks,512>>>(d_input_set,dimension,input_index_of_this_batch,d_distance,bID,batch_size,
-	Update_Map_Map_Kernel << <neuron_number, DIMENSION >> >(d_input_set, input_index_of_this_batch, d_distance, bID, batch_size, fsigmaT, d_weights);
+	Update_Map_Map_Kernel <<<neuron_number, DIMENSION>>>(d_input_set, input_index_of_this_batch, d_distance, bID, batch_size, fsigmaT, d_weights);
 	cudaStatus = cudaDeviceSynchronize();
 	if (cudaStatus != cudaSuccess)
 	{
@@ -591,7 +591,7 @@ float* Transpose(float* d_temp_weight, const int oldX, const int oldY)
 	float* d_weights = 0;
 	cudaMalloc((void**)&d_weights, oldX * oldY * sizeof(float));
 
-	transposeNoBankConflicts << <dimGrid, dimBlock >> >(d_weights, d_temp_weight);
+	transposeNoBankConflicts <<<dimGrid, dimBlock>>>(d_weights, d_temp_weight);
 	cudaFree(d_temp_weight);
 	return d_weights;
 }

@@ -98,20 +98,16 @@ module ManyLens {
                                 left: (tData.tx + this._list_x )+"px",
                                 top: (tData.ty + this._list_y )+"px",
                             })
-                        ;
 
                         this._sc_lc_svg.select("line")
                             .attr("x1", this._select_circle_cx )
                             .attr("y1", this._select_circle_cy  )
                             .attr("x2", tData.tx + this._list_x/tData.scale )
                             .attr("y2", tData.ty + this._list_y/tData.scale )
-                        ;
                     })
                     .on("dragend",()=>{
                         
                     })
-                ;
-
             }
 
             public Render(color: string): void {
@@ -123,16 +119,13 @@ module ManyLens {
                     .data( [{tx:0,ty:0,scale:1,cx:0,cy:0}])
                     .attr("class", "lens")
                     .attr("id", this.ID)
-                ;
 
                 this._select_circle_svg = this._sc_lc_svg.append("g")
                     .attr("class", "select-circle")
-                ;
-
+               
                 var selectCircle = this._select_circle =
                     this._select_circle_svg.append("circle")
                         .data([{ x: this._select_circle_cx, y: this._select_circle_cy }])
-                ;
 
                 selectCircle
                     .attr("r", this._select_circle_radius)
@@ -162,11 +155,10 @@ module ManyLens {
                     .on("dblclick.zoom", null)
                     .on("mousedown.zoom", null)
                     .call(this._select_circle_drag)
-                ;
+
                 this._sc_lc_svg.append("line")
                     .attr("stoke-width", 2)
                     .attr("stroke", "#E9573F")
-                ;
 
                 container.on("mousemove", moveSelectCircle);            //因为鼠标是在大SVG里移动，所以要绑定到大SVG上
                 function moveSelectCircle() {
@@ -174,7 +166,6 @@ module ManyLens {
                     selectCircle
                         .attr("cx", p[0])
                         .attr("cy", p[1])
-                    ;
                 }
             }
 
@@ -246,7 +237,6 @@ module ManyLens {
                         .attr("y2", () => {
                             return cy + (this._sc_lc_default_dist * sinTheta);
                         })
-                    ;
 
                     var tData = d3.select("#"+this.ID).data()[0];
                     this._list_container = d3.select("#mapView")
@@ -270,7 +260,6 @@ module ManyLens {
                                 return w+"px";
                             })
                             .call(this._list_drag)
-                        ;
 
                     this._list_container
                         .selectAll(".list-group-item")
@@ -280,12 +269,11 @@ module ManyLens {
                         .append("p")
                         .attr("class","list-group-item-text")
                         .text(function(d){return d;})
-                    ;
+
                     this._list_container.append("div")
                         .style("text-align","center")
                         .append("div")
                         .attr("id","pagination")
-                    ;
 
                     this._list_container.selectAll("p").style("font-size",function(d){
                             var fontSize:any = d3.select(this).style("font-size");
@@ -311,8 +299,6 @@ module ManyLens {
                     onPageClicked: (e,originalEvent,type,page) =>{
                         this.ChangePage(page);
                     }
-
-
                 });
                     return true;
                 } else {
@@ -332,8 +318,6 @@ module ManyLens {
                         .append("p")
                         .attr("class","list-group-item-text")
                         .text(function(d){return d;})
-                    ;
-
 
                 this._list_container.selectAll("p").style("font-size",function(d){
                         var fontSize:any = d3.select(this).style("font-size");
@@ -363,8 +347,7 @@ module ManyLens {
                     .attr("cy", (d) => {
                         return d.y = d3.event.y;//Math.max(0, Math.min(parseFloat(this._element.style("height")), d3.event.y));
                     })
-                ;
-                
+
                 this._has_showed_lens = false;
             }
 
@@ -392,9 +375,6 @@ module ManyLens {
 
                     this.ExtractData(); //it will invoke display automatically when finishing extractdata
 
-                    
-
-
                     this._has_showed_lens = true;
                 }
 
@@ -417,7 +397,6 @@ module ManyLens {
 
                 this._select_circle
                     .attr("r", this._select_circle_radius * this._select_circle_scale)
-                ;
 
                 this._sc_lc_svg.select("line")
                     .attr("x1", this._select_circle_cx + this._select_circle_radius * d3.event.scale * cosTheta)
