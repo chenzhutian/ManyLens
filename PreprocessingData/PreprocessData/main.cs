@@ -183,6 +183,114 @@ namespace PreprocessingData
             return sortedTerm;
         }
 
+        private async Task PushPoint(SortedDictionary<string, Term>dateTweetsFreq)
+        {
+            //set the parameter
+            double alpha = 0.125;
+            double beta = 1.5;
+            List<string> UserIds = new List<string>();
+            //StreamWriter sw = new StreamWriter(config.Parameter.fifaFile+"EventUserIds");
+            await Task.Run(() =>
+            {
+                Debug.WriteLine("Thread id of pull point " + Thread.CurrentThread.ManagedThreadId);
+                //Peak Detection
+                //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
+                int p = 5;
+
+                double cutoff = 0, mean = 0, diff = 0, variance = 0;
+                Term[] tp = dateTweetsFreq.Values.ToArray();
+
+                #region init some variables
+                //init reset the type of each point
+                for (int i = 0, len = tp.Length; i < len; ++i)
+                {
+                    tp[i].PointType = 0;
+                }
+
+                //init mean and variance
+                for (int i = 0; i < p; i++)
+                {
+                    mean += tp[i].DTweetsCount;
+                }
+                mean = mean / p;
+
+                for (int i = 0; i < p; i++)
+                {
+                    variance = variance + Math.Pow(tp[i].DTweetsCount - mean, 2);
+                }
+                variance = Math.Sqrt(variance / p);
+                #endregion
+
+                for (int i = p, t = 0; t < tp.Length; i++, t++)
+                {
+                    #region Window open here
+                    if (i < tp.Length)
+                    {
+                        cutoff = variance * beta;
+                        if (Math.Abs(tp[i].DTweetsCount - mean) > cutoff && tp[i].DTweetsCount > tp[i - 1].DTweetsCount)
+                        {
+                            int begin = i - 1;
+                            while (i < tp.Length && tp[i].DTweetsCount > tp[i - 1].DTweetsCount)
+                            {
+                                diff = Math.Abs(tp[i].DTweetsCount - mean);
+                                variance = alpha * diff + (1 - alpha) * variance;
+                                mean = alpha * mean + (1 - alpha) * tp[i].DTweetsCount;
+                                i++;
+                            }
+
+                            int end = i;
+                            int peak = i - 1;
+                            tp[i - 1].IsPeak = true;
+                            while (i < tp.Length && tp[i].DTweetsCount > tp[begin].DTweetsCount)
+                            {
+                                cutoff = variance * beta;
+                                if (Math.Abs(tp[i].DTweetsCount - mean) > cutoff && tp[i].DTweetsCount > tp[i - 1].DTweetsCount)
+                                {
+                                    end = --i;
+                                    break;
+                                }
+                                else
+                                {
+                                    diff = Math.Abs(tp[i].DTweetsCount - mean);
+                                    variance = alpha * diff + (1 - alpha) * variance;
+                                    mean = alpha * mean + (1 - alpha) * tp[i].DTweetsCount;
+                                    end = i++;
+                                }
+                            }
+
+                            begin = peak - 1;
+                            end = peak + 1;
+                            tp[begin].BeginPoint = tp[begin].ID;
+                            tp[begin].EndPoint = tp[end].ID;
+                            tp[begin].WithinInterval = true;
+                            tp[begin].PointType += 1;
+
+                            tp[end].BeginPoint = tp[begin].ID;
+                            tp[end].EndPoint = tp[end].ID;
+                            tp[end].WithinInterval = true;
+                            tp[end].PointType += 2;
+
+                            for (int k = begin + 1; k < end; ++k)
+                            {
+                                tp[k].BeginPoint = tp[begin].ID;
+                                tp[k].EndPoint = tp[end].ID;
+                                tp[k].WithinInterval = true;
+                                tp[k].PointType = 4;
+                            }
+                        }
+                        else
+                        {
+                            diff = Math.Abs(tp[i].DTweetsCount - mean);
+                            variance = alpha * diff + (1 - alpha) * variance;
+                            mean = alpha * mean + (1 - alpha) * tp[i].DTweetsCount;
+                        }
+                    }
+                    #endregion
+                }
+            });
+            return dateTweetsFreq;
+        }
+
         public static void calSentiment()
         {
             StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDatafifa3");
