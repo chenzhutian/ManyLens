@@ -78,6 +78,111 @@ namespace PreprocessingData
             Console.ReadLine();
         }
 
+        public static SortedDictionary<string, Term> SplitTweetsToTerm(string tweetFile, string cacheUserFile)
+        {
+            SortedDictionary<string, Term> sortedTerm = new SortedDictionary<string, Term>();
+            Dictionary<string, User> users = new Dictionary<string, User>();
+            StreamReader sr = new StreamReader(tweetFile);
+
+            while (!sr.EndOfStream)
+            {
+                string line = sr.ReadLine();
+                string[] tweetAttributes = line.Split('\t');
+                Dictionary<string, double> kloutScore = ManyLens.SignalR.ManyLensHub.userKloutScore;
+
+                //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
+                //\t 8follower \9 13V \t 10gpsA \t 11gpsB   \t 12countryName
+                Tweet tweet = null;
+                User user;
+                if (users.ContainsKey(tweetAttributes[2]))
+                {
+                    user = users[tweetAttributes[2]];
+                }
+                else
+                {
+                    double score = -1;
+                    string userId = tweetAttributes[2];
+                    if (kloutScore.ContainsKey(userId))
+                    {
+                        score = kloutScore[userId];
+                    }
+                    user = new User(userId, tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11], score);
+                    users.Add(userId, user);
+                }
+                tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], tweetAttributes[10], tweetAttributes[11], user);
+                if (tweetAttributes.Length == 13)
+                {
+                    tweet.CountryName = tweetAttributes[12];
+                    if (tweet.CountryName == null)
+                        Debug.WriteLine("country name is null at" + tweet.DerivedContent);
+                }
+
+                //}
+
+                if (tweet == null) continue;
+
+                DateTime postDate = tweet.PostDate;
+                int sec = 0;
+                if (postDate.Second > 44)
+                {
+                    sec = 45;
+                }
+                else if (postDate.Second > 29)
+                {
+                    sec = 30;
+                }
+                else if (postDate.Second > 14)
+                {
+                    sec = 15;
+                }
+                else if (postDate.Second > 0)
+                {
+                    sec = 0;
+                }
+                //DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec*mode[4]);
+
+                string date = "";
+                switch (config.Parameter.TimeSpan)
+                {
+                    case 3: date = sec.ToString("D2"); goto case 2;
+                    case 2: date = postDate.Minute.ToString("D2") + date; goto case 1;
+                    case 1: date = postDate.Hour.ToString("D2") + date; goto case 0;
+                    case 0: date = postDate.Day.ToString("D2") + date; break;
+                }
+
+                date = postDate.Year.ToString("D4") + postDate.Month.ToString("D2") + date;
+                for (int t = 0, len = (14 - date.Length) / 2; t < len; ++t)
+                {
+                    date += "00";
+                }
+                if (sortedTerm.ContainsKey(date))
+                {
+                    sortedTerm[date].AddTweet(tweet);
+                }
+                else
+                {
+                    Term t = new Term(date);
+                    t.AddTweet(tweet);
+                    sortedTerm.Add(date, t);
+                }
+            }
+
+            sr.Close();
+
+            // Cache the user file
+            StreamWriter sw = new StreamWriter(cacheUserFile);
+            foreach(KeyValuePair<string, User> item in users)
+            {
+                //0userId \t  1userName \t 2tweetsCount \t 3following \t 4follower \t 5V \t 6gpsA \t 7gpsB
+                User user = item.Value;
+                sw.WriteLine(user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + 
+                    user.Following + '\t' + user.Follower + '\t' + user.IsV + '\t' + user.Lon + '\t' + user.Lat);
+            }
+            sw.Close();
+
+            return sortedTerm;
+        }
+
         public static void calSentiment()
         {
             StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDatafifa3");
