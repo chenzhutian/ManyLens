@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Preprocessing;
 
 namespace Models
 {
@@ -164,12 +165,12 @@ namespace Models
         
         public void Preproccessing()
         {
-            ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this);
+            Preprocessing.TweetsPreprocessor.ProcessTweet(this);
         }
 
         public void PreproccessingParallel()
         {
-            ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweetParallel(this);
+            Preprocessing.TweetsPreprocessor.ProcessTweetParallel(this);
         }
 
     }

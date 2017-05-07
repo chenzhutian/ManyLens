@@ -22,11 +22,12 @@ namespace ManyLens.config
         public static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
         public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
         public static string franceFile = RootFolder + "Backend\\DataBase\\FranceAttack";
-        public static string processedTermsFile = fifaFile + "ProcessedTermsData" + timeSpan; // RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
+        public static string sourceFile = fifaFile;
+        public static string processedTermsFile = sourceFile + "ProcessedTermsData" + timeSpan; // RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
         public static string processedTermsFileWithSentiment = processedTermsFile + "WithSentiment_";
-        public static string userkloutfile = fifaFile + "klout";
+        public static string userkloutfile = sourceFile + "klout";
         //public static string processedTermsFileWithSentiment = "Backend\\DataBase\\ProcessedTermsData" + "fifa" + 2 + "WithSentiment_";
-        public static string processedUserFIle = processedTermsFile + "user"; //RootFolder + "Backend\\DataBase\\ProcessedUsersData" + "fifa" + timeSpan;
+        public static string processedUserFIle = sourceFile + "User"; //RootFolder + "Backend\\DataBase\\ProcessedUsersData" + "fifa" + timeSpan;
         public static string cacheMapDataDir = RootFolder + "Backend\\DataBase\\CacheMap\\";
 
         public static string RootFolder

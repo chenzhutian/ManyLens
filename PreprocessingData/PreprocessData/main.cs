@@ -17,72 +17,53 @@ namespace PreprocessingData
 {
     class main
     {
-        static void Main()
+        static async void Main()
         {
-            //StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDatafifa2WithSentiment");
-
-            //while (!sr.EndOfStream)
-            //{
-            //    string line = sr.ReadLine();
-
-            //    string[] attributes = line.Split(new string[] { "CzTCZT" }, StringSplitOptions.None);
-            //    // attributes[0] = attributes[0].Replace(@"/", "");
-
-            //    if (attributes.Length >= 3)
-            //    {
-            //        string[] rawTweetsData = attributes[2].Split(new string[] { "CtZCTZ" }, StringSplitOptions.None);
-            //        List<string> tweetsDataWithSentiment = new List<string>();
-            //        for (int i = 0, len = rawTweetsData.Length; i < len; ++i)
-            //        {
-            //            string tempData = rawTweetsData[i];
-            //            string[] tweetsAttribute = tempData.Split('\t');
-            //            if (tweetsAttribute.Length < 8) continue;
-            //            //0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent \t 8sentiment
-            //            Console.WriteLine(tweetsAttribute[8]);
-            //        }
-            //    }
-            //}
-            //sr.Close();
-
-            //Console.WriteLine("finish all");
-            //Console.ReadLine();
-            // combineFile();
-            calSentiment();
+            string sourceTweetFile = @"..\..\..\..\ManyLens\Backend\DataBase\FranceAttack";
+            string cacheTermFilePostfix = "ProcessedTermsData";
+            string cacheUserFilePostfix = "User";
+            string cacheTermFileWithSentimentPostfix =  "WithSentiment_";
+            await SplitTweetsToTerm(sourceTweetFile, cacheUserFilePostfix, cacheTermFilePostfix, cacheTermFileWithSentimentPostfix);
         }
 
-        public static void combineFile()
-        {
-            StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0");
-            StreamReader sr1 = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0WithSentiment");
-            StreamWriter sw = new StreamWriter(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0WithSentiment_");
+        //public static void combineFile()
+        //{
+        //    StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0");
+        //    StreamReader sr1 = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0WithSentiment");
+        //    StreamWriter sw = new StreamWriter(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0WithSentiment_");
            
-            while (!sr.EndOfStream)
-            {
-                string line = sr.ReadLine();
+        //    while (!sr.EndOfStream)
+        //    {
+        //        string line = sr.ReadLine();
 
-                string[] attributes = line.Split(new string[] { "CzTCZT" }, StringSplitOptions.None);
-                // attributes[0] = attributes[0].Replace(@"/", "");
+        //        string[] attributes = line.Split(new string[] { "CzTCZT" }, StringSplitOptions.None);
+        //        // attributes[0] = attributes[0].Replace(@"/", "");
 
-                if (attributes.Length >= 3)
-                {
-                    sw.WriteLine(sr1.ReadLine());
-                }
-                else
-                {
-                    sw.WriteLine(line);
-                }
-            }
-            sr.Close();
-            sr1.Close();
-            sw.Close();
+        //        if (attributes.Length >= 3)
+        //        {
+        //            sw.WriteLine(sr1.ReadLine());
+        //        }
+        //        else
+        //        {
+        //            sw.WriteLine(line);
+        //        }
+        //    }
+        //    sr.Close();
+        //    sr1.Close();
+        //    sw.Close();
 
-            Console.WriteLine("finish all");
-            Console.ReadLine();
-        }
+        //    Console.WriteLine("finish all");
+        //    Console.ReadLine();
+        //}
 
-        public static async Task SplitTweetsToTerm(string sourceTweetFile, string cacheUserFile, string cacheTermFile)
+        public static async Task SplitTweetsToTerm(string sourceTweetFile, string cacheUserFilePostfix, string cacheTermFilePostfix, string sentimentPostfix)
         {
-            SortedDictionary<string, Term> sortedTerm = new SortedDictionary<string, Term>();
+            Dictionary<int, SortedDictionary<string, Term>> sortedTerms = new Dictionary<int, SortedDictionary<string, Term>>();
+            for(int i = 0; i < 4; ++i)
+            {
+                sortedTerms.Add(i, new SortedDictionary<string, Term>());
+            }
+            //new SortedDictionary<string, Term>();
             Dictionary<string, User> users = new Dictionary<string, User>();
             StreamReader sr = new StreamReader(sourceTweetFile);
 
@@ -103,19 +84,15 @@ namespace PreprocessingData
                 {
                     double score = -1;
                     string userId = tweetAttributes[2];
-                    user = new User(userId, tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11], 0);
+                    user = new User(userId, tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11], score);
                     users.Add(userId, user);
                 }
                 tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], tweetAttributes[10], tweetAttributes[11], user);
                 if (tweetAttributes.Length == 13)
                 {
                     tweet.CountryName = tweetAttributes[12];
-                    // if (tweet.CountryName == null)
-                    //     Debug.WriteLine("country name is null at" + tweet.DerivedContent);
                 }
-
-                //}
-
+                
                 if (tweet == null) continue;
 
                 DateTime postDate = tweet.PostDate;
@@ -139,35 +116,44 @@ namespace PreprocessingData
                 //DateTime date = new DateTime(postDate.Year, mode[0] == 1 ? postDate.Month : 1, mode[1] == 1 ? postDate.Day : 1, postDate.Hour * mode[2], postDate.Minute * mode[3], sec*mode[4]);
 
                 string date = "";
-                switch (config.Parameter.TimeSpan)
+                for(int timeSpan = 0; timeSpan < 4; ++timeSpan)
                 {
-                    case 3: date = sec.ToString("D2"); goto case 2;
-                    case 2: date = postDate.Minute.ToString("D2") + date; goto case 1;
-                    case 1: date = postDate.Hour.ToString("D2") + date; goto case 0;
-                    case 0: date = postDate.Day.ToString("D2") + date; break;
-                }
+                    switch (timeSpan)
+                    {
+                        case 3: date = sec.ToString("D2"); goto case 2;
+                        case 2: date = postDate.Minute.ToString("D2") + date; goto case 1;
+                        case 1: date = postDate.Hour.ToString("D2") + date; goto case 0;
+                        case 0: date = postDate.Day.ToString("D2") + date; break;
+                    }
 
-                date = postDate.Year.ToString("D4") + postDate.Month.ToString("D2") + date;
-                for (int t = 0, len = (14 - date.Length) / 2; t < len; ++t)
-                {
-                    date += "00";
-                }
-                if (sortedTerm.ContainsKey(date))
-                {
-                    sortedTerm[date].AddTweet(tweet);
-                }
-                else
-                {
-                    Term t = new Term(date);
-                    t.AddTweet(tweet);
-                    sortedTerm.Add(date, t);
+                    date = postDate.Year.ToString("D4") + postDate.Month.ToString("D2") + date;
+                    for (int t = 0, len = (14 - date.Length) / 2; t < len; ++t)
+                    {
+                        date += "00";
+                    }
+                    if (sortedTerms[timeSpan].ContainsKey(date))
+                    {
+                        sortedTerms[timeSpan][date].AddTweet(tweet);
+                    }
+                    else
+                    {
+                        Term t = new Term(date);
+                        t.AddTweet(tweet);
+                        sortedTerms[timeSpan].Add(date, t);
+                    }
                 }
             }
-
             sr.Close();
 
+            for(int timeSpan = 0; timeSpan < 4; ++timeSpan)
+            {
+                // return sortedTerm;
+                DumpTermData(sourceTweetFile + timeSpan + cacheTermFilePostfix, await PushPoint(sortedTerms[timeSpan]));
+                calSentiment(sourceTweetFile + timeSpan + cacheTermFilePostfix, sourceTweetFile + timeSpan + cacheTermFilePostfix + sentimentPostfix);
+            }
+            
             // Cache the user file
-            StreamWriter sw = new StreamWriter(cacheUserFile);
+            StreamWriter sw = new StreamWriter(sourceTweetFile + cacheUserFilePostfix);
             foreach(KeyValuePair<string, User> item in users)
             {
                 //0userId \t  1userName \t 2tweetsCount \t 3following \t 4follower \t 5V \t 6gpsA \t 7gpsB
@@ -176,9 +162,6 @@ namespace PreprocessingData
                     user.Following + '\t' + user.Follower + '\t' + user.IsV + '\t' + user.Lon + '\t' + user.Lat);
             }
             sw.Close();
-
-            // return sortedTerm;
-            DumpTermData(cacheTermFile, await PushPoint(sortedTerm));
         }
 
         public static async Task<Term[]> PushPoint(SortedDictionary<string, Term>dateTweetsFreq)
@@ -317,10 +300,12 @@ namespace PreprocessingData
             sw.Close();
         }
 
-        public static void calSentiment()
+        public static void calSentiment(string sourceFile, string targetFile)
         {
-            StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDatafifa3");
-            StreamWriter sw = new StreamWriter(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDatafifa3WithSentiment");
+            // StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDatafifa3");
+            // StreamWriter sw = new StreamWriter(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDatafifa3WithSentiment");
+            StreamReader sr = new StreamReader(sourceFile);
+            StreamWriter sw = new StreamWriter(targetFile);
             Properties props = new Properties();
             props.setProperty("annotators", "tokenize, ssplit, parse, sentiment");
 
@@ -381,7 +366,6 @@ namespace PreprocessingData
             sw.Close();
 
             Console.WriteLine("finish all");
-            Console.ReadLine();
         }
     }
 }
