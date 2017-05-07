@@ -5,7 +5,7 @@ using System.Web;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace ManyLens.Models
+namespace Models
 {
     public abstract class  TweetSet
     {

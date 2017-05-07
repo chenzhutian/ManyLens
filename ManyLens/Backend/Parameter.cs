@@ -21,7 +21,8 @@ namespace ManyLens.config
         public static string twitterKeysFile = RootFolder + "Backend\\DataBase\\TWITTERKEY";
         public static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
         public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
-        public static string processedTermsFile = fifaFile + "ProcessedTermData" + timeSpan; // RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
+        public static string franceFile = RootFolder + "Backend\\DataBase\\FranceAttack";
+        public static string processedTermsFile = fifaFile + "ProcessedTermsData" + timeSpan; // RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
         public static string processedTermsFileWithSentiment = processedTermsFile + "WithSentiment_";
         public static string userkloutfile = fifaFile + "klout";
         //public static string processedTermsFileWithSentiment = "Backend\\DataBase\\ProcessedTermsData" + "fifa" + 2 + "WithSentiment_";

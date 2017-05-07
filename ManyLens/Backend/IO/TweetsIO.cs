@@ -322,7 +322,7 @@ namespace ManyLens.IO
                     score = kloutScore[attributes[0]];
                 }
                 //0userId \t  1userName \t 2tweetsCount \t 3following \t 4follower \t 5V \t 6gpsA \t 7gpsB
-                User user = new User(attributes[0], attributes[1], attributes[2], attributes[3], attributes[4], attributes[5], attributes[6], attributes[7],score);
+                User user = new User(attributes[0], attributes[1], attributes[2], attributes[3], attributes[4], attributes[5], attributes[6], attributes[7], score);
                 users.Add(attributes[0], user);
             }
             sr.Close();
@@ -351,14 +351,7 @@ namespace ManyLens.IO
                         string[] tweetsAttribute = tempData.Split('\t');
                         if (tweetsAttribute.Length < 8) continue;
                         //0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent \t 8sentiment
-                        Debug.WriteLine(tempData);
-                        Debug.WriteLine(tweetsAttribute.Length);
-                        Debug.WriteLine(tweetsAttribute[1]);
-                        Debug.WriteLine(users.ContainsKey(tweetsAttribute[1]));
-                        Debug.WriteLine(users.Count);
-
                         Tweet tweet = new Tweet(tweetsAttribute[0], tweetsAttribute[7], attributes[0], tweetsAttribute[2], tweetsAttribute[3], users[tweetsAttribute[1]]);
-                        Debug.WriteLine(tweetsAttribute.Length);
                         tweet.DerivedContent = tweetsAttribute[6];
                         tweet.CountryName = tweetsAttribute[4];
                         tweet.Sentiment = int.Parse(tweetsAttribute[8]); //Sentiment.findSentiment(tweet.DerivedContent);

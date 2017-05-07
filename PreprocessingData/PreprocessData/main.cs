@@ -10,6 +10,8 @@ using edu.stanford.nlp.trees;
 using edu.stanford.nlp.neural.rnn;
 using java.util;
 using System.IO;
+using Models;
+using System.Threading.Tasks;
 
 namespace PreprocessingData
 {
@@ -78,7 +80,7 @@ namespace PreprocessingData
             Console.ReadLine();
         }
 
-        public static SortedDictionary<string, Term> SplitTweetsToTerm(string sourceTweetFile, string cacheUserFile, string cacheTermFile)
+        public static async Task SplitTweetsToTerm(string sourceTweetFile, string cacheUserFile, string cacheTermFile)
         {
             SortedDictionary<string, Term> sortedTerm = new SortedDictionary<string, Term>();
             Dictionary<string, User> users = new Dictionary<string, User>();
@@ -88,7 +90,6 @@ namespace PreprocessingData
             {
                 string line = sr.ReadLine();
                 string[] tweetAttributes = line.Split('\t');
-                Dictionary<string, double> kloutScore = ManyLens.SignalR.ManyLensHub.userKloutScore;
 
                 //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
                 //\t 8follower \9 13V \t 10gpsA \t 11gpsB   \t 12countryName
@@ -102,19 +103,15 @@ namespace PreprocessingData
                 {
                     double score = -1;
                     string userId = tweetAttributes[2];
-                    if (kloutScore.ContainsKey(userId))
-                    {
-                        score = kloutScore[userId];
-                    }
-                    user = new User(userId, tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11], score);
+                    user = new User(userId, tweetAttributes[1], tweetAttributes[6], tweetAttributes[7], tweetAttributes[8], tweetAttributes[9], tweetAttributes[10], tweetAttributes[11], 0);
                     users.Add(userId, user);
                 }
                 tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], tweetAttributes[10], tweetAttributes[11], user);
                 if (tweetAttributes.Length == 13)
                 {
                     tweet.CountryName = tweetAttributes[12];
-                    if (tweet.CountryName == null)
-                        Debug.WriteLine("country name is null at" + tweet.DerivedContent);
+                    // if (tweet.CountryName == null)
+                    //     Debug.WriteLine("country name is null at" + tweet.DerivedContent);
                 }
 
                 //}
@@ -184,7 +181,7 @@ namespace PreprocessingData
             DumpTermData(cacheTermFile, await PushPoint(sortedTerm));
         }
 
-        public static async Task PushPoint(SortedDictionary<string, Term>dateTweetsFreq)
+        public static async Task<Term[]> PushPoint(SortedDictionary<string, Term>dateTweetsFreq)
         {
             //set the parameter
             double alpha = 0.125;
@@ -193,7 +190,6 @@ namespace PreprocessingData
             //StreamWriter sw = new StreamWriter(config.Parameter.fifaFile+"EventUserIds");
             await Task.Run(() =>
             {
-                Debug.WriteLine("Thread id of pull point " + Thread.CurrentThread.ManagedThreadId);
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
                 int p = 5;

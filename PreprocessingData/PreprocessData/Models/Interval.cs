@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace ManyLens.Models
+namespace Models
 {
     public class Interval : DerivedTweetSet
     {

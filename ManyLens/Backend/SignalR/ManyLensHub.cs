@@ -37,7 +37,7 @@ namespace ManyLens.SignalR
         public static Dictionary<string, double> userKloutScore;
 
         private Random rnd = new Random();
-        private bool useCache = true;
+        private bool useCache = false;
         public async Task LoadData(IProgress<double> progress)
         {
             //clear the static data
@@ -51,7 +51,7 @@ namespace ManyLens.SignalR
                      if (useCache)
                          dateTweetsFreq = TweetsIO.LoadCacheData(config.Parameter.processedTermsFileWithSentiment, config.Parameter.processedUserFIle);
                      else
-                         dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.ebolaFile, config.Parameter.processedUserFIle);
+                         dateTweetsFreq = TweetsIO.LoadTweetsAsTermsSortedByDate(config.Parameter.fifaFile, config.Parameter.processedUserFIle);
                  }
                  if (cities1000 == null) cities1000 = TweetsIO.LoadCities1000(config.Parameter.cities1000File);
                  if (stopWords == null) stopWords = TweetsIO.LoadStopWord(config.Parameter.stopwordFile);

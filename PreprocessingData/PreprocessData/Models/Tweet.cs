@@ -6,7 +6,7 @@ using System.Web;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace ManyLens.Models
+namespace Models
 {
     public class Tweet
     {
