@@ -78,11 +78,11 @@ namespace PreprocessingData
             Console.ReadLine();
         }
 
-        public static SortedDictionary<string, Term> SplitTweetsToTerm(string tweetFile, string cacheUserFile)
+        public static SortedDictionary<string, Term> SplitTweetsToTerm(string sourceTweetFile, string cacheUserFile, string cacheTermFile)
         {
             SortedDictionary<string, Term> sortedTerm = new SortedDictionary<string, Term>();
             Dictionary<string, User> users = new Dictionary<string, User>();
-            StreamReader sr = new StreamReader(tweetFile);
+            StreamReader sr = new StreamReader(sourceTweetFile);
 
             while (!sr.EndOfStream)
             {
@@ -180,10 +180,11 @@ namespace PreprocessingData
             }
             sw.Close();
 
-            return sortedTerm;
+            // return sortedTerm;
+            DumpTermData(cacheTermFile, await PushPoint(sortedTerm));
         }
 
-        private async Task PushPoint(SortedDictionary<string, Term>dateTweetsFreq)
+        public static async Task PushPoint(SortedDictionary<string, Term>dateTweetsFreq)
         {
             //set the parameter
             double alpha = 0.125;
@@ -288,7 +289,36 @@ namespace PreprocessingData
                     #endregion
                 }
             });
-            return dateTweetsFreq;
+            return dateTweetsFreq.Values.ToArray();
+        }
+
+        public static void DumpTermData(string tweetsFilePath, Term[] tp)
+        {
+            StreamWriter sw = new StreamWriter(tweetsFilePath);
+            foreach (Term term in tp)
+            {
+                //0date \t 1DTweetsCount 2[\t 0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent]
+                String s = term.TermDate.ToString("yyyyMMddHHmmss") + "CzTCZT" +
+                           term.DTweetsCount + (term.WithinInterval ? "CzTCZT" : "");
+                if (term.WithinInterval)
+                {
+                    List<String> tweetsData = new List<String>();
+                    foreach (Tweet tweet in term.Tweets)
+                    {
+                        string tempTweetData = tweet.TweetID + '\t' + 
+                            tweet.User.UserID + '\t' + 
+                            tweet.Lon + '\t' + tweet.Lat + '\t' + 
+                            tweet.CountryName + '\t' +
+                            String.Join("_", tweet.HashTag) + '\t' +
+                            tweet.DerivedContent + '\t' +
+                            tweet.OriginalContent;
+                        tweetsData.Add(tempTweetData);
+                    }
+                    s += String.Join("CtZCTZ", tweetsData);
+                }
+                sw.WriteLine(s);
+            }
+            sw.Close();
         }
 
         public static void calSentiment()
