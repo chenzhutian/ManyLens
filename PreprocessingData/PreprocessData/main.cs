@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using edu.stanford.nlp.sentiment;
 using edu.stanford.nlp.pipeline;
 using edu.stanford.nlp.ling;
@@ -17,13 +16,13 @@ namespace PreprocessingData
 {
     class main
     {
-        static async void Main()
+        static void Main()
         {
             string sourceTweetFile = @"..\..\..\..\ManyLens\Backend\DataBase\FranceAttack";
             string cacheTermFilePostfix = "ProcessedTermsData";
             string cacheUserFilePostfix = "User";
             string cacheTermFileWithSentimentPostfix =  "WithSentiment_";
-            await SplitTweetsToTerm(sourceTweetFile, cacheUserFilePostfix, cacheTermFilePostfix, cacheTermFileWithSentimentPostfix);
+            SplitTweetsToTerm(sourceTweetFile, cacheUserFilePostfix, cacheTermFilePostfix, cacheTermFileWithSentimentPostfix);
         }
 
         //public static void combineFile()
@@ -56,7 +55,7 @@ namespace PreprocessingData
         //    Console.ReadLine();
         //}
 
-        public static async Task SplitTweetsToTerm(string sourceTweetFile, string cacheUserFilePostfix, string cacheTermFilePostfix, string sentimentPostfix)
+        public static void SplitTweetsToTerm(string sourceTweetFile, string cacheUserFilePostfix, string cacheTermFilePostfix, string sentimentPostfix)
         {
             Dictionary<int, SortedDictionary<string, Term>> sortedTerms = new Dictionary<int, SortedDictionary<string, Term>>();
             for(int i = 0; i < 4; ++i)
@@ -73,7 +72,7 @@ namespace PreprocessingData
                 string[] tweetAttributes = line.Split('\t');
 
                 //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
-                //\t 8follower \9 13V \t 10gpsA \t 11gpsB   \t 12countryName
+                //\t 8follower \t 9V \t 10gpsA \t 11gpsB   \t 12countryName
                 Tweet tweet = null;
                 User user;
                 if (users.ContainsKey(tweetAttributes[2]))
@@ -148,7 +147,7 @@ namespace PreprocessingData
             for(int timeSpan = 0; timeSpan < 4; ++timeSpan)
             {
                 // return sortedTerm;
-                DumpTermData(sourceTweetFile + timeSpan + cacheTermFilePostfix, await PushPoint(sortedTerms[timeSpan]));
+                DumpTermData(sourceTweetFile + timeSpan + cacheTermFilePostfix, PushPoint(sortedTerms[timeSpan]));
                 calSentiment(sourceTweetFile + timeSpan + cacheTermFilePostfix, sourceTweetFile + timeSpan + cacheTermFilePostfix + sentimentPostfix);
             }
             
@@ -164,14 +163,14 @@ namespace PreprocessingData
             sw.Close();
         }
 
-        public static async Task<Term[]> PushPoint(SortedDictionary<string, Term>dateTweetsFreq)
+        public static Term[] PushPoint(SortedDictionary<string, Term>dateTweetsFreq)
         {
             //set the parameter
             double alpha = 0.125;
             double beta = 1.5;
             List<string> UserIds = new List<string>();
             //StreamWriter sw = new StreamWriter(config.Parameter.fifaFile+"EventUserIds");
-            await Task.Run(() =>
+            var task = Task.Run(() =>
             {
                 //Peak Detection
                 //下面这个实现有往回的动作，并不是真正的streaming，要重新设计一下
@@ -268,6 +267,7 @@ namespace PreprocessingData
                     #endregion
                 }
             });
+            task.Wait();
             return dateTweetsFreq.Values.ToArray();
         }
 

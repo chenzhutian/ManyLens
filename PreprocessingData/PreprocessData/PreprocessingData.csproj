@@ -271,14 +271,11 @@
     <Compile Include="main.cs" />
     <Compile Include="Models\DerivedTweetSet.cs" />
     <Compile Include="Models\Interval.cs" />
-    <Compile Include="Models\Preprocessing.cs" />
     <Compile Include="Models\Term.cs" />
     <Compile Include="Models\Tweet.cs" />
     <Compile Include="Models\TweetSet.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\Vocabulary.cs" />
-    <Compile Include="Old\Preprocessing.cs" />
-    <Compile Include="Old\Program.cs" />
     <Compile Include="Preprocessing\TweetsPreprocessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

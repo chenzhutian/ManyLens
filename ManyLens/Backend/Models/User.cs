@@ -133,7 +133,14 @@ namespace ManyLens.Models
             this.TweetsCount = int.Parse(tweetsCount);
             this.Following = int.Parse(following);
             this.Follower = int.Parse(follower);
-            this.IsV = bool.Parse(V);
+            try
+            {
+                this.IsV = bool.Parse(V);
+            }
+            catch (FormatException exp)
+            {
+                this.IsV = false;
+            }
             this.Lon = double.Parse(gpsA);
             this.Lat = double.Parse(gpsB);
 
