@@ -6,7 +6,6 @@ using System.Text;
 
 namespace Models
 {
-
     public class Term : DerivedTweetSet
     {
         private string id;
@@ -162,46 +161,7 @@ namespace Models
         {
             base.AddTweet(tweet);
         }
-
-        public List<VoronoiTweetsFeature> GetVoronoiTweetsFeatures()
-        {
-            List<VoronoiTweetsFeature> features = new List<VoronoiTweetsFeature>();
-            string follower = "follower";
-            // string following = "following";
-            // string tweetLength = "tweetLength";
-            // string hastagCount = "hastagCount";
-            string isV = "isV";
-            //string isRetweet = "isRetweet";
-            //string kloutScore = "kloutScore";
-            //string tweetsCount = "tweetsCount";
-            string sentiment = "sentiment";
-            int sampleCount = (int)(this.TweetsCount * 0.001);
-            if (sampleCount < 20) sampleCount = 20;
-            Random rnd = new Random();
-
-            Dictionary<Tweet, double> tweetsScore = new Dictionary<Tweet, double>();
-            this.Tweets.ForEach(t =>
-            {
-                double score = t.User.KloutScore;//t.User.Follower / (1+Math.Log( t.User.Following +1));
-                tweetsScore.Add(t, score);
-            });
-
-            foreach (KeyValuePair<Tweet, double> item in tweetsScore.OrderByDescending(t => t.Value).Take(sampleCount).ToList())
-            {
-                Tweet t = item.Key;
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_0", feature_type = follower, feature_value = t.User.Follower });
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_1", feature_type = isV, feature_value = t.User.IsV ? 1 : 0 });
-                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = tweetLength, feature_value = t.Length });
-                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = isRetweet, feature_value = t.SourceUserName != null ? 1 : 0, feature_detail = t.SourceUserName });
-                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = hastagCount, feature_value = t.HashTag.Count == 0 ? 0 : 1 });
-                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_2", feature_type = kloutScore, feature_value = (int)(t.User.KloutScore) });
-                // features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = tweetsCount, feature_value = t.User.TweetsCount });
-                features.Add(new VoronoiTweetsFeature() { id = t.TweetID + "_3", feature_type = sentiment, feature_value = t.Sentiment, feature_detail = t.OriginalContent });
-            }
-
-            return features.OrderBy(t => t.feature_type).ToList();
-        }
-
+        
         public void Preproccessing()
         {
             ManyLens.Preprocessing.TweetsPreprocessor.ProcessTweet(this);
