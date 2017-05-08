@@ -133,14 +133,7 @@ namespace Models
             this.TweetsCount = int.Parse(tweetsCount);
             this.Following = int.Parse(following);
             this.Follower = int.Parse(follower);
-            try
-            {
-                this.IsV = bool.Parse(V);
-            }
-            catch (FormatException exp)
-            {
-                this.IsV = false;
-            }
+            this.isV = V.Length <= 4 ? false : bool.Parse(V);
             this.Lon = double.Parse(gpsA);
             this.Lat = double.Parse(gpsB);
 

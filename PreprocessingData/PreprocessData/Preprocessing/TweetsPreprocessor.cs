@@ -19,7 +19,7 @@ namespace Preprocessing
                 if(stopWords == null)
                 {
                     stopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    using (StreamReader sr = new StreamReader(@"../stopwords"))
+                    using (StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\\PREPROCESSINGDICT\stopwords"))
                     {
                         while (!sr.EndOfStream)
                             stopWords.Add(sr.ReadLine());
