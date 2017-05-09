@@ -1,6 +1,5 @@
 ﻿var fs = require('fs');
 var http = require('http');
-var async = require('async');
 var targetFile = "FranceAttack";
 var keys = [
     "f3xsmbynf9jrzfb25t26ebda",
@@ -30,7 +29,7 @@ var keys = [
 ];
 
 var keysLen = keys.length;
-var userIds =  JSON.parse(fs.readFileSync(targetFile+"Map")) || {};
+var userIds =  JSON.parse(fs.readFileSync("userKlout.json")) || {};
 
 fs.readFile(targetFile, 'utf8', function (err, data) {
     if (err) throw err;
@@ -44,21 +43,21 @@ fs.readFile(targetFile, 'utf8', function (err, data) {
         }
     }
 
-    var obj = Array.from(tempUserIds);
-    console.log(obj.length);
+    var userIds = Array.from(tempUserIds);
+    console.log(userIds.length);
     var start = Date.now();
     var baseUrl = "http://api.klout.com/v2/";
     var index = -1;
     var tick = 0;
     var httpTimer = setInterval(function () {
         var localIndex = ++index;
-        if (localIndex >= obj.length) {
+        if (localIndex >= userIds.length) {
             clearInterval(httpTimer);
             return;
         }
 
         var key = keys[localIndex % keysLen];
-        var userId = obj[localIndex];
+        var userId = userIds[localIndex];
         if (!userIds[userId] || userIds[userId] == -1) {
             http.get(baseUrl + "identity.json/tw/" + userId + "?key=" + key, function (res) {
                 if (res.statusCode === 200) {
@@ -95,8 +94,8 @@ fs.readFile(targetFile, 'utf8', function (err, data) {
     }, 50);
 
     var writeFileTimer = setInterval(function () {
-        if (tick >= obj.length) {
-            fs.writeFile(targetFile + "Map", JSON.stringify(userIds, null, 4), function (err) {
+        if (tick >= userIds.length) {
+            fs.writeFile("userKlouttemp.json", JSON.stringify(userIds, null, 4), function (err) {
                 if (err) {
                     console.error(err);
                 } else {
