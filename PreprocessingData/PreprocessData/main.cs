@@ -312,6 +312,7 @@ namespace PreprocessingData
 
             var curDir = Environment.CurrentDirectory;
             var jarRoot = @"..\..\..\..\ManyLens\Backend\DataBase\models";
+            Console.WriteLine(Directory.Exists(jarRoot));
             Directory.SetCurrentDirectory(jarRoot);
             StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
             Directory.SetCurrentDirectory(curDir);
@@ -322,7 +323,7 @@ namespace PreprocessingData
 
                 string[] attributes = line.Split(new string[] { "CzTCZT" }, StringSplitOptions.None);
                 // attributes[0] = attributes[0].Replace(@"/", "");
-                if (double.Parse(attributes[0]) > 20140709043000) break;
+                // if (double.Parse(attributes[0]) > 20140709043000) break;
                 if (attributes.Length >= 3)
                 {
                     string[] rawTweetsData = attributes[2].Split(new string[] { "CtZCTZ" }, StringSplitOptions.None);
