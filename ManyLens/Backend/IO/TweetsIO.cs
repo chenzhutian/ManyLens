@@ -351,6 +351,14 @@ namespace ManyLens.IO
                         string[] tweetsAttribute = tempData.Split('\t');
                         if (tweetsAttribute.Length < 8) continue;
                         //0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent \t 8sentiment
+                        
+                        if(!users.ContainsKey(tweetsAttribute[1]))
+                        {
+                            Debug.WriteLine("==========something wrong");
+                            Debug.WriteLine(tweetsAttribute[1]);
+                            Debug.WriteLine(tempData);
+                            continue;
+                        }
                         Tweet tweet = new Tweet(tweetsAttribute[0], tweetsAttribute[7], attributes[0], tweetsAttribute[2], tweetsAttribute[3], users[tweetsAttribute[1]]);
                         tweet.DerivedContent = tweetsAttribute[6];
                         tweet.CountryName = tweetsAttribute[4];

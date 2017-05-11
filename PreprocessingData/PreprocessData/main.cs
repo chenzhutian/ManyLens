@@ -151,8 +151,8 @@ namespace PreprocessingData
                 {
                     continue;
                 }
-                DumpTermData(sourceTweetFile + timeSpan + cacheTermFilePostfix, PushPoint(sortedTerms[timeSpan]));
-                calSentiment(sourceTweetFile + timeSpan + cacheTermFilePostfix, sourceTweetFile + timeSpan + cacheTermFilePostfix + sentimentPostfix);
+                DumpTermData(sourceTweetFile + cacheTermFilePostfix + timeSpan, PushPoint(sortedTerms[timeSpan]));
+                calSentiment(sourceTweetFile + cacheTermFilePostfix + timeSpan, sourceTweetFile  + cacheTermFilePostfix + timeSpan +sentimentPostfix);
             }
 
             // Cache the user file

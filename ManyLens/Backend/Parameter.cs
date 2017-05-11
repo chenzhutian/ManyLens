@@ -22,7 +22,7 @@ namespace ManyLens.config
         public static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
         public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
         public static string franceFile = RootFolder + "Backend\\DataBase\\FranceAttack";
-        public static string sourceFile = fifaFile;
+        public static string sourceFile = franceFile;
         public static string processedTermsFile = sourceFile + "ProcessedTermsData" + timeSpan; // RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
         public static string processedTermsFileWithSentiment = processedTermsFile + "WithSentiment_";
         public static string userkloutfile = RootFolder + "Backend\\DataBase\\userKlout.json";
