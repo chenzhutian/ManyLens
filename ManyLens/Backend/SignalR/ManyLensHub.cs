@@ -27,7 +27,7 @@ namespace ManyLens.SignalR
         private static bool GeoMapMode = false;
         private static CancellationTokenSource cts = new CancellationTokenSource();
         private static SortedDictionary<string, Term> dateTweetsFreq;
-        private static SortedDictionary<string, Interval> interals = new SortedDictionary<string, Interval>();
+        private static SortedDictionary<string, Interval> intervals = new SortedDictionary<string, Interval>();
         private static Dictionary<string, VisMap> visMaps = new Dictionary<string, VisMap>();
         private static SortedDictionary<DateTime, MapPack> visMapsSortedByTime = new SortedDictionary<DateTime, MapPack>();
         private static Dictionary<string, Lens> lensDatas = new Dictionary<string, Lens>();
@@ -41,7 +41,7 @@ namespace ManyLens.SignalR
         public async Task LoadData(IProgress<double> progress)
         {
             //clear the static data
-            interals.Clear();
+            intervals.Clear();
             lensDatas.Clear();
             await Task.Run(() =>
              {
@@ -179,9 +179,9 @@ namespace ManyLens.SignalR
                             tp[end].PointType += 2;
 
                             Interval interval = new Interval(tp[begin].TermDate, tp[begin]);
-                            if (!interals.ContainsKey(interval.ID))
+                            if (!intervals.ContainsKey(interval.ID))
                             {
-                                interals.Add(interval.ID, interval);
+                                intervals.Add(interval.ID, interval);
 
                                 for (int k = begin + 1; k < end; ++k)
                                 {
@@ -192,8 +192,8 @@ namespace ManyLens.SignalR
                                     interval.AddTerm(tp[k]);
                                 }
                                 interval.SetEndDate(tp[end].TermDate);
-                                //UserIds.AddRange(interal.UserIds);
-                                //LazyThreadForConditionalEntropy(interal);
+                                //UserIds.AddRange(inteval.UserIds);
+                                //LazyThreadForConditionalEntropy(inteval);
                                 //Debug.WriteLine("Interval id is :"+interval.ID + " , " + interval.Entropy + "," + interval.TweetsCount);
                             }
                         }
@@ -247,12 +247,13 @@ namespace ManyLens.SignalR
         public async Task PullPoint(string mode)
         {
             //clear the static data
-            interals.Clear();
+            intervals.Clear();
             Clients.Caller.setTimeSpan(config.Parameter.TimeSpan);
             //init the cancellation token;
             CancellationToken ctoken = cts.Token;
             await this.PushPoint(mode, ctoken);
             if (!useCache) TweetsIO.DumpTermData(config.Parameter.processedTermsFile, dateTweetsFreq.Values.ToArray());
+            TweetsIO.DumpVectorData(config.Parameter.sourceFile + "_vectors", intervals.Values.ToArray());
         }
 
         public async Task ChangeTimeSpan(int index)
@@ -273,7 +274,7 @@ namespace ManyLens.SignalR
         {
             if (GeoMapMode)
             {
-                Interval interal = interals[interalID];
+                Interval interal = intervals[interalID];
                 Dictionary<string, List<Tweet>> tweetsGroupByLocation = new Dictionary<string, List<Tweet>>();
 
                 await Task.Run(() =>
@@ -337,19 +338,19 @@ namespace ManyLens.SignalR
                         visMap = visMaps[mapID];
                     else
                     {
-                        Interval interal = interals[interalID];
-                        Debug.WriteLine("Tweets count before preprocessing is : " + interal.TweetsCount);
+                        Interval interval = intervals[interalID];
+                        Debug.WriteLine("Tweets count before preprocessing is : " + interval.TweetsCount);
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
-                        interal.PreproccessingParallel(progress);
-                        //interal.PreproccessingParallel(progress);
+                        interval.PreproccessingParallel(progress);
+                        //inteval.PreproccessingParallel(progress);
                         sw.Stop();
                         Debug.WriteLine("Preprocessing TIME Consuming : " + sw.ElapsedTicks / (decimal)Stopwatch.Frequency);
 
                         if (classifierID != null)
                         {
                             VisMap classifierMap = visMaps[classifierID];
-                            visMap = GPUSOM.TweetSOMClassification(mapID, interal, classifierMap);
+                            visMap = GPUSOM.TweetSOMClassification(mapID, interval, classifierMap);
                             if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
                             {
                                 visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
@@ -363,7 +364,7 @@ namespace ManyLens.SignalR
                             {
                                 lastMap = visMapsSortedByTime.Last().Value.clusteringMap;
                             }
-                            visMap = GPUSOM.TweetSOMClustering(mapID, interal, lastMap);
+                            visMap = GPUSOM.TweetSOMClustering(mapID, interval, lastMap);
 
                             if (!visMapsSortedByTime.ContainsKey(visMap.MapDate))
                             {
@@ -372,8 +373,8 @@ namespace ManyLens.SignalR
                             visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
                         }
 
-                        Debug.WriteLine("Entropy : " + interal.Entropy);
-                        Debug.WriteLine("Tweets count after preprocessing : " + interal.TweetsCount);
+                        Debug.WriteLine("Entropy : " + interval.Entropy);
+                        Debug.WriteLine("Tweets count after preprocessing : " + interval.TweetsCount);
                         visMaps.Add(visMap.VisMapID, visMap);
 
                     }

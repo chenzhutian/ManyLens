@@ -18,7 +18,7 @@ namespace PreprocessingData
     {
         static void Main()
         {
-            string sourceTweetFile = @"..\..\..\..\ManyLens\Backend\DataBase\FranceAttack";
+            string sourceTweetFile = @"..\..\..\..\ManyLens\Backend\DataBase\BritishVote";
             string cacheTermFilePostfix = "ProcessedTermsData";
             string cacheUserFilePostfix = "User";
             string cacheTermFileWithSentimentPostfix = "WithSentiment_";

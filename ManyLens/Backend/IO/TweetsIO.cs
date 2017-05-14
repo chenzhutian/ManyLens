@@ -200,11 +200,11 @@ namespace ManyLens.IO
 
             // Cache the user file
             StreamWriter sw = new StreamWriter(cacheUserFile);
-            foreach(KeyValuePair<string, User> item in users)
+            foreach (KeyValuePair<string, User> item in users)
             {
                 //0userId \t  1userName \t 2tweetsCount \t 3following \t 4follower \t 5V \t 6gpsA \t 7gpsB
                 User user = item.Value;
-                sw.WriteLine(user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' + 
+                sw.WriteLine(user.UserID + '\t' + user.UserName + '\t' + user.TweetsCount + '\t' +
                     user.Following + '\t' + user.Follower + '\t' + user.IsV + '\t' + user.Lon + '\t' + user.Lat);
             }
             sw.Close();
@@ -291,9 +291,9 @@ namespace ManyLens.IO
                     List<String> tweetsData = new List<String>();
                     foreach (Tweet tweet in term.Tweets)
                     {
-                        string tempTweetData = tweet.TweetID + '\t' + 
-                            tweet.User.UserID + '\t' + 
-                            tweet.Lon + '\t' + tweet.Lat + '\t' + 
+                        string tempTweetData = tweet.TweetID + '\t' +
+                            tweet.User.UserID + '\t' +
+                            tweet.Lon + '\t' + tweet.Lat + '\t' +
                             tweet.CountryName + '\t' +
                             String.Join("_", tweet.HashTag) + '\t' +
                             tweet.DerivedContent + '\t' +
@@ -307,12 +307,34 @@ namespace ManyLens.IO
             sw.Close();
         }
 
+        public static void DumpVectorData(string vectorDataPath, Interval[] intervals)
+        {
+            StreamWriter sw = new StreamWriter(vectorDataPath);
+            foreach (Interval interval in intervals)
+            {
+                interval.PreproccessingParallel(new Progress<double>());
+                List<float[]> tV = interval.TFIDFVectors;
+                List<float[]> hV = interval.HashVecotrs;
+                string header = '#' + interval.ID + '\t' + tV.Count + '\t' + hV.Count;
+                sw.WriteLine(header);
+                for (int i = 0; i < tV.Count; ++i)
+                {
+                    sw.WriteLine(string.Join(",", tV[i]));
+                }
+                for(int i = 0; i < hV.Count; ++i)
+                {
+                    sw.WriteLine(string.Join(",", hV[i]));
+                }
+            }
+            sw.Close();
+        }
+
         public static SortedDictionary<string, Term> LoadCacheData(string cacheTermsFile, string cacheUsersFile)
         {
             StreamReader sr = new StreamReader(cacheUsersFile);
             Dictionary<string, User> users = new Dictionary<string, User>();
             Dictionary<string, double> kloutScore = ManyLens.SignalR.ManyLensHub.userKloutScore;
-            while(!sr.EndOfStream)
+            while (!sr.EndOfStream)
             {
                 string line = sr.ReadLine();
                 string[] attributes = line.Split('\t');
@@ -337,7 +359,7 @@ namespace ManyLens.IO
                 string[] attributes = line.Split(new string[] { "CzTCZT" }, StringSplitOptions.None);
                 // attributes[0] = attributes[0].Replace(@"/", "");
 
-                if(attributes.Length < 3)
+                if (attributes.Length < 3)
                 {
                     terms.Add(attributes[0], new Term(attributes[0], true, int.Parse(attributes[1])));
                 }
@@ -351,8 +373,8 @@ namespace ManyLens.IO
                         string[] tweetsAttribute = tempData.Split('\t');
                         if (tweetsAttribute.Length < 8) continue;
                         //0tweetId \t 1userId \t 2gpsA \t 3gpsB \t 4countryName \t 5hashTags \t 6derivedContent \t 7tweetContent \t 8sentiment
-                        
-                        if(!users.ContainsKey(tweetsAttribute[1]))
+
+                        if (!users.ContainsKey(tweetsAttribute[1]))
                         {
                             Debug.WriteLine("==========something wrong");
                             Debug.WriteLine(tweetsAttribute[1]);
@@ -364,7 +386,7 @@ namespace ManyLens.IO
                         tweet.CountryName = tweetsAttribute[4];
                         tweet.Sentiment = int.Parse(tweetsAttribute[8]); //Sentiment.findSentiment(tweet.DerivedContent);
                         string[] hashTags = tweetsAttribute[5].Split('_');
-                        foreach(string hashTag in hashTags)
+                        foreach (string hashTag in hashTags)
                         {
                             tweet.AddHashTag(hashTag);
                         }
