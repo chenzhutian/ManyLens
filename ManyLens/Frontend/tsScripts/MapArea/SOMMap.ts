@@ -532,7 +532,8 @@ module ManyLens {
 
             }
 
-            public ShowVisMap( visData: MapData, classifierID: string ): void {
+            public ShowVisMap(visData: MapData, classifierID: string): void {
+                console.log(visData);
                 this._maps.push( visData );
                 this._mapIDs.push( visData.mapID );
                 this._top_offset = this._top_offset || ( parseFloat( this._element.style( "height" ) ) - visData.height * this._unit_height ) / 2;

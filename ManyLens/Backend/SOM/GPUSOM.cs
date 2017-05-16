@@ -92,8 +92,7 @@ namespace ManyLens.SOM
 
             float[] h_error = new float[trainsetSize];
             Marshal.Copy(IntPtr.Add(pointer, trainsetSize * sizeof(int)), h_error, 0, trainsetSize);
-            Marshal.FreeHGlobal(pointer);
-
+            somFree(pointer);
 
             float[] h_weight = classifier.MapWeightInColumnMajor;
 

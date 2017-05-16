@@ -123,7 +123,7 @@ namespace ManyLens.Models
             {
                 if (value.Length != this.Width * this.Height * config.Parameter.DimensionAfterRandomMapping)
                     throw new Exception("the size of map weight matrix is wrong!");
-                else 
+                else
                 {
                     this.mapWeightInColumnMajor = value;
                 }
@@ -156,7 +156,7 @@ namespace ManyLens.Models
             return sum / a.Length;
         }
 
-        public VisMap(string visMapID, int width, int height, float[] mapWeight, int[] bID,float[] errors,Interval interval, VisMap parentNote = null)
+        public VisMap(string visMapID, int width, int height, float[] mapWeight, int[] bID, float[] errors, Interval interval, VisMap parentNote = null)
         {
             this.ParentNote = parentNote;
             this.VisMapID = visMapID;
@@ -182,11 +182,11 @@ namespace ManyLens.Models
             this.unitsInMap[unit.Y][unit.X] = unit;
         }
 
-        public bool TryAddTweetToUnit(int unitID,float error, Tweet tweet)
+        public bool TryAddTweetToUnit(int unitID, float error, Tweet tweet)
         {
             if (units.ContainsKey(unitID))
             {
-                units[unitID].AddTweet(error,tweet);
+                units[unitID].AddTweet(error, tweet);
                 return true;
             }
             return false;
@@ -221,8 +221,8 @@ namespace ManyLens.Models
                 }
             }
 
-            var pack = SOM.GPUSOM.GPUFindBID(inputVectors,fromTweets.Count, 
-                                                                    inputWeights,toUnitsID.Length);
+            var pack = SOM.GPUSOM.GPUFindBID(inputVectors, fromTweets.Count,
+                                                                    inputWeights, toUnitsID.Length);
             for (int i = 0, len = fromTweets.Count; i < len; ++i)
             {
                 int index = this.Interval.Tweets.IndexOf(fromTweets[i]);
@@ -275,12 +275,12 @@ namespace ManyLens.Models
                 //Iterate each cluster
                 foreach (List<Unit> units in clusters)
                 {
-                    Dictionary<string,int> wordLabels = new Dictionary<string, int>();
+                    Dictionary<string, int> wordLabels = new Dictionary<string, int>();
                     int x = -1;
                     int y = -1;
                     int maxCount = -1;
                     //For each unit in this cluster, find the unit with most tweets, and count the word's nums
-                    for (int i = 0, len = units.Count; i < len; ++i)    
+                    for (int i = 0, len = units.Count; i < len; ++i)
                     {
                         Unit unit = units[i];
                         foreach (KeyValuePair<string, int> item in unit.WordLabels)
@@ -289,7 +289,7 @@ namespace ManyLens.Models
                             {
                                 wordLabels.Add(item.Key, item.Value);
                             }
-                            else 
+                            else
                             {
                                 wordLabels[item.Key] += item.Value;
                             }
@@ -301,20 +301,19 @@ namespace ManyLens.Models
                             y = unit.Y;
                         }
                     }
-
                     double maxValue = -1.0;
                     string targetLabel = "";
                     //calculate the tf-idf of each word
-                    foreach(KeyValuePair<string, int>item in wordLabels)
+                    foreach (KeyValuePair<string, int> item in wordLabels)
                     {
                         try
                         {
                             double temp = 1;
                             double value = 0;
-                            if(this.Interval.Vocabulary.DfOfWords.ContainsKey(item.Key)&& this.Interval.Vocabulary.Most50.Contains(item.Key))
+                            if (this.Interval.Vocabulary.DfOfWords.ContainsKey(item.Key) && this.Interval.Vocabulary.Most50.Contains(item.Key))
                             {
                                 temp = (double)this.Interval.Vocabulary.DfOfWords[item.Key];
-                                value = item.Value * Math.Log((double)this.Interval.TweetsCount/( 1.0 + temp));
+                                value = item.Value * Math.Log((double)this.Interval.TweetsCount / (1.0 + temp));
 
                                 if (item.Value > maxValue)
                                 {
@@ -329,10 +328,8 @@ namespace ManyLens.Models
                             Debug.WriteLine(item.Key);
                         }
                     }
-
-                    labels.Add(new Label() { x = x, y = y, label = targetLabel,value= maxValue});
+                    labels.Add(new Label() { x = x, y = y, label = targetLabel, value = maxValue });
                 }
-
                 VISData visdata = new VISData()
                 {
                     mapID = this.VisMapID,
@@ -353,7 +350,8 @@ namespace ManyLens.Models
             }
         }
 
-        private double[] stops = new double[]{0.000, 0.067, 0.117, 0.24, 0.44, 0.51, 0.6};
+        // TODO dynamic generate the stops
+        private double[] stops = new double[] { 0.000, 0.067, 0.117, 0.24, 0.44, 0.6, 0.8 };
         private List<List<Unit>> GrowCluster()
         {
             bool[][] unitsFlat = new bool[this.Height][];
@@ -366,62 +364,91 @@ namespace ManyLens.Models
                 }
             }
 
+            int stopLv = 1;
             List<List<Unit>> clusters = new List<List<Unit>>();
             for (int i = 0; i < this.Height; ++i)
             {
                 for (int j = 0; j < this.Width; ++j)
                 {
                     Unit unit = this.unitsInMap[i][j];
-                    if (unit != null && !unitsFlat[i][j] &&unit.TweetsCount >= stops[3] * this.MaxTweetCount)
+                    if (unit != null && !unitsFlat[i][j] && unit.TweetsCount >= stops[stopLv] * this.MaxTweetCount)
                     {
-                        clusters.Add(Grow(i, j, unitsFlat));
+                        clusters.Add(Grow(i, j, unitsFlat, stopLv));
                     }
                 }
             }
+
+            List<int> tCount = new List<int>();
+            for (int i = 0; i < this.Height; ++i)
+            {
+                for (int j = 0; j < this.Width; ++j)
+                {
+                    int lv = stops.Length - 1;
+                    Unit unit = this.unitsInMap[i][j];
+                    if(unit != null)
+                    {
+                        while (lv > -1 && unit.TweetsCount < stops[lv] * this.MaxTweetCount) --lv;
+                        tCount.Add(unit.TweetsCount);
+                    }
+                    else
+                    {
+                        lv = 0;
+                        
+                    }
+                    Debug.Write(lv.ToString() + ", ");
+                }
+                Debug.WriteLine("");
+            }
+            tCount.Sort();
+            for(int i = 0; i< tCount.Count; ++i)
+            {
+                Debug.Write(tCount[i].ToString() + ",");
+            }
+
             return clusters;
         }
 
-        private List<Unit> Grow(int y, int x, bool[][] unitsFlat)
+        private List<Unit> Grow(int y, int x, bool[][] unitsFlat, int stopLv)
         {
-            if (y < 0 || y >= this.Height 
-                || x < 0 || x >= this.Width )
+            if (y < 0 || y >= this.Height
+                || x < 0 || x >= this.Width)
             {
                 return null;
             }
-            if( unitsFlat[y][x]
+            if (unitsFlat[y][x]
                 || this.unitsInMap[y][x] == null
-                ||this.unitsInMap[y][x].TweetsCount < stops[2] * this.MaxTweetCount)
+                || this.unitsInMap[y][x].TweetsCount < stops[stopLv] * this.MaxTweetCount)
             {
                 unitsFlat[y][x] = true;
                 return null;
             }
-                
+
             List<Unit> units = new List<Unit>();
             units.Add(this.unitsInMap[y][x]);
             unitsFlat[y][x] = true;
 
-            var result = Grow(y + 1, x + 1, unitsFlat);
-            if(result != null) units.AddRange(result);
-
-            result = Grow(y + 1, x - 1, unitsFlat);
+            var result = Grow(y + 1, x + 1, unitsFlat, stopLv);
             if (result != null) units.AddRange(result);
 
-            result = Grow(y + 1, x , unitsFlat);
+            result = Grow(y + 1, x - 1, unitsFlat, stopLv);
             if (result != null) units.AddRange(result);
 
-            result = Grow(y - 1, x + 1, unitsFlat);
+            result = Grow(y + 1, x, unitsFlat, stopLv);
             if (result != null) units.AddRange(result);
 
-            result = Grow(y - 1, x - 1, unitsFlat);
+            result = Grow(y - 1, x + 1, unitsFlat, stopLv);
             if (result != null) units.AddRange(result);
 
-            result = Grow(y - 1, x, unitsFlat);
+            result = Grow(y - 1, x - 1, unitsFlat, stopLv);
             if (result != null) units.AddRange(result);
 
-            result = Grow(y, x - 1, unitsFlat);
+            result = Grow(y - 1, x, unitsFlat, stopLv);
             if (result != null) units.AddRange(result);
 
-            result = Grow(y, x + 1, unitsFlat);
+            result = Grow(y, x - 1, unitsFlat, stopLv);
+            if (result != null) units.AddRange(result);
+
+            result = Grow(y, x + 1, unitsFlat, stopLv);
             if (result != null) units.AddRange(result);
 
             return units;

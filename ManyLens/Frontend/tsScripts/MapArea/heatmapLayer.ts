@@ -6,7 +6,7 @@ module ManyLens {
             public static intensity = 3;
             public static shaderStyle = 0;
             //public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
-            public static stops = [0.000, 0.067, 0.117, 0.24, 0.44, 0.51, 0.6];
+            public static stops = [0.000, 0.067, 0.117, 0.24, 0.44, 0.6, 0.8];
             public static LoDMap;
             public static setKernelBandWidth( val ) {
                 config.kernelBandwidth = val;
@@ -158,9 +158,11 @@ module ManyLens {
 
                 var kernelBand = 0;
                 var BaseKernelBand = config.kernelBandwidth;
-                if ( zoomLevel < 5.0 ) {
-                    kernelBand = BaseKernelBand * Math.pow( 0.75, 5.0 - zoomLevel );
-                } else kernelBand = BaseKernelBand * Math.atan( zoomLevel - 3.3 ) * Math.pow( 1.05, zoomLevel - 5.0 );
+                //if ( zoomLevel < 5.0 ) {
+                //    kernelBand = BaseKernelBand * Math.pow( 0.75, 5.0 - zoomLevel );
+                //} else kernelBand = BaseKernelBand * Math.atan(zoomLevel - 3.3) * Math.pow(1.05, zoomLevel - 5.0);
+                kernelBand = 48;
+
                 // adds the buffered points
                 //准备画点所需要的点坐标和强度
                 for ( var i = 0; i < height; i++ ) {

@@ -193,8 +193,8 @@ namespace ManyLens.SignalR
                                 }
                                 interval.SetEndDate(tp[end].TermDate);
                                 //UserIds.AddRange(inteval.UserIds);
-                                //LazyThreadForConditionalEntropy(inteval);
-                                //Debug.WriteLine("Interval id is :"+interval.ID + " , " + interval.Entropy + "," + interval.TweetsCount);
+                                //LazyThreadForConditionalEntropy(interval);
+                                //Debug.WriteLine("Interval id is :" + interval.ID + " , " + interval.Entropy + "," + interval.TweetsCount);
                             }
                         }
                         else
@@ -253,7 +253,7 @@ namespace ManyLens.SignalR
             CancellationToken ctoken = cts.Token;
             await this.PushPoint(mode, ctoken);
             if (!useCache) TweetsIO.DumpTermData(config.Parameter.processedTermsFile, dateTweetsFreq.Values.ToArray());
-            TweetsIO.DumpVectorData(config.Parameter.sourceFile + "_vectors", intervals.Values.ToArray());
+            // TweetsIO.DumpVectorData(config.Parameter.sourceFile + "_vectors", intervals.Values.ToArray());
         }
 
         public async Task ChangeTimeSpan(int index)

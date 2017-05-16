@@ -144,7 +144,7 @@ namespace PreprocessingData
             }
             sr.Close();
 
-            for (int timeSpan = 0; timeSpan < 4; ++timeSpan)
+            for (int timeSpan = 1; timeSpan < 2; ++timeSpan)
             {
                 // return sortedTerm;
                 if(sortedTerms[timeSpan].Count < 5)

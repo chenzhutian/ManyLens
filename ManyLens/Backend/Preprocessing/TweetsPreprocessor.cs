@@ -26,7 +26,8 @@ namespace ManyLens.Preprocessing
             IStemmer stemmer = new EnglishStemmer();
             //load stopwords
             HashSet<string> stopWords = ManyLens.SignalR.ManyLensHub.stopWords;
-
+            stopWords.Add("vote");
+            stopWords.Add("ivoted");
             int tweetsCount = tweetSet.TweetsCount - 1;
             //clear the tweets content
             Parallel.ForEach(tweetSet.Tweets, tweet =>

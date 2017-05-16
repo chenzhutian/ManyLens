@@ -235,4 +235,4 @@ ManyLens/Frontend/tsScripts/*/*.js
 ManyLens/Frontend/tsScripts/*/*.js.map
 ManyLens/Backend/DataBase/*
 /ManyLens.VC.VC.opendb
-/ManyLens.VC.db
+ManyLens.VC.db

@@ -397,6 +397,7 @@ var ManyLens;
                 this._voronoi_feature_need_to_be_log = null;
                 this._hack_entropy_for_sec = [5.52801983771866, 5.4039073835042, 5.45938781932472, 5.64250743333429, 4.93032087118836, 5.315961448569, 5.39588776065466, 4.65898722238974, 5.13062979174002, 5.33309072510927, 5.35641786696894, 5.60797765267891, 5.64988387523317, 5.59482123218907, 5.46264173515833, 5.48856459015412, 5.44034190298265, 5.45128763318033, 5.44438920405449, 5.48815635174213, 5.45029239874735, 5.48162359658213, 5.51425058455734, 5.46563788562995, 5.57272780600828, 5.46330296730694, 5.60273582067599, 5.62644804054953, 5.48286388833526, 5.52113525835715, 5.25754958192342, 5.34289384247398, 5.59875662298071, 5.26862406827515, 5.14805360492649, 5.54249244750256, 5.67943507560486, 5.71068019153901, 5.75938133509502, 5.76902770549809, 5.6978968138835, 5.91515365891259, 5.72912057307722, 5.65503261937499, 5.62699617989156, 5.48299298221877, 5.31362137362927, 5.51686127735103, 5.75727656236623, 5.65465538965307, 5.64206521599416, 5.61403218348421, 5.80250439167188, 5.91731972764689, 5.86487350971147, 5.38274841815246, 5.62215477204897, 5.70056092633215, 5.60632734047604];
                 this._hack_entropy_for_minute = [5.1308094928495, 4.91187594269681, 5.35133901571066, 5.51111302509791, 5.29629862396475, 5.28875741449833, 5.25065848788969, 4.95496661930616];
+                this._hack_entropy_for_hour = [5.34875731246237, 4.63465410801412, 5.0530774786447, 5.73903836676464, 5.76815537684356];
                 //Day is for ebola
                 this._hack_entropy_for_day_fullyear = [5.69374880264309, 5.54071690329108, 5.21375567493723, 5.7364591001623, 5.67266804090054, 5.44788632513456, 5.56507687813503, 5.30118124849182, 6.38924928692222, 5.49292138443575, 5.66255265557558, 5.68311929804944, 5.50092376414015, 5.26100836113391, 5.66074791315102, 5.80350167185585, 5.19784721560846, 5.43950287241348, 5.75844480001013, 5.96897758889492, 5.96287129509671, 5.86295184921975, 6.01269251274121, 5.68335437493067, 5.82393867456836, 5.7277711426753, 5.83250284442861, 6.10911174676642, 5.89750917427565, 5.74017174495036, 5.52521691479035, 5.99649012948925, 5.9454798874942];
                 this._data = new Array();
@@ -697,6 +698,9 @@ var ManyLens;
                         break;
                     case 2:
                         this._hack_selected_entropy = this._hack_entropy_for_minute;
+                        break;
+                    case 1:
+                        this._hack_selected_entropy = this._hack_entropy_for_hour;
                         break;
                     case 0:
                         this._hack_selected_entropy = this._hack_entropy_for_day_fullyear;
@@ -2059,7 +2063,7 @@ var ManyLens;
             config.intensity = 3;
             config.shaderStyle = 0;
             //public static stops = [0.007, 0.02, 0.037, 0.065, 0.114, 0.21, 0.295];
-            config.stops = [0.000, 0.067, 0.117, 0.24, 0.44, 0.51, 0.6];
+            config.stops = [0.000, 0.067, 0.117, 0.24, 0.44, 0.6, 0.8];
             return config;
         }());
         MapArea.config = config;
@@ -2165,11 +2169,10 @@ var ManyLens;
                 var ans = 0;
                 var kernelBand = 0;
                 var BaseKernelBand = config.kernelBandwidth;
-                if (zoomLevel < 5.0) {
-                    kernelBand = BaseKernelBand * Math.pow(0.75, 5.0 - zoomLevel);
-                }
-                else
-                    kernelBand = BaseKernelBand * Math.atan(zoomLevel - 3.3) * Math.pow(1.05, zoomLevel - 5.0);
+                //if ( zoomLevel < 5.0 ) {
+                //    kernelBand = BaseKernelBand * Math.pow( 0.75, 5.0 - zoomLevel );
+                //} else kernelBand = BaseKernelBand * Math.atan(zoomLevel - 3.3) * Math.pow(1.05, zoomLevel - 5.0);
+                kernelBand = 48;
                 // adds the buffered points
                 //准备画点所需要的点坐标和强度
                 for (var i = 0; i < height; i++) {
@@ -2672,6 +2675,7 @@ var ManyLens;
             };
             SOMMap.prototype.ShowVisMap = function (visData, classifierID) {
                 var _this = this;
+                console.log(visData);
                 this._maps.push(visData);
                 this._mapIDs.push(visData.mapID);
                 this._top_offset = this._top_offset || (parseFloat(this._element.style("height")) - visData.height * this._unit_height) / 2;
@@ -5440,4 +5444,3 @@ var ManyLens;
         MapArea.WorldMap = WorldMap;
     })(MapArea = ManyLens.MapArea || (ManyLens.MapArea = {}));
 })(ManyLens || (ManyLens = {}));
-//# sourceMappingURL=ManyLens.js.map

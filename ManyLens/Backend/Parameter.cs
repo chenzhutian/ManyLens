@@ -9,7 +9,7 @@ namespace ManyLens.config
     class Parameter
     {
         //public static string tweetFile = ebolaFile;
-        private static int timeSpan = 0;
+        private static int timeSpan = 2;
         private static int hashDimension = 4096;
         private static int dimensionAfterRandomMapping = 1024;
         private static float[] rmMatrix = myMath.GaussianRandom.GetRMMatrix(DimensionAfterRandomMapping, HashDimension);
@@ -22,7 +22,8 @@ namespace ManyLens.config
         public static string fifaFile = RootFolder + "Backend\\DataBase\\FIFACASESample";
         public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
         public static string franceFile = RootFolder + "Backend\\DataBase\\FranceAttack";
-        public static string sourceFile = ebolaFile;
+        public static string britishFile = RootFolder + "Backend\\DataBase\\BritishVote";
+        public static string sourceFile = fifaFile;
         public static string processedTermsFile = sourceFile + "ProcessedTermsData" + timeSpan; // RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
         public static string processedTermsFileWithSentiment = processedTermsFile + "WithSentiment_";
         public static string userkloutfile = RootFolder + "Backend\\DataBase\\userKlout.json";
