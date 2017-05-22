@@ -23,7 +23,8 @@ namespace ManyLens.config
         public static string ebolaFile = RootFolder + "Backend\\DataBase\\EbolaFullYearCaseSample";
         public static string franceFile = RootFolder + "Backend\\DataBase\\FranceAttack";
         public static string britishFile = RootFolder + "Backend\\DataBase\\BritishVote";
-        public static string sourceFile = fifaFile;
+        public static string brexit_UKFile = RootFolder + "Backend\\DataBase\\brexit_UK";
+        public static string sourceFile = brexit_UKFile;
         public static string processedTermsFile = sourceFile + "ProcessedTermsData" + timeSpan; // RootFolder + "Backend\\DataBase\\ProcessedTermsData" + "fifa" + timeSpan;
         public static string processedTermsFileWithSentiment = processedTermsFile + "WithSentiment_";
         public static string userkloutfile = RootFolder + "Backend\\DataBase\\userKlout.json";

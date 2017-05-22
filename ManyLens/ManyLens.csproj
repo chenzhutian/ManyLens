@@ -347,6 +347,8 @@
     <Content Include="Frontend\Scripts\ManyLens.js" />
     <Content Include="Frontend\Scripts\d3.superformula.js" />
     <Content Include="Frontend\testData\us.json" />
+    <Content Include="Frontend\testData\countriesAlpha2.topo.json" />
+    <Content Include="Frontend\testData\uk.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

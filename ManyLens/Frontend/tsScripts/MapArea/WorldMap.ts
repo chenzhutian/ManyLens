@@ -22,6 +22,7 @@ module ManyLens {
 
             private _world_topojson_path: string = "./testData/countriesAlpha2.topo.json";
             private _world_topojson_data;
+            private _uk_topojson_path: string = "./testData/uk.json";
 
             private _target_country: Country;
 
@@ -81,7 +82,6 @@ module ManyLens {
                     })
                     .call(this._zoom)
                     .on("dblclick.zoom", null)
-
             }
 
             public Toggle() {
@@ -131,7 +131,6 @@ module ManyLens {
                     var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
                     this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
 
-
                     this._projection
                         .scale(s)
                         .translate(this._center_xy);
@@ -140,10 +139,10 @@ module ManyLens {
                         .attr("id", "world-countries");
 
                     this._map.selectAll("path")
-                        .data(this._world_topojson_data.features, function (d) { return d.id; })
+                        .data(this._world_topojson_data.features, d => d.id)
                         .enter()
                         .append("path")
-                        .attr("id", function (d: Country) { return d.id; })
+                        .attr("id", d => d.id)
                         .attr("d", this._path)
                         .attr("fill", (d) => {
                             return "rgb(198,219,239)";
@@ -156,14 +155,15 @@ module ManyLens {
                             d3.event.stopPropagation();
                             this.Country_Clicked(d);
                         })
-                        ;
+
                 } else {
-                    d3.json(this._world_topojson_path, (error, world) => {
-                        this._world_topojson_data = topojson.feature(world, world.objects.countries);
+                    d3.json(this._uk_topojson_path, (error, world) => {
+                        this._world_topojson_data = topojson.feature(world, world.objects.subunits);
 
                         // Compute the bounds of a feature of interest, then derive scale & translate.
                         var bounds = this._path.bounds(this._world_topojson_data);
-                        var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, (bounds[1][1] - bounds[0][1]) / (this._total_height));
+                        console.log(bounds);
+                        var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / this._total_width, ((bounds[1][1] - bounds[0][1]) * 1) / (this._total_height));
                         this._center_xy = [(this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
 
                         this._projection
@@ -172,9 +172,9 @@ module ManyLens {
 
                         this._map = this._element.append("g")
                             .attr("id", "world-countries");
-
+                        console.log(this._world_topojson_data);
                         this._map.selectAll("path")
-                            .data(this._world_topojson_data.features, function (d) { return d.id; })
+                            .data(this._world_topojson_data.features, d => d.id)
                             .enter()
                             .append("path")
                             .attr("id", function (d: Country) { return d.id; })

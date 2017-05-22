@@ -384,19 +384,20 @@ var ManyLens;
                 this._fisheye_scale = d3.fisheye.ordinal();
                 this._section_num = 30;
                 this._view_padding = { top: 50, bottom: 25, left: 50, right: 50 };
-                this._coordinate_margin_left = 800;
+                this._coordinate_margin_left = 1100;
                 this._stack_time_id_gen = 0;
                 this.week_days_name = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fir.", "Sat."];
                 this.month_names = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
                 this._voronoi_bound = null;
                 this._voronoi = null;
-                this._voronoi_color = null;
+                // private _voronoi_color: D3.Scale.OrdinalScale = null;
                 this._voronoi_scale = null;
                 this._voronoi_color_scale = null;
                 this._voronoi_linear_feature = null;
                 this._voronoi_feature_need_to_be_log = null;
                 this._hack_entropy_for_sec = [5.52801983771866, 5.4039073835042, 5.45938781932472, 5.64250743333429, 4.93032087118836, 5.315961448569, 5.39588776065466, 4.65898722238974, 5.13062979174002, 5.33309072510927, 5.35641786696894, 5.60797765267891, 5.64988387523317, 5.59482123218907, 5.46264173515833, 5.48856459015412, 5.44034190298265, 5.45128763318033, 5.44438920405449, 5.48815635174213, 5.45029239874735, 5.48162359658213, 5.51425058455734, 5.46563788562995, 5.57272780600828, 5.46330296730694, 5.60273582067599, 5.62644804054953, 5.48286388833526, 5.52113525835715, 5.25754958192342, 5.34289384247398, 5.59875662298071, 5.26862406827515, 5.14805360492649, 5.54249244750256, 5.67943507560486, 5.71068019153901, 5.75938133509502, 5.76902770549809, 5.6978968138835, 5.91515365891259, 5.72912057307722, 5.65503261937499, 5.62699617989156, 5.48299298221877, 5.31362137362927, 5.51686127735103, 5.75727656236623, 5.65465538965307, 5.64206521599416, 5.61403218348421, 5.80250439167188, 5.91731972764689, 5.86487350971147, 5.38274841815246, 5.62215477204897, 5.70056092633215, 5.60632734047604];
-                this._hack_entropy_for_minute = [5.1308094928495, 4.91187594269681, 5.35133901571066, 5.51111302509791, 5.29629862396475, 5.28875741449833, 5.25065848788969, 4.95496661930616];
+                // private _hack_entropy_for_minute = [5.1308094928495, 4.91187594269681, 5.35133901571066, 5.51111302509791, 5.29629862396475, 5.28875741449833, 5.25065848788969, 4.95496661930616];
+                this._hack_entropy_for_minute = [5.68221488096454, 5.711826561094, 5.91529615202471, 5.65829409453094, 5.98817774547564, 5.89934688008607, 5.99892927879102, 5.91592774681512, 6.27689701535894, 6.21979829087528, 6.32314504985306, 6.2671713603367, 6.22508705548198, 6.12525824064568, 6.26886460567652, 6.15772619760975, 7.01362597469215, 5.63665310347031, 5.7886865218747, 6.33567517611749, 6.44716273253146, 6.56808825331556, 6.16652003935825, 6.07010537339105, 6.00330426475011, 6.91793906690622, 6.00619751463509, 6.93130705644921, 6.94563328199474];
                 this._hack_entropy_for_hour = [5.34875731246237, 4.63465410801412, 5.0530774786447, 5.73903836676464, 5.76815537684356];
                 //Day is for ebola
                 this._hack_entropy_for_day_fullyear = [5.69374880264309, 5.54071690329108, 5.21375567493723, 5.7364591001623, 5.67266804090054, 5.44788632513456, 5.56507687813503, 5.30118124849182, 6.38924928692222, 5.49292138443575, 5.66255265557558, 5.68311929804944, 5.50092376414015, 5.26100836113391, 5.66074791315102, 5.80350167185585, 5.19784721560846, 5.43950287241348, 5.75844480001013, 5.96897758889492, 5.96287129509671, 5.86295184921975, 6.01269251274121, 5.68335437493067, 5.82393867456836, 5.7277711426753, 5.83250284442861, 6.10911174676642, 5.89750917427565, 5.74017174495036, 5.52521691479035, 5.99649012948925, 5.9454798874942];
@@ -429,13 +430,14 @@ var ManyLens;
                 this._voronoi = d3.geom.voronoi()
                     .x(function (d) { return d['x']; })
                     .y(function (d) { return d['y']; });
-                this._voronoi_color = d3.scale.category20()
-                    .domain(['tweetLength', 'follower', 'isV', 'hastagCount']);
-                this._voronoi_scale = this._coordinate_margin_left / 800;
+                //this._voronoi_color = d3.scale.category20()
+                //    .domain(['tweetLength', 'follower', 'isV', 'hastagCount']);
+                this._voronoi_scale = this._coordinate_margin_left / 1100;
                 this._voronoi_color_scale = {
                     'follower': d3.scale.quantize().range(['#FFFDE7', '#FFF59D', '#FFEE58', '#FBC02D']),
                     'isV': d3.scale.ordinal().domain([0, 1]).range(['#E0F7FA', '#00BCD4']),
-                    'sentiment': d3.scale.quantize().domain([0, 1, 2, 3, 4]).range(['#C62828', '#F44336', '#FAFAFA', '#A5D6A7', '#4CAF50'])
+                    'sentiment': d3.scale.quantize().domain([0, 1, 2, 3, 4]).range(['#C62828', '#F44336', '#FAFAFA', '#A5D6A7', '#4CAF50']),
+                    'kloutScore': d3.scale.quantize().range(['#E0F2F1', '#B2DFDB', '#80CBC4', '#4DB6AC', '#26A69A', '#009688', '#00897B', '#00796B', '#00695C', '#004D40']),
                 };
                 this._voronoi_linear_feature = {
                     'follower': true,
@@ -536,8 +538,7 @@ var ManyLens;
                             .style("width", percent * 100 + "%");
                     })
                         .done(function () {
-                        _this._element.select(".progress-bar")
-                            .style("width", 0);
+                        _this._element.select(".progress-bar").style("width", 0);
                         _this._element.select(".progress").style("display", "none");
                         _this._curveSvg.style("margin-bottom", "17px");
                     });
@@ -706,18 +707,26 @@ var ManyLens;
                         this._hack_selected_entropy = this._hack_entropy_for_day_fullyear;
                         break;
                 }
-                var colorScale = d3.scale.linear().domain(d3.extent(this._hack_selected_entropy))
+                var colorScale = d3.scale.linear()
+                    .domain(d3.extent(this._hack_selected_entropy))
                     .range(["#C5EFF7", "#34495E"]);
-                var arcScale = d3.scale.linear().domain(d3.extent(this._hack_selected_entropy))
+                var arcScale = d3.scale.linear()
+                    .domain(d3.extent(this._hack_selected_entropy))
                     .range([0, 1]);
                 var constR = this._x_scale(1) - this._x_scale(0);
-                var arc = d3.svg.arc().innerRadius(constR * this._voronoi_scale + 1).outerRadius(constR * this._voronoi_scale + 2.5).startAngle(0); // 16 18
+                var arc = d3.svg.arc()
+                    .innerRadius(constR * this._voronoi_scale + 1)
+                    .outerRadius(constR * this._voronoi_scale + 2.5)
+                    .startAngle(0); // 16 18
                 // constR *= 0.9;
                 //Nodes
-                var nodex = this._stack_bar_tree.nodes(this._root[""]).filter(function (d) {
+                var nodex = this._stack_bar_tree
+                    .nodes(this._root[""])
+                    .filter(function (d) {
                     return d.name != ""; //&& d.name != "day2";
                 });
-                this._stack_bar_node = this._subView.selectAll(".stack.node")
+                this._stack_bar_node = this._subView
+                    .selectAll(".stack.node")
                     .data(nodex, function (d) { return d.id; });
                 //Enter node
                 var enterNode = this._stack_bar_node
@@ -759,19 +768,20 @@ var ManyLens;
                 enterNode.filter(function (d) { return !d.date; })
                     .append('circle')
                     .attr('r', 7)
+                    .attr('class', 'just_a_node')
                     .style("fill", function (d) { return colorScale(_this.SumEntropy(d) / sumLength(d)); });
                 enterNode.append("text")
-                    .attr("x", function (d) {
-                    if (d.date || (d.name[0] == "d" && d._children))
-                        return -10;
-                    return 5;
-                })
                     .attr("dy", function (d) {
                     if (d.date || (d.name[0] == "d" && d._children))
                         return "50";
                     return ".35em";
                 })
-                    .attr("text-anchor", "start")
+                    .attr("text-anchor", function (d) {
+                    if (d.date || (d.name.startsWith('d') && d._children)) {
+                        return 'middle';
+                    }
+                    return 'start';
+                })
                     .text(function (d) {
                     if (d.name[0] == "y") {
                         return d.name.substring(4);
@@ -783,7 +793,7 @@ var ManyLens;
                         return d.name.substring(d.name.indexOf("y") + 1); //this.week_days_name[parseInt( d.name[d.name.length - 1] )];
                     }
                     else if (d.name[0] == "h") {
-                        return d.name.substring(4) + ":00";
+                        return d.name.substring(4) + ':' + (d.date ? d.date.getMinutes() : '00');
                     }
                     else if (d.name[0] == "M") {
                         return d.name.substring(3);
@@ -819,7 +829,7 @@ var ManyLens;
                     var fs = [];
                     if (d.children) {
                         d.children.forEach(function (d) {
-                            fs.concat(getFeatures(d));
+                            fs = fs.concat(getFeatures(d));
                         });
                     }
                     else if (d._children) {
@@ -832,7 +842,7 @@ var ManyLens;
                 this._stack_bar_node
                     .transition().duration(duration)
                     .attr("transform", function (d) { return "translate(" + [d.x, d.y] + ")"; });
-                this._stack_bar_node.selectAll("circle")
+                this._stack_bar_node.selectAll("circle.just_a_node")
                     .filter(function (d) { return d.children || d._children; })
                     .transition().duration(duration)
                     .style("fill", function (d) { return d._children ? "#fff" : "#E87E04"; });
@@ -851,6 +861,9 @@ var ManyLens;
                             var scale = sumLength(d);
                             return "scale(" + (self._voronoi_scale * Math.sqrt(scale) * 0.9) + ")";
                         });
+                        //tempVoronoi.append('circle')
+                        //    .attr('class', 'background-circle')
+                        //    .attr('r', constR)
                         tempVoronoi.append('path')
                             .attr('class', 'entropy-ring')
                             .attr('d', function () {
@@ -859,7 +872,7 @@ var ManyLens;
                         });
                         // .attr( 'transform', "scale(" + ( 1 / self._voronoi_scale ) + ")" );
                         tempVoronoi.selectAll(".cell")
-                            .data(fs)
+                            .data(fs, function (d) { return d.id; })
                             .enter().append("g")
                             .attr("class", "cell")
                             .append("path")
@@ -915,9 +928,13 @@ var ManyLens;
                 exitNode
                     .transition().duration(duration)
                     .each('end', function (d) {
-                    d3.select("#curve-subView").each(function () {
-                        this.appendChild(document.getElementById("cells_group" + d.id));
-                    });
+                    console.log("==========exit end");
+                    console.log(d);
+                    if (d.date) {
+                        d3.select("#curve-subView").each(function () {
+                            this.appendChild(document.getElementById("cells_group" + d.id));
+                        });
+                    }
                 })
                     .attr("transform", function (d) {
                     if (exitParent) {
@@ -928,7 +945,7 @@ var ManyLens;
                 })
                     .remove();
                 exitNode.selectAll("g.cells").transition().style('opacity', 1e-6);
-                exitNode.select("circle").transition().attr("r", 1e-6);
+                exitNode.select("circle.just_a_node").transition().attr("r", 1e-6);
                 exitNode.select("text").transition().style("fill-opacity", 1e-6);
                 //Links
                 this._stack_bar_link = this._subView.selectAll(".stack.link")
@@ -969,7 +986,9 @@ var ManyLens;
                     case 1: stackType = "-hour" + date.getHours() + stackType;
                     case 0: stackType = "-day" + date.getDate() + stackType;
                 }
-                return "" + (this._manyLens.TimeSpan === 0 ? "-year" + date.getFullYear() + "-mounth" + date.getMonth() + stackType : stackType);
+                return "" + (this._manyLens.TimeSpan === 0 ?
+                    "-year" + date.getFullYear() + "-mounth" + date.getMonth() + stackType :
+                    (this._manyLens.TimeSpan === 1 || this._manyLens.TimeSpan === 2) ? "-mounth" + date.getMonth() + stackType : stackType);
                 // return "" + ;
             };
             Curve.prototype.RefreshGraph = function (point) {
@@ -1057,8 +1076,7 @@ var ManyLens;
                             fs.sort(function (a, b) {
                                 if (a.feature_type > b.feature_type)
                                     return -1;
-                                else
-                                    return 1;
+                                return 1;
                             });
                             //circle type
                             this.CalVoronoi(fs, constR);
@@ -1079,6 +1097,9 @@ var ManyLens;
                                 _this.SelectSegment(d);
                             });
                             section['fs'] = fs;
+                            cellsGroup.append('circle')
+                                .attr('class', 'background-circle')
+                                .attr('r', constR);
                             cellsGroup.selectAll(".cell")
                                 .data(fs)
                                 .enter().append("g")
@@ -1096,6 +1117,16 @@ var ManyLens;
                                 .style("stroke-width", .0)
                                 .on('mouseout', function (d) {
                                 d3.select(this.parentNode.parentNode).select("#cell-tip").remove();
+                                d3.select(this.parentNode.parentNode)
+                                    .select('.background-circle')
+                                    .style({
+                                    'stroke': '#039BE5',
+                                    'stroke-width': '4px',
+                                    'opacity': '1e-6'
+                                });
+                                d3.select(this.parentNode.parentNode)
+                                    .select('.entropy-ring')
+                                    .style({ 'fill': '#546E7A' });
                             })
                                 .on('mouseover', function (d) {
                                 var mouse = d3.mouse(this);
@@ -1105,6 +1136,16 @@ var ManyLens;
                                     .attr('y', mouse[1])
                                     .attr('id', 'cell-tip')
                                     .text(d.feature_type + ":" + d.feature_value);
+                                d3.select(this.parentNode.parentNode)
+                                    .select('.background-circle')
+                                    .style({
+                                    'stroke': '#039BE5',
+                                    'stroke-width': '4px',
+                                    'opacity': '1'
+                                });
+                                d3.select(this.parentNode.parentNode)
+                                    .select('.entropy-ring')
+                                    .style({ 'fill': '#fff' });
                             });
                         }
                     }
@@ -1153,20 +1194,18 @@ var ManyLens;
                 nodes.exit().remove();
                 // move the main view
                 if (this._data.length > (this._section_num + 2)) {
-                    cells
-                        .attr("transform", function (d) {
+                    cells.attr("transform", function (d) {
                         var ty = self._y_scale(d.pathPoints[1].value) + 30; //d3.select( this ).attr( 'tY' );
                         return "translate(" + self._x_scale(d.end - 1) + "," + ty + ")";
                     });
-                    d3.transition().duration(50) //this time-step should be equale to the time step of AddPoint() in server.hub
+                    d3.transition().duration(200) //this time-step should be equale to the time step of AddPoint() in server.hub
                         .each(function () {
                         _this._mainView
                             .attr("transform", null)
                             .transition()
                             .ease("linear")
                             .attr("transform", "translate(" + (_this._x_scale(0) - _this._x_scale(1)) + ",0)");
-                        cells
-                            .transition()
+                        cells.transition()
                             .ease("linear")
                             .attr("transform", function (d) {
                             var ty = self._y_scale(d.pathPoints[1].value) + 30; //d3.select( this ).attr( 'tY' );
@@ -1175,8 +1214,7 @@ var ManyLens;
                     });
                 }
                 else {
-                    cells
-                        .attr("transform", function (d) {
+                    cells.attr("transform", function (d) {
                         var ty = self._y_scale(d.pathPoints[1].value) + 30; //d3.select( this ).attr( 'tY' );
                         return "translate(" + self._x_scale(d.end - 1) + "," + ty + ")";
                     });
@@ -2419,6 +2457,13 @@ var ManyLens;
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "showVisMap", this.ShowVisMap);
                 this._manyLens.ManyLensHubRegisterClientFunction(this, "updateVisMap", this.UpdateVisMap);
             }
+            Object.defineProperty(SOMMap.prototype, "MapIDs", {
+                get: function () {
+                    return this._mapIDs;
+                },
+                enumerable: true,
+                configurable: true
+            });
             SOMMap.prototype.init = function () {
                 var _this = this;
                 this._element.on("dblclick", null);
@@ -2689,6 +2734,19 @@ var ManyLens;
                     .attr("id", function (d) { return "mapSvg" + d.mapID; })
                     .attr("class", "som-map")
                     .attr("transform", "translate(" + [this._translate_x, this._translate_y] + ")scale(" + this._scale + ")");
+                /*=============Map metaInfo===================*/
+                svg.append('text')
+                    .attr('y', this._top_offset)
+                    .attr('x', this._left_offset + 16 * this._unit_width)
+                    .attr('text-anchor', 'middle')
+                    .text(function () { return new Date(+visData.mapID.substr(0, 4), +visData.mapID.substr(4, 2), +visData.mapID.substr(6, 2), +visData.mapID.substr(8, 2), +visData.mapID.substr(10, 2), +visData.mapID.substr(12, 2)).toLocaleString(); });
+                svg.append('text')
+                    .attr('y', this._top_offset + 16 * this._unit_height)
+                    .attr('x', this._left_offset + 16 * this._unit_width)
+                    .attr('text-anchor', 'middle')
+                    .attr('alignment-baseline', 'hanging')
+                    .text(visData.unitsData.reduce(function (sum, d) { return sum + d.value; }, 0) + ' tweets');
+                /*=============Map metaInfo===================*/
                 svg.selectAll("rect.unit")
                     .data(visData.unitsData, function (d) { return d.unitID; })
                     .enter().append("rect")
@@ -2721,12 +2779,8 @@ var ManyLens;
                     .attr("x", function (d) { return _this._left_offset + d.x * _this._unit_width; })
                     .attr("y", function (d) { return _this._top_offset + d.y * _this._unit_height; })
                     .attr("dy", function (d) { return _this._unit_width; })
-                    .attr({
-                    "class": "map label"
-                })
-                    .style("font-size", function (d) {
-                    return fontSizeScale(d.value) + "px";
-                })
+                    .attr("class", "map label")
+                    .style("font-size", function (d) { return fontSizeScale(d.value) + "px"; })
                     .text(function (d) { return d.label; });
                 console.log(visData);
                 //Add the hightlight and contextmenu layout
@@ -2749,6 +2803,34 @@ var ManyLens;
                     .on("contextmenu", function (d) {
                     _this.ContextMenu(d.mapID);
                     d3.event.preventDefault();
+                })
+                    .on("mouseout", function (d) {
+                    d3.select("#curve-subView")
+                        .select("#cells_group" + d.mapID)
+                        .select('.background-circle')
+                        .style({
+                        'stroke': '#039BE5',
+                        'stroke-width': '4px',
+                        'opacity': '1e-6'
+                    });
+                    d3.select("#curve-subView")
+                        .select("#cells_group" + d.mapID)
+                        .select('.entropy-ring')
+                        .style({ 'fill': '#546E7A' });
+                })
+                    .on("mouseover", function (d) {
+                    d3.select("#curve-subView")
+                        .select("#cells_group" + d.mapID)
+                        .select('.background-circle')
+                        .style({
+                        'stroke': '#039BE5',
+                        'stroke-width': '4px',
+                        'opacity': '1'
+                    });
+                    d3.select("#curve-subView")
+                        .select("#cells_group" + d.mapID)
+                        .select('.entropy-ring')
+                        .style({ 'fill': '#fff' });
                 });
                 //Whether to add the connection link
                 if (classifierID) {
@@ -3016,7 +3098,10 @@ var ManyLens;
                 console.log("No hub");
                 this._manyLens_hub = new ManyLens_1.Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("pullInterval", id, classifierID);
+            if (this._SOM_mapArea.MapIDs.indexOf(id) === -1) {
+                return this._manyLens_hub.proxy.invoke("pullInterval", id, classifierID);
+            }
+            return $.Deferred().resolve();
             //return this._manyLens_hub.server.pullInterval(id);
         };
         ManyLens.prototype.ManyLensHubServerTestPullInterval = function (id) {
@@ -4189,10 +4274,10 @@ var ManyLens;
                 this._color = d3.scale.quantize();
                 this._projection
                     .precision(.1)
-                    .scale(76)
+                    .scale(1076)
                     .rotate([0, 0])
                     .center([-0.6, 38.7])
-                    .translate([0, -30]);
+                    .translate([50, 300]);
                 this._path
                     .projection(this._projection);
                 this._color
@@ -4254,17 +4339,17 @@ var ManyLens;
                     return;
                 this._lens_circle
                     .attr("d", function () {
-                    return "M" + -(2.5 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
-                        + "L" + -(2.5 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
-                        + "L" + (2.5 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
-                        + "L" + (2.5 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
+                    return "M" + -(1 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
+                        + "L" + -(1 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
+                        + "L" + (1 * _this._lens_circle_radius) + "," + _this._lens_circle_radius
+                        + "L" + (1 * _this._lens_circle_radius) + "," + -_this._lens_circle_radius
                         + "Z";
                 });
                 if (this._map_data) {
                     this._lens_circle_svg.append("g")
                         .attr("id", "country")
                         .selectAll("path")
-                        .data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.countries).features)
+                        .data(topojson.feature(this._map_data.raw, this._map_data.raw.objects.subunits).features)
                         .enter().append("path")
                         .attr("d", this._path)
                         .attr("fill", function (d) {
@@ -4277,16 +4362,16 @@ var ManyLens;
                             _this.ClickedMap(d);
                     });
                     this._lens_circle_svg.append("path")
-                        .datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.countries, function (a, b) { return a !== b; }))
+                        .datum(topojson.mesh(this._map_data.raw, this._map_data.raw.objects.subunits, function (a, b) { return a !== b; }))
                         .attr("id", "state-borders")
                         .attr("d", this._path);
                 }
                 else {
-                    d3.json("./testData/countriesAlpha2.topo.json", function (error, mapData) {
+                    d3.json("./testData/uk.json", function (error, mapData) {
                         _this._map_data = {
                             raw: mapData,
                         };
-                        var pathData = topojson.feature(mapData, mapData.objects.countries);
+                        var pathData = topojson.feature(mapData, mapData.objects.subunits);
                         _this._lens_circle_svg.append("g")
                             .attr("id", "states")
                             .selectAll("path")
@@ -4302,7 +4387,7 @@ var ManyLens;
                             _this.ClickedMap(d);
                         });
                         _this._lens_circle_svg.append("path")
-                            .datum(topojson.mesh(mapData, mapData.objects.countries, function (a, b) { return a !== b; }))
+                            .datum(topojson.mesh(mapData, mapData.objects.subunits, function (a, b) { return a !== b; }))
                             .attr("id", "state-borders")
                             .attr("d", _this._path);
                     });
@@ -5231,6 +5316,7 @@ var ManyLens;
                 this._path = d3.geo.path();
                 this._color = d3.scale.sqrt();
                 this._world_topojson_path = "./testData/countriesAlpha2.topo.json";
+                this._uk_topojson_path = "./testData/uk.json";
                 this._zoom = d3.behavior.zoom();
                 this._element.attr("height", function () {
                     var parentRect = this.parentNode.getBoundingClientRect();
@@ -5344,17 +5430,19 @@ var ManyLens;
                     });
                 }
                 else {
-                    d3.json(this._world_topojson_path, function (error, world) {
-                        _this._world_topojson_data = topojson.feature(world, world.objects.countries);
+                    d3.json(this._uk_topojson_path, function (error, world) {
+                        _this._world_topojson_data = topojson.feature(world, world.objects.subunits);
                         // Compute the bounds of a feature of interest, then derive scale & translate.
                         var bounds = _this._path.bounds(_this._world_topojson_data);
-                        var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / _this._total_width, (bounds[1][1] - bounds[0][1]) / (_this._total_height));
+                        console.log(bounds);
+                        var s = 0.99 / Math.max((bounds[1][0] - bounds[0][0]) / _this._total_width, ((bounds[1][1] - bounds[0][1]) * 1) / (_this._total_height));
                         _this._center_xy = [(_this._total_width - s * (bounds[1][0] + bounds[0][0])) / 2, (_this._total_height - s * (bounds[1][1] + bounds[0][1])) / 2];
                         _this._projection
                             .scale(s)
                             .translate(_this._center_xy);
                         _this._map = _this._element.append("g")
                             .attr("id", "world-countries");
+                        console.log(_this._world_topojson_data);
                         _this._map.selectAll("path")
                             .data(_this._world_topojson_data.features, function (d) { return d.id; })
                             .enter()

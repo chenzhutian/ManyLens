@@ -13,7 +13,7 @@ module ManyLens {
         private _nav_sideBarView_id: string = "sidebar-nav";
         private _nav_sideBarView: D3.Selection;
         private _nav_sideBar: Navigation.SideBarNavigation;
-        private _nav_sideBar_timeSpan:number = 3;//0:Day, 1:Hour, 2:Minute,3:Second
+        private _nav_sideBar_timeSpan: number = 3;//0:Day, 1:Hour, 2:Minute,3:Second
 
         private _curveView_id: string = "curveView";
         private _curveView: D3.Selection;
@@ -23,7 +23,7 @@ module ManyLens {
         private _mapSvg: D3.Selection;
         private _SOM_mapArea: MapArea.SOMMap;
         private _GEO_mapArea: MapArea.WorldMap;
-        private _geo_map_mode:boolean = false;
+        private _geo_map_mode: boolean = false;
         private _current_map;
 
         // private _historyView_id: string = "historyView";
@@ -36,8 +36,8 @@ module ManyLens {
         private _lens: Map<string, Lens.BaseD3Lens> = new Map<string, Lens.BaseD3Lens>();
         private _lens_id_generator: number = 0;
         // private _lens_count: number = 0;
-        
-        private _current_classifier_map_id:string = null;
+
+        private _current_classifier_map_id: string = null;
 
         public get LensIDGenerator(): number {
             return this._lens_id_generator++;
@@ -45,17 +45,17 @@ module ManyLens {
         public get LensCount(): number {
             return this._lens.size;
         }
-        public get CurrentClassifierMapID():string{
+        public get CurrentClassifierMapID(): string {
             return this._current_classifier_map_id;
         }
-        public set CurrentClassifierMapID(value:string){
+        public set CurrentClassifierMapID(value: string) {
             this._current_classifier_map_id = value;
         }
-        public set TimeSpan(index:number){
-            this._nav_sideBar_timeSpan = index;    
+        public set TimeSpan(index: number) {
+            this._nav_sideBar_timeSpan = index;
         }
-        public get TimeSpan(){
-            return this._nav_sideBar_timeSpan;    
+        public get TimeSpan() {
+            return this._nav_sideBar_timeSpan;
         }
 
         constructor() {
@@ -67,7 +67,7 @@ module ManyLens {
             this._SOM_mapArea = new MapArea.SOMMap(this._mapSvg, this);
             this._SOM_mapArea.Render();
 
-            this._GEO_mapArea = new MapArea.WorldMap(this._mapSvg,this);
+            this._GEO_mapArea = new MapArea.WorldMap(this._mapSvg, this);
             //this._GEO_mapArea.Render();
 
             //var listViewContainer = d3.select("#tweetsView")
@@ -111,21 +111,21 @@ module ManyLens {
             });
         }
 
-        public AddBrushToMap(){
-             this._SOM_mapArea.AddBrush();
+        public AddBrushToMap() {
+            this._SOM_mapArea.AddBrush();
         }
 
-        public SwitchMap(){
+        public SwitchMap() {
             this._SOM_mapArea.Toggle();
             this._GEO_mapArea.Toggle();
             this._geo_map_mode = !this._geo_map_mode;
 
-            if(this._geo_map_mode){
+            if (this._geo_map_mode) {
                 d3.select("div.view-title.view-title-md-red p").text("Geo Map");
-            }else{
+            } else {
                 d3.select("div.view-title.view-title-md-red p").text("Topic Maps");
             }
-            
+
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
@@ -155,7 +155,7 @@ module ManyLens {
             this.ManyLensHubServerRemoveLensData(lens.MapID, lens.ID);
             return lens;
         }
-        
+
         /* -------------------- Hub related Function -----------------------*/
         public ManyLensHubRegisterClientFunction(registerObj: any, funcName: string, func: (...any) => any) {
             if (!this._manyLens_hub) {
@@ -164,7 +164,7 @@ module ManyLens {
             }
             this._manyLens_hub.proxy.on(funcName, function () {
                 func.apply(registerObj, arguments);
-            }); 
+            });
             //this._manyLens_hub.client[funcName] = function () {
             //    func.apply(registerObj, arguments);
             //}
@@ -179,12 +179,12 @@ module ManyLens {
 
         }
 
-        public ManyLensHubServerChangeTimeSpan(index:number):Hub.IPromise<void>{
+        public ManyLensHubServerChangeTimeSpan(index: number): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("changeTimeSpan",index);
+            return this._manyLens_hub.proxy.invoke("changeTimeSpan", index);
         }
 
         public ManyLensHubServerPullPoint(start = null): Hub.IPromise<void> {
@@ -205,12 +205,15 @@ module ManyLens {
             //return this._manyLens_hub.server.testPullPoint();
         }
 
-        public ManyLensHubServerPullInterval(id: string, classifierID:string): Hub.IPromise<void> {
+        public ManyLensHubServerPullInterval(id: string, classifierID: string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("pullInterval", id, classifierID);
+            if (this._SOM_mapArea.MapIDs.indexOf(id) === -1) {
+                return this._manyLens_hub.proxy.invoke("pullInterval", id, classifierID);
+            }
+            return $.Deferred().resolve();
             //return this._manyLens_hub.server.pullInterval(id);
         }
 
@@ -223,21 +226,21 @@ module ManyLens {
             //return this._manyLens_hub.server.testPullInterval(id);
         }
 
-        public ManyLensHubServerRefineMap(mapId:string, mapIndex:number,fromUnitsId:number[],toUnitsID:number[]){
+        public ManyLensHubServerRefineMap(mapId: string, mapIndex: number, fromUnitsId: number[], toUnitsID: number[]) {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("refineTheMap", mapId,mapIndex,fromUnitsId,toUnitsID);
-        
+            return this._manyLens_hub.proxy.invoke("refineTheMap", mapId, mapIndex, fromUnitsId, toUnitsID);
+
         }
 
-        public ManyLensHubServerGetLensData(visMapID:string,lensID:string, unitsID: number[],baseData:string,subData?:string): Hub.IPromise<void> {
+        public ManyLensHubServerGetLensData(visMapID: string, lensID: string, unitsID: number[], baseData: string, subData?: string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, baseData,subData);
+            return this._manyLens_hub.proxy.invoke("getLensData", visMapID, lensID, unitsID, baseData, subData);
             //return this._manyLens_hub.server.getLensData(visMapID,lensID, unitsID, whichData);
         }
 
@@ -251,12 +254,12 @@ module ManyLens {
         }
 
         /*-------------Lens interactivation method-------------*/
-        public ManyLensHubServercWordCloudPieLens(lensID: string, pieKey: string, baseData: string, subData:string): Hub.IPromise<void> {
+        public ManyLensHubServercWordCloudPieLens(lensID: string, pieKey: string, baseData: string, subData: string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {
                 console.log("No hub");
                 this._manyLens_hub = new Hub.ManyLensHub();
             }
-            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, baseData,subData);
+            return this._manyLens_hub.proxy.invoke("cWordCloudPieLens", lensID, pieKey, baseData, subData);
         }
         public ManyLensHubServercMapPieLens(lensID: string, pieKey: string, baseData: string, subData: string): Hub.IPromise<void> {
             if (!this._manyLens_hub) {

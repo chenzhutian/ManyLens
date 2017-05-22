@@ -378,6 +378,20 @@ namespace ManyLens.Models
                 }
             }
 
+            for(int i = 0; i < this.Height; ++i)
+            {
+                for(int j = 0; j < this.Width; ++j)
+                {
+                    Unit unit = this.unitsInMap[i][j];
+                    if(unit != null && !unitsFlat[i][j])
+                    {
+                        List<Unit> tUnits = new List<Unit>();
+                        tUnits.Add(unit);
+                        clusters.Add(tUnits);
+                    }
+                }
+            }
+
             List<int> tCount = new List<int>();
             for (int i = 0; i < this.Height; ++i)
             {

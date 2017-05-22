@@ -130,7 +130,13 @@ namespace Models
                 // Debug.WriteLine("After preproccessing:" + this.Tweets.Count);
                 return this.Tweets.Count;
             }
-        }
+            set
+            {
+                this.fakeTweetsCount = value;
+                this.isFake = true;
+            }
+
+            }
 
         #endregion
         public Term(string date)
@@ -162,7 +168,7 @@ namespace Models
         {
             base.AddTweet(tweet);
         }
-        
+
         public void Preproccessing()
         {
             Preprocessing.TweetsPreprocessor.ProcessTweet(this);

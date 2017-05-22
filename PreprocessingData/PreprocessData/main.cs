@@ -18,42 +18,12 @@ namespace PreprocessingData
     {
         static void Main()
         {
-            string sourceTweetFile = @"..\..\..\..\ManyLens\Backend\DataBase\BritishVote";
+            string sourceTweetFile = @"..\..\..\..\ManyLens\Backend\DataBase\brexit_UK";
             string cacheTermFilePostfix = "ProcessedTermsData";
             string cacheUserFilePostfix = "User";
             string cacheTermFileWithSentimentPostfix = "WithSentiment_";
             SplitTweetsToTerm(sourceTweetFile, cacheUserFilePostfix, cacheTermFilePostfix, cacheTermFileWithSentimentPostfix);
         }
-
-        //public static void combineFile()
-        //{
-        //    StreamReader sr = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0");
-        //    StreamReader sr1 = new StreamReader(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0WithSentiment");
-        //    StreamWriter sw = new StreamWriter(@"..\..\..\..\ManyLens\Backend\DataBase\ProcessedTermsDataebola0WithSentiment_");
-
-        //    while (!sr.EndOfStream)
-        //    {
-        //        string line = sr.ReadLine();
-
-        //        string[] attributes = line.Split(new string[] { "CzTCZT" }, StringSplitOptions.None);
-        //        // attributes[0] = attributes[0].Replace(@"/", "");
-
-        //        if (attributes.Length >= 3)
-        //        {
-        //            sw.WriteLine(sr1.ReadLine());
-        //        }
-        //        else
-        //        {
-        //            sw.WriteLine(line);
-        //        }
-        //    }
-        //    sr.Close();
-        //    sr1.Close();
-        //    sw.Close();
-
-        //    Console.WriteLine("finish all");
-        //    Console.ReadLine();
-        //}
 
         public static void SplitTweetsToTerm(string sourceTweetFile, string cacheUserFilePostfix, string cacheTermFilePostfix, string sentimentPostfix)
         {
@@ -70,9 +40,12 @@ namespace PreprocessingData
             {
                 string line = sr.ReadLine();
                 string[] tweetAttributes = line.Split('\t');
-
+                if (tweetAttributes.Length < 13)
+                {
+                    continue;
+                }
                 //0tweetId \t 1userName \t 2userId \t 3tweetContent \t 4tweetDate \t 5userHomepage \t 6tweetsCount \t 7following 
-                //\t 8follower \t 9V \t 10gpsA \t 11gpsB   \t 12countryName
+                //\t 8follower \t 9V \t 10gpsA \t 11gpsB   \t 12countryName \t 13city name \t 14city region
                 Tweet tweet = null;
                 User user;
                 if (users.ContainsKey(tweetAttributes[2]))
@@ -87,9 +60,9 @@ namespace PreprocessingData
                     users.Add(userId, user);
                 }
                 tweet = new Tweet(tweetAttributes[0], tweetAttributes[3], tweetAttributes[4], tweetAttributes[10], tweetAttributes[11], user);
-                if (tweetAttributes.Length == 13)
+                if (tweetAttributes.Length == 15)
                 {
-                    tweet.CountryName = tweetAttributes[12];
+                    tweet.CountryName = tweetAttributes[14];
                 }
 
                 if (tweet == null) continue;
@@ -120,8 +93,70 @@ namespace PreprocessingData
                     switch (timeSpan)
                     {
                         case 3: date = sec.ToString("D2"); goto case 2;
-                        case 2: date = postDate.Minute.ToString("D2") + date; goto case 1;
-                        case 1: date = postDate.Hour.ToString("D2") + date; goto case 0;
+                        case 2:
+                            {
+                                if(date == "")
+                                {
+                                    if(postDate.Minute > 50)
+                                    {
+                                        date = "50";
+                                    }
+                                    else if(postDate.Minute > 40)
+                                    {
+                                        date = "40";
+                                    }
+                                    else if(postDate.Minute > 30)
+                                    {
+                                        date = "30";
+                                    }
+                                    else if(postDate.Minute > 20)
+                                    {
+                                        date = "20";
+                                    }
+                                    else if(postDate.Minute > 10)
+                                    {
+                                        date = "10";
+                                    }
+                                    else
+                                    {
+                                        date = "00";
+                                    }
+                                }
+                                else
+                                {
+                                    date = postDate.Minute.ToString("D2") + date;
+                                }
+                                goto case 1;
+                            }
+                        case 1:
+                            {
+                                if (date == "")
+                                {
+                                    int minute = 0;
+                                    if (postDate.Minute > 44)
+                                    {
+                                        minute = 45;
+                                    }
+                                    else if (postDate.Minute > 29)
+                                    {
+                                        minute = 30;
+                                    }
+                                    else if (postDate.Minute > 14)
+                                    {
+                                        minute = 15;
+                                    }
+                                    else if (postDate.Minute > 0)
+                                    {
+                                        minute = 0;
+                                    }
+                                    date = postDate.Hour.ToString("D2") + minute.ToString("D2") + date;
+                                }
+                                else
+                                {
+                                    date = postDate.Hour.ToString("D2") + date;
+                                }
+                                goto case 0;
+                            }
                         case 0: date = postDate.Day.ToString("D2") + date; break;
                     }
 
@@ -144,15 +179,24 @@ namespace PreprocessingData
             }
             sr.Close();
 
-            for (int timeSpan = 1; timeSpan < 2; ++timeSpan)
+            for (int timeSpan = 2; timeSpan < 3; ++timeSpan)
             {
                 // return sortedTerm;
-                if(sortedTerms[timeSpan].Count < 5)
+                if (sortedTerms[timeSpan].Count < 5)
                 {
                     continue;
                 }
+
+                string[] dateStr = new string[] { "20160623224500", "20160623223000", "20160623221500", "20160623220000", "20160623214500", "20160623213000", "20160623211500", "20160623210000" };
+                for (int i = 0; i < dateStr.Length; ++i)
+                {
+                    Term term = new Term(dateStr[i]);
+                    term.DTweetsCount = 200 + i;
+                    sortedTerms[timeSpan].Add(dateStr[i], term);
+                }
+
                 DumpTermData(sourceTweetFile + cacheTermFilePostfix + timeSpan, PushPoint(sortedTerms[timeSpan]));
-                calSentiment(sourceTweetFile + cacheTermFilePostfix + timeSpan, sourceTweetFile  + cacheTermFilePostfix + timeSpan +sentimentPostfix);
+                calSentiment(sourceTweetFile + cacheTermFilePostfix + timeSpan, sourceTweetFile + cacheTermFilePostfix + timeSpan + sentimentPostfix);
             }
 
             // Cache the user file
@@ -204,7 +248,7 @@ namespace PreprocessingData
 
             for (int i = p, t = 0; t < tp.Length; i++, t++)
             {
-                Console.WriteLine(i.ToString() + ", " + t.ToString() + ", tpLength:"+tp.Length.ToString());
+                Console.WriteLine(i.ToString() + ", " + t.ToString() + ", tpLength:" + tp.Length.ToString());
                 #region Window open here
                 if (i < tp.Length)
                 {
@@ -269,6 +313,7 @@ namespace PreprocessingData
                 }
                 #endregion
             }
+
             return dateTweetsFreq.Values.ToArray();
         }
 

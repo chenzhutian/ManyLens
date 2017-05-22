@@ -225,8 +225,6 @@ namespace ManyLens.SignalR
 
                     //if (point.id == "20141008000000")
                     //{
-
-
                     //    Debug.WriteLine("Stop please");
                     //}
 
@@ -371,12 +369,11 @@ namespace ManyLens.SignalR
                                 visMapsSortedByTime.Add(visMap.MapDate, new MapPack());
                             }
                             visMapsSortedByTime[visMap.MapDate].clusteringMap = visMap;
+                            visMaps.Add(visMap.VisMapID, visMap);
                         }
 
                         Debug.WriteLine("Entropy : " + interval.Entropy);
                         Debug.WriteLine("Tweets count after preprocessing : " + interval.TweetsCount);
-                        visMaps.Add(visMap.VisMapID, visMap);
-
                     }
                     Clients.Caller.showVisMap(visMap.GetVisData(), classifierID);
 
@@ -487,11 +484,11 @@ namespace ManyLens.SignalR
                             countryName = lens.GetCountryWithMostTweetsAtLengthOf(int.Parse(pieKey));
                             break;
                         }
-                    //case "hashTagsDistribute_tweetLengthDistribute":
-                    //    {
+                        //case "hashTagsDistribute_tweetLengthDistribute":
+                        //    {
 
-                    //        break;
-                    //    }
+                        //        break;
+                        //    }
                 }
 
             });

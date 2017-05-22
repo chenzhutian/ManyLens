@@ -1,6 +1,6 @@
 ﻿html, body {
     height: 100%;
-    background-color: #E8E9EE;
+    background-color: #fff;
     user-select: none;
 }
 
@@ -478,16 +478,15 @@ text.word-cloud {
     margin: 0;
 }
 
-.test{
-    color:#FFF8E1;
-    color:#FFECB3;
-    color:#FFD54F;
-    color:#FFB300;
-    color:#FF6F00;
-
-    color:#C62828;
-    color:#F44336;
-    color:#FAFAFA;
-    color:#A5D6A7;
-    color:#4CAF50;
+.test {
+    color: #FFF8E1;
+    color: #FFECB3;
+    color: #FFD54F;
+    color: #FFB300;
+    color: #FF6F00;
+    color: #C62828;
+    color: #F44336;
+    color: #FAFAFA;
+    color: #A5D6A7;
+    color: #4CAF50;
 }
